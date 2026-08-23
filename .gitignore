@@ -1,0 +1,33 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+local-dirs.json
+release
+
+# 验证体系运行产物 (CDP 截图/临时 esbuild 打包)
+verifier/runs
+verifier/**/_bundle.mjs
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# v185: 开发模式谱面备份输出 (exe 同目录 backup_beatmaps; dev 时落在 app/)
+backup_beatmaps/

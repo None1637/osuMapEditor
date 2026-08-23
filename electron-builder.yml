@@ -1,0 +1,12 @@
+appId: com.osumapeditor.app
+productName: osu! Map Editor
+directories:
+  output: release
+files:
+  - dist/**
+  - electron/**
+  - server/**
+  - package.json
+win:
+  target: portable
+asar: true

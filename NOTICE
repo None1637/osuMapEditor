@@ -1,0 +1,29 @@
+第三方声明 (Third-party Notices)
+==================================
+
+本项目为非官方粉丝作品，与 ppy Pty Ltd 无任何关联。
+"osu!" 名称与标识为 ppy Pty Ltd 的商标。
+
+移植代码 (ported code)
+---------------------
+本项目部分算法与渲染/皮肤逻辑移植自以下 MIT 协议项目，
+版权归原作者所有：
+
+- osu! (lazer) — https://github.com/ppy/osu
+  Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+  涉及: 星数/难度计算 (starrating)、皮肤系统语义 (Legacy skin 变换、
+  slider ball/tick/spinner 行为)、时间轴与编辑器交互行为等。
+
+- osu!framework — https://github.com/ppy/osu-framework
+  Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
+  涉及: 缓动函数公式 (Easing) 等。
+
+MIT 协议全文见各上游仓库；上述移植代码按 MIT 协议要求在此保留版权声明。
+
+内置资源 (bundled assets)
+-------------------------
+public/skin/ 与 public/samples/ 内的 osu! 经典皮肤贴图与 hitsound 采样
+版权属 ppy Pty Ltd，仅作缺省回退用途随附。若您是权利方并要求移除，
+请提 issue 联系。
+
+其余第三方依赖见 package.json，各自遵循其原始许可证。
