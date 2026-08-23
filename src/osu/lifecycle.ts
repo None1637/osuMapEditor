@@ -96,7 +96,8 @@ export function alphaAt(bm: Beatmap, o: HitObject, time: number): number {
 export function isVisibleAt(bm: Beatmap, o: HitObject, time: number): boolean {
   const preempt = arToPreempt(bm.difficulty.ar);
   // v147: 关「打击动画」时单点残留窗口延长到 800ms (否则 240ms 后就被剔除, 看不到残留)
-  const linger = o.type === 'circle' && displaySettings.hitExplosion && !displaySettings.hitAnimation ? HIT_LINGER : HIT_FADE;
+  // v215: 滑条同 — 暂留模式下滑条头/尾圈有独立残留期 (同单点 800ms), 不随滑条身 240ms 淡出被剔除
+  const linger = (o.type === 'circle' || o.type === 'slider') && displaySettings.hitExplosion && !displaySettings.hitAnimation ? HIT_LINGER : HIT_FADE;
   return time >= o.time - preempt && time <= hitObjectEndTime(bm, o) + linger;
 }
 

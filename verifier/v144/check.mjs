@@ -27,7 +27,8 @@ section('缩圈染色 (renderer.ts)');
   const src = readSrc('src/osu/renderer.ts');
   assert(/function drawApproach\(g: CanvasRenderingContext2D, skin: Skin, color: string/.test(src), 'drawApproach 接收 combo 色参数');
   assert(/g\.drawImage\(tintedSprite\(skin\.approachcircle, color\)/.test(src), '缩圈贴图走 tintedSprite 乘算染色 (与 hitcircle 同款, 带缓存)');
-  assert((src.match(/drawApproach\(g, skin, color, /g) || []).length === 2, '两个调用点 (单点 + 滑条头) 均传 color');
+  // v215 适配: 滑条头新增暂留贴边分支 (pinned) + else 分支, 调用点 2 → 4
+  assert((src.match(/drawApproach\(g, skin, color, /g) || []).length === 4, '四个调用点 (单点 + 滑条头暂留贴边/常规/兜底) 均传 color');
   assert(!/drawImage\(skin\.approachcircle/.test(src), '不再直接画未染色的 approachcircle');
 }
 
@@ -47,8 +48,8 @@ section('store.ts: 音量总线接线');
   assert(/volumePanelOpen = false;/.test(src) && /setVolumePanelOpen/.test(src), '面板开关');
   assert(/setVolume\(k: keyof VolumeSettings, v: number\) \{ applyVolume\(k, v\); this\.applyVolumeBuses\(\); this\.emitSelection\(\); \}/.test(src), 'setVolume: 持久化 + 同步总线 + 重绘');
   assert(/private ensureMusicBus\(\): GainNode/.test(src) && /this\.musicBus\.gain\.value = musicGain\(\)/.test(src), '音乐总线 (增益 = 主×歌曲)');
-  assert(/src\.connect\(this\.ensureMusicBus\(\)\)/.test(src), '常速 source 经音乐总线');
-  assert(/an\.connect\(this\.ensureMusicBus\(\)\)/.test(src), '变速 tempoNode 经音乐总线');
+  assert(/sg\.connect\(this\.ensureMusicBus\(\)\)/.test(src), '常速 source 经 sourceGain → 音乐总线 (v216: 中间插 per-source 增益)');
+  assert(/g\.connect\(this\.ensureMusicBus\(\)\)/.test(src), '变速 tempoNode 经 tempoGain → 音乐总线 (v216: 中间插支路增益)');
   assert(/this\.hitBus\.gain\.value = HITSOUND_BUS_GAIN \* effectsGain\(\)/.test(src), 'hitsound 总线增益 = 0.8 × 主×音效 (v101 余量保留)');
   assert(/this\.audio\.volume = musicGain\(\)/.test(src), '兜底 <audio> 音量');
   assert(/private applyVolumeBuses\(\)/.test(src) && /if \(this\.hitBus\) this\.hitBus\.gain\.value = HITSOUND_BUS_GAIN \* effectsGain\(\);/.test(src), 'applyVolumeBuses 同步现存总线');

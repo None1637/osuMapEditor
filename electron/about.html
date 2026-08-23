@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src data:">
+<title>关于 osu! Map Editor</title>
+<style>
+  body {
+    margin: 0; padding: 28px 32px;
+    background: #101016; color: #d8d8e0;
+    font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+    user-select: none; cursor: default;
+  }
+  h1 { font-size: 20px; margin: 0 0 4px; color: #fff; }
+  .ver { color: #8a8a96; font-size: 13px; margin-bottom: 14px; }
+  p { font-size: 13px; line-height: 1.7; margin: 0 0 10px; }
+  .links { margin-top: 18px; display: flex; flex-direction: column; gap: 10px; }
+  a {
+    display: block; padding: 10px 14px; border-radius: 6px;
+    background: #1c1c26; border: 1px solid #333340;
+    color: #6cb6ff; text-decoration: none; font-size: 13px;
+  }
+  a:hover { background: #262633; border-color: #4a4a5a; }
+  a small { display: block; color: #8a8a96; margin-top: 2px; }
+  .fine { color: #666672; font-size: 11px; margin-top: 18px; }
+</style>
+</head>
+<body>
+  <h1>osu! Map Editor</h1>
+  <div class="ver">版本 <span id="ver">?</span>（Web / Windows 桌面版）</div>
+  <p>对标 osu!lazer 的 osu!standard 谱面编辑器，React + TypeScript + Vite 实现。</p>
+  <p>本项目为非官方粉丝作品，与 ppy Pty Ltd 无任何关联；&quot;osu!&quot; 为 ppy Pty Ltd 的商标。代码以 MIT 协议发布。</p>
+  <div class="links">
+    <a href="https://github.com/None1637/osuMapEditor" target="_blank">
+      GitHub 源码仓库
+      <small>github.com/None1637/osuMapEditor</small>
+    </a>
+    <a href="https://github.com/None1637/osuMapEditor/releases" target="_blank">
+      Releases 下载页（最新便携版 exe）
+      <small>github.com/None1637/osuMapEditor/releases</small>
+    </a>
+  </div>
+  <div class="fine">部分内容移植自 ppy/osu 与 ppy/osu-framework (MIT)，详见仓库 NOTICE。</div>
+<script>
+  // 版本号由主进程经 query 传入 (?v=...)
+  document.getElementById('ver').textContent = new URLSearchParams(location.search).get('v') || '?';
+</script>
+</body>
+</html>

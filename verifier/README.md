@@ -1756,3 +1756,24 @@
 - 问题: 框选/拖拽经过顶栏「音量」「显示设置」等 UI 文本时, 浏览器进入原生文本选择态, 干扰框选交互。
 - 修复 (src/index.css): body 全局 user-select: none; input/textarea/contenteditable 保持 user-select: text (输入编辑不受影响)。工程内大部分组件本就有 select-none, 此处兜底全局。
 - 验证: verifier/v214 (check: CSS 规则断言); vite build 通过; 回归全绿 (v60 除外)。
+
+## v215 暂留模式 (关打击动画) 滑条头/尾圈同单点淡出, 不随滑条身一起消失
+- 问题: 关「note 打击动画」(点击特效开, 即暂留模式) 时, 滑条头/尾圈随滑条身一起消失 (身体 240ms 淡出后整体剔除), 不像单点那样命中后原大小 800ms 渐隐。
+- lifecycle.ts: isVisibleAt 暂留窗口 (hitExplosion 开 + hitAnimation 关 → HIT_LINGER 800ms) 从单点扩到滑条 — 头/尾圈残留期不被 240ms 窗口剔除; alphaAt 不动 (滑条身仍按「滑条渐出」开关 240ms/立即消失)。
+- renderer.ts: 新增 sliderTailLingerAlpha(dtEnd) 纯函数 (暂留模式下结束时刻 = 尾圈命中, 800ms 线性渐隐, 非暂留/未结束 null); renderPlayfield 暂留滑条 alpha<=0 不剔除, drawSlider 新增 nodeLinger 参数;
+  - 头圈: 暂留模式命中后 (dt>=0) 独立 alpha (sliderHeadHitState, 不再乘滑条身 alpha — 短滑条身先没头圈继续渐隐), 缩圈同单点贴边 (pinAfterHit, v183 语义), 本体变白 (沿用 v203);
+  - 尾圈: 暂留模式结束后独立 alpha 0.5×渐隐 + 变白 (同单点 v200), 不随滑条身淡出; 其他模式 (打击动画开/点击特效关) 行为完全不变。
+- 适配: v147 (滑条可见窗口断言改结束+800ms + isVisibleAt 源码断言适配), v144 (drawApproach 调用点 2→4)。
+- 验证: verifier/v215 (tests: 尾圈渐隐曲线/非暂留 null/头暂留回归/滑条窗口延长与边界; check: 接线断言)。
+- 回归: 全绿 (v60 除外); tsc 通过。
+
+## v216 播放中滚轮 seek 音质修复 — 总线 dip 改 per-source 交叉淡变
+- 问题: 播放中滚轮 seek 后音乐听起来破碎/发闷 (类低码率/削频); 暂停再播放正常。
+- 根因: seekWhilePlaying 每个滚轮步进都对共享 musicBus 增益 setTargetAtTime(0, τ=1.5ms) 瞬时拉零再恢复; 滚轮连击 = 全轨反复静音, 且下一次 cancelScheduledValues 会截断恢复斜坡使增益长时间偏低。暂停→播放路径不动总线增益, 故正常。
+- 修复 (store.ts):
+  - 新增 sourceGain (每条常速 source 独立增益) / tempoGain (变速支路独立增益);
+  - seekWhilePlaying: 移除总线 dip — 旧 source 经其 sourceGain ~12ms 淡出后 stop(now+50ms), 新 source 经新 sourceGain 从 0 起 ~10ms 淡入 (交叉淡变); 变速支路 dip 只作用 tempoGain (恢复目标 1, 非 musicGain);
+  - play(): 常速 source 同样经 sourceGain (启动 ~10ms 淡入防咔哒); stopSource 释放 sourceGain; ensureTempoNode 接线改 node→analyser→tempoGain→音乐总线; setAudio 换歌清空 tempoGain。
+- 适配: v193 (总线 dip 断言 → 交叉淡变断言), v144 (source/tempoNode 直连总线断言 → 经中间增益)。
+- 验证: verifier/v216 (字段/交叉淡变/变速支路/播放接线/释放/既有语义回归断言)。
+- 回归: v101/v122/v144/v193/v198/v215/v216 全绿; tsc 通过。

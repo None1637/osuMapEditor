@@ -49,7 +49,8 @@ section('关打击动画: 残留 800ms 线性渐隐');
   assert(isVisibleAt(bm, c, 1000 + 799) && !isVisibleAt(bm, c, 1000 + 801), '可见窗口延长到命中 + 800ms');
   // 滑条不受打击动画开关影响 (仍走 240ms 渐出)
   assert(near(alphaAt(bm, s, 1500 + 120), 0.5), `滑条结束 +120ms alpha=0.5 (实际 ${alphaAt(bm, s, 1620)})`);
-  assert(!isVisibleAt(bm, s, 1500 + 241), '滑条可见窗口仍 240ms');
+  // v215 适配: 滑条身体 alpha 仍 240ms 渐出 (上行不变), 但暂留模式可见窗口延长到结束+800ms (头/尾圈独立残留)
+  assert(isVisibleAt(bm, s, 1500 + 800) && !isVisibleAt(bm, s, 1500 + 801), '滑条可见窗口延长到结束+800ms (v215: 头/尾圈独立残留)');
   setDisplayFlag('hitAnimation', true);
 }
 

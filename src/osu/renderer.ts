@@ -192,7 +192,9 @@ export function renderPlayfield(rc: RenderCtx, pending?: { x: number; y: number;
     const o = visible[i];
     const dt = time - o.time;
     const alpha = alphaAt(bm, o, time);
-    if (alpha <= 0) continue;
+    // v215: 暂留模式 (打击动画关) 滑条头/尾圈有独立残留期 — 滑条身 alpha 归零后仍要画头/尾, 不剔除
+    const sliderNodeLinger = o.type === 'slider' && displaySettings.hitExplosion && !displaySettings.hitAnimation;
+    if (alpha <= 0 && !sliderNodeLinger) continue;
     // 单点命中后的爆炸放大系数; v147: 关「打击动画」时不放大 (原大小残留 800ms 渐隐由 lifecycle.alphaAt 负责)
     const hitFade = o.type === 'circle' && dt >= 0 && displaySettings.hitAnimation ? dt / 240 : 0;
 
@@ -203,7 +205,7 @@ export function renderPlayfield(rc: RenderCtx, pending?: { x: number; y: number;
     const color = comboColor(bm, displaySettings.skinColors ? ci.combo : ci.comboWithOffset, displaySettings.skinColors ? rc.skin.comboColors : undefined); // v132: 皮肤颜色开关
 
     if (o.type === 'circle') drawCircle(rc, o, radius, color, ci.index, dt, preempt, hitFade);
-    else if (o.type === 'slider') drawSlider(rc, o, radius, color, ci.index, dt, preempt);
+    else if (o.type === 'slider') drawSlider(rc, o, radius, color, ci.index, dt, preempt, sliderNodeLinger);
     else drawSpinner(rc, o, dt, preempt);
     g.restore();
 
@@ -513,6 +515,15 @@ export function sliderHeadHitState(dt: number): { alpha: number; scale: number }
   return { alpha: Math.max(0, 1 - dt / HIT_LINGER), scale: 1 };
 }
 
+// v215: 暂留模式 (点击特效开 + 打击动画关) 滑条尾圈残留透明度 — 滑条结束时刻视作尾圈命中,
+// 原大小 HIT_LINGER(800ms) 线性渐隐 (与单点/滑条头同款), 不随滑条身淡出;
+// 非暂留模式/结束前返回 null = 尾圈随滑条身 alpha (旧行为)
+export function sliderTailLingerAlpha(dtEnd: number): number | null {
+  if (!displaySettings.hitExplosion || displaySettings.hitAnimation) return null;
+  if (dtEnd < 0) return null;
+  return Math.max(0, 1 - dtEnd / HIT_LINGER);
+}
+
 // v204: tick 出现时刻的 preempt — lazer SliderTick.ApplyDefaultsToSelf:
 //   TimePreempt = (tickTime - spanStart)/2 + offset; offset = spanIndex>0 ? 200 (含 stable 偏移) : preempt*0.66
 // 即首段 tick 在缩圈进程约 2/3 处出现, 后续 span 的 tick 在 span 开始前 200ms 起逐渐出现 (stable 同款)
@@ -532,7 +543,7 @@ export function sliderTickState(time: number, tickTime: number, spanStart: numbe
   return { alpha: fadeIn * fadeOut, scale };
 }
 
-function drawSlider(rc: RenderCtx, o: HitObject, r: number, color: string, num: number, dt: number, preempt: number) {
+function drawSlider(rc: RenderCtx, o: HitObject, r: number, color: string, num: number, dt: number, preempt: number, nodeLinger = false) {
   const { g, bm, skin, time } = rc;
   const path = getSliderPath(bm, o);
   const vel = sliderVelocityAt(bm.timingPoints, o.time, bm.difficulty.sliderMultiplier);
@@ -587,7 +598,20 @@ function drawSlider(rc: RenderCtx, o: HitObject, r: number, color: string, num: 
   // v178: 被点击后 (dt>=0) 头圈按 sliderHeadHitState 淡出/放大, 不再常显
   // v150: sliderstart/endcircle 同按贴图固有尺寸显示 (见 drawCircle)
   const hs = sliderHeadHitState(dt);
-  if (hs.alpha > 0) {
+  if (nodeLinger && dt >= 0) {
+    // v215: 暂留模式命中后头圈独立残留 — 不随滑条身 alpha 归零 (短滑条身先没, 头圈继续渐隐);
+    //       缩圈同单点贴边 (v183 pinAfterHit), 透明度继承头圈
+    if (hs.alpha > 0) {
+      const cw = (img: SkinImage) => size * hs.scale * hitcircleSpriteWidth(img) / 128;
+      g.save();
+      g.globalAlpha = hs.alpha;
+      drawSprite(g, tintedSprite(skin.sliderstartcircle, '#ffffff'), o.x, o.y, cw(skin.sliderstartcircle));
+      drawSprite(g, skin.sliderstartcircleoverlay, o.x, o.y, cw(skin.sliderstartcircleoverlay));
+      drawNumber(g, skin, num, o.x, o.y, size * hs.scale);
+      drawApproach(g, skin, color, o.x, o.y, size, dt, preempt, true);
+      g.restore();
+    }
+  } else if (hs.alpha > 0) {
     const cw = (img: SkinImage) => size * hs.scale * hitcircleSpriteWidth(img) / 128;
     // v203: 暂留模式命中后头圈本体同单点变白 (v200 drawCircle 同款)
     const headLinger = displaySettings.hitExplosion && !displaySettings.hitAnimation;
@@ -597,16 +621,31 @@ function drawSlider(rc: RenderCtx, o: HitObject, r: number, color: string, num: 
     drawSprite(g, skin.sliderstartcircleoverlay, o.x, o.y, cw(skin.sliderstartcircleoverlay));
     drawNumber(g, skin, num, o.x, o.y, size * hs.scale);
     g.globalAlpha /= hs.alpha;
+    drawApproach(g, skin, color, o.x, o.y, size, dt, preempt);
+  } else {
+    drawApproach(g, skin, color, o.x, o.y, size, dt, preempt);
   }
-  drawApproach(g, skin, color, o.x, o.y, size, dt, preempt);
 
   // 尾端 (半透明)
   const endP = path.positionAt(slides % 2 === 0 ? 0 : slideLen);
   const ecw = (img: SkinImage) => size * hitcircleSpriteWidth(img) / 128;
-  g.globalAlpha *= 0.5;
-  drawSprite(g, tintedSprite(skin.sliderendcircle, color), endP.x, endP.y, ecw(skin.sliderendcircle));
-  drawSprite(g, skin.sliderendcircleoverlay, endP.x, endP.y, ecw(skin.sliderendcircleoverlay));
-  g.globalAlpha /= 0.5;
+  // v215: 暂留模式尾圈同单点残留 — 滑条结束 = 尾圈命中, 原大小 800ms 线性渐隐 + 变白,
+  //       不随滑条身淡出 (旧行为: 滑条身一没尾圈跟着没)
+  const tailLinger = nodeLinger ? sliderTailLingerAlpha(time - (o.time + duration)) : null;
+  if (tailLinger !== null) {
+    if (tailLinger > 0) {
+      g.save();
+      g.globalAlpha = 0.5 * tailLinger;
+      drawSprite(g, tintedSprite(skin.sliderendcircle, '#ffffff'), endP.x, endP.y, ecw(skin.sliderendcircle));
+      drawSprite(g, skin.sliderendcircleoverlay, endP.x, endP.y, ecw(skin.sliderendcircleoverlay));
+      g.restore();
+    }
+  } else {
+    g.globalAlpha *= 0.5;
+    drawSprite(g, tintedSprite(skin.sliderendcircle, color), endP.x, endP.y, ecw(skin.sliderendcircle));
+    drawSprite(g, skin.sliderendcircleoverlay, endP.x, endP.y, ecw(skin.sliderendcircleoverlay));
+    g.globalAlpha /= 0.5;
+  }
 
   // 身体上的 slidertick 节拍点: v178 渐进显示 (150ms 淡入 + 600ms OutElasticHalf 0.5→1 弹入),
   // 球经过后 150ms 淡出 (既有语义); v204: 出现时刻对齐 lazer SliderTick 公式 (见 sliderTickPreempt)

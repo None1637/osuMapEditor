@@ -41,7 +41,8 @@ section('lifecycle.ts: 800ms 残留渐隐');
   const iExpl = src.indexOf("if (!displaySettings.hitExplosion && o.type === 'circle') return 0;");
   const iAnim = src.indexOf("if (!displaySettings.hitAnimation && o.type === 'circle')");
   assert(iExpl >= 0 && iAnim > iExpl, '点击特效判定在前 (关点击特效 = 立即消失, 优先于打击动画)');
-  assert(/const linger = o\.type === 'circle' && displaySettings\.hitExplosion && !displaySettings\.hitAnimation \? HIT_LINGER : HIT_FADE;/.test(src), 'isVisibleAt: 可见窗口延长到 800ms (仅 点击特效开+打击动画关 的单点)');
+  // v215 适配: 暂留窗口从单点扩到滑条 (头/尾圈独立残留)
+  assert(/const linger = \(o\.type === 'circle' \|\| o\.type === 'slider'\) && displaySettings\.hitExplosion && !displaySettings\.hitAnimation \? HIT_LINGER : HIT_FADE;/.test(src), 'isVisibleAt: 可见窗口延长到 800ms (点击特效开+打击动画关 的单点/滑条)');
 }
 
 section('renderer.ts: 关打击动画时不放大');

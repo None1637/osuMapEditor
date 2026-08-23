@@ -165,6 +165,31 @@ async function createWindow() {
   win.loadURL(`http://127.0.0.1:${port}/`)
 }
 
+// ---------- v215: 关于窗口 (菜单栏「关于」→ 版本/声明 + GitHub 源码与 Releases 链接) ----------
+const APP_VERSION = require("../package.json").version
+let aboutWin = null
+
+function openAboutWindow() {
+  if (aboutWin) { aboutWin.focus(); return }
+  aboutWin = new BrowserWindow({
+    width: 460,
+    height: 480,
+    resizable: false,
+    maximizable: false,
+    parent: win ?? undefined,
+    backgroundColor: "#101016",
+    autoHideMenuBar: true,
+    webPreferences: { contextIsolation: true, nodeIntegration: false },
+  })
+  // 链接一律交给系统浏览器打开, 不在窗口内导航
+  aboutWin.webContents.setWindowOpenHandler(({ url }) => {
+    if (url.startsWith("https://")) shell.openExternal(url)
+    return { action: "deny" }
+  })
+  aboutWin.on("closed", () => { aboutWin = null })
+  aboutWin.loadFile(path.join(__dirname, "about.html"), { query: { v: APP_VERSION } })
+}
+
 // ---------- v77: 原生 "文件" 菜单 (stable 风格) ----------
 // 渲染进程在每次加载谱面后经 "menu-state" 上报: { file, folderRel, title, difficulties: [{file, label}] }
 // folderRel = Songs 内相对路径 (serverFs serverDir.serverRel); 非服务器来源 (拖拽导入) 为 null → 文件夹/记事本项禁用
@@ -365,6 +390,13 @@ function buildMenu() {
         { role: "toggleDevTools", label: "开发者工具" },
         { type: "separator" },
         { role: "quit", label: "退出" },
+      ],
+    },
+    // v215: 关于窗口 (版本/声明 + GitHub 源码与 Releases 链接)
+    {
+      label: "关于",
+      submenu: [
+        { label: `关于 osu! Map Editor (v${APP_VERSION})`, click: openAboutWindow },
       ],
     },
     // (v123: v121 的菜单栏指示器已移除 — 原生菜单项无法右对齐, 改为应用内顶栏最右侧浮层)

@@ -278,11 +278,15 @@ class EditorStore {
   private actx: AudioContext | null = null;
   private audioBuffer: AudioBuffer | null = null;
   private source: AudioBufferSourceNode | null = null;
+  // v216: 每条播放 source 独立的淡入淡出增益 — 播放中 seek 用 per-source 交叉淡变,
+  // 不再 dip 共享音乐总线 (滚轮连击时总线被反复瞬时拉零, 听感破碎/发闷如低码率)
+  private sourceGain: GainNode | null = null;
   // v60: 变速不变调引擎 (lazer AudioAdjustments.Tempo 语义; rate≠1 时启用 signalsmith-stretch 节点)
   private tempoNode: TempoNode | null = null;
   private tempoLoading: Promise<void> | null = null;
   tempoActive = false; // 调试: 当前播放是否经 signalsmith-stretch 引擎
   tempoAnalyser: AnalyserNode | null = null; // 测试挂钩: CDP 频谱验证不变调
+  private tempoGain: GainNode | null = null; // v216: 变速支路独立增益 (seek 防咔哒 dip 只作用此支路)
   private tempoEndTimer: ReturnType<typeof setTimeout> | null = null; // 播完检测 (signalsmith 节点无 ended 回执, 定时器替代)
   private clock: AudioClock | null = null;
   private scheduler: HitSoundScheduler | null = null;
@@ -478,7 +482,7 @@ class EditorStore {
     this.stopSource();
     if (this.audio) { this.audio.pause(); this.audio = null; }
     // 歌曲更换: 旧变速节点持有旧 PCM, 销毁待重建
-    if (this.tempoNode) { try { this.tempoNode.disconnect(); } catch { /* noop */ } this.tempoNode = null; this.tempoAnalyser = null; }
+    if (this.tempoNode) { try { this.tempoNode.disconnect(); } catch { /* noop */ } this.tempoNode = null; this.tempoAnalyser = null; this.tempoGain = null; }
     this.tempoLoading = null;
     this.audioUrl = url;
     this.audioBuffer = null;
@@ -528,9 +532,12 @@ class EditorStore {
         const an = actx.createAnalyser();
         an.fftSize = 4096;
         node.connect(an);
-        an.connect(this.ensureMusicBus()); // v144: 经音乐总线 (音量设置), 不直接接 destination
+        const g = actx.createGain(); // v216: 变速支路独立增益
+        an.connect(g);
+        g.connect(this.ensureMusicBus()); // v144: 经音乐总线 (音量设置), 不直接接 destination
         this.tempoNode = node;
         this.tempoAnalyser = an;
+        this.tempoGain = g;
       } catch (err) {
         console.warn('signalsmith-stretch tempo 节点不可用, 变速将退化为变调', err);
       }
@@ -681,6 +688,7 @@ class EditorStore {
 
   private stopSource() {
     if (this.source) { try { this.source.onended = null; this.source.stop(); } catch { /* noop */ } this.source = null; }
+    if (this.sourceGain) { try { this.sourceGain.disconnect(); } catch { /* noop */ } this.sourceGain = null; } // v216
     if (this.tempoEndTimer) { clearTimeout(this.tempoEndTimer); this.tempoEndTimer = null; }
     if (this.tempoNode) { try { this.tempoNode.stop(); } catch { /* noop */ } }
     this.tempoActive = false;
@@ -1605,8 +1613,11 @@ class EditorStore {
 
   /**
    * 播放中轻量 seek (lazer: 播放中 seek 不 stop/start 轨道, 直接 ChannelSetPosition):
-   * WebAudio 的 AudioBufferSourceNode 无法重定位, 用即时重建模拟 — 无 20ms 启动延迟,
-   * 音乐总线 ~8ms 快速淡出淡入防咔哒;
+   * WebAudio 的 AudioBufferSourceNode 无法重定位, 用即时重建模拟 — 无 20ms 启动延迟;
+   * v216: 防咔哒改为 per-source 交叉淡变 (旧 source ~12ms 淡出, 新 source 经独立
+   * sourceGain ~10ms 淡入; 变速支路只 dip tempoGain) — 不再 dip 共享音乐总线:
+   * 滚轮连击时总线增益被反复瞬时拉零 (且 cancelScheduledValues 会截断恢复斜坡),
+   * 听感 = 全轨断续发闷, 类似低码率/削频;
    * v198: hitsound voices 全停 (lazer seek 期间静音采样) — 否则 lookahead 内已排程的
    * 旧区间音效会照原时刻补响, 听感 = 滚过的物件 hitsound 全部补播。
    */
@@ -1625,10 +1636,14 @@ class EditorStore {
       }
       const startW = actx.currentTime + 0.004;
       const bus = this.ensureMusicBus();
-      bus.gain.cancelScheduledValues(actx.currentTime);
-      bus.gain.setTargetAtTime(0, actx.currentTime, 0.0015);
-      bus.gain.setTargetAtTime(musicGain(), actx.currentTime + 0.005, 0.002);
       if (this.tempoActive && this.tempoNode) {
+        // v216: dip 只作用变速支路自身的 tempoGain, 共享音乐总线保持恒定
+        if (this.tempoGain) {
+          const tg = this.tempoGain.gain;
+          tg.cancelScheduledValues(actx.currentTime);
+          tg.setTargetAtTime(0, actx.currentTime, 0.0015);
+          tg.setTargetAtTime(1, actx.currentTime + 0.005, 0.002);
+        }
         this.tempoNode.schedule({ output: startW, input: offset, rate: this.playbackRate, active: true });
         if (this.tempoEndTimer) { clearTimeout(this.tempoEndTimer); this.tempoEndTimer = null; }
         const endCtx = startW + (this.audioBuffer.duration - offset) / this.playbackRate;
@@ -1643,16 +1658,30 @@ class EditorStore {
           }
         }, Math.max(0, (endCtx - actx.currentTime) * 1000 + 50));
       } else {
-        if (this.source) { try { this.source.onended = null; this.source.stop(); } catch { /* noop */ } }
+        // v216: 交叉淡变 — 旧 source 经其 sourceGain 淡出后停止, 新 source 淡入, 全程无全轨静音
+        const now = actx.currentTime;
+        if (this.source) {
+          try { this.source.onended = null; } catch { /* noop */ }
+          if (this.sourceGain) {
+            this.sourceGain.gain.cancelScheduledValues(now);
+            this.sourceGain.gain.setTargetAtTime(0, now, 0.004);
+          }
+          try { this.source.stop(now + 0.05); } catch { /* noop */ }
+        }
         const src = actx.createBufferSource();
         src.buffer = this.audioBuffer;
         src.playbackRate.value = this.playbackRate;
-        src.connect(bus);
+        const sg = actx.createGain();
+        sg.gain.setValueAtTime(0, now);
+        sg.gain.setTargetAtTime(1, startW, 0.003);
+        src.connect(sg);
+        sg.connect(bus);
         src.start(startW, offset);
         src.onended = () => {
           if (this.source === src) { this.playing = false; this.source = null; this.currentTime = this.songLength(); this.emit(); }
         };
         this.source = src;
+        this.sourceGain = sg;
       }
       this.clock.onStartedAtCtxTime(startW, t);
       this.rebuildEventsIfDirty();
@@ -1705,12 +1734,17 @@ class EditorStore {
         const src = this.actx!.createBufferSource();
         src.buffer = this.audioBuffer;
         src.playbackRate.value = this.playbackRate;
-        src.connect(this.ensureMusicBus()); // v144: 经音乐总线 (音量设置)
+        const sg = this.actx!.createGain(); // v216: per-source 增益 (seek 交叉淡变/启动防咔哒)
+        sg.gain.setValueAtTime(0, this.actx!.currentTime);
+        sg.gain.setTargetAtTime(1, startW, 0.003);
+        src.connect(sg);
+        sg.connect(this.ensureMusicBus()); // v144: 经音乐总线 (音量设置)
         src.start(startW, offset);
         src.onended = () => {
           if (this.source === src) { this.playing = false; this.source = null; this.currentTime = this.songLength(); this.emit(); }
         };
         this.source = src;
+        this.sourceGain = sg;
       }
       clock.rate = this.playbackRate;
       clock.onStartedAtCtxTime(startW, this.currentTime);
