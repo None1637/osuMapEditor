@@ -33,11 +33,19 @@ if not exist node_modules (
 )
 
 rem Electron binary may be missing if the postinstall download failed
-if not exist node_modules\electron\dist\electron.exe (
-  echo [..] downloading Electron binary via mirror...
-  node node_modules\electron\install.js
-  if errorlevel 1 (echo [ERR] Electron binary download failed & pause & exit /b 1)
-)
+rem NOTE: no labels/goto inside a parenthesized if-block - cmd chokes on the ')'
+if exist node_modules\electron\dist\electron.exe goto electron_done
+set "RETRY=0"
+:electron_retry
+echo [..] downloading Electron binary via mirror...
+node node_modules\electron\install.js
+if not errorlevel 1 goto electron_done
+set /a RETRY+=1
+if !RETRY! geq 3 (echo [ERR] Electron binary download failed after 3 attempts & pause & exit /b 1)
+echo [..] download failed ^(network/DNS?^), retrying in 5s... ^(attempt !RETRY!/3^)
+timeout /t 5 /nobreak >nul
+goto electron_retry
+:electron_done
 
 echo [..] building frontend...
 call npm run build
@@ -45,8 +53,18 @@ if errorlevel 1 (echo [ERR] build failed & pause & exit /b 1)
 
 echo [..] packaging portable exe (stage dir: %STAGE%)...
 if exist "%STAGE%" rmdir /s /q "%STAGE%"
+rem npmmirror.com DNS occasionally fails (getaddrinfo ENOTFOUND); downloads are
+rem cached in %LOCALAPPDATA%\electron-builder\Cache, so retries usually succeed
+set "RETRY=0"
+:eb_retry
 call npx electron-builder --win portable -c.directories.output="%STAGE%"
-if errorlevel 1 (echo [ERR] electron-builder failed & pause & exit /b 1)
+if not errorlevel 1 goto eb_ok
+set /a RETRY+=1
+if !RETRY! geq 3 (echo [ERR] electron-builder failed after 3 attempts & pause & exit /b 1)
+echo [..] electron-builder failed ^(network/DNS?^), retrying in 5s... ^(attempt !RETRY!/3^)
+timeout /t 5 /nobreak >nul
+goto eb_retry
+:eb_ok
 
 rem close running instances so the exe in release\ can be replaced
 powershell -Command "Get-Process | Where-Object { $_.Name -like 'osu! Map Editor*' } | Stop-Process -Force" >nul 2>nul

@@ -33,6 +33,7 @@ import { FirstRunWizard } from '@/components/FirstRunWizard';
 import { SkinListPanel } from '@/components/SkinListPanel';
 import { UnsavedDialog } from '@/components/UnsavedDialog'; // v120
 import { TransformDialog } from '@/components/TransformDialog'; // v209: 旋转/缩放独立窗口
+import { FpsCounter } from '@/components/FpsCounter'; // v220: 右下角帧数显示
 
 // v191: 工具按钮文本前加 Lucide 图标
 const TOOLS: { id: Tool; label: string; key: string; icon: typeof MousePointer2 }[] = [
@@ -673,6 +674,8 @@ export default function App() {
       {/* v120: 未保存改动提示 (z 层级最高, 盖住曲库等弹窗) */}
       <UnsavedDialog />
     </div>
+    {/* v220: 右下角帧数显示 — 悬浮于所有控件之上; 挂在 v217 zoom 容器外, 不随界面缩放 */}
+    <FpsCounter />
     </div>
   );
 }
