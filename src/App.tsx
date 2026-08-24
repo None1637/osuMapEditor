@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
 // v181: 图标统一用 Lucide (规范: 界面禁用 emoji 图标, 见 AGENTS.md)
 import { Volume2, Eye, FolderOpen, Palette, Ruler, Lock, LockOpen, Crosshair, Box, Magnet, Settings2, Package, AudioWaveform, Star, Undo2, Redo2, Grid3x3, MousePointer2, Circle, Spline, Disc } from 'lucide-react';
 import { store, useEditor, type Tool } from '@/osu/store';
@@ -90,8 +90,16 @@ function ShiftAllDialog({ onClose }: { onClose: () => void }) {
   );
 }
 
+// ---- v217: 全局等比缩放 — 参数与 canvas 适配工具在 @/osu/uiZoom (共享) ----
+// 窗口变小时四周控件 (页签栏/左右栏/上下时间轴) 与中间游玩区一起等比缩小,
+// 不再只挤压中间 flex-1 区域; zoom 为单一系数, X/Y 永远等比不变形,
+// 不等比余量仍由 flex-1 中间区吸收 (不留白)。canvas 组件经 zoomRect/zoomClientX/Y
+// 在布局空间绘制与命中, 固定 px 内容随整体一致缩放。
+import { useUiZoom } from '@/osu/uiZoom';
+
 export default function App() {
   useEditor();
+  const uiZoom = useUiZoom(); // v217
   const [tab, setTab] = useState<'edit' | 'setup' | 'timing'>('edit');
   // exe 环境启动即进曲库界面 (点难度后进入编辑器); dev/浏览器调试直进编辑界面
   const [showLibrary, setShowLibrary] = useState(() => isElectron());
@@ -354,8 +362,11 @@ export default function App() {
   const bm = store.beatmap;
 
   return (
+    // v217: 外层撑满窗口不缩放; 内层布局尺寸 = 视口/zoom, 经 zoom 缩放后恰好填满窗口
+    <div className="h-screen w-screen overflow-hidden bg-[#0d0d12] text-white relative">
     <div
-      className="h-screen w-screen flex flex-col bg-[#0d0d12] text-white overflow-hidden relative"
+      className="flex flex-col overflow-hidden relative"
+      style={{ zoom: uiZoom, width: `${100 / uiZoom}vw`, height: `${100 / uiZoom}vh` } as CSSProperties}
     >
       {/* v127: 原 h-12 顶部标题行 (粉色加粗标题文字) 已删除 — 无实际功能 */}
 
@@ -660,6 +671,7 @@ export default function App() {
       {showShiftAll && <ShiftAllDialog onClose={() => setShowShiftAll(false)} />}{/* v156 */}
       {/* v120: 未保存改动提示 (z 层级最高, 盖住曲库等弹窗) */}
       <UnsavedDialog />
+    </div>
     </div>
   );
 }

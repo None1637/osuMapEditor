@@ -13,6 +13,7 @@ import { pickTimeNearestHit } from '@/osu/hitPick'; // v154: 重叠命中挑离�
 import { selectionScaleQuad, scaleHandleAnchors, anchorPoint, hitScaleHandle, anchorAxis, dragToScale, anchorOpposite, minimumEnclosingCircleCenter, movablePoints, snapshotScaleStates, applyScaleDrag, selectionBoxVisible, selectionDisplayQuad, hitRotationHandle, rotationHandlePoints, angleDeltaDeg, snapRotation, rotationOrigin, applyRotateDrag, scaledPosition, type ScaleAnchor, type RotateCorner, type ScaleObjectState, type Quad } from '@/osu/selectionBox';
 import { ctrlPoints, nodeEntries, nearestNode, nodesInRect, nodeBounds, withRedPartners, snapshotNodes, transformNodesFromSnapshot } from '@/osu/nodeSelection';
 import { isVisibleAt } from '@/osu/lifecycle';
+import { uiZoom, zoomRect, zoomClientX, zoomClientY, zoomDpr } from '@/osu/uiZoom'; // v217
 import { displaySettings } from '@/osu/displaySettings'; // v168: 背景图亮度
 import { distanceLockRef, distanceLockDistance } from '@/osu/spacing'; // v145
 import { genId, timingAt, csToRadius, arToPreempt, type Beatmap, type HitObject } from '@/osu/parser';
@@ -297,7 +298,7 @@ export function EditorCanvas() {
     if (bm && p && store.tool === 'select') {
       const quads = currentQuads(bm);
       if (quads) {
-        const tol = 10 / viewTransform(c.getBoundingClientRect()).scale;
+        const tol = 10 / uiZoom() / viewTransform(zoomRect(c)).scale; // v217: 10 屏幕(视觉) px → osu px
         const rc = hitRotationHandle(quads.dq, p, tol);
         if (rc) hover = { type: 'rotate', anchor: rc };
         else {
@@ -320,9 +321,9 @@ export function EditorCanvas() {
 
   const toOsu = useCallback((e: { clientX: number; clientY: number }) => {
     const c = canvasRef.current!;
-    const r = c.getBoundingClientRect();
+    const r = zoomRect(c); // v217: 布局空间 (渲染同系)
     const { scale, ox, oy } = viewTransform(r);
-    return { x: (e.clientX - r.left - ox) / scale, y: (e.clientY - r.top - oy) / scale };
+    return { x: (zoomClientX(e.clientX) - r.left - ox) / scale, y: (zoomClientY(e.clientY) - r.top - oy) / scale };
   }, []);
 
   // 暴露给 CDP 测试: osu 坐标 -> client 坐标 / canvas 设备像素 (与渲染/命中共用同一变换, 含 PAD_Y 留白)
@@ -336,14 +337,15 @@ export function EditorCanvas() {
     w.__osuToClient = (x, y) => {
       const c = canvasRef.current;
       if (!c) return null;
-      const r = c.getBoundingClientRect();
+      const r = zoomRect(c); // v217: 布局空间 → 乘 zoom 回视觉 client 坐标
       const { scale, ox, oy } = viewTransform(r);
-      return { x: r.left + ox + x * scale, y: r.top + oy + y * scale };
+      const z = uiZoom();
+      return { x: (r.left + ox + x * scale) * z, y: (r.top + oy + y * scale) * z };
     };
     w.__osuToCanvas = (x, y) => {
       const c = canvasRef.current;
       if (!c) return null;
-      const r = c.getBoundingClientRect();
+      const r = zoomRect(c);
       const { scale, ox, oy } = viewTransform(r);
       return { x: (ox + x * scale) * (c.width / r.width), y: (oy + y * scale) * (c.height / r.height) };
     };
@@ -497,8 +499,8 @@ export function EditorCanvas() {
           if (store.currentTime >= store.songLength()) store.pause();
         }
         const g = c.getContext('2d')!;
-        const dpr = window.devicePixelRatio || 1;
-        const r = c.getBoundingClientRect();
+        const dpr = zoomDpr(); // v217: dpr × zoom (backing = 屏幕物理像素, 布局空间绘制)
+        const r = zoomRect(c); // v217: 布局空间 (固定 px 内容随整体缩放)
         if (c.width !== r.width * dpr) { c.width = r.width * dpr; c.height = r.height * dpr; }
         g.setTransform(dpr, 0, 0, dpr, 0, 0);
         g.fillStyle = '#111116';
@@ -981,7 +983,7 @@ export function EditorCanvas() {
       const quads0 = currentQuads(bm);
       if (quads0 && !store.lockNotes) { // v115: 锁定物件 — 旋转手柄禁用
         const c = canvasRef.current!;
-        const tol = 10 / viewTransform(c.getBoundingClientRect()).scale;
+        const tol = 10 / uiZoom() / viewTransform(zoomRect(c)).scale; // v217: 视觉 px 基准
         const corner = hitRotationHandle(quads0.dq, p, tol);
         if (corner) {
           // v117: 节点选区非空时手柄作用于选中节点 (快照 = 节点坐标, 原点 = 节点集 MEC 圆心)
@@ -1015,7 +1017,7 @@ export function EditorCanvas() {
       const quads = quads0;
       if (quads && !store.lockNotes && scaleHandleAnchors(quads.q).length) { // v115: 锁定物件 — 缩放手柄禁用
         const c = canvasRef.current!;
-        const tol = 8 / viewTransform(c.getBoundingClientRect()).scale; // 8 屏幕 px 换算 osu px
+        const tol = 8 / uiZoom() / viewTransform(zoomRect(c)).scale; // 8 屏幕 px 换算 osu px (v217: 视觉 px 基准)
         const anchor = hitScaleHandle(quads.q, quads.dq, p, tol);
         if (anchor) {
           // v117: 节点选区非空时手柄作用于选中节点 (快照 = 节点坐标, Alt 原点 = 节点集 MEC 圆心)

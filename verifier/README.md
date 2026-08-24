@@ -1777,3 +1777,9 @@
 - 适配: v193 (总线 dip 断言 → 交叉淡变断言), v144 (source/tempoNode 直连总线断言 → 经中间增益)。
 - 验证: verifier/v216 (字段/交叉淡变/变速支路/播放接线/释放/既有语义回归断言)。
 - 回归: v101/v122/v144/v193/v198/v215/v216 全绿; tsc 通过。
+
+## v217 全局等比缩放 — 窗口变小时四周控件与中间区一起等比缩小
+- 问题: 原布局「四周 shrink-0 固定 (左右栏 w-56/页签栏/上下时间轴) + 中间 flex-1 弹性」, 窗口分辨率变小时只挤压中间游玩区, 四周控件不变小。
+- 方案 (App.tsx + src/osu/uiZoom.ts): 最外层套 zoom 容器 — zoom = clamp(min(窗口宽/2560, 窗口高/1440), 0.6, 1), resize 监听更新; 外层 h-screen w-screen 不缩放, 内层布局尺寸 = 100/zoom vw/vh, 经 zoom 缩放后恰好填满窗口。单一系数 X/Y 等比不变形; 不等比余量由 flex-1 中间区吸收 (不留白)。
+- canvas 适配 (修正「上时间轴物件圆不缩小/游玩区与上下时间轴间距比例变化」): CSS zoom 下 getBoundingClientRect/clientX 是视觉 px, canvas 内固定 px 绘制 (RAD=24 物件圆/药丸/RESERVED 面板预留) 必须在布局 px 空间 — uiZoom.ts 提供 zoomRect (布局空间 rect) / zoomClientX/Y (事件坐标转换) / zoomDpr (= dpr×zoom, backing = 屏幕物理像素不糊); EditorCanvas 与 Timelines 全部改走该约定, 手柄命中容差按视觉 px 基准换算, __osuToClient 乘 zoom 回视觉坐标 (CDP 兼容)。
+- 验证: verifier/v217 (共享模块/容器/两 canvas 组件适配断言); tsc + vite build 通过。

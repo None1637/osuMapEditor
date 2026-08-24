@@ -16,6 +16,7 @@ import { pendingSliderTimeline, spinnerPlacementEnd } from '@/osu/sliderPath'; /
 import { getSkin } from '@/osu/skin';
 import { displaySettings } from '@/osu/displaySettings'; // v132: 显示设置 (皮肤颜色)
 import { drawWave, drawSpectro, type SpectroScroll } from '@/osu/waveformDraw';
+import { zoomRect, zoomClientX, zoomClientY, zoomDpr } from '@/osu/uiZoom'; // v217: 布局空间绘制/命中
 import {
   bpmPillText, svPoints, svPillText, samplePill, pillLayout,
   PILL_RED, PILL_LIME, PILL_PINK, PILL_PINK_ALT, PILL_TEXT,
@@ -181,7 +182,7 @@ export function TopTimeline() {
         // v80: 单击落空兜底 — 点在连体条中段 = 选中该滑条/转盘 (Shift 追加);
         // 拖动仍走框选 (barHit 只在未拖动单击时查, v50 语义保持)
         const bm = store.beatmap;
-        const r = ref.current?.getBoundingClientRect();
+        const r = ref.current ? zoomRect(ref.current) : null; // v217: 布局空间
         if (bm && r && mq.y0 <= OBJ_H) {
           const win = 6000 / (bm.editor.timelineZoom || 1);
           const barId = timelineBarHit(bm.hitObjects, objEnd, store.currentTime - win / 2, win, r.width, mq.px0, mq.y0, stackGeomOf(stackInfo(bm.hitObjects))); // v162: 堆叠几何
@@ -213,7 +214,7 @@ export function TopTimeline() {
 
   /** v102: 框选/绿线拖拽共享移动逻辑 (canvas onMouseMove 与 window 兜底共用 — 拖出边界后继续跟踪, lazer ReceivePositionalInputAt 越界语义) */
   const handleDragMove = (cx: number, cy: number) => {
-    const r = ref.current?.getBoundingClientRect();
+    const r = ref.current ? zoomRect(ref.current) : null; // v217: 布局空间
     if (!r) return;
     const mq = marqueeRef.current;
     if (mq) {
@@ -244,7 +245,7 @@ export function TopTimeline() {
   useEffect(() => {
     const up = () => finishMarkerDrag();
     const move = (e: MouseEvent) => {
-      if (marqueeRef.current || greenDragRef.current) handleDragMove(e.clientX, e.clientY);
+      if (marqueeRef.current || greenDragRef.current) handleDragMove(zoomClientX(e.clientX), zoomClientY(e.clientY));
     };
     window.addEventListener('mouseup', up);
     window.addEventListener('mousemove', move);
@@ -274,7 +275,7 @@ export function TopTimeline() {
    *  v138: 上层模式 (onTop=true) 先画到离屏再整体贴回 — drawWave/drawSpectro 内部 clearRect 只清离屏,
    *        不会抹掉下层已画好的时间轴内容 (物件/红绿线经暗化层透出, 波形半透明底 = 旧独立窗口观感);
    *        背景模式下方无内容, 直接画 (clearRect 无害) */
-  const drawWaveLayer = (g: CanvasRenderingContext2D, r: DOMRect, dpr: number, t0: number, win: number, onTop = false) => {
+  const drawWaveLayer = (g: CanvasRenderingContext2D, r: { width: number; height: number }, dpr: number, t0: number, win: number, onTop = false) => {
     const buf = store.getAudioBuffer();
     if (!buf) return;
     const W = Math.round(r.width * dpr), H = Math.round(r.height * dpr);
@@ -298,7 +299,7 @@ export function TopTimeline() {
   /** v137: 暗化层 (背景/上层两种模式共用同一层半透明暗色):
    *  波形在下层 -> 暗化波形 (物件/红绿线等内容保持正常亮度);
    *  波形在上层 -> 暗化时间轴内容 (波形全亮盖在最上层) */
-  const drawDimOverlay = (g: CanvasRenderingContext2D, r: DOMRect) => {
+  const drawDimOverlay = (g: CanvasRenderingContext2D, r: { width: number; height: number }) => {
     g.fillStyle = 'rgba(8,8,12,0.5)';
     g.fillRect(0, 0, r.width, r.height);
   };
@@ -322,8 +323,8 @@ export function TopTimeline() {
       }
       const bm = store.beatmap;
       const g = c.getContext('2d')!;
-      const r = c.getBoundingClientRect();
-      const dpr = window.devicePixelRatio || 1;
+      const r = zoomRect(c); // v217: 布局空间
+      const dpr = zoomDpr(); // v217: dpr × zoom (backing = 屏幕物理像素)
       if (c.width !== r.width * dpr) { c.width = r.width * dpr; c.height = r.height * dpr; }
       g.setTransform(dpr, 0, 0, dpr, 0, 0);
       // v129: 半透明底 — 上时间轴为浮层, 能看到背后游玩的物件
@@ -545,12 +546,12 @@ export function TopTimeline() {
   const hitTestMarker = (e: React.MouseEvent): number | null => {
     const bm = store.beatmap;
     if (!bm) return null;
-    const r = ref.current!.getBoundingClientRect();
-    if (e.clientY - r.top > OBJ_H) return null; // tick 行不选物件, 直接 seek
+    const r = zoomRect(ref.current!); // v217: 布局空间
+    if (zoomClientY(e.clientY) - r.top > OBJ_H) return null; // tick 行不选物件, 直接 seek
     const win = 6000 / (bm.editor.timelineZoom || 1);
     const t0 = store.currentTime - win / 2;
-    const px = e.clientX - r.left;
-    const py = e.clientY - r.top;
+    const px = zoomClientX(e.clientX) - r.left;
+    const py = zoomClientY(e.clientY) - r.top;
     // v50: 像素阈值 (marker 半径), 且去掉"时长条范围内即选中"的短路 — 旧逻辑里长滑条/转盘的
     // 连体条覆盖物件行大部分区域, 空白处点击总被某个条抢走 (选中最近物件), 框选永远进不去;
     // v79: 命中逻辑抽为纯函数 timelineMarkerHit — 尾圆与头圆同为命中目标
@@ -565,12 +566,12 @@ export function TopTimeline() {
   const hitTestNode = (e: React.MouseEvent): { id: number; edge: number } | null => {
     const bm = store.beatmap;
     if (!bm) return null;
-    const r = ref.current!.getBoundingClientRect();
-    if (e.clientY - r.top > OBJ_H) return null;
+    const r = zoomRect(ref.current!); // v217: 布局空间
+    if (zoomClientY(e.clientY) - r.top > OBJ_H) return null;
     const win = 6000 / (bm.editor.timelineZoom || 1);
     const t0 = store.currentTime - win / 2;
     return timelineNodeHit(bm.hitObjects, objEnd, o => o.type === 'slider' ? (o.slides ?? 1) : 0,
-      t0, win, r.width, e.clientX - r.left, RAD, e.clientY - r.top, stackGeomOf(stackInfo(bm.hitObjects)));
+      t0, win, r.width, zoomClientX(e.clientX) - r.left, RAD, zoomClientY(e.clientY) - r.top, stackGeomOf(stackInfo(bm.hitObjects)));
   };
 
   // v63: BPM/SV 药丸命中 (绘制同款几何: y=63/76.5 高 13, 宽 = 文本 + 10) — 双击开编辑弹窗
@@ -578,8 +579,8 @@ export function TopTimeline() {
   const hitTestTimingPill = (e: React.MouseEvent): { idx: number; tp: TimingPoint } | null => {
     const bm = store.beatmap; const c = ref.current;
     if (!bm || !c) return null;
-    const r = c.getBoundingClientRect();
-    const mx = e.clientX - r.left, my = e.clientY - r.top;
+    const r = zoomRect(c); // v217: 布局空间
+    const mx = zoomClientX(e.clientX) - r.left, my = zoomClientY(e.clientY) - r.top;
     const g = c.getContext('2d')!;
     g.font = 'bold 9.5px sans-serif';
     const win = 6000 / (bm.editor.timelineZoom || 1);
@@ -606,12 +607,12 @@ export function TopTimeline() {
   const hitTestTail = (e: React.MouseEvent): number | null => {
     const bm = store.beatmap;
     if (!bm) return null;
-    const r = ref.current!.getBoundingClientRect();
-    if (e.clientY - r.top > OBJ_H) return null;
+    const r = zoomRect(ref.current!); // v217: 布局空间
+    if (zoomClientY(e.clientY) - r.top > OBJ_H) return null;
     const win = 6000 / (bm.editor.timelineZoom || 1);
     const t0 = store.currentTime - win / 2;
-    const px = e.clientX - r.left;
-    const py = e.clientY - r.top;
+    const px = zoomClientX(e.clientX) - r.left;
+    const py = zoomClientY(e.clientY) - r.top;
     const stacks = stackInfo(bm.hitObjects); // v162
     let best: number | null = null, bestD = 8;
     for (const o of bm.hitObjects) {
@@ -664,7 +665,7 @@ export function TopTimeline() {
             if (!store.lockNotes) { // v115: 锁定物件 — 可选中, 不可拖动改时间
               const bm = store.beatmap!;
               markerDragRef.current = {
-                anchorId: id, startX: e.clientX, moved: false,
+                anchorId: id, startX: zoomClientX(e.clientX), moved: false,
                 ids: [...store.selected],
                 orig: new Map([...store.selected].map(oid => {
                   const o = bm.hitObjects.find(x => x.id === oid)!;
@@ -679,16 +680,16 @@ export function TopTimeline() {
             // v142: 连体条中段 (滑条/转盘) — 与头/尾圆同款: 选中 + 按住拖动改时间 (吸附节拍)
             // (原仅 mouseup 单击选中/右键删除; 框选仍可从物件行空白处或行下方任意高度起手, v102 全高度语义保持)
             const bmBar = store.beatmap;
-            const rBar = ref.current!.getBoundingClientRect();
-            if (bmBar && e.clientY - rBar.top <= OBJ_H) {
+            const rBar = zoomRect(ref.current!); // v217: 布局空间
+            if (bmBar && zoomClientY(e.clientY) - rBar.top <= OBJ_H) {
               const winBar = 6000 / (bmBar.editor.timelineZoom || 1);
-              const barId = timelineBarHit(bmBar.hitObjects, objEnd, store.currentTime - winBar / 2, winBar, rBar.width, e.clientX - rBar.left, e.clientY - rBar.top, stackGeomOf(stackInfo(bmBar.hitObjects))); // v162: 堆叠几何
+              const barId = timelineBarHit(bmBar.hitObjects, objEnd, store.currentTime - winBar / 2, winBar, rBar.width, zoomClientX(e.clientX) - rBar.left, zoomClientY(e.clientY) - rBar.top, stackGeomOf(stackInfo(bmBar.hitObjects))); // v162: 堆叠几何
               if (barId !== null) {
                 if (e.shiftKey || e.ctrlKey || e.metaKey) store.toggleSelect(barId);
                 else if (!store.selected.has(barId)) store.select([barId]);
                 if (!store.lockNotes) { // v115: 锁定物件 — 可选中, 不可拖动改时间
                   markerDragRef.current = {
-                    anchorId: barId, startX: e.clientX, moved: false,
+                    anchorId: barId, startX: zoomClientX(e.clientX), moved: false,
                     ids: [...store.selected],
                     orig: new Map([...store.selected].map(oid => {
                       const o = bmBar.hitObjects.find(x => x.id === oid)!;
@@ -710,7 +711,7 @@ export function TopTimeline() {
                 if (s.has(t)) s.delete(t); else s.add(t);
                 store.selectGreenLines([...s], true);
               } else if (!store.selectedGreenLines.has(t)) store.selectGreenLines([t]);
-              greenDragRef.current = { tp: pill.tp, startX: e.clientX, origTime: t, lastKey: t, moved: false };
+              greenDragRef.current = { tp: pill.tp, startX: zoomClientX(e.clientX), origTime: t, lastKey: t, moved: false };
               store.beginDrag();
               store.canvasDragging = true;
               return;
@@ -720,9 +721,9 @@ export function TopTimeline() {
             // v102: 全高度可起手 (原来仅物件行 OBJ_H 内), 锚定按下时刻 (lazer TimelineDragBox)
             const bm2 = store.beatmap;
             if (bm2) {
-              const r = ref.current!.getBoundingClientRect();
+              const r = zoomRect(ref.current!); // v217: 布局空间
               const win = 6000 / (bm2.editor.timelineZoom || 1);
-              const px = e.clientX - r.left, py = e.clientY - r.top;
+              const px = zoomClientX(e.clientX) - r.left, py = zoomClientY(e.clientY) - r.top;
               marqueeRef.current = {
                 tAnchor: store.currentTime - win / 2 + (px / r.width) * win,
                 px0: px, y0: py, x1: px, y1: py,
@@ -736,16 +737,16 @@ export function TopTimeline() {
         }}
         onMouseMove={(e) => {
           // v102: 框选/绿线拖拽走共享移动逻辑 (选区更新在帧循环, 边缘滚动时指针不动也累积)
-          if (marqueeRef.current || greenDragRef.current) { handleDragMove(e.clientX, e.clientY); return; }
+          if (marqueeRef.current || greenDragRef.current) { handleDragMove(zoomClientX(e.clientX), zoomClientY(e.clientY)); return; }
           // v35: 拖尾改折返次数 (整 repeat 伸缩, 单次时长 dur 不变)
           const tr = tailResizeRef.current;
           if (tr) {
             const bm = store.beatmap;
             const o = bm?.hitObjects.find(x => x.id === tr.objId);
             if (!bm || !o) return;
-            const r = ref.current!.getBoundingClientRect();
+            const r = zoomRect(ref.current!); // v217: 布局空间
             const win = 6000 / (bm.editor.timelineZoom || 1);
-            const ms = store.currentTime - win / 2 + ((e.clientX - r.left) / r.width) * win;
+            const ms = store.currentTime - win / 2 + ((zoomClientX(e.clientX) - r.left) / r.width) * win;
             const slides = Math.max(1, Math.min(100, Math.round((ms - o.time) / tr.dur)));
             if (slides !== (o.slides ?? 1)) {
               o.slides = slides; tr.moved = true;
@@ -761,11 +762,11 @@ export function TopTimeline() {
             // v32: 时间轴拖拽改时间 (anchor 吸附节拍, 其余选中物件同 delta 跟随)
             const bm = store.beatmap;
             if (!bm) return;
-            if (!md.moved && Math.abs(e.clientX - md.startX) <= 4) return;
+            if (!md.moved && Math.abs(zoomClientX(e.clientX) - md.startX) <= 4) return;
             md.moved = true;
-            const r = ref.current!.getBoundingClientRect();
+            const r = zoomRect(ref.current!); // v217: 布局空间
             const win = 6000 / (bm.editor.timelineZoom || 1);
-            const dMs = ((e.clientX - md.startX) / r.width) * win;
+            const dMs = ((zoomClientX(e.clientX) - md.startX) / r.width) * win;
             const anchorOrig = md.orig.get(md.anchorId)!;
             const delta = snapMs(anchorOrig.time + dMs) - anchorOrig.time;
             for (const [oid, o0] of md.orig) {
@@ -787,10 +788,10 @@ export function TopTimeline() {
           // v70: 鼠标下的红/绿线 (±4px) -> Timing 页签高亮对应行 (变化才 emitSelection)
           if (!store.canvasDragging && store.beatmap) {
             const bm = store.beatmap;
-            const r = ref.current!.getBoundingClientRect();
+            const r = zoomRect(ref.current!); // v217: 布局空间
             const win = 6000 / (bm.editor.timelineZoom || 1);
             const t0 = store.currentTime - win / 2;
-            const px = e.clientX - r.left;
+            const px = zoomClientX(e.clientX) - r.left;
             let best: TimingPoint | null = null, bestD = 4;
             for (const tp of bm.timingPoints) {
               const d = Math.abs(((tp.time - t0) / win) * r.width - px);
@@ -828,10 +829,10 @@ export function TopTimeline() {
           let id = hitTestMarker(e);
           if (id === null && bm) {
             // v80: 右键兜底 — 连体条中段也可删除 (与单击选中同款 barHit)
-            const r = ref.current!.getBoundingClientRect();
-            if (e.clientY - r.top <= OBJ_H) {
+            const r = zoomRect(ref.current!); // v217: 布局空间
+            if (zoomClientY(e.clientY) - r.top <= OBJ_H) {
               const win = 6000 / (bm.editor.timelineZoom || 1);
-              id = timelineBarHit(bm.hitObjects, objEnd, store.currentTime - win / 2, win, r.width, e.clientX - r.left, e.clientY - r.top, stackGeomOf(stackInfo(bm.hitObjects))); // v162: 堆叠几何
+              id = timelineBarHit(bm.hitObjects, objEnd, store.currentTime - win / 2, win, r.width, zoomClientX(e.clientX) - r.left, zoomClientY(e.clientY) - r.top, stackGeomOf(stackInfo(bm.hitObjects))); // v162: 堆叠几何
             }
           }
           if (id === null || !bm) return;
@@ -900,8 +901,8 @@ export function BottomTimeline() {
     const draw = () => {
       const bm = store.beatmap;
       const g = c.getContext('2d')!;
-      const r = c.getBoundingClientRect();
-      const dpr = window.devicePixelRatio || 1;
+      const r = zoomRect(c); // v217: 布局空间
+      const dpr = zoomDpr(); // v217: dpr × zoom (backing = 屏幕物理像素)
       if (c.width !== r.width * dpr) { c.width = r.width * dpr; c.height = r.height * dpr; }
       g.setTransform(dpr, 0, 0, dpr, 0, 0);
       // v129: 半透明底 — 下时间轴为浮层, 能看到背后游玩的物件
@@ -971,8 +972,8 @@ export function BottomTimeline() {
   }, []);
 
   const seekFromEvent = (e: React.MouseEvent) => {
-    const r = ref.current!.getBoundingClientRect();
-    store.seek(((e.clientX - r.left) / r.width) * store.songLength());
+    const r = zoomRect(ref.current!); // v217: 布局空间
+    store.seek(((zoomClientX(e.clientX) - r.left) / r.width) * store.songLength());
   };
 
   return (
