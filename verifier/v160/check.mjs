@@ -40,7 +40,7 @@ section('sliderPath.ts: placementLength 两分支均钳制');
   assert(/geoCap = Math\.max\(1, Math\.floor\(geometryLength\)\)/.test(src), 'geoCap = floor(几何全长)');
   assert(/beats \* beatPx > geometryLength \+ vel \* 1\) beats -= 1/.test(src), '锁定间距分支: 超 1ms 退一拍 (原 round 直接向上入)');
   assert(/Math\.min\(Math\.max\(20, Math\.round\(beats \* beatPx\)\), geoCap\)/.test(src), '锁定分支 min(..., geoCap)');
-  assert(/Math\.min\(Math\.max\(20, snapSliderLength/.test(src), '非锁定分支 min(..., geoCap)');
+  assert(/return Math\.min\(Math\.max\(20, snapped\), geoCap\)/.test(src), '非锁定分支 min(..., geoCap) (v219: 亚 tick 分支例外, 先行返回 1 tick)');
   assert(!/Math\.max\(beatPx, Math\.round\(geometryLength \/ beatPx\) \* beatPx\)/.test(src), '旧的直接向上入已移除');
 }
 

@@ -3,6 +3,7 @@ import { useEffect, useState, type CSSProperties } from 'react';
 import { Volume2, Eye, FolderOpen, Palette, Ruler, Lock, LockOpen, Crosshair, Box, Magnet, Settings2, Package, AudioWaveform, Star, Undo2, Redo2, Grid3x3, MousePointer2, Circle, Spline, Disc } from 'lucide-react';
 import { store, useEditor, type Tool } from '@/osu/store';
 import { seekByBeats } from '@/osu/seekSnapping';
+import { BEAT_SNAP_OPTIONS } from '@/osu/sliderPath'; // v218: 节拍细分配置项 (与滑条长度吸附同一来源)
 import { normalizeRotation, rotationPeriod } from '@/osu/gridSnap';
 import { createSampleBeatmap, generateDemoAudio } from '@/osu/sampleBeatmap';
 import { EditorCanvas } from '@/components/EditorCanvas';
@@ -463,7 +464,7 @@ export default function App() {
             节拍吸附 1/
             <select value={store.beatSnap} onChange={e => { store.beatSnap = parseInt(e.target.value); store.emit(); }}
               className="bg-black/40 border border-white/15 rounded px-1.5 py-1">
-              {[1, 2, 3, 4, 6, 8, 12, 16].map(n => <option key={n} value={n}>{n}</option>)}
+              {BEAT_SNAP_OPTIONS.map(n => <option key={n} value={n}>{n}</option>)}
             </select>
           </label>
           <div className="h-px bg-white/15 mx-1 my-0.5" />

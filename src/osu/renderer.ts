@@ -3,7 +3,7 @@
 import type { Beatmap, HitObject, TimingPoint } from './parser';
 import { csToRadius, arToPreempt, sliderVelocityAt } from './parser';
 import { alphaAt, isVisibleAt, sliderRepeatAlpha, approachBounceScale, sliderDurationMemo, HIT_LINGER } from './lifecycle';
-import { computePendingPath, getSliderPath, invalidateSliderPath, pendingPhantomPoint } from './sliderPath';
+import { computePendingPath, getSliderPath, invalidateSliderPath, pendingPhantomPoint, placementLength, truncatePathAtLength } from './sliderPath';
 import { followPointPairs, followPointsBetween, followPointFrameIndex, followPointCrop } from './followPoints';
 import { sliderTickPoints } from './clock/hitSounds';
 import { tintedSprite, skinScaleAdjust, skinSpriteWidth, hitcircleSpriteWidth, type Skin, type SkinImage } from './skin';
@@ -177,7 +177,7 @@ function sliderBodyColors(bm: Beatmap, skin: Skin, color: string): { border: str
   return { border: bm.colors.sliderBorder || '#ffffff', track: bm.colors.sliderTrackOverride || color };
 }
 
-export function renderPlayfield(rc: RenderCtx, pending?: { x: number; y: number; redAnchor: boolean }[], cursor?: { x: number; y: number } | null) {
+export function renderPlayfield(rc: RenderCtx, pending?: { x: number; y: number; redAnchor: boolean }[], cursor?: { x: number; y: number } | null, pendingDistanceLock = false) {
   const { g, bm, time } = rc;
   const cs = bm.difficulty.cs;
   const ar = bm.difficulty.ar;
@@ -219,7 +219,7 @@ export function renderPlayfield(rc: RenderCtx, pending?: { x: number; y: number;
     drawSelectionDecor(rc, o, radius);
   }
 
-  if (pending && pending.length) drawPendingSlider(rc, pending, cursor ?? null);
+  if (pending && pending.length) drawPendingSlider(rc, pending, cursor ?? null, pendingDistanceLock);
 }
 
 // follow points: 连接同 combo 相邻物件 (lazer FollowPointRenderer), 画在物件下层;
@@ -291,10 +291,12 @@ function drawSelectionDecor(rc: RenderCtx, o: HitObject, radius: number) {
 }
 
 // 放置中的滑条预览: 按 lazer SliderPlacementBlueprint 显示真实计算路径的滑条身 (含幻影 cursor 点)
-function drawPendingSlider(rc: RenderCtx, pend: { x: number; y: number; redAnchor: boolean }[], cursor: { x: number; y: number } | null) {
-  const { g, bm, skin } = rc;
+// v219: 滑条身截断到节拍吸附后的预期长度 (lazer: body = ExpectedDistance; 与 finishSlider 落盘/时间轴预览同一 placementLength)
+function drawPendingSlider(rc: RenderCtx, pend: { x: number; y: number; redAnchor: boolean }[], cursor: { x: number; y: number } | null, distanceLock: boolean) {
+  const { g, bm, skin, time } = rc;
   const r = csToRadius(bm.difficulty.cs);
-  const { raw } = computePendingPath(pend, cursor);
+  const computed = computePendingPath(pend, cursor);
+  const { raw } = computed;
   // v201: 放置预览颜色 = 下一个 new combo 的索引; 无物件时首物件索引 = 1 (lazer 生效色从下标 1 起)
   const ciVals = [...rc.comboInfo.values()];
   const useSkin = displaySettings.skinColors;
@@ -306,7 +308,10 @@ function drawPendingSlider(rc: RenderCtx, pend: { x: number; y: number; redAncho
   g.save();
   g.globalAlpha = 0.65;
   if (raw.length > 1) {
-    const body = sliderBodySprite(raw, r, bodyCols.border, bodyCols.track, undefined, g.getTransform().a);
+    // v219: 预览滑条身按吸附后长度截断 (v218 起 = 当前节拍细分的 1/2); 控制点/连线不截断, 仍随光标实时走
+    const expected = placementLength(bm.timingPoints, time, bm.difficulty.sliderMultiplier,
+      computed.length, distanceLock, bm.editor.distanceSpacing, bm.editor.beatDivisor);
+    const body = sliderBodySprite(truncatePathAtLength(raw, expected), r, bodyCols.border, bodyCols.track, undefined, g.getTransform().a);
     g.drawImage(body.c, body.dx, body.dy, body.w, body.h);
   }
   // 头部 (盒子 = 2r, 与已放置物件一致)

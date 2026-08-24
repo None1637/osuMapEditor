@@ -517,6 +517,19 @@ export function preserveArcsForBezier(curveType: string, controlPoints: Vec2[]):
 
 // ---------- 长度节拍吸附 (lazer SliderPathExtensions.SnapTo + FindSnappedDistance 对齐) ----------
 
+/** v218: 节拍细分配置项 (节拍吸附下拉框可选值; App.tsx 下拉框与本模块共用同一常量, 即「配置中有的节拍细分」) */
+export const BEAT_SNAP_OPTIONS = [1, 2, 3, 4, 6, 8, 12, 16];
+
+/**
+ * v218: 滑条长度吸附细分 = 当前节拍细分的 1/2 (分母 ×2, 如 1/4 -> 1/8);
+ * 仅当 ×2 后的细分存在于配置项 (BEAT_SNAP_OPTIONS) 中, 否则退回当前细分 (如 1/12 -> 1/12, 1/16 -> 1/16)。
+ * 仅作用于长度吸附; 放置时刻 (snapPlacementTime) 与控制点位置仍按原规则, 不参与此对齐。
+ */
+export function sliderLengthSnapDivisor(beatSnap: number): number {
+  const half = beatSnap * 2;
+  return BEAT_SNAP_OPTIONS.includes(half) ? half : beatSnap;
+}
+
 /** v83: 放置时间吸附 — 当前时间按 beatSnap 就近 tick (finishSlider/finishFreehand/时间轴预览共用) */
 export function snapPlacementTime(points: TimingPoint[], currentTime: number, beatSnap: number): number {
   const { red } = timingAt(points, currentTime);
@@ -533,12 +546,13 @@ export function spinnerPlacementEnd(points: TimingPoint[], startTime: number, cu
 
 /**
  * v83: 放置长度规则 — 几何全长 -> 锁定间距吸整拍 / v95: 非锁定走 snapSliderLength 节拍吸附 (lazer updateSlider 的
- * FindSnappedDistance: 尾端落在 1/beatSnap tick 上且不超几何全长) -> 下限 20px
+ * FindSnappedDistance: 尾端落在节拍 tick 上且不超几何全长; v218 起 tick 细分 = 当前细分的 1/2) -> 下限 20px
  * (finishSlider/finishFreehand/时间轴预览共用)
  * v160: 长度永不超几何全长 (末控制点位置) — lazer SliderPlacementBlueprint.updateSlider:
  *   ExpectedDistance = FindSnappedDistance(Path.CalculatedDistance), 吸附源即几何全长,
  *   超出 1ms 行程退一格 (ComposerDistanceSnapProvider.cs:298); 最后硬钳到几何全长。
  *   锁定间距分支原 Math.round 直接向上入 (可超几何近半拍, 触发 v148 末端切线延长), 现同样退一格+钳制。
+ * v219 例外: 几何不足 1 个长度细分 tick 时对齐到 1 tick (允许超几何全长, 否则永远无法对齐)。
  */
 export function placementLength(
   points: TimingPoint[], currentTime: number, sliderMultiplier: number,
@@ -555,7 +569,11 @@ export function placementLength(
     beats = Math.max(1, beats);
     return Math.min(Math.max(20, Math.round(beats * beatPx)), geoCap);
   }
-  return Math.min(Math.max(20, snapSliderLength(points, currentTime, sliderMultiplier, geometryLength, beatSnap)), geoCap);
+  const snapped = snapSliderLength(points, currentTime, sliderMultiplier, geometryLength, beatSnap);
+  // v219: 亚 tick (几何不足 1 个长度细分 tick) — snapped 已对齐 1 tick, 不再受 20px 下限/geoCap 钳制 (否则预览/落盘长度退化为不对齐的 floor(几何))
+  const tickPx = vel * red.beatLength / sliderLengthSnapDivisor(beatSnap);
+  if (tickPx > geometryLength + vel * 1) return snapped;
+  return Math.min(Math.max(20, snapped), geoCap);
 }
 
 /**
@@ -584,8 +602,31 @@ export function sliderGeometryLength(curveType: string, pts: Vec2[]): number {
 }
 
 /**
- * lazer FindSnappedDistance: 把几何全长吸附到当前节拍分割 (1/beatSnap)
- * - tick 长 = vel * beatLength / beatSnap px (= lazer GetBeatSnapDistance = 100*sv*sliderMultiplier/divisor)
+ * v219: 折线路径按弧长截断 (末段线性插值出切点) — 放置预览滑条身只画到节拍吸附后的预期长度
+ * (lazer SliderPlacementBlueprint: 滑条身 = ExpectedDistance 截断); length ≥ 全长时返回原路径
+ */
+export function truncatePathAtLength(raw: Vec2[], length: number): Vec2[] {
+  if (raw.length < 2) return raw.slice();
+  const out: Vec2[] = [{ x: raw[0].x, y: raw[0].y }];
+  let acc = 0;
+  for (let i = 1; i < raw.length; i++) {
+    const a = raw[i - 1], b = raw[i];
+    const d = Math.hypot(b.x - a.x, b.y - a.y);
+    if (acc + d >= length) {
+      const t = d > 1e-6 ? (length - acc) / d : 0;
+      out.push({ x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t });
+      return out;
+    }
+    acc += d;
+    out.push({ x: b.x, y: b.y });
+  }
+  return out;
+}
+
+/**
+ * lazer FindSnappedDistance: 把几何全长吸附到节拍分割 tick
+ * - v218: 吸附细分 = 当前节拍细分的 1/2 (sliderLengthSnapDivisor, 如 1/4 -> 1/8; 配置中无 ×2 细分则退回当前细分)
+ * - tick 长 = vel * beatLength / div px (= lazer GetBeatSnapDistance = 100*sv*sliderMultiplier/divisor)
  * - tick 数就近取整 (SnapTime round-to-nearest), 但绝不超过几何全长: 超出 1ms 容差则退一个 tick
  *   (lazer: snappedTime > actualDuration + 1ms -> snappedTime -= beatLength/divisor)
  * - 下限 1 个 tick (lazer 用 HasValidLengthForPlacement 回滚整次拖拽, 这里取钳制从简)
@@ -594,12 +635,16 @@ export function sliderGeometryLength(curveType: string, pts: Vec2[]): number {
 export function snapSliderLength(points: TimingPoint[], time: number, sliderMultiplier: number, geometryLength: number, beatSnap: number): number {
   const { red } = timingAt(points, time);
   const vel = sliderVelocityAt(points, time, sliderMultiplier); // px/ms
-  if (vel <= 0 || red.beatLength <= 0 || beatSnap < 1) return Math.max(1, Math.round(geometryLength));
-  const tickPx = vel * red.beatLength / beatSnap;
+  const div = sliderLengthSnapDivisor(beatSnap); // v218: 长度按当前细分的 1/2 对齐
+  if (vel <= 0 || red.beatLength <= 0 || div < 1) return Math.max(1, Math.round(geometryLength));
+  const tickPx = vel * red.beatLength / div;
   let ticks = Math.round(geometryLength / tickPx);
   if (ticks * tickPx > geometryLength + vel * 1) ticks -= 1; // 1ms 容差换算成 px = vel * 1ms
   ticks = Math.max(1, ticks);
   const snapped = Math.round(ticks * tickPx);
+  // v219: 几何不足 1 tick (1 tick 连 1ms 容差都放不下) — 仍对齐到 1 tick, 允许超几何全长;
+  // 否则亚细分长度退回 floor(几何) 永远无法对齐 (时间轴上尾端不在 tick 网格)
+  if (ticks === 1 && tickPx > geometryLength + vel * 1) return Math.max(1, snapped);
   return Math.max(1, snapped <= geometryLength ? snapped : Math.floor(geometryLength)); // v160: 严格 ≤ 几何全长 (末控制点)
 }
 

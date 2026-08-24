@@ -31,7 +31,7 @@ section('sliderPath.ts: 长度吸附纯函数');
   assert(/computeRawPath\(curveType, pts\)/.test(src), '几何全长与渲染同算法 (computeRawPath)');
   assert(/ticks \* tickPx > geometryLength \+ vel \* 1/.test(src), '绝不超过几何全长 (1ms 容差)');
   assert(/ticks = Math\.max\(1, ticks\)/.test(src), '下限 1 tick');
-  assert(/vel \* red\.beatLength \/ beatSnap/.test(src), 'tick 长 = vel*beatLength/beatSnap (lazer GetBeatSnapDistance)');
+  assert(/vel \* red\.beatLength \/ div/.test(src), 'tick 长 = vel*beatLength/div (v218: div = 长度吸附细分 = beatSnap×2, lazer GetBeatSnapDistance)');
 }
 
 section('EditorCanvas.tsx: 四处操作接线');

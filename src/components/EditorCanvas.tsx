@@ -589,7 +589,7 @@ export function EditorCanvas() {
           // v207: 已有控制点时预览幻影用吸附后的 pendingCursor (onMouseMove 里与落点同公式), 否则原始光标 (头部幽灵)
           cur.inside && store.tool === 'slider' && !store.playing
             ? (store.pendingSlider.length > 0 ? store.pendingCursor : { x: cur.x, y: cur.y })
-            : null);
+            : null, store.distanceLock); // v219: 预览滑条身按吸附长度截断需要锁定间距开关
         // v180: 转盘放置预览 (lazer SpinnerPiece alpha 0.5) — 终点实时跟随当前时间 (滚轮/播放均可拉长)
         if (store.pendingSpinner !== null) {
           drawPendingSpinner({ g, bm, skin, time: store.currentTime, selected: selView, comboInfo: new Map(), stackOffsets: getStackOffsets(bm) },
@@ -1214,7 +1214,7 @@ export function EditorCanvas() {
     drawCandRef.current = null; // v66: 清理手绘候选/进行态 (右键/双击结束也可能发生在按下后)
     freehandRef.current = null;
     if (!bm || pend.length < 2) { store.pendingSlider = []; store.pendingCursor = null; store.emit(); return; }
-    // lazer: 长度 = 路径几何全长过 FindSnappedDistance (尾端吸附 1/beatSnap tick, 不超几何全长); 锁定间距时吸附整拍
+    // lazer: 长度 = 路径几何全长过 FindSnappedDistance (尾端吸附节拍 tick, v218 起 = 当前细分的 1/2, 不超几何全长); 锁定间距时吸附整拍
     // v83: 规则收敛到共享纯函数 placementLength/snapPlacementTime (与 v82 时间轴预览同规则, 预览=落盘)
     const computed = computePendingPath(pend, null);
     const len = placementLength(bm.timingPoints, store.currentTime, bm.difficulty.sliderMultiplier,

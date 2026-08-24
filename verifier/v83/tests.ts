@@ -23,10 +23,10 @@ section('snapPlacementTime: 就近 tick 吸附');
 
 section('placementLength: 几何长 -> 锁定间距整拍 / v95: 非锁走 snapSliderLength 节拍吸附 -> 下限 20');
 {
-  assert(placementLength(TPS, 2000, 1, 100, false, 1, 4) === 100, '无锁 100 -> 4 tick 100 (恰在格上)');
-  assert(placementLength(TPS, 2000, 1, 0, false, 1, 4) === 1, '0 -> v160 钳到几何全长 1 (旧: 下限 1 tick 25)');
-  assert(placementLength(TPS, 2000, 1, 90, false, 1, 4) === 75, '无锁 90 -> 3 tick 75 (不超几何全长)');
-  assert(placementLength(TPS, 2000, 1, 110, false, 1, 4) === 100, '无锁 110 -> 4 tick 100');
+  assert(placementLength(TPS, 2000, 1, 100, false, 1, 4) === 100, '无锁 100 -> 8 tick 100 (v218 细分×2=8, tick 12.5px; 恰在格上)');
+  assert(placementLength(TPS, 2000, 1, 0, false, 1, 4) === 13, '0 -> v219 对齐 1 tick 12.5 取整 13 (允许超几何; 旧: 钳到 1)');
+  assert(placementLength(TPS, 2000, 1, 90, false, 1, 4) === 88, '无锁 90 -> v218 7 tick=87.5 在 1ms 容差内取整 88 (旧: 3 tick 75)');
+  assert(placementLength(TPS, 2000, 1, 110, false, 1, 4) === 100, '无锁 110 -> 8 tick 100 (9 tick=112.5 超容差退一格)');
   assert(placementLength(TPS, 2000, 1, 130, true, 1, 4) === 100, '锁 130 -> 1 拍 100');
   assert(placementLength(TPS, 2000, 1, 160, true, 1, 4) === 100, '锁 160 -> v160 退一拍 100 (2 拍 200 超几何+容差)');
   assert(placementLength(TPS, 2000, 1, 100.4, false, 1, 4) === 100, '取整 100.4 -> 100');

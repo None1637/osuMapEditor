@@ -35,7 +35,7 @@ section('锁定间距: 长度吸附整拍 (100px/拍)');
 section('下限 (仅头部)');
 {
   const a = pendingSliderTimeline(TPS, 1, [{ x: 0, y: 0 }], null, 2000, 4, false, 1);
-  assert(a.time === 2000 && a.end === 2005, `长度 0 -> v160 钳到几何全长 1px => end 2005 (实际 ${a.end}; 旧: 下限 1 tick 25px)`);
+  assert(a.time === 2000 && a.end === 2065, `长度 0 -> v219 对齐 1 tick 12.5px 取整 13 => end 2065 (实际 ${a.end}; 旧: v160 钳 1px end 2005)`);
 }
 
 section('幻影光标点计入长度');
