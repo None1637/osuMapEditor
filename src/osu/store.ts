@@ -1620,10 +1620,10 @@ class EditorStore {
   /**
    * 播放中轻量 seek (lazer: 播放中 seek 不 stop/start 轨道, 直接 ChannelSetPosition):
    * WebAudio 的 AudioBufferSourceNode 无法重定位, 用即时重建模拟 — 无 20ms 启动延迟;
-   * v216: 防咔哒改为 per-source 交叉淡变 (旧 source ~12ms 淡出, 新 source 经独立
-   * sourceGain ~10ms 淡入; 变速支路只 dip tempoGain) — 不再 dip 共享音乐总线:
-   * 滚轮连击时总线增益被反复瞬时拉零 (且 cancelScheduledValues 会截断恢复斜坡),
-   * 听感 = 全轨断续发闷, 类似低码率/削频;
+   * v226: 防咔哒改回硬切换 (统一切换时刻 + 2ms 防爆音斜坡) — v216 交叉淡变在滚轮
+   * 连击时多份"同曲不同进度"链式重叠发声, 听感 = 持续降质 (双重曝光/响度抽动);
+   * v216: 防咔哒不再 dip 共享音乐总线 (滚轮连击时总线增益被反复瞬时拉零,
+   * 且 cancelScheduledValues 会截断恢复斜坡, 听感 = 全轨断续发闷);
    * v198: hitsound voices 全停 (lazer seek 期间静音采样) — 否则 lookahead 内已排程的
    * 旧区间音效会照原时刻补响, 听感 = 滚过的物件 hitsound 全部补播。
    */
@@ -1640,15 +1640,23 @@ class EditorStore {
         this.emit();
         return;
       }
-      const startW = actx.currentTime + 0.004;
+      const now = actx.currentTime;
+      // v226: 硬切换 + 极短防爆音斜坡 — 取代 v216 交叉淡变。
+      // v216 的 ~10-20ms 交叉淡变在单次 seek 不可闻, 但滚轮连击时链式重叠:
+      // 任意瞬间 2~4 份"同曲不同进度"同时发声 (播放中步长 ~0.5s/格),
+      // 听感 = 持续的双重曝光/响度抽动 (用户反馈: 播放中滚滚轮仍降质, 点时间轴不复现
+      // — 后者走 pause/play 零重叠硬切)。改为统一切换时刻 startW: 旧源 2ms 斜降到 0,
+      // 新源 startW 启动 2ms 斜升到 1, 重叠窗 ~2ms (仅防爆音咔哒), 听感 = 即时跳位。
+      const startW = now + 0.003;
       const bus = this.ensureMusicBus();
       if (this.tempoActive && this.tempoNode) {
-        // v216: dip 只作用变速支路自身的 tempoGain, 共享音乐总线保持恒定
+        // v226: 变速支路 dip 贴紧切换点单次短窗 (~5ms), 不再"立即拉零 + 延迟恢复"
         if (this.tempoGain) {
           const tg = this.tempoGain.gain;
-          tg.cancelScheduledValues(actx.currentTime);
-          tg.setTargetAtTime(0, actx.currentTime, 0.0015);
-          tg.setTargetAtTime(1, actx.currentTime + 0.005, 0.002);
+          tg.cancelScheduledValues(now);
+          tg.setValueAtTime(tg.value, now);
+          tg.linearRampToValueAtTime(0, startW);
+          tg.linearRampToValueAtTime(1, startW + 0.002);
         }
         this.tempoNode.schedule({ output: startW, input: offset, rate: this.playbackRate, active: true });
         if (this.tempoEndTimer) { clearTimeout(this.tempoEndTimer); this.tempoEndTimer = null; }
@@ -1664,22 +1672,23 @@ class EditorStore {
           }
         }, Math.max(0, (endCtx - actx.currentTime) * 1000 + 50));
       } else {
-        // v216: 交叉淡变 — 旧 source 经其 sourceGain 淡出后停止, 新 source 淡入, 全程无全轨静音
-        const now = actx.currentTime;
+        // v226: 硬切换 — 旧源 2ms 斜降到 0 后停止, 新源 startW 启动 2ms 斜升到 1, 重叠 ~2ms
         if (this.source) {
           try { this.source.onended = null; } catch { /* noop */ }
           if (this.sourceGain) {
-            this.sourceGain.gain.cancelScheduledValues(now);
-            this.sourceGain.gain.setTargetAtTime(0, now, 0.004);
+            const og = this.sourceGain.gain;
+            og.cancelScheduledValues(now);
+            og.setValueAtTime(og.value, now);
+            og.linearRampToValueAtTime(0, startW + 0.002);
           }
-          try { this.source.stop(now + 0.05); } catch { /* noop */ }
+          try { this.source.stop(startW + 0.01); } catch { /* noop */ }
         }
         const src = actx.createBufferSource();
         src.buffer = this.audioBuffer;
         src.playbackRate.value = this.playbackRate;
         const sg = actx.createGain();
         sg.gain.setValueAtTime(0, now);
-        sg.gain.setTargetAtTime(1, startW, 0.003);
+        sg.gain.linearRampToValueAtTime(1, startW + 0.002);
         src.connect(sg);
         sg.connect(bus);
         src.start(startW, offset);

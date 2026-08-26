@@ -41,10 +41,11 @@ section('store.ts: wheelSeek + seekWhilePlaying');
   const body = src.slice(src.indexOf('seekWhilePlaying(t: number)'), src.indexOf('play() {'));
   assert(!/this\.pause\(\);\s*this\.currentTime = t;\s*this\.play\(\)/.test(body), '不走 pause+play 整轨重启');
   assert(!body.includes('this.play()'), '不重启播放引擎');
-  assert(/actx\.currentTime \+ 0\.004/.test(body), '即时启动 (4ms 锚定, 非 20ms 延迟)');
+  assert(/now \+ 0\.00[34]/.test(body), '即时启动 (≤4ms 锚定, 非 20ms 延迟; v226 改 3ms 切换时刻)');
   assert(!/bus\.gain\.setTargetAtTime/.test(body), 'v216: 不再 dip 共享音乐总线 (滚轮连击全轨静音 → 听感破碎)');
-  assert(/this\.sourceGain\.gain\.setTargetAtTime\(0, now, 0\.004\)/.test(body), 'v216: 旧 source 经 sourceGain ~12ms 淡出');
-  assert(/sg\.gain\.setTargetAtTime\(1, startW, 0\.003\)/.test(body), 'v216: 新 source 经独立增益 ~10ms 淡入 (交叉淡变)');
+  // v226: 交叉淡变已被硬切换 (2ms 防爆音斜坡) 取代 — 连击时多份"同曲不同进度"链式重叠 = 持续降质
+  assert(/og\.linearRampToValueAtTime\(0, startW \+ 0\.002\)/.test(body), 'v226: 旧 source 2ms 斜降到 0 (硬切换)');
+  assert(/sg\.gain\.linearRampToValueAtTime\(1, startW \+ 0\.002\)/.test(body), 'v226: 新 source 2ms 斜升到 1 (硬切换)');
   assert(/stopAllHitVoices\(\);[^\n]*\n[^\n]*scheduler\?\.resync/.test(body), 'v198 起: seek 停掉旧区间已排程 hitsound (对齐 lazer seek 静音, 原"不停 voice"行为被反转)');
   assert(/this\.clock\.onStartedAtCtxTime\(startW, t\)/.test(body), '时钟重锚定');
   assert(/this\.scheduler\?\.resync\(\)/.test(body), 'hitsound 排程器重同步 (seek 帧不触发旧位置采样)');

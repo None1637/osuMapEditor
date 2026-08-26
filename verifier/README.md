@@ -1821,3 +1821,10 @@
 - 实现: App.tsx zoom 容器挂 ui-zoom-root 类 + 注入 CSS 变量 --fs-comp (随 useUiZoom resize 重渲染更新); index.css 容器兜底字号 calc(16px × --fs-comp) + text-xs..text-3xl 及 text-[9/10/11px] 覆盖 (calc(原值 × --fs-comp), 特异度 0,2,0 压过 tailwind 单类), line-height 保持原值防裁剪。
 - 适配: v217 (import 断言放宽 — 同排新增 textZoomComp)。
 - 验证: verifier/v225 (补偿函数/变量挂载/CSS 覆盖断言); tsc 通过; 全量回归除既有基线失败 (v28/v137/v138/v142) 外全绿。
+
+## v226 播放中滚轮 seek 音质再修复 — v216 交叉淡变改回硬切换 (2ms 防爆音斜坡)
+- 问题 (用户反馈): 播放时滚滚轮音乐仍降质; 播放时用鼠标点时间轴不复现。
+- 根因: v216 的 ~10-20ms 交叉淡变单次 seek 不可闻, 但滚轮连击时链式重叠 — 任意瞬间 2~4 份"同曲不同进度"同时发声 (播放中滚轮步长 ~0.5s/格), 听感 = 持续双重曝光/响度抽动 = 降质; 时间轴点击 seek 走 pause/play 零重叠硬切, 故干净。
+- 修复 (store.ts seekWhilePlaying): 统一切换时刻 startW = now+3ms — 旧源经 sourceGain 2ms 线性斜降到 0、startW+10ms 停止 (非 v216 的 50ms 长尾); 新源 startW 启动、2ms 斜升到 1; 重叠窗 ~2ms 仅防爆音咔哒, 听感 = 即时跳位 (对齐 stable/lazer)。变速支路 tempoGain dip 缩为贴紧切换点的单次 ~5ms 短窗 (不再"立即拉零+延迟恢复")。
+- 适配: v216 (交叉淡变形状断言废止, 保留接线/总线断言), v193 (锚定改 ≤4ms, 淡变断言改硬切换)。
+- 验证: verifier/v226; tsc 通过; 全量回归除既有基线失败 (v28/v137/v138/v142) 外全绿。
