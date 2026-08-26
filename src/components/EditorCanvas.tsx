@@ -40,6 +40,19 @@ function viewTransform(r: { width: number; height: number }) {
   return { scale, ox: (r.width - PW * scale) / 2, oy: RESERVED_TOP + (availH - PH * scale) / 2 };
 }
 
+// v223: 游玩区平移/缩放 — 启用时在适配变换上叠加用户偏移 (osu px) 与缩放倍率
+// (等价于 translate(ox,oy) scale(base) translate(panX,panY) scale(s); 渲染/命中/坐标换算共用同一变换)
+function playfieldTransform(r: { width: number; height: number }) {
+  const base = viewTransform(r);
+  const s = store.playfieldScale;
+  if (!store.playfieldPanEnabled || !(s > 0)) return base;
+  return {
+    scale: base.scale * s,
+    ox: base.ox + base.scale * store.playfieldPanX,
+    oy: base.oy + base.scale * store.playfieldPanY,
+  };
+}
+
 export function EditorCanvas() {
   useEditor();
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -51,6 +64,7 @@ export function EditorCanvas() {
   // v34: 自定义变换原点标记拖拽 (UI 状态, 不进 undo)
   const originDragRef = useRef<boolean>(false);
   const gridOriginDragRef = useRef<boolean>(false); // v78: 自定义网格中心标记拖拽
+  const panDragRef = useRef<{ sx: number; sy: number; px: number; py: number } | null>(null); // v223: 中键拖动游玩区
   const symPointDragRef = useRef<0 | 1 | 2>(0); // v210: 自定义对称轴端点拖拽 (0=无, 1/2=端点序号)
   // v68: 批量复制向量箭头头拖拽 (参数在 DuplicateDialog, 经 store.dupVectorDragHandler 回写)
   const dupVectorDragRef = useRef<boolean>(false);
@@ -298,7 +312,7 @@ export function EditorCanvas() {
     if (bm && p && store.tool === 'select') {
       const quads = currentQuads(bm);
       if (quads) {
-        const tol = 10 / uiZoom() / viewTransform(zoomRect(c)).scale; // v217: 10 屏幕(视觉) px → osu px
+        const tol = 10 / uiZoom() / playfieldTransform(zoomRect(c)).scale; // v217: 10 屏幕(视觉) px → osu px
         const rc = hitRotationHandle(quads.dq, p, tol);
         if (rc) hover = { type: 'rotate', anchor: rc };
         else {
@@ -322,7 +336,7 @@ export function EditorCanvas() {
   const toOsu = useCallback((e: { clientX: number; clientY: number }) => {
     const c = canvasRef.current!;
     const r = zoomRect(c); // v217: 布局空间 (渲染同系)
-    const { scale, ox, oy } = viewTransform(r);
+    const { scale, ox, oy } = playfieldTransform(r);
     return { x: (zoomClientX(e.clientX) - r.left - ox) / scale, y: (zoomClientY(e.clientY) - r.top - oy) / scale };
   }, []);
 
@@ -338,7 +352,7 @@ export function EditorCanvas() {
       const c = canvasRef.current;
       if (!c) return null;
       const r = zoomRect(c); // v217: 布局空间 → 乘 zoom 回视觉 client 坐标
-      const { scale, ox, oy } = viewTransform(r);
+      const { scale, ox, oy } = playfieldTransform(r);
       const z = uiZoom();
       return { x: (r.left + ox + x * scale) * z, y: (r.top + oy + y * scale) * z };
     };
@@ -346,7 +360,7 @@ export function EditorCanvas() {
       const c = canvasRef.current;
       if (!c) return null;
       const r = zoomRect(c);
-      const { scale, ox, oy } = viewTransform(r);
+      const { scale, ox, oy } = playfieldTransform(r);
       return { x: (ox + x * scale) * (c.width / r.width), y: (oy + y * scale) * (c.height / r.height) };
     };
     w.__invalidatePath = (id) => invalidatePath(id);
@@ -398,7 +412,7 @@ export function EditorCanvas() {
         }
         return;
       }
-      store.canvasDragging = false; originDragRef.current = false; gridOriginDragRef.current = false; dupVectorDragRef.current = false; symPointDragRef.current = 0; finishHandleDrag();
+      store.canvasDragging = false; originDragRef.current = false; gridOriginDragRef.current = false; dupVectorDragRef.current = false; symPointDragRef.current = 0; panDragRef.current = null; finishHandleDrag();
       // v66: 画布外松开同样收尾手绘/候选 (否则残留状态会在下次经过画布时误续画)
       if (freehandRef.current) {
         const builder = freehandRef.current.builder;
@@ -505,7 +519,7 @@ export function EditorCanvas() {
         g.setTransform(dpr, 0, 0, dpr, 0, 0);
         g.fillStyle = '#111116';
         g.fillRect(0, 0, r.width, r.height);
-        const { scale, ox, oy } = viewTransform(r);
+        const { scale, ox, oy } = playfieldTransform(r);
         g.save();
         g.translate(ox, oy); g.scale(scale, scale);
         // v56: 位置网格 (lazer PositionSnapGrid, 始终显示; 线 alpha 0.1, 过原点首线 0.2; 圆形首圆 0.8)
@@ -949,6 +963,13 @@ export function EditorCanvas() {
     if (!bm) return;
     const p = toOsu(e);
     if (e.button === 2) return; // 右键在 contextmenu 处理
+    // v223: 游玩区平移开启时, 按住中键拖动游玩区域 (preventDefault 阻止浏览器中键自动滚动)
+    if (e.button === 1 && store.playfieldPanEnabled) {
+      e.preventDefault();
+      panDragRef.current = { sx: e.clientX, sy: e.clientY, px: store.playfieldPanX, py: store.playfieldPanY };
+      store.canvasDragging = true; // 拖拽期间抑制放置预览/时间轴 seek (与物件拖拽同款)
+      return;
+    }
     // v78: 自定义网格中心标记命中最优先 (全工具可拖, 与自定义原点标记同款半径; 只改网格原点, 不进 undo)
     if (store.gridOriginCustom && store.gridType !== 'none' && Math.hypot(store.gridOrigin.x - p.x, store.gridOrigin.y - p.y) <= 12) { // v119: 无网格时标记不可拖
       gridOriginDragRef.current = true;
@@ -983,7 +1004,7 @@ export function EditorCanvas() {
       const quads0 = currentQuads(bm);
       if (quads0 && !store.lockNotes) { // v115: 锁定物件 — 旋转手柄禁用
         const c = canvasRef.current!;
-        const tol = 10 / uiZoom() / viewTransform(zoomRect(c)).scale; // v217: 视觉 px 基准
+        const tol = 10 / uiZoom() / playfieldTransform(zoomRect(c)).scale; // v217: 视觉 px 基准
         const corner = hitRotationHandle(quads0.dq, p, tol);
         if (corner) {
           // v117: 节点选区非空时手柄作用于选中节点 (快照 = 节点坐标, 原点 = 节点集 MEC 圆心)
@@ -1017,7 +1038,7 @@ export function EditorCanvas() {
       const quads = quads0;
       if (quads && !store.lockNotes && scaleHandleAnchors(quads.q).length) { // v115: 锁定物件 — 缩放手柄禁用
         const c = canvasRef.current!;
-        const tol = 8 / uiZoom() / viewTransform(zoomRect(c)).scale; // 8 屏幕 px 换算 osu px (v217: 视觉 px 基准)
+        const tol = 8 / uiZoom() / playfieldTransform(zoomRect(c)).scale; // 8 屏幕 px 换算 osu px (v217: 视觉 px 基准)
         const anchor = hitScaleHandle(quads.q, quads.dq, p, tol);
         if (anchor) {
           // v117: 节点选区非空时手柄作用于选中节点 (快照 = 节点坐标, Alt 原点 = 节点集 MEC 圆心)
@@ -1277,6 +1298,19 @@ export function EditorCanvas() {
   };
 
   const onMouseMove = (e: React.MouseEvent) => {
+    // v223: 中键拖动游玩区 — 视觉位移 / uiZoom -> 布局 px, 再 / 基础适配 scale -> osu px 偏移
+    // (用户缩放倍率 s 在偏移之后生效, 此处不除 s: 内容始终 1:1 跟随光标)
+    if (panDragRef.current) {
+      const c = canvasRef.current;
+      if (c) {
+        const base = viewTransform(zoomRect(c));
+        const z = uiZoom();
+        store.playfieldPanX = panDragRef.current.px + (e.clientX - panDragRef.current.sx) / z / base.scale;
+        store.playfieldPanY = panDragRef.current.py + (e.clientY - panDragRef.current.sy) / z / base.scale;
+        store.emit(); // 左侧栏 x/y 输入框实时刷新 (画布渲染循环每帧直接读 store)
+      }
+      return;
+    }
     const cp = toOsu(e);
     cursorRef.current = { x: cp.x, y: cp.y, inside: cp.x >= 0 && cp.x <= PW && cp.y >= 0 && cp.y <= PH };
     // v82: 放置中光标 -> store (上方时间轴滑条预览幻影点)
@@ -1538,6 +1572,11 @@ export function EditorCanvas() {
   };
 
   const onMouseUp = () => {
+    if (panDragRef.current) { // v223: 中键平移收尾 (视图状态, 不进 undo)
+      panDragRef.current = null;
+      store.canvasDragging = false;
+      return;
+    }
     // 注意: canvasDragging 不在这里清 — 拖出画布 (如经过时间轴) 时按钮尚未松开,
     // 标志必须保持到 window mouseup (见上方 useEffect), 否则时间轴会在拖拽经过时误触 seek
     // (v74: 手绘/候选进行中 onMouseLeave 不再调本函数, 由 window mouseup 统一收尾)

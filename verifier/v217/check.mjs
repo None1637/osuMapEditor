@@ -45,7 +45,7 @@ section('EditorCanvas.tsx: 布局空间绘制/命中');
   assert(!/c\.getBoundingClientRect\(\)/.test(src), '不再直接用视觉 rect');
   assert(/const dpr = zoomDpr\(\);/.test(src) && /const r = zoomRect\(c\);/.test(src), '渲染: zoomDpr + zoomRect');
   assert(/zoomClientX\(e\.clientX\) - r\.left - ox/.test(src), 'toOsu: 布局空间命中');
-  assert(/10 \/ uiZoom\(\) \/ viewTransform\(zoomRect\(c\)\)\.scale/.test(src), '手柄命中容差按视觉 px 基准换算');
+  assert(/10 \/ uiZoom\(\) \/ playfieldTransform\(zoomRect\(c\)\)\.scale/.test(src), '手柄命中容差按视觉 px 基准换算 (v223: 经 playfieldTransform, 含游玩区平移/缩放)');
   assert(/\(r\.left \+ ox \+ x \* scale\) \* z/.test(src), '__osuToClient 乘 zoom 回视觉 client 坐标 (CDP 测试兼容)');
 }
 

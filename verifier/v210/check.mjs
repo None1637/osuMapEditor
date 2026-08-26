@@ -70,7 +70,7 @@ section('EditorCanvas.tsx: 对称轴渲染与拖拽');
   assert(/for \(const m of \[store\.symP1, store\.symP2\]\)/.test(src), '自定义端点标记渲染');
   assert(/symPointDragRef\.current = \(hit \+ 1\) as 1 \| 2/.test(src), 'mousedown 端点命中');
   assert(/store\.setSymPoint\(i, gridSnapAt\(/.test(src), '拖拽回写 (带吸附)');
-  assert(/symPointDragRef\.current = 0; finishHandleDrag\(\)/.test(src), 'mouseup 清除拖拽 ref');
+  assert(/symPointDragRef\.current = 0; panDragRef\.current = null; finishHandleDrag\(\)/.test(src), 'mouseup 清除拖拽 ref');
 }
 
 if (failures) { console.error(`V210 FAILED: ${failures}`); process.exit(1); }

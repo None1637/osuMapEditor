@@ -1,6 +1,6 @@
 import { useEffect, useState, type CSSProperties } from 'react';
 // v181: 图标统一用 Lucide (规范: 界面禁用 emoji 图标, 见 AGENTS.md)
-import { Volume2, Eye, FolderOpen, Palette, Ruler, Lock, LockOpen, Crosshair, Box, Magnet, Settings2, Package, AudioWaveform, Star, Undo2, Redo2, Grid3x3, MousePointer2, Circle, Spline, Disc } from 'lucide-react';
+import { Volume2, Eye, FolderOpen, Palette, Ruler, Lock, LockOpen, Crosshair, Box, Magnet, Settings2, Package, AudioWaveform, Star, Undo2, Redo2, Grid3x3, MousePointer2, Circle, Spline, Disc, Move } from 'lucide-react';
 import { store, useEditor, type Tool } from '@/osu/store';
 import { seekByBeats } from '@/osu/seekSnapping';
 import { BEAT_SNAP_OPTIONS } from '@/osu/sliderPath'; // v218: 节拍细分配置项 (与滑条长度吸附同一来源)
@@ -42,6 +42,33 @@ const TOOLS: { id: Tool; label: string; key: string; icon: typeof MousePointer2 
   { id: 'slider', label: '滑条', key: '3', icon: Spline },
   { id: 'spinner', label: '转盘', key: '4', icon: Disc },
 ];
+
+// v223: 游玩区平移/缩放数值输入 — 局部文本态 (同 GridSpacingInput): 未聚焦显示 store 值 (中键拖动时实时刷新),
+// 聚焦后编辑原文 (可输负号/小数中间态), 仅有限值提交 (scale 钳 0.1..10), 失焦还原
+// v224: grow = 平分父行宽度 (x/y 行); 默认固定宽 (开关行的缩放)
+function PanNumInput({ label, value, step, min, max, grow, onCommit }: {
+  label: string; value: number; step: number; min?: number; max?: number; grow?: boolean; onCommit: (v: number) => void;
+}) {
+  const [text, setText] = useState<string | null>(null);
+  return (
+    <span className={`flex items-center gap-0.5 ${grow ? 'flex-1 min-w-0' : 'shrink-0'}`}>
+      <span className="text-white/50 shrink-0">{label}</span>
+      <input type="number" step={step} data-pan-input={label}
+        value={text ?? String(value)}
+        onFocus={() => setText(String(value))}
+        onBlur={() => setText(null)}
+        onChange={e => {
+          setText(e.target.value);
+          let v = parseFloat(e.target.value);
+          if (!isFinite(v)) return;
+          if (min !== undefined) v = Math.max(min, v);
+          if (max !== undefined) v = Math.min(max, v);
+          onCommit(v);
+        }}
+        className={`${grow ? 'flex-1' : 'w-12'} min-w-0 bg-black/40 border border-white/15 rounded px-1 py-0.5 text-right`} />
+    </span>
+  );
+}
 
 // 网格间距输入: 局部文本态, 输入过程中不钳制 (可自由全选输入 10/20), 仅合法值 (lazer 4..256) 提交, 失焦还原
 function GridSpacingInput({ disabled }: { disabled: boolean }) {
@@ -499,6 +526,25 @@ export default function App() {
               ? <Lock className="inline-block w-4 h-4 mr-1 -mt-0.5" />
               : <LockOpen className="inline-block w-4 h-4 mr-1 -mt-0.5" />}锁定物件
           </button>
+          <div className="h-px bg-white/15 mx-1 my-0.5" />
+          {/* v223: 游玩区平移/缩放 — 开启后按住鼠标中键拖动游玩区域; x/y/缩放输入框实时显示并可设定 (视图辅助, 不入谱面)
+              v224: 开关半宽 + 缩放同行 (放按钮后); x/y 两个输入框平分下一行 */}
+          <div className="flex items-center gap-1.5">
+            <button onClick={() => { store.playfieldPanEnabled = !store.playfieldPanEnabled; store.emit(); }}
+              data-pan-input="toggle"
+              className={`flex-1 min-w-0 text-left px-3 py-1.5 rounded ${store.playfieldPanEnabled ? 'bg-cyan-500/40 border border-cyan-400/50' : 'bg-white/10 hover:bg-white/20'}`}
+              title="游玩区平移: 开启后按住鼠标中键拖动游玩区域; x/y = 偏移 (osu px), 缩放 = 倍率 (默认 1.0); 关闭后恢复默认视图 (已设值保留)">
+              <Move className="inline-block w-4 h-4 mr-1 -mt-0.5" />游玩区平移
+            </button>
+            <PanNumInput label="缩放" value={Math.round(store.playfieldScale * 100) / 100} step={0.1} min={0.1} max={10}
+              onCommit={v => { store.playfieldScale = v; store.emit(); }} />
+          </div>
+          <div className="flex items-center gap-1.5 text-sm text-white/70 px-1">
+            <PanNumInput label="x" grow value={Math.round(store.playfieldPanX * 10) / 10} step={1}
+              onCommit={v => { store.playfieldPanX = v; store.emit(); }} />
+            <PanNumInput label="y" grow value={Math.round(store.playfieldPanY * 10) / 10} step={1}
+              onCommit={v => { store.playfieldPanY = v; store.emit(); }} />
+          </div>
           <div className="h-px bg-white/15 mx-1 my-0.5" />
           {/* v56: 网格吸附 (lazer OsuGridToolboxGroup): 开关 + 类型 + 间距 (写回 GridSize) + 旋转 (圆形禁用);
               v151: 吸附开关与类型下拉各半宽放一行; 间距与旋转放一行 */}

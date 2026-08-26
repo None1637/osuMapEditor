@@ -81,6 +81,12 @@ class EditorStore {
   /** v115: 锁定物件 (stable 「编辑 > Lock Notes」): 开启后无法移动/修改/删除任何已有物件;
       放置新物件/粘贴/绿线编辑不受影响。各物件变更入口统一检查此标志 */
   lockNotes = false;
+  // v223: 游玩区平移/缩放 (视图辅助, 不写入谱面): 开关 + 偏移 (osu px) + 缩放倍率 (默认 1.0);
+  // 关闭时变换不生效 (回到默认适配视图), 已设值保留
+  playfieldPanEnabled = false;
+  playfieldPanX = 0;
+  playfieldPanY = 0;
+  playfieldScale = 1.0;
   // v56: 位置网格 (lazer OsuGridToolboxGroup + rectangularGridSnapToggle)
   gridSnap = false; // Grid Snap 开关 (lazer 默认 False); 网格线始终显示 (lazer LayerBelowRuleset)
   gridType: 'square' | 'triangle' | 'circle' | 'none' = 'square'; // v119: none = 无网格 (渲染与吸附同时停)
