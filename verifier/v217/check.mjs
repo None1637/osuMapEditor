@@ -32,7 +32,7 @@ section('uiZoom.ts: 共享模块');
 section('App.tsx: zoom 容器');
 {
   const src = readSrc('src/App.tsx');
-  assert(/import \{ useUiZoom \} from '@\/osu\/uiZoom';/.test(src), 'useUiZoom 来自共享模块 (无本地副本)');
+  assert(/import \{ useUiZoom[^}]*\} from '@\/osu\/uiZoom';/.test(src), 'useUiZoom 来自共享模块 (无本地副本)'); // v225: import 同排新增 textZoomComp, 放宽断言
   assert(!/const DESIGN_W = 2560/.test(src), 'App.tsx 不再本地定义基准常量');
   assert(/zoom: uiZoom, width: `\$\{100 \/ uiZoom\}vw`, height: `\$\{100 \/ uiZoom\}vh`/.test(src), '内层布局尺寸 = 视口/zoom (缩放后填满窗口)');
   assert(/h-screen w-screen overflow-hidden/.test(src), '外层容器撑满窗口 (不缩放)');

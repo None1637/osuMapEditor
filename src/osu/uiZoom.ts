@@ -15,6 +15,20 @@ export function uiZoom(): number {
   return Math.max(UI_ZOOM_MIN, Math.min(1, Math.min(window.innerWidth / DESIGN_W, window.innerHeight / DESIGN_H)));
 }
 
+// ---- v225: 文本补偿缩放 — 控件尺寸仍按 uiZoom 线性缩, 文本按更缓的 sqrt 曲线缩 ----
+// 小窗口下线性缩放把 12px 文本压到 7.2px 不可读; textZoom = clamp(√uiZoom, 0.8, 1):
+// zoom=0.6 时文本仍保留 80% 字号 (视觉 9.6px 起), zoom=1 时恒 1 不影响原布局。
+export const TEXT_ZOOM_MIN = 0.8;
+
+export function textZoom(): number {
+  return Math.max(TEXT_ZOOM_MIN, Math.min(1, Math.sqrt(uiZoom())));
+}
+
+/** 布局空间字号补偿系数 = textZoom/uiZoom (CSS 侧乘在原字号上, 视觉即 textZoom) */
+export function textZoomComp(): number {
+  return textZoom() / uiZoom();
+}
+
 export function useUiZoom(): number {
   const [z, setZ] = useState(uiZoom);
   useEffect(() => {

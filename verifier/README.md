@@ -1814,3 +1814,10 @@
 - 需求: x/y 两个输入框平分一行; scale 改名「缩放」并移到「游玩区平移」按钮同一行, 按钮宽度缩为之前一半左右, 缩放放按钮后面。
 - 实现 (App.tsx): 开关按钮半宽 (flex-1) 与「缩放」输入框同一行; x/y 两个 PanNumInput grow 平分下一行。
 - 验证: verifier/v224。
+
+## v225 文本补偿缩放 — 小窗口下文本不再随控件同比例缩得过小 (方案A)
+- 问题: v217 全局等比缩放用单一 zoom 系数, 窗口变小时文本与控件一起线性缩小 (zoom=0.6 时 12px 文本视觉仅 7.2px), 不可读。
+- 方案: 控件尺寸仍按 uiZoom 线性缩, 文本按更缓的 sqrt 曲线缩 — textZoom = clamp(√uiZoom, 0.8, 1) (uiZoom.ts), 布局空间补偿系数 textZoomComp = textZoom/uiZoom。
+- 实现: App.tsx zoom 容器挂 ui-zoom-root 类 + 注入 CSS 变量 --fs-comp (随 useUiZoom resize 重渲染更新); index.css 容器兜底字号 calc(16px × --fs-comp) + text-xs..text-3xl 及 text-[9/10/11px] 覆盖 (calc(原值 × --fs-comp), 特异度 0,2,0 压过 tailwind 单类), line-height 保持原值防裁剪。
+- 适配: v217 (import 断言放宽 — 同排新增 textZoomComp)。
+- 验证: verifier/v225 (补偿函数/变量挂载/CSS 覆盖断言); tsc 通过; 全量回归除既有基线失败 (v28/v137/v138/v142) 外全绿。

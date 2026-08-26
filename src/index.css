@@ -84,3 +84,21 @@ input, textarea, [contenteditable="true"] {
   user-select: text;
   -webkit-user-select: text;
 }
+
+/* v225: 文本补偿缩放 — 控件尺寸随 v217 zoom 线性缩, 文本按 sqrt 曲线缓缩 (--fs-comp = textZoom/uiZoom)。
+   兜底: 容器字号乘补偿 (未显式设字号的元素全部生效);
+   覆盖: tailwind 字号类与项目用到的任意值类在布局空间放大 --fs-comp 倍, 视觉即 √zoom (下限 0.8)。
+   line-height 保持原值 (只大不小, 不裁剪文字); 选择器特异度 (0,2,0) 高于 tailwind 单类 (0,1,0)。 */
+.ui-zoom-root {
+  font-size: calc(16px * var(--fs-comp, 1));
+}
+.ui-zoom-root .text-xs   { font-size: calc(0.75rem  * var(--fs-comp, 1)); }
+.ui-zoom-root .text-sm   { font-size: calc(0.875rem * var(--fs-comp, 1)); }
+.ui-zoom-root .text-base { font-size: calc(1rem     * var(--fs-comp, 1)); }
+.ui-zoom-root .text-lg   { font-size: calc(1.125rem * var(--fs-comp, 1)); }
+.ui-zoom-root .text-xl   { font-size: calc(1.25rem  * var(--fs-comp, 1)); }
+.ui-zoom-root .text-2xl  { font-size: calc(1.5rem   * var(--fs-comp, 1)); }
+.ui-zoom-root .text-3xl  { font-size: calc(1.875rem * var(--fs-comp, 1)); }
+.ui-zoom-root .text-\[9px\]  { font-size: calc(9px  * var(--fs-comp, 1)); }
+.ui-zoom-root .text-\[10px\] { font-size: calc(10px * var(--fs-comp, 1)); }
+.ui-zoom-root .text-\[11px\] { font-size: calc(11px * var(--fs-comp, 1)); }

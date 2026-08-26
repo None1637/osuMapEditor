@@ -124,11 +124,12 @@ function ShiftAllDialog({ onClose }: { onClose: () => void }) {
 // 不再只挤压中间 flex-1 区域; zoom 为单一系数, X/Y 永远等比不变形,
 // 不等比余量仍由 flex-1 中间区吸收 (不留白)。canvas 组件经 zoomRect/zoomClientX/Y
 // 在布局空间绘制与命中, 固定 px 内容随整体一致缩放。
-import { useUiZoom } from '@/osu/uiZoom';
+import { useUiZoom, textZoomComp } from '@/osu/uiZoom';
 
 export default function App() {
   useEditor();
   const uiZoom = useUiZoom(); // v217
+  const fsComp = textZoomComp(); // v225: 文本补偿系数 (resize 时随 useUiZoom 重渲染更新)
   const [tab, setTab] = useState<'edit' | 'setup' | 'timing'>('edit');
   // exe 环境启动即进曲库界面 (点难度后进入编辑器); dev/浏览器调试直进编辑界面
   const [showLibrary, setShowLibrary] = useState(() => isElectron());
@@ -394,8 +395,8 @@ export default function App() {
     // v217: 外层撑满窗口不缩放; 内层布局尺寸 = 视口/zoom, 经 zoom 缩放后恰好填满窗口
     <div className="h-screen w-screen overflow-hidden bg-[#0d0d12] text-white relative">
     <div
-      className="flex flex-col overflow-hidden relative"
-      style={{ zoom: uiZoom, width: `${100 / uiZoom}vw`, height: `${100 / uiZoom}vh` } as CSSProperties}
+      className="ui-zoom-root flex flex-col overflow-hidden relative"
+      style={{ zoom: uiZoom, width: `${100 / uiZoom}vw`, height: `${100 / uiZoom}vh`, '--fs-comp': fsComp } as CSSProperties}
     >
       {/* v127: 原 h-12 顶部标题行 (粉色加粗标题文字) 已删除 — 无实际功能 */}
 
