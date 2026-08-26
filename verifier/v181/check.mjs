@@ -38,7 +38,7 @@ ok(/<Undo2 /.test(app) && /<Redo2 /.test(app), '撤销/重做 ↩↪ → Undo2/R
 // 3. 各组件替换到位
 const comp = (f) => fs.readFileSync(path.join(root, 'src/components', f), 'utf8');
 ok(/<X className/.test(comp('DraggableDialog.tsx')), 'DraggableDialog ✕ → X');
-ok(/<Play /.test(comp('Timelines.tsx')) && /<Pause /.test(comp('Timelines.tsx')) && /<Rewind /.test(comp('Timelines.tsx')) && /<FastForward /.test(comp('Timelines.tsx')), 'Timelines 播放控制 → lucide');
+ok(/<Play /.test(comp('Timelines.tsx')) && /<Pause /.test(comp('Timelines.tsx')) && /<Square /.test(comp('Timelines.tsx')), 'Timelines 播放控制 → lucide (v221 起 ⏮/⏭ 按钮已删, 剩 ▶/⏸/⏹)');
 ok(/<Palette className/.test(comp('SkinPicker.tsx')), 'SkinPicker 🎨 → Palette');
 ok(/<FolderOpen className/.test(comp('SongLibrary.tsx')), 'SongLibrary 📁 → FolderOpen');
 ok(/<TriangleAlert className/.test(comp('UnsavedDialog.tsx')), 'UnsavedDialog ⚠ → TriangleAlert');

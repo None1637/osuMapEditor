@@ -47,7 +47,7 @@ section('Timelines.tsx: 命中跟随 (4 处)');
   const src = readSrc('src/components/Timelines.tsx');
   assert(/timelineMarkerHit\(bm\.hitObjects, objEnd, t0, win, r\.width, px, RAD, py, stackGeomOf/.test(src), 'hitTestMarker 传 py + 堆叠几何');
   assert(/Math\.hypot\(dx, stackLayout\(si\.count, OBJ_H, RAD\)\.yOf\(si\.level\) - py\)/.test(src), '滑条尾端堆叠 2D 命中');
-  const barCalls = src.match(/timelineBarHit\([^)]*stackGeomOf\(stackInfo\(/g) ?? [];
+  const barCalls = src.match(/timelineBarHit\([^\n]*?stackGeomOf\(stackInfo\(/g) ?? []; // v217 起坐标包 zoomClientX(...) 有嵌套括号, [^)]* 会漏匹配, 改按单行匹配
   assert(barCalls.length === 3, `三处 barHit 调用点都传堆叠几何 (单击兜底/mousedown 中段/右键; 实际 ${barCalls.length})`);
 }
 

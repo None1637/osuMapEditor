@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { FastForward, Pause, Play, Rewind, Square, X } from 'lucide-react'; // v181: ⏮/▶/⏸/⏹/⏭/✕ → lucide
+import { Pause, Play, Square, X } from 'lucide-react'; // v181: ▶/⏸/⏹/✕ → lucide (v221: 删 ⏮/⏭)
 import { store, useEditor } from '@/osu/store';
 import { timingAt, sliderVelocityAt, type TimingPoint } from '@/osu/parser';
 import { computeCombos, comboColor, invalidatePath, mergedWithPreview, objectEndAt } from '@/osu/renderer';
@@ -1005,12 +1005,10 @@ export function BottomTimeline() {
             ))}
           </div>
         </div>
-        <button onClick={() => store.seek(store.currentTime - 1000)} className="px-2 py-1.5 rounded bg-white/10 hover:bg-white/20 text-white text-sm flex items-center" title="后退1秒"><Rewind className="w-4 h-4" fill="currentColor" /></button>
         <button onClick={() => store.togglePlay()} className="px-3 py-1.5 rounded bg-pink-500 hover:bg-pink-400 text-white text-sm font-bold w-12 flex items-center justify-center" title="空格">
           {store.playing ? <Pause className="w-4 h-4" fill="currentColor" /> : <Play className="w-4 h-4" fill="currentColor" />}
         </button>
         <button onClick={() => { store.pause(); store.seek(0); }} className="px-2 py-1.5 rounded bg-white/10 hover:bg-white/20 text-white text-sm flex items-center" title="回到开头"><Square className="w-4 h-4" fill="currentColor" /></button>
-        <button onClick={() => store.seek(store.currentTime + 1000)} className="px-2 py-1.5 rounded bg-white/10 hover:bg-white/20 text-white text-sm flex items-center" title="前进1秒"><FastForward className="w-4 h-4" fill="currentColor" /></button>
       </div>
     </div>
   );

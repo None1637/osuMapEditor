@@ -10,7 +10,8 @@ import { genId, sliderVelocityAt, timingAt } from '../parser';
 import { getSliderPath } from '../sliderPath';
 
 // v40: 间距单位改节拍; 曲线简化为 线性/先加后减/先减后加 ('accel'/'decel' 为 v36 遗留值, 加载时映射到 linear)
-export type StreamCurve = 'equal' | 'linear' | 'bell' | 'bellInv' | 'accel' | 'decel';
+// v222: 新增指数变化曲线 ('expo') + 指数参数 exponent
+export type StreamCurve = 'equal' | 'linear' | 'bell' | 'bellInv' | 'expo' | 'accel' | 'decel';
 
 export interface StreamParams {
   mode: 'count' | 'spacing';  // 按数量 or 按时间间距
@@ -18,12 +19,13 @@ export interface StreamParams {
   spacingBeats: number;       // 基准时间间距, 单位拍 (>0, spacing 模式; v41 起由节拍下拉框给出)
   curve: StreamCurve;         // 空间间距变化曲线 (equal = 等距)
   endPercent: number;         // 变距: 空间间距从 100% 渐变到 endPercent% (0~400; 如 50 = 尾部间距减半 = 变密)
+  exponent: number;           // v222: 指数曲线弯曲度 (>0, 两位小数; 仅 curve='expo' 时用; 1 = 同线性)
 }
 
-export const DEFAULT_STREAM_PARAMS: StreamParams = { mode: 'spacing', count: 8, spacingBeats: 0.5, curve: 'equal', endPercent: 50 };
+export const DEFAULT_STREAM_PARAMS: StreamParams = { mode: 'spacing', count: 8, spacingBeats: 0.5, curve: 'equal', endPercent: 50, exponent: 2 };
 
 /** 间距权重: p in [0,1] -> 间距倍率 (从 1 渐变到 k = endPercent/100) */
-function weight(curve: StreamCurve, k: number, p: number): number {
+function weight(curve: StreamCurve, k: number, p: number, exp = 2): number {
   const d = k - 1;
   switch (curve) {
     case 'equal': return 1;
@@ -32,6 +34,7 @@ function weight(curve: StreamCurve, k: number, p: number): number {
     case 'decel': return 1 + d * p;                          // 线性变化
     case 'bell': return 1 + d * Math.sin(Math.PI * p);       // 先加后减: 间距 100%->k->100% (中段最密)
     case 'bellInv': return 1 - d * Math.sin(Math.PI * p);    // 先减后加: 间距 100%->(2-k)->100% (中段最疏)
+    case 'expo': return 1 + d * Math.pow(p, Math.max(0.01, exp)); // v222: 指数变化; exp>1 前慢后快, 0<exp<1 前快后慢
   }
 }
 
@@ -65,7 +68,7 @@ export function streamFractions(p: StreamParams, times: number[], duration: numb
     return times.map(t => (duration > 0 ? t / duration : 0));
   }
   const k = Math.max(0, p.endPercent / 100); // v41: 允许 0% (末段间距=0, 单点堆叠在路径尾)
-  const w = Array.from({ length: n - 1 }, (_, j) => Math.max(0, weight(p.curve, k, (j + 0.5) / (n - 1))));
+  const w = Array.from({ length: n - 1 }, (_, j) => Math.max(0, weight(p.curve, k, (j + 0.5) / (n - 1), p.exponent ?? 2)));
   const sum = w.reduce((a, b) => a + b, 0);
   if (sum <= 1e-9) return times.map(() => 0); // 全零权重: 全部堆在头部
   const f = [0];

@@ -4,9 +4,9 @@ import { store, useEditor } from '@/osu/store';
 import { DraggableDialog, DraftNum, loadParams, saveParams } from '../DraggableDialog';
 import { computeStream, DEFAULT_STREAM_PARAMS, type StreamCurve, type StreamParams } from '@/osu/convert/stream';
 
-// v40: 曲线简化 — 等距/线性变化/先加后减/先减后加
+// v40: 曲线简化 — 等距/线性变化/先加后减/先减后加; v222: + 指数变化 (带指数参数)
 const CURVES: [StreamCurve, string][] = [
-  ['equal', '等距'], ['linear', '线性变化'], ['bell', '先加后减'], ['bellInv', '先减后加'],
+  ['equal', '等距'], ['linear', '线性变化'], ['bell', '先加后减'], ['bellInv', '先减后加'], ['expo', '指数变化'],
 ];
 
 // v41: 间距改节拍下拉框 (与节拍吸附同一组分母)
@@ -87,6 +87,13 @@ export function StreamDialog() {
         <Row label="变化到 %">
           <DraftNum value={params.endPercent} set={v => upd({ endPercent: Math.max(0, Math.min(400, v)) })} testid="end-percent" min={0} max={400} />
           <span className="text-white/40">100→{params.endPercent}% ({params.endPercent < 100 ? '变密' : params.endPercent > 100 ? '变疏' : '不变'})</span>
+        </Row>
+      )}
+      {/* v222: 指数参数 (两位小数) — 仅指数变化曲线时显示; 1=同线性, >1 前慢后快, <1 前快后慢 */}
+      {params.curve === 'expo' && (
+        <Row label="指数">
+          <DraftNum value={params.exponent} set={v => upd({ exponent: Math.round(Math.max(0.01, Math.min(10, v)) * 100) / 100 })} testid="exponent" min={0.01} max={10} step={0.01} />
+          <span className="text-white/40">{params.exponent === 1 ? '同线性' : params.exponent > 1 ? '前慢后快' : '前快后慢'}</span>
         </Row>
       )}
       <div className="text-white/40">将生成 {result.length} 个单点 (预览已显示在游玩区)</div>
