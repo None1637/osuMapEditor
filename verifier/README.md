@@ -1783,3 +1783,34 @@
 - 方案 (App.tsx + src/osu/uiZoom.ts): 最外层套 zoom 容器 — zoom = clamp(min(窗口宽/2560, 窗口高/1440), 0.6, 1), resize 监听更新; 外层 h-screen w-screen 不缩放, 内层布局尺寸 = 100/zoom vw/vh, 经 zoom 缩放后恰好填满窗口。单一系数 X/Y 等比不变形; 不等比余量由 flex-1 中间区吸收 (不留白)。
 - canvas 适配 (修正「上时间轴物件圆不缩小/游玩区与上下时间轴间距比例变化」): CSS zoom 下 getBoundingClientRect/clientX 是视觉 px, canvas 内固定 px 绘制 (RAD=24 物件圆/药丸/RESERVED 面板预留) 必须在布局 px 空间 — uiZoom.ts 提供 zoomRect (布局空间 rect) / zoomClientX/Y (事件坐标转换) / zoomDpr (= dpr×zoom, backing = 屏幕物理像素不糊); EditorCanvas 与 Timelines 全部改走该约定, 手柄命中容差按视觉 px 基准换算, __osuToClient 乘 zoom 回视觉坐标 (CDP 兼容)。
 - 验证: verifier/v217 (共享模块/容器/两 canvas 组件适配断言); tsc + vite build 通过。
+
+## v218 滑条长度按当前节拍细分的 1/2 对齐 (如 1/4 -> 1/8)
+- 需求: 放置滑条时 (游玩区与上方时间轴), 滑条长度始终按当前节拍细分的 1/2 对齐; 仅当 当前细分×2 存在于配置 (BEAT_SNAP_OPTIONS = 1/2/3/4/6/8/12/16) 时才用 ×2, 否则退回当前细分 (1/12 -> 1/12, 1/16 -> 1/16)。滑条节点仍随编辑实时改动, 不参与对齐。
+- 实现: 吸附细分只在 snapSliderLength 内换算一次, 游玩区放置 (finishSlider/finishFreehand -> placementLength)、上方时间轴放置预览 (pendingSliderTimeline -> placementLength)、节点编辑重吸附 (resnapSliderLength) 全部共用; 放置时刻 snapPlacementTime 仍按当前细分 (beatSnap), 控制点位置不参与对齐。
+- 验证: verifier/v218。
+
+## v219 滑条长度对齐补漏 (亚 tick + 游玩区预览截断)
+- 问题①: 长度低于 1/2 细分 (几何不足 1 个长度细分 tick) 的滑条在上方时间轴中仍没对齐 — placementLength 亚 tick 分支受 20px 下限 / geoCap 钳制, 时间轴预览/落盘退化为不对齐的 floor(几何)。
+- 修复①: snapSliderLength 对齐到 1 tick, 允许超几何全长; 亚 tick 分支去掉 20px/geoCap 钳制。
+- 问题②: 游玩区域中正放置的预览滑条长度完全没对齐。
+- 修复②: drawPendingSlider 滑条身按 placementLength 吸附后长度截断 (truncatePathAtLength), 与 finishSlider 落盘/时间轴预览同一规则; 控制点/连线不截断, 仍随光标实时走。
+- 验证: verifier/v219。
+
+## v220 右下角 FPS 帧数显示 — 悬浮于其他所有控件之上
+- 实现 (FpsCounter): 独立 rAF 计帧, 每 500ms 刷新读数; fixed 右下角, z-[100] (高于 v120/v191 的 z-[60] 模态), pointer-events-none 不挡交互; 挂在 App 外层 (v217 zoom 容器之外), 不随 uiZoom 缩放。
+- 验证: verifier/v220。
+
+## v222 滑条转连打: 指数变化曲线 + 指数参数 (两位小数, 仅选中指数变化时显示)
+- stream.ts: StreamCurve 增 'expo', StreamParams 增 exponent (>0, 默认 2); 权重 w(p) = 1 + (k-1) * p^exp — exp=1 同线性, >1 前慢后快, 0<exp<1 前快后慢, exp 钳制 >=0.01。
+- StreamDialog.tsx: 间距曲线下拉框增「指数变化」; 指数输入框 (step 0.01, 写入时四舍五入到两位小数) 仅 params.curve === 'expo' 时渲染; 附带 同线性/前慢后快/前快后慢 提示。
+- 验证: verifier/v222。
+
+## v223 游玩区平移/缩放 — 左侧栏开关 + x/y/scale 输入框, 中键拖动
+- 需求: 左侧栏添加开关, 开启后支持按住鼠标中键拖动游玩区域; 开关下方是游玩区 x 偏移 / y 偏移 / 缩放倍率 (默认 1.0) 三个输入框, 简写 x/y/scale。
+- 实现: store.ts 新增 playfieldPan 字段; playfieldTransform = 适配变换上叠加偏移 (osu px, 不随用户倍率放大) 与缩放倍率, 等价 translate(ox,oy) scale(base) translate(panX,panY) scale(s); 渲染/命中/toOsu/__osuToClient 共用。关闭时退回默认适配视图 (已设值保留, 不写入谱面)。
+- 验证: verifier/v223; 同步更新 v210/v217 适配。
+
+## v224 游玩区平移控件布局调整
+- 需求: x/y 两个输入框平分一行; scale 改名「缩放」并移到「游玩区平移」按钮同一行, 按钮宽度缩为之前一半左右, 缩放放按钮后面。
+- 实现 (App.tsx): 开关按钮半宽 (flex-1) 与「缩放」输入框同一行; x/y 两个 PanNumInput grow 平分下一行。
+- 验证: verifier/v224。
