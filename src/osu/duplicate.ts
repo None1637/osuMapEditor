@@ -130,8 +130,9 @@ export function computeDuplicateScaleTiming(bm: Beatmap, objs: HitObject[], p: D
     let sv = 1;
     for (const q of basePts) {
       if (q.time > t + 1e-6) break;
-      // v148: 红线不重置 SV (lazer DifficultyPoint 与 TimingPoint 分表独立查询)
-      if (!q.uninherited && q.beatLength < 0) sv = -100 / q.beatLength;
+      // v227: 红线重置 SV (stable 语义, 取代 v148 的 lazer 不重置)
+      if (q.uninherited) sv = 1;
+      else if (q.beatLength < 0) sv = -100 / q.beatLength;
     }
     return sv;
   };

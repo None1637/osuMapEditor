@@ -44,6 +44,20 @@ export function Inspector() {
 
   const origin: TransformOrigin = store.currentOrigin();
 
+  // v234: 右侧栏提示区 — 原画布内的 Alt 滑条节点控制提示 (v117) 移到此处; 并附游玩区平移操作说明 (v227/v229)
+  const hints: string[] = [];
+  if (store.tool === 'select' && !store.playing && !store.nodeSelectionCount && sel.some(o => o.type === 'slider')) {
+    hints.push('滑条节点控制：Alt+点选/框选，Shift+Alt 多选；按住 Alt 时可整体拖动 · 旋转 · 缩放（Esc 退出）');
+  }
+  if (store.playfieldPanEnabled) {
+    hints.push('游玩区平移已开启：按住鼠标中键拖动游玩区，Alt+滚轮缩放游玩区大小');
+  }
+  const HintsBlock = hints.length > 0 && (
+    <div className="space-y-1 border-t border-white/10 pt-2 mt-2 text-white/40 leading-relaxed">
+      {hints.map((h, i) => <div key={i}>{h}</div>)}
+    </div>
+  );
+
   // 选区几何变换 (任意角度旋转/任意倍率缩放/镜像; 原点: 选区/中心/自定义 — lazer origin 参数语义)
   // v146: 以普通函数调用渲染 ({TransformPanel()}), 不作为 JSX 组件 — 否则每次重渲染新组件类型, 子树重建失焦
   const TransformPanel = () => (
@@ -217,6 +231,7 @@ export function Inspector() {
             </button>
           </div>
         </div>
+        {HintsBlock}
       </div>
     );
   }
@@ -298,6 +313,7 @@ export function Inspector() {
           </button>
         </div>
       </div>
+      {HintsBlock}
     </div>
   );
 }

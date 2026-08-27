@@ -391,22 +391,25 @@ export function timingAt(points: TimingPoint[], time: number): { red: TimingPoin
 }
 
 /**
- * v148: SV 绿线独立查询 — 取 time 之前最后一条绿线, 红线【不】清除 SV
- * (lazer ControlPointInfo: TimingPoint 与 DifficultyPoint 分表独立二分查找;
- *  原 timingAt 遇红线 green=null, 红线后的滑条 SV 全部错误回退 1.0, 与 stable/lazer 不一致)
+ * SV 绿线查询 — 取 time 之前最后一条绿线。
+ * v227: 改回 stable 语义 — 红线把 SV 重置为 1.0x (用户反馈: 遇到红线不会重置滑条速度;
+ *       stable 行为 = 红线重置 SV, "不重置"只是 2020 年社区提案/lazer 改动, 见 ppy/osu#10267;
+ *       v148 曾按 lazer ControlPointInfo 分表语义改为不重置, 现按 stable 复原)。
+ * v148: 独立于 timingAt 的 green (那个是采样语义, 红线清零供 hitsound 解析, 保持不变)。
  */
 export function svPointAt(points: TimingPoint[], time: number): TimingPoint | null {
   let green: TimingPoint | null = null;
   for (const p of points) {
     if (p.time > time + 1e-6) break;
-    if (!p.uninherited) green = p;
+    if (p.uninherited) green = null; // v227: 红线重置 SV (stable 语义)
+    else green = p;
   }
   return green;
 }
 
 export function svMultiplierAt(points: TimingPoint[], time: number, baseMultiplier: number): number {
   const { red } = timingAt(points, time);
-  const green = svPointAt(points, time); // v148: SV 不被红线重置
+  const green = svPointAt(points, time); // v227: SV 被红线重置 (stable 语义)
   let sv = 1;
   if (green && green.beatLength < 0) sv = -100 / green.beatLength;
   return sv * baseMultiplier * (red.beatLength / 100); // px per beat... 实际速度 = sv*multiplier*100/beatLength px/ms
@@ -415,7 +418,7 @@ export function svMultiplierAt(points: TimingPoint[], time: number, baseMultipli
 // 滑条速度: px/ms
 export function sliderVelocityAt(points: TimingPoint[], time: number, sliderMultiplier: number): number {
   const { red } = timingAt(points, time);
-  const green = svPointAt(points, time); // v148: SV 不被红线重置
+  const green = svPointAt(points, time); // v227: SV 被红线重置 (stable 语义)
   let sv = 1;
   if (green && green.beatLength < 0) sv = -100 / green.beatLength;
   return (100 * sliderMultiplier * sv) / red.beatLength;

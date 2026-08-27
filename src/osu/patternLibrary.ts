@@ -71,14 +71,14 @@ export function msAtBeat(points: TimingPoint[], beat: number): number {
 
 /** 等效滑条速度 px/beat = 100 * sliderMultiplier * 绿线sv */
 export function pxPerBeatAt(points: TimingPoint[], sliderMultiplier: number, time: number): number {
-  const green = svPointAt(points, time); // v148: SV 不被红线重置
+  const green = svPointAt(points, time); // v227: SV 被红线重置 (stable 语义)
   const sv = green && green.beatLength < 0 ? -100 / green.beatLength : 1;
   return 100 * sliderMultiplier * sv;
 }
 
 /** 时间处生效的绿线 sv 倍率 (无绿线 = 1) */
 export function svAt(points: TimingPoint[], time: number): number {
-  const green = svPointAt(points, time); // v148: SV 不被红线重置
+  const green = svPointAt(points, time); // v227: SV 被红线重置 (stable 语义)
   return green && green.beatLength < 0 ? -100 / green.beatLength : 1;
 }
 

@@ -1828,3 +1828,56 @@
 - 修复 (store.ts seekWhilePlaying): 统一切换时刻 startW = now+3ms — 旧源经 sourceGain 2ms 线性斜降到 0、startW+10ms 停止 (非 v216 的 50ms 长尾); 新源 startW 启动、2ms 斜升到 1; 重叠窗 ~2ms 仅防爆音咔哒, 听感 = 即时跳位 (对齐 stable/lazer)。变速支路 tempoGain dip 缩为贴紧切换点的单次 ~5ms 短窗 (不再"立即拉零+延迟恢复")。
 - 适配: v216 (交叉淡变形状断言废止, 保留接线/总线断言), v193 (锚定改 ≤4ms, 淡变断言改硬切换)。
 - 验证: verifier/v226; tsc 通过; 全量回归除既有基线失败 (v28/v137/v138/v142) 外全绿。
+
+## v227 红线重置滑条 SV 为 1.0x (stable 语义; 推翻 v148 的 lazer 语义)
+- 用户反馈: 遇到紅線不會重製成1.0x滑條速度。
+- 考据: stable 行为 = 红线重置 SV ("不重置"只是 2020 社区提案/lazer 改动, ppy/osu#10267); v148 曾按 lazer ControlPointInfo 分表语义改为不重置, 本编辑器对齐 stable, 复原重置语义。
+- 实现: parser.svPointAt 红线清零 (p.uninherited → green = null); duplicate.ts 局部 svAt 同步 (红线 sv=1); patternLibrary 两查询点共用 svPointAt 自动获得新语义。timingAt 采样语义 (红线清零 green 供 hitsound) 不变。
+- 适配: v148 (SV 断言全部反转为重置语义, 滑条路径末端延长断言保留), v149 (distanceLockDistance 红线后期望值 400→200)。
+- 验证: verifier/v227 (源码结构) + v148 tests.ts (行为数值); tsc 通过。
+
+## v228 物件/节点拖拽移出画布不中断
+- 用户反馈: 拖住物件不放開時即使游標滑到UI區域回來playfield一樣會拖著物件。
+- 根因: onMouseLeave 对物件拖拽 (dragRef)/节点拖拽 (nodeDragRef)/节点整体拖动 (nodesMoveDragRef) 没有豁免, 光标一出画布就调 onMouseUp 终止拖拽 (v50/v74 只豁免了缩放/旋转/手绘)。
+- 实现 (EditorCanvas.tsx): ① onMouseLeave 豁免三个拖拽 ref; ② window mousemove: 拖拽激活且事件目标不在画布上时复用 onMouseMove 拖拽分支继续跟随 (位移按 mousedown 快照重算, 幂等); ③ window mouseup: 三者其一仍在则走 onMouseUp 同一收尾 (commit/undo/切红; 画布内松开时 React onMouseUp 已清 ref, no-op)。
+- 适配: v74 (onMouseLeave 条件断言放宽)。
+- 验证: verifier/v228; tsc 通过; 全量回归除既有基线失败 (v28/v137/v138/v142) 外全绿。
+
+## v229 游玩区平移功能支持 Alt+滚轮缩放
+- 需求: 游玩区平移改成支持 alt+鼠标滚轮缩放大小。lazer 语义考据: 时间轴 Alt+滚轮 = 缩放 (ZoomableScrollContainer.OnScroll), 游玩区纯 Alt+滚轮在 lazer 空闲, 可安全占用。
+- 实现 (EditorCanvas.tsx onWheel): 仅 playfieldPanEnabled 时生效; 每刻度 ×1.1 (Math.pow(1.1, -dy/100), 滚轮上 = 放大), 钳 0.1..10 (同左侧栏缩放输入框); 以光标为焦点 — panX/panY 同步补偿 (s0-s1)*p, 光标下内容不动; deltaMode 归一化与 wheelSteps 同款; Alt 分支 return, 不再触发 wheelSeek, 非 Alt 保持 v193 seek。
+- 验证: verifier/v229; tsc 通过; 全量回归除既有基线失败 (v28/v137/v138/v142) 外全绿。
+
+## v230 滑条转连打指数曲线修复 — 段末采样 (指数越大变化越集中尾部)
+- 问题 (用户反馈+截图): 指数变化没效果 — 按数量 4 / 变化到 5% / 指数 10 时 4 个单点几乎等距。
+- 根因: 权重采样在段中点 p=(j+0.5)/(n-1) 恒 <1, 高指数时 w=1+(k-1)p^exp ≈1 全程平坦 (末段也只采到 p=5/6, (5/6)^10≈0.16, 远不到 k=0.05), 指数越大反而越平坦。
+- 修复 (stream.ts streamFractions): expo 曲线采样点改段末 (j+1)/(n-1) — 末段间距恰 = endPercent% (端点语义, 与「变化到 %」字面一致), 指数越大变化越集中在尾部; linear/bell/bellInv 保持段中点采样不变。截图场景 (n=4, k=0.05, exp=10) 分布从 [35.2%,35.1%,29.7%] 变为 [49.2%,48.4%,2.5%]。
+- 适配: v222 (weight 调用断言更新)。
+- 验证: verifier/v230 (行为数值: 端点语义/指数单调性/exp=1 线性剖面 + linear/bell 中点采样回归); tsc 通过; 全量回归除既有基线失败 (v28/v137/v138/v142) 外全绿。
+
+## v233 滑条点拖拽死区 4px → 1 格 (与 hitcircle 一致)
+- 用户反馈: 滑條點移動有死區, 要過一定值才會移動, 不像 hitcircle 有 1 格位置移動就會反應。
+- 实现 (EditorCanvas.tsx): nodeDragRef (单节点) 与 nodesMoveDragRef (整体拖动) 的 moved 阈值 `Math.hypot(...) <= 4` → `Math.abs(dx)+Math.abs(dy) <= 1` (同物件拖拽 dragRef 表达式); 未移动时 mouseup 仍视为点击 (Ctrl 切红/白点切红语义保留)。v66 手绘滑条候选阈值 (<=4px) 非节点拖拽, 不变。
+- 验证: verifier/v233; tsc 通过; v117/v118/v119 回归绿。
+
+## v234 操作提示迁移至右侧栏 Inspector
+- 需求: ① 按住 Alt 的滑条节点控制提示移到右侧栏; ② 开启游玩区平移后「按住中键拖动游玩区、Alt+滚轮缩放游玩区」说明也写到右侧栏。
+- 实现: 删 EditorCanvas 画布内 fillText 提示 (原 v117); Inspector.tsx 新增 HintsBlock — select 工具+非播放+未进节点层+选中有滑条时显示节点控制文案, playfieldPanEnabled 时显示平移/缩放说明; 单选与多选/未选中分支均渲染。
+- 适配: v117 (画布提示文案/条件断言改写为 Inspector 侧)。
+- 验证: verifier/v234; tsc 通过。
+
+## v231 滑条控制点样式: 默认 stable 方格 (显示设置可切 lazer 圆点)
+- 需求: 滑条控制点改成默认 stable 滑条点 (红/白色小方格), 支持在显示设置里切滑条点类型 (stable/lazer)。
+- 实现: displaySettings 新增 `sliderPointStyle: 'stable'|'lazer'` (默认 stable, 白名单解析, 配套新增 StrDisplayKey/setDisplayString 字符串型持久化通道); DisplayPanel 加「滑条控制点样式」下拉; renderer 新增 drawControlPointHandle 统一入口 — stable = fillRect/strokeRect 实心方格 (~8 屏幕像素宽: g 带 dpr×zoom×scale 总变换, getTransform 反算 osu 单位边长 10/k, 描边 1 屏幕像素; 初版 osu 单位 5/14 实测偏差, 按用户截图两轮校准), lazer = 原圆点, 红白/#222 描边语义不变; stable 模式下控制点连线同步改 1 屏幕像素 (lazer 保持 2 osu 单位); drawSelectionDecor 控制点循环与 drawPendingSlider (含幻影尾点) 3 个调用点全走该入口。
+- 适配: v76 (幻影尾点断言改 drawControlPointHandle 调用), v132 (DisplayPanel 行计数 6→8)。
+- 验证: verifier/v231; tsc 通过; 全量回归除既有基线失败 (v28/v137/v138/v142) 外全绿。
+
+## v232 物件选中效果: 默认 stable hitcircleselect (显示设置可切 lazer 描边)
+- 需求: 物件选中效果改成默认 stable 效果 (仅在单点、滑条头、滑条尾显示皮肤中的 hitcircleselect.png, 滑条不描边), 支持在显示设置里切选中效果类型 (stable/lazer)。
+- 实现: skin 加载 `hitcircleselect.png` (@2x 走既有 fileVariants+skinScaleAdjust 通道), 无图时程序化回退 (drawHitcircleSelect: 256px 浅蓝 #99ccff 圆角方框, arcTo); displaySettings 新增 `selectionStyle: 'stable'|'lazer'` (默认 stable); DisplayPanel 加「物件选中效果」下拉; renderer drawSelectionDecor 分支 — lazer = 原描边环/虚线环全保留, stable = 滑条不描边, 改在滑条头/滑条尾 (路径终点) 与其他物件中心画 hitcircleselect (drawSelectionBox, 与 hitcircle 族同公式: 边长 = 圈直径 2r × 贴图固有宽/128, 与圆圈一样大, hitcircleselect 已入 INTRINSIC_SIZE_KEYS; 初版 r*2.2 盒子偏小已修正); 控制点连线与手柄两模式都保留 (样式由 v231 控制)。
+- 验证: verifier/v232; tsc 通过; 全量回归除既有基线失败 (v28/v137/v138/v142) 外全绿。
+
+## v235 吸附到物件总开关 (左侧栏, 默认开启)
+- 需求: 左侧栏「网格中心」按钮下方加一个控制吸附到物件的开关, 控制所有吸附到物件上的行为, 默认开启。
+- 实现: store.objectSnapEnabled (默认 true) + setObjectSnapEnabled; EditorCanvas 四处拦截 — snapWithGeo 入口 (放置/拖拽/节点拖拽的物件点 + 几何辅助 + 间距辅助线吸附总入口), geoSnap/geoDistSnap 入口 (物件拖拽时几何/间距修正回调直连), snapDragDelta 调用处 (拖拽整体校正); 关闭后仅余网格吸附。App.tsx 网格中心区块后加「吸附到物件」按钮 (Target 图标, 青色高亮 = 开)。
+- 验证: verifier/v235; tsc 通过; 全量回归除既有基线失败 (v28/v137/v138/v142) 外全绿。

@@ -1,6 +1,6 @@
 // v132: 显示设置面板 (页签栏右侧「显示设置」按钮) — 开关行样式仿 GeoSnapPanel
 import { store, useEditor } from '@/osu/store';
-import { displaySettings, type BoolDisplayKey } from '@/osu/displaySettings';
+import { displaySettings, type BoolDisplayKey, type StrDisplayKey } from '@/osu/displaySettings';
 import { DraggableDialog } from './DraggableDialog';
 
 const ROWS: { key: BoolDisplayKey; name: string; desc: string }[] = [
@@ -11,6 +11,14 @@ const ROWS: { key: BoolDisplayKey; name: string; desc: string }[] = [
   { key: 'hitExplosion', name: 'note 点击特效 (Hit Explosion)', desc: '单点命中后暂留并放大淡出; 关闭则命中立即消失' },
   // v147
   { key: 'hitAnimation', name: 'note 打击动画 (Hit Animation)', desc: '命中后播放 240ms 放大淡出动画; 关闭则不放大, 命中后原大小残留 800ms 渐隐, 缩圈缩到圈边后向外反弹一点再停住 (osu!stable 编辑器同款; 需点击特效开启)' },
+];
+
+// v231/v232: stable/lazer 二选下拉行 (布局仿下方 bgBrightness 的 custom 行)
+const SELECT_ROWS: { key: StrDisplayKey; name: string; desc: string; options: ['stable' | 'lazer', string][] }[] = [
+  // v231
+  { key: 'sliderPointStyle', name: '滑条控制点样式 (Slider Point Style)', desc: '滑条选中/放置预览的控制点手柄外观: stable = 红/白实心小方格 (osu!stable 编辑器同款)', options: [['stable', 'stable 方格'], ['lazer', 'lazer 圆点']] },
+  // v232
+  { key: 'selectionStyle', name: '物件选中效果 (Selection Style)', desc: 'stable = 皮肤 hitcircleselect 圆角选框 (滑条头/尾各一张); lazer = 滑条高亮描边环 + 青色虚线环', options: [['stable', 'stable 选框'], ['lazer', 'lazer 描边']] },
 ];
 
 export function DisplayPanel() {
@@ -30,6 +38,20 @@ export function DisplayPanel() {
               <div className={`text-xs ${displaySettings[r.key] ? 'text-white/90' : 'text-white/45'}`}>{r.name}</div>
               <div className="text-[10px] text-white/40 leading-4">{r.desc}</div>
             </div>
+          </div>
+        ))}
+        {/* v231/v232: stable/lazer 下拉行 */}
+        {SELECT_ROWS.map(r => (
+          <div key={r.key} className="flex items-center gap-2.5" data-display-row={r.key}>
+            <div className="min-w-0 flex-1">
+              <div className="text-xs text-white/90">{r.name}</div>
+              <div className="text-[10px] text-white/40 leading-4">{r.desc}</div>
+            </div>
+            <select value={displaySettings[r.key]} data-display-select={r.key}
+              onChange={e => store.setDisplayString(r.key, e.target.value as 'stable' | 'lazer')}
+              className="shrink-0 bg-white/10 rounded px-1.5 py-1 text-xs text-white/90 outline-none">
+              {r.options.map(([v, label]) => <option key={v} value={v} className="bg-neutral-800">{label}</option>)}
+            </select>
           </div>
         ))}
         {/* v168: 背景图亮度滑条 (默认 35% = 旧固定 alpha 0.35; 样式仿 VolumePanel) */}

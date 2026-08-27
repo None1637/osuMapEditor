@@ -250,20 +250,66 @@ function drawFollowPoints(rc: RenderCtx, radius: number) {
   }
 }
 
+// v231: 控制点手柄 — stable = 红/白实心小方格 (~8 屏幕像素宽, 与用户 stable 截图一致; 头尾同尺寸);
+// lazer = 圆点 (旧行为: 头 r7, 其余 r6); 红白语义与 #222 描边两模式一致
+function drawControlPointHandle(g: CanvasRenderingContext2D, x: number, y: number, isRed: boolean, isHead: boolean) {
+  g.fillStyle = isRed ? '#ff5555' : '#ffffff';
+  g.strokeStyle = '#222'; g.lineWidth = 1;
+  if (displaySettings.sliderPointStyle === 'stable') {
+    // 10px 是屏幕像素目标: g 带 dpr×zoom×scale 总变换, 从当前矩阵反算 osu 单位边长与描边宽
+    // (实测 5/k 渲染约 4px, 用户对照 stable 截图确认目标 ~8x8 → 边长翻倍为 10/k)
+    const m = g.getTransform();
+    const k = Math.hypot(m.a, m.b) || 1;
+    const s = 10 / k;
+    g.lineWidth = 1 / k;
+    g.fillRect(x - s / 2, y - s / 2, s, s);
+    g.strokeRect(x - s / 2, y - s / 2, s, s);
+  } else {
+    g.beginPath(); g.arc(x, y, isHead ? 7 : 6, 0, Math.PI * 2); g.fill(); g.stroke();
+  }
+}
+
+// v232: stable 选中框 (皮肤 hitcircleselect.png) — 与 hitcircle 族同公式 (stable 同款):
+// 128-box 基准, 贴图固有宽度 ÷128 × 圈直径 2r, 默认/128px 贴图恰与圆圈一样大;
+// 大贴图按固有尺寸放大 (上限 256 在 hitcircleSpriteWidth 内), @2x 折半在 skinSpriteWidth 登记处已计入; 无图时跳过
+function drawSelectionBox(g: CanvasRenderingContext2D, skin: Skin, x: number, y: number, r: number) {
+  const img = skin.hitcircleselect;
+  if (!img) return;
+  const s = r * 2 * hitcircleSpriteWidth(img) / 128;
+  g.drawImage(img, x - s / 2, y - s / 2, s, s);
+}
+
 // 选中装饰: 滑条 = 身体高亮环 + 控制多边形 + 控制点手柄; 其他 = 青色虚线环
+// v232: selectionStyle=stable 时改 osu!stable 样式 — 不画高亮环/虚线环, 改画皮肤 hitcircleselect 选框
+// (滑条头/尾各一张, 其他物件在 (x,y) 一张); 滑条控制点连线/手柄两种模式都画 (手柄样式由 v231 开关控制)
 function drawSelectionDecor(rc: RenderCtx, o: HitObject, radius: number) {
-  const { g, bm } = rc;
+  const { g, bm, skin } = rc;
   const so = stackOffset(rc, o.id);
+  const stableSel = displaySettings.selectionStyle === 'stable'; // v232: 物件选中效果开关
   g.save();
   g.translate(so.dx, so.dy); // 选中高亮与控制点手柄随堆叠偏移整体平移
   if (o.type === 'slider') {
     const p = getSliderPath(bm, o);
     // 选中描边: 沿滑条身外形画一圈高亮环 (离屏粗描边 -> destination-out 镂空出环)
-    drawSliderBodyOutline(g, p.points, radius);
+    // v232: stable 模式不画描边环 (stable 编辑器无滑条身高亮, 只有头尾选框 + 控制点)
+    if (!stableSel) drawSliderBodyOutline(g, p.points, radius);
+    // v232: stable — 滑条头 (x,y) 与滑条尾 (路径终点) 各画一张 hitcircleselect (衬在控制点下层)
+    if (stableSel) {
+      drawSelectionBox(g, skin, o.x, o.y, radius);
+      const tail = p.points[p.points.length - 1];
+      if (tail) drawSelectionBox(g, skin, tail.x, tail.y, radius);
+    }
     // lazer PathControlPointConnection: 用 2px 白线 (PathRadius=1) 依次连接全部控制点,
     // 直观呈现贝塞尔/圆弧的控制多边形
+    // v231: stable 控制点样式时连线改 1 屏幕像素 (与柄同 getTransform 反算); lazer 保持 2 osu 单位
     const ctrl = [{ x: o.x, y: o.y }, ...(o.curvePoints ?? [])];
-    g.strokeStyle = '#ffffff'; g.lineWidth = 2; g.globalAlpha *= 0.8;
+    g.strokeStyle = '#ffffff'; g.globalAlpha *= 0.8;
+    if (displaySettings.sliderPointStyle === 'stable') {
+      const m = g.getTransform();
+      g.lineWidth = 1 / (Math.hypot(m.a, m.b) || 1);
+    } else {
+      g.lineWidth = 2;
+    }
     g.beginPath();
     ctrl.forEach((pt, j) => j === 0 ? g.moveTo(pt.x, pt.y) : g.lineTo(pt.x, pt.y));
     g.stroke();
@@ -275,10 +321,11 @@ function drawSelectionDecor(rc: RenderCtx, o: HitObject, radius: number) {
       const pt = ctrl[idx];
       if (idx > 0 && idx < ctrl.length - 1 && ctrl[idx + 1].x === pt.x && ctrl[idx + 1].y === pt.y) continue;
       const isRed = idx > 1 && ctrl[idx - 1].x === pt.x && ctrl[idx - 1].y === pt.y;
-      g.fillStyle = isRed ? '#ff5555' : '#ffffff';
-      g.strokeStyle = '#222'; g.lineWidth = 1;
-      g.beginPath(); g.arc(pt.x, pt.y, idx === 0 ? 7 : 6, 0, Math.PI * 2); g.fill(); g.stroke();
+      drawControlPointHandle(g, pt.x, pt.y, isRed, idx === 0); // v231: 样式开关在柄内分支
     }
+  } else if (stableSel) {
+    // v232: stable — 单点/spinner 在 (x,y) 画一张 hitcircleselect
+    drawSelectionBox(g, skin, o.x, o.y, radius);
   } else {
     g.strokeStyle = '#4df3ff'; g.lineWidth = 2.5;
     g.setLineDash([6, 4]);
@@ -333,16 +380,12 @@ function drawPendingSlider(rc: RenderCtx, pend: { x: number; y: number; redAncho
     g.stroke();
     g.globalAlpha /= 0.8;
   }
-  // 控制点手柄: 白点/红点
+  // 控制点手柄: 白点/红点 (v231: stable = 方格, lazer = 圆点, 样式开关在柄内分支)
   pend.forEach((p, i) => {
-    g.fillStyle = p.redAnchor ? '#ff5555' : '#ffffff';
-    g.strokeStyle = '#222'; g.lineWidth = 1;
-    g.beginPath(); g.arc(p.x, p.y, i === 0 ? 7 : 6, 0, Math.PI * 2); g.fill(); g.stroke();
+    drawControlPointHandle(g, p.x, p.y, p.redAnchor, i === 0);
   });
   if (phantom) {
-    g.fillStyle = '#ffffff';
-    g.strokeStyle = '#222'; g.lineWidth = 1;
-    g.beginPath(); g.arc(phantom.x, phantom.y, 6, 0, Math.PI * 2); g.fill(); g.stroke();
+    drawControlPointHandle(g, phantom.x, phantom.y, false, false);
   }
   g.restore();
 }

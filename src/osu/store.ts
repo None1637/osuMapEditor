@@ -17,7 +17,7 @@ import { reportMenuState, reportDirtyState } from './electronMenu';
 import { getElectronAPI } from './electronBridge'; // v185: 谱面备份 IPC
 import { defaultNewPoint, effectivePointAt, activePointAt, snapTimeToRedBeat, metronomeBeats } from './timingEdit'; // v156
 import { resnapSliderLength } from './sliderPath'; // v156: 重新计算滑条长度
-import { setDisplayFlag as applyDisplayFlag, setDisplayNumber as applyDisplayNumber, type BoolDisplayKey } from './displaySettings'; // v132: 显示设置
+import { setDisplayFlag as applyDisplayFlag, setDisplayNumber as applyDisplayNumber, setDisplayString as applyDisplayString, type BoolDisplayKey, type DisplaySettings, type StrDisplayKey } from './displaySettings'; // v132: 显示设置
 import { setVolume as applyVolume, musicGain, effectsGain, type VolumeSettings } from './volumeSettings'; // v144: 音量设置
 import { dirtyFingerprint } from './dirtyFingerprint'; // v140: 脏标记内容指纹
 import { seekByBeats, wheelSteps, playingWheelStepMs, type WheelAccum } from './seekSnapping'; // v193: 滚轮 seek
@@ -87,6 +87,8 @@ class EditorStore {
   playfieldPanX = 0;
   playfieldPanY = 0;
   playfieldScale = 1.0;
+  // v235: 吸附到物件总开关 (默认开) — 关闭后物件中心/滑条尾吸附、几何辅助吸附、间距辅助线吸附、拖拽整体吸附全部停用
+  objectSnapEnabled = true;
   // v56: 位置网格 (lazer OsuGridToolboxGroup + rectangularGridSnapToggle)
   gridSnap = false; // Grid Snap 开关 (lazer 默认 False); 网格线始终显示 (lazer LayerBelowRuleset)
   gridType: 'square' | 'triangle' | 'circle' | 'none' = 'square'; // v119: none = 无网格 (渲染与吸附同时停)
@@ -101,6 +103,7 @@ class EditorStore {
   // v163: 限制物件在游玩区域内 (默认开 = 既有行为); 关闭后放置/拖动/网格吸附均不钳制到 0..512/0..384
   limitToPlayfield = true;
   setLimitToPlayfield(b: boolean) { this.limitToPlayfield = b; this.emitSelection(); }
+  setObjectSnapEnabled(b: boolean) { this.objectSnapEnabled = b; this.emitSelection(); } // v235
   /** 当前生效的网格原点 (自定义 or lazer 默认 GRID_ORIGIN) */
   currentGridOrigin(): Pt { return this.gridOriginCustom ? this.gridOrigin : GRID_ORIGIN; }
   // v84: 几何辅助 (Mapping Tools Geometry Dashboard 三种): 圆心点 / 三点圆 / 直线延伸线; 全部默认开 (mapping tools 默认启用)
@@ -156,6 +159,8 @@ class EditorStore {
   setDisplayFlag(k: BoolDisplayKey, v: boolean) { applyDisplayFlag(k, v); this.emitSelection(); }
   /** v168: 显示设置数值项 (背景亮度) */
   setDisplayNumber(k: 'bgBrightness', v: number) { applyDisplayNumber(k, v); this.emitSelection(); }
+  /** v231/v232: 显示设置字符串枚举项 (滑条控制点样式 / 物件选中效果) */
+  setDisplayString<K extends StrDisplayKey>(k: K, v: DisplaySettings[K]) { applyDisplayString(k, v); this.emitSelection(); }
   // v144: 音量设置面板 (显示设置左侧「音量」按钮; 值在 volumeSettings 模块单例)
   volumePanelOpen = false;
   setVolumePanelOpen(b: boolean) { this.volumePanelOpen = b; this.emitSelection(); }

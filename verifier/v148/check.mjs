@@ -29,15 +29,15 @@ section('parser.ts: svPointAt + SV 函数修复');
 {
   const src = readSrc('src/osu/parser.ts');
   assert(/export function svPointAt\(points: TimingPoint\[\], time: number\): TimingPoint \| null/.test(src), 'svPointAt 导出');
-  // svPointAt 内红绿分支: 只跟踪绿线
+  // v227: svPointAt 改回 stable 语义 — 红线清零 (用户反馈: 红线应重置 SV 为 1.0x)
   const fn = src.slice(src.indexOf('export function svPointAt'));
-  assert(/if \(!p\.uninherited\) green = p;/.test(fn) && !fn.slice(0, fn.indexOf('return')).includes('green = null'), 'svPointAt 不在红线清零');
+  assert(/if \(p\.uninherited\) green = null;/.test(fn) && /else green = p;/.test(fn), 'svPointAt 红线清零 (v227 stable 语义)');
   // timingAt 保持采样语义 (红线清零 green) — hitsound 采样依赖
   assert(/if \(p\.uninherited\) \{ red = p; green = null; \}/.test(src), 'timingAt 采样语义不变 (红线清零 green)');
   // sliderVelocityAt / svMultiplierAt 改用 svPointAt
   for (const f of ['sliderVelocityAt', 'svMultiplierAt']) {
     const body = src.slice(src.indexOf(`export function ${f}`), src.indexOf(`export function ${f}`) + 500);
-    assert(/const green = svPointAt\(points, time\);/.test(body), `${f} 用 svPointAt (SV 不被红线重置)`);
+    assert(/const green = svPointAt\(points, time\);/.test(body), `${f} 用 svPointAt (v227: SV 被红线重置)`);
   }
 }
 
@@ -46,8 +46,8 @@ section('patternLibrary.ts / duplicate.ts: SV 查询同步修复');
   const pl = readSrc('src/osu/patternLibrary.ts');
   assert((pl.match(/svPointAt\(points, time\)/g) || []).length === 2, 'pxPerBeatAt/svAt 均用 svPointAt');
   const dup = readSrc('src/osu/duplicate.ts');
-  assert(!dup.includes('if (q.uninherited) sv = 1;'), 'duplicate svAt 不再红线重置 SV');
-  assert(/if \(!q\.uninherited && q\.beatLength < 0\) sv = -100 \/ q\.beatLength;/.test(dup), 'duplicate svAt 只跟踪绿线');
+  assert(dup.includes('if (q.uninherited) sv = 1;'), 'duplicate svAt 红线重置 SV (v227)');
+  assert(/else if \(q\.beatLength < 0\) sv = -100 \/ q\.beatLength;/.test(dup), 'duplicate svAt 绿线生效');
 }
 
 section('sliderPath.ts: 末端线性延长 (lazer calculateLength)');

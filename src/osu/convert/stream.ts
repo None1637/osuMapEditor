@@ -68,7 +68,10 @@ export function streamFractions(p: StreamParams, times: number[], duration: numb
     return times.map(t => (duration > 0 ? t / duration : 0));
   }
   const k = Math.max(0, p.endPercent / 100); // v41: 允许 0% (末段间距=0, 单点堆叠在路径尾)
-  const w = Array.from({ length: n - 1 }, (_, j) => Math.max(0, weight(p.curve, k, (j + 0.5) / (n - 1), p.exponent ?? 2)));
+  // v230: expo 曲线改段末采样 ((j+1)/(n-1)) — 段中点采样 p 恒 <1, 高指数时 w≈1 全程平坦
+  // (末段也只采到 p=5/6, (5/6)^10≈0.16 远不到 k), 指数越大越"没效果";
+  // 段末采样使末段间距恰 = endPercent% (端点语义), 指数越大变化越集中在尾部, 符合直觉。
+  const w = Array.from({ length: n - 1 }, (_, j) => Math.max(0, weight(p.curve, k, p.curve === 'expo' ? (j + 1) / (n - 1) : (j + 0.5) / (n - 1), p.exponent ?? 2)));
   const sum = w.reduce((a, b) => a + b, 0);
   if (sum <= 1e-9) return times.map(() => 0); // 全零权重: 全部堆在头部
   const f = [0];

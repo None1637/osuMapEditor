@@ -1,6 +1,6 @@
 import { useEffect, useState, type CSSProperties } from 'react';
 // v181: 图标统一用 Lucide (规范: 界面禁用 emoji 图标, 见 AGENTS.md)
-import { Volume2, Eye, FolderOpen, Palette, Ruler, Lock, LockOpen, Crosshair, Box, Magnet, Settings2, Package, AudioWaveform, Star, Undo2, Redo2, Grid3x3, MousePointer2, Circle, Spline, Disc, Move } from 'lucide-react';
+import { Volume2, Eye, FolderOpen, Palette, Ruler, Lock, LockOpen, Crosshair, Box, Magnet, Settings2, Package, AudioWaveform, Star, Undo2, Redo2, Grid3x3, MousePointer2, Circle, Spline, Disc, Move, Target } from 'lucide-react';
 import { store, useEditor, type Tool } from '@/osu/store';
 import { seekByBeats } from '@/osu/seekSnapping';
 import { BEAT_SNAP_OPTIONS } from '@/osu/sliderPath'; // v218: 节拍细分配置项 (与滑条长度吸附同一来源)
@@ -603,6 +603,13 @@ export default function App() {
                 className="w-14 bg-black/40 border border-white/15 rounded px-1 py-0.5 text-right" />
             </label>
           )}
+          {/* v235: 吸附到物件总开关 (默认开) — 控制放置/拖拽/节点拖拽的物件中心·滑条尾吸附 + 几何辅助/间距辅助线吸附 */}
+          <button onClick={() => store.setObjectSnapEnabled(!store.objectSnapEnabled)} disabled={!bm}
+            data-grid-input="object-snap-toggle"
+            className={`w-full text-left px-3 py-1.5 rounded disabled:opacity-30 ${store.objectSnapEnabled ? 'bg-cyan-500/40 border border-cyan-400/50' : 'bg-white/10 hover:bg-white/20'}`}
+            title="吸附到物件: 放置/拖动时吸附到其他物件的中心与滑条尾 (含几何辅助/间距辅助线吸附); 关闭后只吃网格吸附 (默认开)">
+            <Target className="inline-block w-4 h-4 mr-1 -mt-0.5" />吸附到物件
+          </button>
           {/* v163: 限制物件在游玩区域内 (默认开 = 既有行为); 关闭后可拖动/放置物件到游玩区外 */}
           <button onClick={() => store.setLimitToPlayfield(!store.limitToPlayfield)} disabled={!bm}
             data-grid-input="limit-playfield"

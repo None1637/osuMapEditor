@@ -27,9 +27,9 @@ section('distanceLockDistance: 基准 = DS * 100 * SM * SV * 拍数');
   // SM 1.4: 每拍 140px
   const bm14 = bmOf(1.4, 1, [red(0, 500)]);
   assert(near(distanceLockDistance(bm14, 1000, 2000), 280), `SM1.4 2拍 = 280 (实际 ${distanceLockDistance(bm14, 1000, 2000)})`);
-  // SV 2 (绿线 -50): 每拍 200px; 且红线不重置 (v148 语义)
+  // SV 2 (绿线 -50): 每拍 200px; v227 起红线重置 SV (stable 语义, 取代 v148) — 红线后 2拍 = 100*2 = 200
   const bmSv = bmOf(1, 1, [red(0, 500), green(500, -50), red(1500, 500)]);
-  assert(near(distanceLockDistance(bmSv, 2000, 3000), 400), `SV2 红线后 2拍 = 400 (实际 ${distanceLockDistance(bmSv, 2000, 3000)})`);
+  assert(near(distanceLockDistance(bmSv, 2000, 3000), 200), `SV2 红线后重置 2拍 = 200 (实际 ${distanceLockDistance(bmSv, 2000, 3000)})`);
   // SM*SV 叠加 + DS: DS=2, SM=1.4, SV=2 → 每拍 560
   const bmAll = bmOf(1.4, 2, [red(0, 500), green(500, -50)]);
   assert(near(distanceLockDistance(bmAll, 1000, 1500), 560), `DS2 SM1.4 SV2 1拍 = 560 (实际 ${distanceLockDistance(bmAll, 1000, 1500)})`);

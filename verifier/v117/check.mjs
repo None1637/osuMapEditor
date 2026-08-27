@@ -14,6 +14,7 @@ const ns = read('src/osu/nodeSelection.ts');
 const store = read('src/osu/store.ts');
 const cv = read('src/components/EditorCanvas.tsx');
 const app = read('src/App.tsx');
+const insp = read('src/components/Inspector.tsx'); // v234
 
 // 纯函数模块
 assert(/export function ctrlPoints/.test(ns) && /export function nearestNode/.test(ns)
@@ -60,8 +61,10 @@ assert(/if \(nodesMoveDragRef\.current\.moved\) store\.commitDrag\(\); else stor
 // EditorCanvas: 渲染 (高亮环 / 框选矩形 / 提示)
 assert(/if \(store\.nodeSelectionCount\) \{\s*const offs = getStackOffsets\(bm\);\s*const rr = 10 \/ scale;/.test(cv), '渲染: 选中节点黄环');
 assert(/const nmq = nodeMarqueeRef\.current;[\s\S]{0,400}rgba\(242,181,68,0\.9\)/.test(cv), '渲染: 节点框选黄色矩形');
-assert(/按住Alt时可整体拖动 · 旋转 · 缩放 \(Esc 退出\)/.test(cv), '渲染: 游玩区边缘提示文案 (文案后被并行任务更新)');
-assert(/!store\.nodeSelectionCount\s*&& bm\.hitObjects\.some\(o => store\.selected\.has\(o\.id\) && o\.type === 'slider'\)/.test(cv), '提示条件: 选中滑条且节点层未激活');
+// v234: 画布内提示已移除, 移至右侧栏 Inspector HintsBlock (原 63/64 行断言改写)
+assert(!cv.includes("fillText('滑条节点控制"), '渲染: 画布不再绘制节点控制提示 (v234 移至右侧栏)');
+assert(/滑条节点控制：Alt\+点选\/框选/.test(insp) && /!store\.nodeSelectionCount && sel\.some\(o => o\.type === 'slider'\)/.test(insp),
+  '提示迁移: Inspector 同条件显示节点控制文案 (选中滑条且节点层未激活)');
 
 // App: ESC 联动
 assert(/if \(store\.selectedNodes\.size\) \{ store\.clearNodeSelection\(\); return; \}/.test(app), 'App: ESC 先退出节点层');

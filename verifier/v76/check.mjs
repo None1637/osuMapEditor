@@ -37,7 +37,8 @@ section('renderer.ts: 幻影尾点画手柄 + 接入连线');
   const body = fnStart >= 0 && fnEnd > fnStart ? src.slice(fnStart, fnEnd) : '';
   assert(/pendingPhantomPoint\(pend, cursor\)/.test(body), 'drawPendingSlider 计算幻影尾点');
   assert(/phantom \? \[\.\.\.pend, phantom\] : pend/.test(body), '幻影点接入控制点连线');
-  assert(/arc\(phantom\.x, phantom\.y, 6/.test(body), '幻影尾点画白色手柄');
+  // v231 适配: 手柄绘制抽入 drawControlPointHandle (stable 方格/lazer 圆点分支), 幻影尾点 (白, 非头) 行为不变
+  assert(/drawControlPointHandle\(g, phantom\.x, phantom\.y, false, false\)/.test(body), '幻影尾点画白色手柄 (v231: 经 drawControlPointHandle)');
 }
 
 section('EditorCanvas.tsx: 节点拖拽物件吸附 + 网格吸附');

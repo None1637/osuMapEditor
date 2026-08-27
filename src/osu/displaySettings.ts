@@ -16,10 +16,16 @@ export interface DisplaySettings {
   hitAnimation: boolean;
   /** v168: 背景图亮度 0-100 (渲染时的 globalAlpha 百分比; 默认 35 = 旧固定 alpha 0.35, 与之前表现一致) */
   bgBrightness: number;
+  /** v231: 滑条控制点手柄样式 ('stable' = 红/白实心小方格, osu!stable 编辑器同款; 'lazer' = 圆点, 旧行为) */
+  sliderPointStyle: 'stable' | 'lazer';
+  /** v232: 物件选中效果 ('stable' = 皮肤 hitcircleselect 圆角方框, 滑条头尾各一张; 'lazer' = 高亮描边环/青色虚线环, 旧行为) */
+  selectionStyle: 'stable' | 'lazer';
 }
 
 /** 布尔开关键 (DisplayPanel 开关行用; bgBrightness 是数值, 走 setDisplayNumber) */
 export type BoolDisplayKey = { [K in keyof DisplaySettings]: DisplaySettings[K] extends boolean ? K : never }[keyof DisplaySettings];
+/** v231/v232: 字符串枚举键 (DisplayPanel 下拉行用, 走 setDisplayString) */
+export type StrDisplayKey = { [K in keyof DisplaySettings]: DisplaySettings[K] extends string ? K : never }[keyof DisplaySettings];
 
 const LS_KEY = 'osu-editor:display-settings';
 
@@ -32,6 +38,8 @@ function loadDisplaySettings(): DisplaySettings {
     hitExplosion: true,
     hitAnimation: true,
     bgBrightness: 35, // v168: 旧固定 alpha 0.35
+    sliderPointStyle: 'stable', // v231: 默认 stable 红/白小方格
+    selectionStyle: 'stable',   // v232: 默认 stable hitcircleselect 选框
   };
   try {
     const raw = localStorage.getItem(LS_KEY);
@@ -46,6 +54,9 @@ function loadDisplaySettings(): DisplaySettings {
       hitAnimation: p.hitAnimation !== false,
       bgBrightness: typeof p.bgBrightness === 'number' && isFinite(p.bgBrightness)
         ? Math.max(0, Math.min(100, Math.round(p.bgBrightness))) : def.bgBrightness, // v168: 钳制 0-100
+      // v231/v232: 字符串枚举白名单校验, 非法值回退默认
+      sliderPointStyle: p.sliderPointStyle === 'stable' || p.sliderPointStyle === 'lazer' ? p.sliderPointStyle : def.sliderPointStyle,
+      selectionStyle: p.selectionStyle === 'stable' || p.selectionStyle === 'lazer' ? p.selectionStyle : def.selectionStyle,
     };
   } catch { return def; }
 }
@@ -62,5 +73,11 @@ export function setDisplayFlag(k: BoolDisplayKey, v: boolean) {
 /** v168: 数值项 (bgBrightness 0-100) 调整并持久化 */
 export function setDisplayNumber(k: 'bgBrightness', v: number) {
   displaySettings[k] = Math.max(0, Math.min(100, Math.round(v)));
+  try { localStorage.setItem(LS_KEY, JSON.stringify(displaySettings)); } catch { /* 隐私模式等忽略 */ }
+}
+
+/** v231/v232: 字符串枚举项 (sliderPointStyle / selectionStyle) 设置并持久化 */
+export function setDisplayString<K extends StrDisplayKey>(k: K, v: DisplaySettings[K]) {
+  displaySettings[k] = v;
   try { localStorage.setItem(LS_KEY, JSON.stringify(displaySettings)); } catch { /* 隐私模式等忽略 */ }
 }

@@ -15,18 +15,22 @@ const red = (time: number, beatLength: number): TimingPoint =>
 const green = (time: number, beatLength: number): TimingPoint =>
   ({ time, beatLength, meter: 4, sampleSet: 1, sampleIndex: 0, volume: 80, uninherited: false, effects: 0 } as TimingPoint);
 
-section('svPointAt: 红线不清除 SV (修复核心 bug)');
+// v227: 「红线不清除 SV」被推翻 — stable 行为 = 红线重置 SV 为 1.0x (用户反馈;
+//       "不重置"只是社区提案/lazer 改动, ppy/osu#10267)。本节断言已按 v227 反转。
+section('svPointAt: 红线重置 SV (v227 stable 语义, 取代 v148)');
 {
-  // 绿线@1000 SV=2 (-50), 红线@2000 (250ms) — 红线之后 SV 仍为 2
+  // 绿线@1000 SV=2 (-50), 红线@2000 (250ms) — 红线之后 SV 回 1
   const pts = [red(0, 500), green(1000, -50), red(2000, 250)];
-  const g = svPointAt(pts, 3000);
-  assert(g !== null && g.beatLength === -50, '红线后 svPointAt 仍返回绿线 (旧 timingAt 会清零)');
-  // 对照: timingAt 的 green 在红线后清零 (采样语义, 保持不变)
+  assert(svPointAt(pts, 1500)?.beatLength === -50, '红线前绿线仍生效');
+  assert(svPointAt(pts, 3000) === null, '红线后 svPointAt 返回 null (SV 重置 1.0x)');
   assert(timingAt(pts, 3000).green === null, 'timingAt.green 采样语义不变 (红线后清零)');
-  // sliderVelocityAt: 100 * 1 * 2 / 250 = 0.8 px/ms (旧: SV 丢失误算 0.4)
+  // sliderVelocityAt: 100 * 1 * 1 / 250 = 0.4 px/ms
   const vel = sliderVelocityAt(pts, 3000, 1);
-  assert(near(vel, 0.8), `红线后速度 0.8 px/ms (实际 ${vel})`);
-  assert(near(svMultiplierAt(pts, 3000, 1), 5), `svMultiplierAt = 2 * 1 * 250/100 = 5 (实际 ${svMultiplierAt(pts, 3000, 1)})`);
+  assert(near(vel, 0.4), `红线后速度回 1.0x = 0.4 px/ms (实际 ${vel})`);
+  assert(near(svMultiplierAt(pts, 3000, 1), 2.5), `svMultiplierAt = 1 * 1 * 250/100 = 2.5 (实际 ${svMultiplierAt(pts, 3000, 1)})`);
+  // 红线后新绿线照常生效
+  const pts2 = [red(0, 500), green(1000, -50), red(2000, 250), green(2500, -25)];
+  assert(svPointAt(pts2, 3000)?.beatLength === -25, '红线后新绿线照常生效');
 }
 
 section('svPointAt: 边界');
@@ -36,6 +40,9 @@ section('svPointAt: 边界');
   assert(svPointAt(pts, 1500)?.beatLength === -50, '取最近绿线');
   assert(svPointAt(pts, 2500)?.beatLength === -100, '后一条绿线覆盖 (SV 回 1)');
   assert(svPointAt([], 0) === null, '空表');
+  // v227: 同时刻红+绿 — 绿线列在红线后 (.osu 文件序) 则生效
+  const pts3 = [red(0, 500), red(1000, 250), green(1000, -50)];
+  assert(svPointAt(pts3, 1500)?.beatLength === -50, '同时刻绿线 (列于红线后) 生效');
 }
 
 section('SliderPath 末端延长: expectedLength > 几何全长时沿末端切线延长');

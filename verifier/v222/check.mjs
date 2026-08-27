@@ -22,7 +22,8 @@ section('stream.ts: expo 曲线 + exponent 参数');
   assert(/DEFAULT_STREAM_PARAMS[^}]*exponent: 2/.test(src), '默认参数 exponent: 2');
   assert(/function weight\(curve: StreamCurve, k: number, p: number, exp = 2\)/.test(src), 'weight() 接收 exp 参数 (默认 2)');
   assert(/case 'expo': return 1 \+ d \* Math\.pow\(p, Math\.max\(0\.01, exp\)\)/.test(src), 'expo 权重 = 1 + d * p^exp, exp 钳制 >=0.01');
-  assert(/weight\(p\.curve, k, \(j \+ 0\.5\) \/ \(n - 1\), p\.exponent \?\? 2\)/.test(src), 'streamFractions 传入 p.exponent (缺省兜底 2)');
+  // v230: expo 采样点改段末 (j+1)/(n-1) — 段中点采样高指数全程平坦 ("没效果"反馈); 其他曲线保持段中点
+  assert(/weight\(p\.curve, k, p\.curve === 'expo' \? \(j \+ 1\) \/ \(n - 1\) : \(j \+ 0\.5\) \/ \(n - 1\), p\.exponent \?\? 2\)/.test(src), 'streamFractions 传入 p.exponent (缺省兜底 2; v230: expo 段末采样)');
 }
 
 section('StreamDialog.tsx: 指数参数输入框, 仅指数变化时显示');

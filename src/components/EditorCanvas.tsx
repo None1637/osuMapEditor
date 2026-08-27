@@ -150,6 +150,7 @@ export function EditorCanvas() {
   // 与物件吸附取更近者 (点优先偏置 -3 在 geoHelperSnap 内); 目标随各开关启停
   // v91: exclude = 拖拽中的物件 id (移动拖拽时不吸自身辅助线/点, 否则自锁)
   const geoSnap = (bm: Beatmap, p: Pt, exclude?: ReadonlySet<number>): Pt | null => {
+    if (!store.objectSnapEnabled) return null; // v235: 吸附到物件总开关
     if (!store.geoCenter && !store.geoCircle && !store.geoLines) return null;
     const lines: GeoLine[] = [], circles: GeoCircle[] = [], points: Pt[] = [];
     for (const o of geoSourceSliders(bm)) {
@@ -166,6 +167,7 @@ export function EditorCanvas() {
   // v134/v139: 视觉间距辅助线吸附 — 与渲染同一来源 (geoDistSources/geoScope/总开关), 参考点 (物件头/尾中心)
   // 直接吸附到可见金色环带 (distGuideSnap, 目标 = distR); exclude = 拖拽中的物件 id (防自锁, 同 geoSnap)
   const geoDistSnap = (bm: Beatmap, p: Pt, exclude?: ReadonlySet<number>): Pt | null => {
+    if (!store.objectSnapEnabled) return null; // v235: 吸附到物件总开关
     if (!store.geoDist || !store.geoEnabled) return null;
     const r = csToRadius(bm.difficulty.cs);
     const offs = getStackOffsets(bm);
@@ -185,6 +187,7 @@ export function EditorCanvas() {
   /** 物件吸附 + 几何辅助吸附 + 间距辅助线吸附 (v134) 合并: 更近者胜; exclude = 不参与辅助吸附的物件 id (v96: 节点拖拽排除被拖滑条自身 —
    *  直线/三点圆的辅助线由这些点决定, 点必在线上, 只能辅助线跟点动) */
   const snapWithGeo = (bm: Beatmap, p: Pt, obj: Pt | null, exclude?: ReadonlySet<number>): Pt | null => {
+    if (!store.objectSnapEnabled) return null; // v235: 吸附到物件总开关 (物件点/几何辅助/间距辅助线全停)
     let best = obj;
     for (const c of [geoSnap(bm, p, exclude), geoDistSnap(bm, p, exclude)]) {
       if (c && (!best || Math.hypot(c.x - p.x, c.y - p.y) < Math.hypot(best.x - p.x, best.y - p.y))) best = c;
@@ -431,6 +434,9 @@ export function EditorCanvas() {
           store.emit();
         }
       }
+      // v228: 物件/节点拖拽在画布外 (UI 区域) 松开 — 走 onMouseUp 同一收尾 (commit/undo/切红);
+      // 画布内松开时 React onMouseUp 已清 ref, 此处 no-op
+      if (dragRef.current || nodeDragRef.current || nodesMoveDragRef.current) onMouseUp();
     };
     // v50: 缩放/旋转拖拽移出画布仍跟随鼠标 (修复: 放大到一定程度光标出画布, 拖拽被 onMouseLeave 终止 = "卡住")
     const move = (e: MouseEvent) => {
@@ -449,6 +455,10 @@ export function EditorCanvas() {
         applyNodeScaleUpdate(p, e.shiftKey, e.altKey);
       } else if (nodeRotateDragRef.current) {
         applyNodeRotateUpdate(toOsu(e), e.shiftKey);
+      } else if ((dragRef.current || nodeDragRef.current || nodesMoveDragRef.current) && e.target !== canvasRef.current) {
+        // v228: 物件/节点拖拽移出画布 (经过 UI 区域) 不中断, 继续跟随光标 — onMouseLeave 不再终止,
+        // 这里复用 onMouseMove 的拖拽分支 (位移按 mousedown 快照重算, 幂等); 画布内由 React onMouseMove 喂, 避免重复
+        onMouseMove(e as unknown as React.MouseEvent);
       } else if (freehandRef.current && e.target !== canvasRef.current) {
         // v74: 手绘拖出画布 (如经过时间轴) 继续采样笔画, 不中断 (画布内由 onMouseMove 喂点, 避免重复)
         const head = store.pendingSlider[0];
@@ -896,16 +906,7 @@ export function EditorCanvas() {
           g.restore();
         }
         g.restore();
-        // v117: 选中滑条时在游玩区下边缘提示节点多选高级用法 (屏幕坐标; 节点层激活时隐藏)
-        if (store.tool === 'select' && !store.playing && !store.nodeSelectionCount
-          && bm.hitObjects.some(o => store.selected.has(o.id) && o.type === 'slider')) {
-          g.save();
-          g.font = '11px sans-serif';
-          g.textAlign = 'center';
-          g.fillStyle = 'rgba(242,181,68,0.75)';
-          g.fillText('滑条节点控制：Alt+点选/框选, Shift+Alt多选，按住Alt时可整体拖动 · 旋转 · 缩放 (Esc 退出)', r.width / 2, oy + PH * scale + 18);
-          g.restore();
-        }
+        // v234: 原 v117 画布内「滑条节点控制」提示移至右侧栏 Inspector (见 Inspector.tsx HintsBlock)
         if (store.playing) store.emitPlayback(); // 播放中只刷 UI, 不使 hitsound 事件表失效
       }
       raf = requestAnimationFrame(loop);
@@ -1418,11 +1419,11 @@ export function EditorCanvas() {
       store.setSelectedNodes([...nmq.base, ...nodesInRect(sliders, getStackOffsets(bm), r)]);
       return;
     }
-    // v117: 节点整体拖动 (<=4px 视为点选, 不改形; 锚节点吃吸附, delta 取整后同步全部选中节点)
+    // v117: 节点整体拖动 (v233: 移动阈值 4px→1 格, 与 hitcircle 拖拽一致, 超过即视为拖动; 锚节点吃吸附, delta 取整后同步全部选中节点)
     const nmd = nodesMoveDragRef.current;
     if (nmd && bm) {
       if (!nmd.moved) {
-        if (Math.hypot(cp.x - nmd.startX, cp.y - nmd.startY) <= 4) return;
+        if (Math.abs(cp.x - nmd.startX) + Math.abs(cp.y - nmd.startY) <= 1) return;
         nmd.moved = true;
       }
       const offs = getStackOffsets(bm);
@@ -1458,12 +1459,12 @@ export function EditorCanvas() {
         r, getStackOffsets(bm))]);
       return;
     }
-    // 滑条节点拖拽 (<=4px 视为点击, 不改形, mouseup 时白点切红)
+    // 滑条节点拖拽 (v233: 移动阈值 4px→1 格, 与 hitcircle 一致; 未移动时 mouseup 视为点击, 白点切红)
     const nd = nodeDragRef.current;
     if (nd && bm) {
       const p = toOsu(e);
       if (!nd.moved) {
-        if (Math.hypot(p.x - nd.startX, p.y - nd.startY) <= 4) return;
+        if (Math.abs(p.x - nd.startX) + Math.abs(p.y - nd.startY) <= 1) return;
         nd.moved = true;
       }
       const o = bm.hitObjects.find(x => x.id === nd.objId);
@@ -1511,7 +1512,7 @@ export function EditorCanvas() {
         }
       }
       const targets = objectSnapPoints(bm, bm.hitObjects.filter(o => !store.selected.has(o.id) && isVisibleAt(bm, o, store.currentTime)));
-      const corr = snapDragDelta(dragPts, targets, dx, dy);
+      const corr = store.objectSnapEnabled ? snapDragDelta(dragPts, targets, dx, dy) : null; // v235: 吸附到物件总开关
       let corrDist: number | null = null;
       if (corr) { corrDist = Math.hypot(corr.dx - dx, corr.dy - dy); dx = corr.dx; dy = corr.dy; }
       // v91: 拖拽吸附辅助线/点 (lazer 蓝图吸附同款语义: 与物件修正取更近者; 排除被拖物件自身辅助, 防自锁)
@@ -1762,7 +1763,9 @@ export function EditorCanvas() {
         // v50: 缩放/旋转拖拽不因离开画布而终止 (window mousemove/mouseup 接管)
         // v74: 手绘/候选同样不因离开画布终止 (window mousemove 继续采样, window mouseup 收尾;
         // 否则拖过时间轴时手绘被提前 finish 且 canvasDragging 被清 => 时间轴误 seek)
-        if (!scaleDragRef.current && !rotateDragRef.current && !freehandRef.current && !drawCandRef.current) onMouseUp();
+        // v228: 物件/节点拖拽同样不因离开画布终止 (用户反馈: 拖物件经过 UI 区域回游玩区应继续拖着)
+        if (!scaleDragRef.current && !rotateDragRef.current && !freehandRef.current && !drawCandRef.current
+          && !dragRef.current && !nodeDragRef.current && !nodesMoveDragRef.current) onMouseUp();
       }}
       onDoubleClick={() => {
         if (store.tool !== 'slider') return;
@@ -1771,6 +1774,19 @@ export function EditorCanvas() {
       }}
       onContextMenu={onContextMenu}
       onWheel={(e) => {
+        // v229: 平移功能开启时 Alt+滚轮 = 缩放游玩区 (以光标为焦点, 同步平移量保持光标下内容不动;
+        // 对齐 lazer 时间轴 Alt+滚轮缩放的习惯用法; deltaMode 归一化与 wheelSteps 同款)
+        if (e.altKey && store.playfieldPanEnabled) {
+          const dy = e.deltaMode === 1 ? e.deltaY * 33 : e.deltaMode === 2 ? e.deltaY * 800 : e.deltaY;
+          const p = toOsu(e);
+          const s0 = store.playfieldScale;
+          const s1 = Math.max(0.1, Math.min(10, s0 * Math.pow(1.1, -dy / 100))); // 每刻度 ×1.1, 钳 0.1..10 (同缩放输入框)
+          store.playfieldPanX += (s0 - s1) * p.x;
+          store.playfieldPanY += (s0 - s1) * p.y;
+          store.playfieldScale = s1;
+          store.emit(); // 左侧栏 x/y/缩放输入框实时刷新 (画布渲染循环每帧直接读 store)
+          return;
+        }
         // v193: 滚轮走 store.wheelSeek (lazer 对齐: 刻度累积; 播放中不吸附大步长 + 轻量重定位, 暂停吸附 1/beatSnap)
         store.wheelSeek(e.deltaY, e.deltaMode);
       }}
