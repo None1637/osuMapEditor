@@ -49,7 +49,7 @@ section('DuplicateDialog.tsx: 参数窗口 + 实时预览 + 一次 undo');
 section('接线: store/App/Inspector');
 {
   const store = readSrc('src/osu/store.ts');
-  assert(/'duplicate' \| null = null/.test(store), 'conversionDialog 含 duplicate');
+  assert(/'duplicate'( \| 'symSlider')? \| null = null/.test(store), 'conversionDialog 含 duplicate (v236: 兼容新增 symSlider 可选项)');
   const app = readSrc('src/App.tsx');
   assert(/\{store\.conversionDialog === 'duplicate' && <DuplicateDialog \/>\}/.test(app), 'App 挂载 DuplicateDialog');
   const insp = readSrc('src/components/Inspector.tsx');

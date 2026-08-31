@@ -1881,3 +1881,20 @@
 - 需求: 左侧栏「网格中心」按钮下方加一个控制吸附到物件的开关, 控制所有吸附到物件上的行为, 默认开启。
 - 实现: store.objectSnapEnabled (默认 true) + setObjectSnapEnabled; EditorCanvas 四处拦截 — snapWithGeo 入口 (放置/拖拽/节点拖拽的物件点 + 几何辅助 + 间距辅助线吸附总入口), geoSnap/geoDistSnap 入口 (物件拖拽时几何/间距修正回调直连), snapDragDelta 调用处 (拖拽整体校正); 关闭后仅余网格吸附。App.tsx 网格中心区块后加「吸附到物件」按钮 (Target 图标, 青色高亮 = 开)。
 - 验证: verifier/v235; tsc 通过; 全量回归除既有基线失败 (v28/v137/v138/v142) 外全绿。
+
+## v236 对称滑条 (Inspector + 作图菜单「对称滑条...」)
+- 需求: 选中单个滑条时, 右侧栏与 exe 作图菜单加「对称滑条」入口; 弹窗支持将选中滑条所有节点做 轴对称/中心对称/中心旋转n次/方向平移n次, 拼到原滑条头/尾(可选)并预览; 节点编辑后预览实时跟随; 自定义对称轴/对称中心/旋转中心/旋转角/平移向量与向量增量; 仿批量复制的每份节点大小缩放增量。
+- 实现: 新纯函数模块 src/osu/convert/symSlider.ts (computeSymSlider(bm,o,params)); 新弹窗 src/components/convert/SymSliderDialog.tsx (仿 DuplicateDialog: DraggableDialog + loadParams 持久化 + setConversionPreview 预览, 节点内容签名作 useMemo 依赖以响应就地节点编辑)。
+  - 变换 (二轮修正后): axis = 直线镜像, 轴向三选 v/h/custom (删选区/中心 — 拼接对齐后轴位置被平移覆盖), v/h 轴过拼接锚点 (仅方向有效), custom = axisP1/axisP2 两点直线 (画布紫色端点+虚线可拖, v210 同款); point = 绕拼接锚点 180° (对称中心配置删除, 拼接对齐后等价); rotate = 第 i 份绕旋转中心转 i×rotateDeg (中心三选+可拖圈保留); translate = 第 i 份位移 i·(dx,dy) + i(i-1)/2·(ddx,ddy) (缩放锚点三选保留); 缩放 1+i×scalePerCopy (axis/point 锚点=拼接点)。axis/point 份节点反转 (镜像翻手性)。
+  - 拼接 (链式对齐平移, 整数偏移): 拼尾 = 份1首→原滑条尾, 份i首→份i-1末; 拼头 = [份1..份n, 原] 序列, 份n末→原头, 份i末→份i+1首; 对齐后接缝恒重合走红锚点去重; none = 独立副本不平移。length = 几何总长, 拼尾 endTime += duration×(份数+1), 拼头 time -= duration×(份数+1)。
+  - 自定义锚点画布圈: point/rotate/translate 锚点选自定义时画布渲染青色圈可拖拽 (store.symSliderAnchorView + symSliderAnchorDragHandler, dupVector 同款非响应式模式; mousedown 命中 12px 同自定义原点, 拖拽吃物件/辅助线吸附无网格), Dialog 回写 customX/customY (1 位小数)。
+  - 接线: store.conversionDialog 加 'symSlider'; Inspector 单选滑条转换区按钮; electronBridge 命令 compose-sym-slider + editState 加 selSingleSlider (App.tsx 上报, main.cjs 置灰); main.cjs 作图菜单「对称滑条...」。
+- 适配: v36/v64/v65 (conversionDialog 联合类型正则加可选组, 断言语义不变), v84 (snapWithGeo 调用点计数 7→9, 锚点圈+轴点拖拽各增 1 处), v210/v223 (mouseup 重置行加 symAxisPointDragRef)。
+- 验证: verifier/v236 (102 项断言); tsc 通过; 全量回归除既有基线失败 (v28/v137/v138/v142) 外全绿。
+
+## v237 圆弧转贝塞尔误差驱动减点
+- 需求: 滑条「圆弧→贝塞尔」尽量生成更少控制点 (用户确认: 误差驱动自动最少段)。
+- 实现 (src/osu/convert/bezierPath.ts circleToBezier): 固定 90° 分块 → 误差驱动 — ARC_BEZIER_ERR=0.2 (osu px), unitArcBezierErr (单位弧 64 采样最大径向误差) + maxArcAngleForErr (二分 40 次), thetaMax = clamp(误差≤0.2px 最大角, 90°, 180°), chunks = ceil(|total|/thetaMax); k 公式/带符号 step/共线退化不变。
+- 效果: 小半径大弧减段 (r=30 的 150° 弧 2 段→1 段, 减段弧误差 ≤0.2px); 大半径弧受 90° 下钳与旧实现逐点一致 (v41 Crystalia 用例不受影响)。
+- 适配: v41 (旧 90° 分块表达式断言改 thetaMax)。
+- 验证: verifier/v237 (减点实证/段数单调/误差阈值/端点精确/共线退化); tsc 通过; 全量回归除既有基线失败 (v28/v137/v138/v142) 外全绿。

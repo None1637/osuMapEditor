@@ -19,6 +19,7 @@ import { PatternPanel } from '@/components/PatternPanel';
 import { TimingPointDialog } from '@/components/TimingPointDialog';
 import { PolygonDialog } from '@/components/convert/PolygonDialog';
 import { DuplicateDialog } from '@/components/convert/DuplicateDialog';
+import { SymSliderDialog } from '@/components/convert/SymSliderDialog'; // v236: 对称滑条
 import { SplitDialog } from '@/components/convert/SplitDialog';
 import { SongLibrary } from '@/components/SongLibrary';
 import { SkinPicker } from '@/components/SkinPicker';
@@ -354,6 +355,7 @@ export default function App() {
 
   // v209: 编辑菜单置灰状态上报 (有谱面/有选中/剪贴板有内容; 值变化才发, 主进程据此重建菜单)
   // v212: 扩 hasSlider/selMulti (作图菜单「滑条转连打」「合并滑条」置灰用)
+  // v236: 扩 selSingleSlider (作图菜单「对称滑条」置灰用 — 恰好选中 1 个滑条)
   useEffect(() => {
     const api = getElectronAPI();
     if (!api) return;
@@ -367,8 +369,9 @@ export default function App() {
         hasClipboard: store.hasClipboard(),
         hasSlider: !!bm && bm.hitObjects.some(o => store.selected.has(o.id) && o.type === 'slider'),
         selMulti: selCount >= 2,
+        selSingleSlider: selCount === 1 && !!bm && bm.hitObjects.some(o => store.selected.has(o.id) && o.type === 'slider'),
       };
-      const key = `${s.hasMap}|${s.hasSelection}|${s.hasClipboard}|${s.hasSlider}|${s.selMulti}`;
+      const key = `${s.hasMap}|${s.hasSelection}|${s.hasClipboard}|${s.hasSlider}|${s.selMulti}|${s.selSingleSlider}`;
       if (key === last) return;
       last = key;
       api.menuEditState(s);
@@ -722,6 +725,7 @@ export default function App() {
       {store.conversionDialog === 'split' && <SplitDialog />}
       {store.conversionDialog === 'polygon' && <PolygonDialog />}
       {store.conversionDialog === 'duplicate' && <DuplicateDialog />}
+      {store.conversionDialog === 'symSlider' && <SymSliderDialog />}{/* v236: 对称滑条 */}
       {store.timingPointDialog && <TimingPointDialog />}
       {store.transformDialog && <TransformDialog mode={store.transformDialog} />}{/* v209: 旋转/缩放独立窗口 (编辑菜单 / Ctrl+Shift+R/S) */}
       {showShiftAll && <ShiftAllDialog onClose={() => setShowShiftAll(false)} />}{/* v156 */}

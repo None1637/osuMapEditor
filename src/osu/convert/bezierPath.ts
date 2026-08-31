@@ -64,10 +64,41 @@ export function catmullToBezier(pts: Vec2[]): BezierSeg[] {
   return out;
 }
 
+// v237: 圆弧转贝塞尔的拟合误差上限 (px) — 单段允许的最大圆心角由它随半径反推 (maxArcAngleForErr)
+export const ARC_BEZIER_ERR = 0.2;
+
+/** 单位圆对称弧 (圆心角 theta, k=4/3·tan(θ/4) 三次贝塞尔) 的最大径向误差 (64 等参采样取 max|r−1|) */
+function unitArcBezierErr(theta: number): number {
+  const a = theta / 2, k = (4 / 3) * Math.tan(theta / 4);
+  const ca = Math.cos(a), sa = Math.sin(a);
+  const p0 = { x: ca, y: -sa }, p3 = { x: ca, y: sa };
+  const c1 = { x: p0.x + k * sa, y: p0.y + k * ca };
+  const c2 = { x: p3.x + k * sa, y: p3.y - k * ca };
+  let maxErr = 0;
+  for (let i = 1; i < 64; i++) {
+    const pt = deCasteljau([p0, c1, c2, p3], i / 64);
+    const e = Math.abs(Math.hypot(pt.x, pt.y) - 1);
+    if (e > maxErr) maxErr = e;
+  }
+  return maxErr;
+}
+
+/** 半径 r 下单段允许的最大圆心角 (误差 ≤ ARC_BEZIER_ERR; err 随 θ 单调增, 二分 40 次) */
+function maxArcAngleForErr(r: number): number {
+  let lo = 1e-3, hi = Math.PI;
+  for (let i = 0; i < 40; i++) {
+    const mid = (lo + hi) / 2;
+    if (unitArcBezierErr(mid) * r <= ARC_BEZIER_ERR) lo = mid; else hi = mid;
+  }
+  return lo;
+}
+
 /**
  * 三点圆弧 -> 三次贝塞尔近似序列 (ConvertCircleToBezierAnchors 同款目标):
  * 圆由三点外接圆确定, 方向取三角形取向 (经过中间点); 共线退化为直线。
- * 弧按 <=90° 分块, 每块一条三次贝塞尔, 控制柄长 k = 4/3*tan(θ/4) (标准圆弧近似, 90° 内误差 <0.03%)
+ * v237: 弧按误差驱动分块 — 单段最大圆心角 thetaMax = clamp(误差 ≤ ARC_BEZIER_ERR 的最大角, 90°, 180°)
+ *   (下钳 90° 保证段数不超过旧固定 90° 分块实现; 上钳 180° 避免近整圆单段退化), 每块一条三次贝塞尔,
+ *   控制柄长 k = 4/3*tan(θ/4) (标准圆弧近似, 90° 内误差 <0.03%)
  */
 export function circleToBezier(a: Vec2, b: Vec2, c: Vec2): BezierSeg[] {
   const d = 2 * (a.x * (b.y - c.y) + b.x * (c.y - a.y) + c.x * (a.y - b.y));
@@ -85,7 +116,9 @@ export function circleToBezier(a: Vec2, b: Vec2, c: Vec2): BezierSeg[] {
   };
   const start = Math.atan2(a.y - cy, a.x - cx);
   const total = norm(Math.atan2(c.y - cy, c.x - cx), start); // 有符号扫描角 (sign = dir)
-  const chunks = Math.max(1, Math.ceil(Math.abs(total) / (Math.PI / 2)));
+  // v237: 误差驱动最少分段 (取代固定 90° 分块) — 小半径大弧减控制点, 大半径弧段数与旧实现一致
+  const thetaMax = Math.max(Math.PI / 2, Math.min(Math.PI, maxArcAngleForErr(r)));
+  const chunks = Math.max(1, Math.ceil(Math.abs(total) / thetaMax));
   const step = total / chunks;
   const out: BezierSeg[] = [];
   for (let i = 0; i < chunks; i++) {

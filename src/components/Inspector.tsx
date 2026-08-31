@@ -292,6 +292,11 @@ export function Inspector() {
               className="px-2 py-1 rounded bg-white/10 hover:bg-white/20 border border-white/15">
               拆分滑条 (等时间)
             </button>
+            {/* v236: 对称滑条 (轴/中心对称, 旋转/平移 n 次, 可拼头尾) */}
+            <button data-conv-open="symSlider" onClick={() => store.openConversion('symSlider')}
+              className="px-2 py-1 rounded bg-white/10 hover:bg-white/20 border border-white/15">
+              对称滑条
+            </button>
             <SliderConvertButtons sliders={[o]} />
           </div>
         </div>

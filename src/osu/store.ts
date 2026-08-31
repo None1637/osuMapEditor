@@ -1119,7 +1119,7 @@ class EditorStore {
 
   // ---- 物件转换 (F1-F4: 转连打/拆分/合并/多边形/批量复制; v141: 曲线互转窗口已废弃) ----
   /** 当前打开的转换参数窗口 (null = 无) */
-  conversionDialog: 'stream' | 'split' | 'merge' | 'polygon' | 'duplicate' | null = null;
+  conversionDialog: 'stream' | 'split' | 'merge' | 'polygon' | 'duplicate' | 'symSlider' | null = null; // v236: +'symSlider' 对称滑条
   /** 转换实时预览: hideIds = 被替换的源物件 (渲染时隐藏), objects = 转换结果 (幽灵渲染); timingPoints = v68 绿线副本预览; 预览不碰谱面数据 */
   conversionPreview: { hideIds: number[]; objects: HitObject[]; timingPoints?: TimingPoint[] } | null = null;
   // ---- v68: 批量复制向量箭头 (DuplicateDialog 写入, 画布绘制/拖拽; 非响应式, 画布每帧读取) ----
@@ -1127,6 +1127,15 @@ class EditorStore {
   dupVectorView: { anchor: { x: number; y: number }; dx: number; dy: number } | null = null;
   /** 拖动箭头头时回写参数 (由 DuplicateDialog 注册) */
   dupVectorDragHandler: ((dx: number, dy: number) => void) | null = null;
+  // ---- v236: 对称滑条自定义锚点圈 (SymSliderDialog 写入, 画布绘制/拖拽; 非响应式, 画布每帧读取, dupVector 同款模式) ----
+  /** 自定义锚点圈视图 (point/rotate/translate 且 anchor='custom' 时非 null) */
+  symSliderAnchorView: { x: number; y: number } | null = null;
+  /** 拖动锚点圈时回写弹窗参数 (由 SymSliderDialog 注册) */
+  symSliderAnchorDragHandler: ((x: number, y: number) => void) | null = null;
+  /** v236 二轮修正: 自定义对称轴两点视图 (axis 且 axisDir='custom' 时非 null; 同上半响应式模式) */
+  symSliderAxisView: { p1: { x: number; y: number }; p2: { x: number; y: number } } | null = null;
+  /** 拖动对称轴端点时回写弹窗参数 (由 SymSliderDialog 注册, which = 端点序号 1/2) */
+  symSliderAxisDragHandler: ((which: 1 | 2, x: number, y: number) => void) | null = null;
 
   openConversion(d: NonNullable<EditorStore['conversionDialog']>) { this.conversionDialog = d; this.emitSelection(); }
   /** 关闭转换窗口 (清除预览; 不应用) */

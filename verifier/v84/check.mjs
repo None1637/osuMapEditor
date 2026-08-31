@@ -55,12 +55,14 @@ section('EditorCanvas.tsx: 渲染 + 4 处吸附接线');
   assert(/arc\(circ\.cx, circ\.cy, circ\.r/.test(src), '渲染: 圆绘制');
   assert(/255,\s*60,\s*60/.test(src), '渲染: 红虚线颜色');
   assert(/setLineDash\(\[8,\s*6\]\)/.test(src), '渲染: 虚线样式');
-  // v207: 放置 2 处收敛进 snapSliderCtrlPoint (内部 snapWithGeo(bm0, ...)) — 逻辑吸附点仍是 9 处
+  // v207: 放置 2 处收敛进 snapSliderCtrlPoint (内部 snapWithGeo(bm0, ...)) — 逻辑吸附点仍是 10 处
   // v210: 自定义对称轴端点拖拽 +1 (与自定义原点同级吸附)
+  // v236: 对称滑条自定义锚点圈拖拽 +1 (与 dupVector 箭头同款吸附)
+  // v236 二轮修正: 对称滑条自定义对称轴端点拖拽 +1 (与 v210 对称轴端点同款吸附)
   const n = (src.match(/snapWithGeo\(bm,/g) ?? []).length;
   const nShared = (src.match(/snapWithGeo\(bm0,/g) ?? []).length;
   const nCtrl = (src.match(/snapSliderCtrlPoint\(p\)/g) ?? []).length;
-  assert(n === 7 && nShared === 1 && nCtrl >= 2, `吸附点走 snapWithGeo (v84/v91/v117 直接 6 处 + v210 对称轴端点 1 处 + v207 共享 1 处 × ${nCtrl} 个控制点落点, 实际 ${n}+${nShared}, 调用 ${nCtrl})`);
+  assert(n === 9 && nShared === 1 && nCtrl >= 2, `吸附点走 snapWithGeo (v84/v91/v117 直接 6 处 + v210 对称轴端点 1 处 + v236 对称滑条锚点圈 1 处 + v236 对称滑条对称轴端点 1 处 + v207 共享 1 处 × ${nCtrl} 个控制点落点, 实际 ${n}+${nShared}, 调用 ${nCtrl})`);
 }
 
 section('GeoSnapPanel.tsx + App.tsx: 面板与按钮');

@@ -106,6 +106,12 @@ export async function handleMenuCommand(cmd: ElectronMenuCommand): Promise<void>
       if (slider) store.applyConversion(sel.map(o => o.id), [slider]);
       return;
     }
+    case 'compose-sym-slider': { // v236: 对称滑条 — 恰好选中 1 个滑条时打开参数窗口 (同 Inspector 入口)
+      const bm = store.beatmap; if (!bm || store.selected.size !== 1) return;
+      const o = bm.hitObjects.find(x => store.selected.has(x.id));
+      if (o?.type === 'slider') store.openConversion('symSlider');
+      return;
+    }
     default: return;
   }
 }

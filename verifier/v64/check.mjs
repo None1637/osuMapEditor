@@ -49,7 +49,7 @@ section('PolygonDialog.tsx: 参数窗口 + 实时预览 + 一次 undo');
 section('接线: store/App/Inspector');
 {
   const store = readSrc('src/osu/store.ts');
-  assert(/'polygon'( \| 'duplicate')? \| null = null/.test(store), 'conversionDialog 含 polygon');
+  assert(/'polygon'( \| 'duplicate')?( \| 'symSlider')? \| null = null/.test(store), 'conversionDialog 含 polygon (v236: 兼容新增 symSlider 可选项)');
   const app = readSrc('src/App.tsx');
   assert(/\{store\.conversionDialog === 'polygon' && <PolygonDialog \/>\}/.test(app), 'App 挂载 PolygonDialog');
   assert(/e\.shiftKey && e\.key\.toLowerCase\(\) === 'd'/.test(app) && /openConversion\('polygon'\)/.test(app), 'Ctrl+Shift+D 快捷键 (lazer 同款)');

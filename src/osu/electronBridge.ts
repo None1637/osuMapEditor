@@ -112,7 +112,8 @@ export type ElectronMenuCommand =
   // ---- v212: 作图菜单 (stable 同款; 多边形生成/滑条转连打 = 打开参数窗口, 合并滑条 = 直接应用) ----
   | { type: 'compose-polygon' }
   | { type: 'compose-stream' }
-  | { type: 'compose-merge' };
+  | { type: 'compose-merge' }
+  | { type: 'compose-sym-slider' }; // v236: 对称滑条 (恰好选中 1 个滑条时可用)
 
 /** v209: 渲染端 -> 主进程的编辑菜单置灰状态; v212: 扩 hasSlider/selMulti (作图菜单置灰用) */
 export interface ElectronEditMenuState {
@@ -123,6 +124,8 @@ export interface ElectronEditMenuState {
   hasSlider: boolean;
   /** 选中物件 >= 2 (「合并滑条」可用) */
   selMulti: boolean;
+  /** v236: 恰好选中 1 个滑条 (「对称滑条」可用) */
+  selSingleSlider: boolean;
 }
 
 export function getElectronAPI(): ElectronAPI | null {

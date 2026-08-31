@@ -68,6 +68,10 @@ export function EditorCanvas() {
   const symPointDragRef = useRef<0 | 1 | 2>(0); // v210: 自定义对称轴端点拖拽 (0=无, 1/2=端点序号)
   // v68: 批量复制向量箭头头拖拽 (参数在 DuplicateDialog, 经 store.dupVectorDragHandler 回写)
   const dupVectorDragRef = useRef<boolean>(false);
+  // v236: 对称滑条自定义锚点圈拖拽 (参数在 SymSliderDialog, 经 store.symSliderAnchorDragHandler 回写)
+  const symAnchorDragRef = useRef<boolean>(false);
+  // v236 二轮修正: 对称滑条自定义对称轴端点拖拽 (0=无, 1/2=端点序号; 经 store.symSliderAxisDragHandler 回写)
+  const symAxisPointDragRef = useRef<0 | 1 | 2>(0);
   // v49: 选中框缩放手柄拖拽 (lazer SelectionBoxScaleHandle; startP = 按下位置, states = Begin 快照)
   const scaleDragRef = useRef<{
     anchor: ScaleAnchor; quad: Quad; startP: { x: number; y: number }; lastP: { x: number; y: number };
@@ -415,7 +419,7 @@ export function EditorCanvas() {
         }
         return;
       }
-      store.canvasDragging = false; originDragRef.current = false; gridOriginDragRef.current = false; dupVectorDragRef.current = false; symPointDragRef.current = 0; panDragRef.current = null; finishHandleDrag();
+      store.canvasDragging = false; originDragRef.current = false; gridOriginDragRef.current = false; dupVectorDragRef.current = false; symAnchorDragRef.current = false; symPointDragRef.current = 0; symAxisPointDragRef.current = 0; panDragRef.current = null; finishHandleDrag();
       // v66: 画布外松开同样收尾手绘/候选 (否则残留状态会在下次经过画布时误续画)
       if (freehandRef.current) {
         const builder = freehandRef.current.builder;
@@ -872,6 +876,42 @@ export function EditorCanvas() {
           g.beginPath(); g.arc(hx, hy, 7, 0, Math.PI * 2); g.stroke();
           g.restore();
         }
+        // v236: 对称滑条自定义锚点圈 (弹窗 rotate/translate + anchor=custom 时显示; 青色圈 + 实心点, 可拖拽)
+        const sav = store.symSliderAnchorView;
+        if (sav && store.conversionDialog === 'symSlider') {
+          g.save();
+          g.strokeStyle = '#4dd8ff';
+          g.fillStyle = '#4dd8ff';
+          g.lineWidth = 2;
+          g.beginPath(); g.arc(sav.x, sav.y, 7, 0, Math.PI * 2); g.stroke();
+          g.beginPath(); g.arc(sav.x, sav.y, 2.5, 0, Math.PI * 2); g.fill();
+          g.restore();
+        }
+        // v236 二轮修正: 对称滑条自定义对称轴 (弹窗 axis + axisDir=custom 时显示; v210 同款紫色虚线延长线 + 两可拖端点)
+        const sax = store.symSliderAxisView;
+        if (sax && store.conversionDialog === 'symSlider') {
+          const dx = sax.p2.x - sax.p1.x, dy = sax.p2.y - sax.p1.y;
+          const len = Math.hypot(dx, dy);
+          g.save();
+          g.strokeStyle = '#c586ff';
+          g.fillStyle = '#c586ff';
+          if (len > 1e-6) { // 两点重合时不画线 (弹窗有红字提示), 端点圈仍画可拖开
+            const ext = 1200; // 延长覆盖整个游玩区 (含区外)
+            g.lineWidth = 1.5;
+            g.setLineDash([8, 6]);
+            g.beginPath();
+            g.moveTo(sax.p1.x - (dx / len) * ext, sax.p1.y - (dy / len) * ext);
+            g.lineTo(sax.p2.x + (dx / len) * ext, sax.p2.y + (dy / len) * ext);
+            g.stroke();
+            g.setLineDash([]);
+          }
+          g.lineWidth = 2;
+          for (const m of [sax.p1, sax.p2]) {
+            g.beginPath(); g.arc(m.x, m.y, 7, 0, Math.PI * 2); g.stroke();
+            g.beginPath(); g.arc(m.x, m.y, 2.5, 0, Math.PI * 2); g.fill();
+          }
+          g.restore();
+        }
         if (cur.inside && store.tool !== 'select' && !store.playing) {
           const r0 = csToRadius(bm.difficulty.cs);
           const sp = snapPlacement(cur);
@@ -994,6 +1034,23 @@ export function EditorCanvas() {
         dupVectorDragRef.current = true;
         store.canvasDragging = true;
         return;
+      }
+      // v236: 对称滑条自定义锚点圈命中优先 — 拖动只改弹窗锚点参数, 不动物件, 不进 undo (dupVector/customOrigin 同款接法)
+      const sav0 = store.symSliderAnchorView;
+      if (sav0 && store.conversionDialog === 'symSlider' && Math.hypot(sav0.x - p.x, sav0.y - p.y) <= 12) {
+        symAnchorDragRef.current = true;
+        store.canvasDragging = true;
+        return;
+      }
+      // v236 二轮修正: 对称滑条自定义对称轴端点命中优先 — 拖动只改弹窗轴点参数 (v210 对称轴端点同款, 阈值 12)
+      const sax0 = store.symSliderAxisView;
+      if (sax0 && store.conversionDialog === 'symSlider') {
+        const hit = ([sax0.p1, sax0.p2] as Pt[]).findIndex(m => Math.hypot(m.x - p.x, m.y - p.y) <= 12);
+        if (hit >= 0) {
+          symAxisPointDragRef.current = (hit + 1) as 1 | 2;
+          store.canvasDragging = true;
+          return;
+        }
       }
       // v34: 自定义原点标记命中优先 — 拖动标记只改原点, 不动物件, 不进 undo
       if (originMarkerVisible() && Math.hypot(activeCustomOrigin().x - p.x, activeCustomOrigin().y - p.y) <= 12) {
@@ -1334,6 +1391,25 @@ export function EditorCanvas() {
       if (!dv || !store.dupVectorDragHandler) { dupVectorDragRef.current = false; return; }
       const sp = bm ? snapWithGeo(bm, cp, snapToNearby(cp, objectSnapPoints(bm, bm.hitObjects.filter(o => isVisibleAt(bm, o, store.currentTime))))) ?? cp : cp;
       store.dupVectorDragHandler(sp.x - dv.anchor.x, sp.y - dv.anchor.y);
+      return;
+    }
+    // v236: 对称滑条自定义锚点圈拖拽 — 圈位置 = 锚点坐标, 回写弹窗参数 (实时预览; 与 dupVector 同款吸附: 物件/辅助线取更近者, 无网格)
+    if (symAnchorDragRef.current) {
+      const sav = store.symSliderAnchorView;
+      if (!sav || !store.symSliderAnchorDragHandler) { symAnchorDragRef.current = false; return; }
+      const sp = bm ? snapWithGeo(bm, cp, snapToNearby(cp, objectSnapPoints(bm, bm.hitObjects.filter(o => isVisibleAt(bm, o, store.currentTime))))) ?? cp : cp;
+      store.symSliderAnchorDragHandler(sp.x, sp.y);
+      return;
+    }
+    // v236 二轮修正: 对称滑条自定义对称轴端点拖拽 — 回写弹窗轴点参数 (与 v210 symPointDragRef 同款吸附: 物件/辅助线取更近者 + 网格)
+    if (symAxisPointDragRef.current) {
+      const sax = store.symSliderAxisView;
+      const i = symAxisPointDragRef.current;
+      if (!sax || !store.symSliderAxisDragHandler || store.conversionDialog !== 'symSlider') { symAxisPointDragRef.current = 0; return; }
+      const sp = bm
+        ? gridSnapAt(bm, snapWithGeo(bm, cp, snapToNearby(cp, objectSnapPoints(bm, bm.hitObjects.filter(o => isVisibleAt(bm, o, store.currentTime))))) ?? cp)
+        : cp;
+      store.symSliderAxisDragHandler(i, sp.x, sp.y);
       return;
     }
     // v78: 自定义网格中心标记拖拽 (物件吸附 + 辅助线/点吸附取更近者; 不做网格吸附 — 网格以标记自身为原点, 吸附会自锁跳动; 不钳制)

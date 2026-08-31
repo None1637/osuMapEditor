@@ -43,7 +43,7 @@ section('EditorCanvas.tsx: 中键拖动');
   assert(/store\.playfieldPanX = panDragRef\.current\.px \+ \(e\.clientX - panDragRef\.current\.sx\) \/ z \/ base\.scale;/.test(src), '拖动: 视觉位移 / uiZoom / 基础 scale -> osu px');
   assert(/store\.playfieldPanY = panDragRef\.current\.py \+ \(e\.clientY - panDragRef\.current\.sy\) \/ z \/ base\.scale;/.test(src), 'y 同上 (不除用户倍率, 内容 1:1 跟随光标)');
   assert(/if \(panDragRef\.current\) \{\s*\/\/ v223: 中键平移收尾/.test(src), 'onMouseUp 收尾清 ref');
-  assert(/symPointDragRef\.current = 0; panDragRef\.current = null; finishHandleDrag\(\);/.test(src), 'window mouseup 兜底清 ref (拖出画布松开)');
+  assert(/symPointDragRef\.current = 0; symAxisPointDragRef\.current = 0; panDragRef\.current = null; finishHandleDrag\(\);/.test(src), 'window mouseup 兜底清 ref (拖出画布松开)');
 }
 
 section('App.tsx: 左侧栏开关 + x/y/scale 输入框');

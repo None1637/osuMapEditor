@@ -202,12 +202,13 @@ let timingState = { meter: null, metronome: false }
 // v209: 编辑菜单置灰状态 (渲染进程经 "edit-menu-state" 上报, 值变化才发):
 //   hasMap = 已加载谱面, hasSelection = 有选中物件, hasClipboard = 剪贴板有内容
 // v212: 扩 hasSlider (选中含滑条) / selMulti (选中 >=2) — 作图菜单置灰用
-let editState = { hasMap: false, hasSelection: false, hasClipboard: false, hasSlider: false, selMulti: false }
+// v236: 扩 selSingleSlider (恰好选中 1 个滑条) — 作图菜单「对称滑条」置灰用
+let editState = { hasMap: false, hasSelection: false, hasClipboard: false, hasSlider: false, selMulti: false, selSingleSlider: false }
 
 ipcMain.on("edit-menu-state", (_e, s) => {
   editState = {
     hasMap: !!s?.hasMap, hasSelection: !!s?.hasSelection, hasClipboard: !!s?.hasClipboard,
-    hasSlider: !!s?.hasSlider, selMulti: !!s?.selMulti,
+    hasSlider: !!s?.hasSlider, selMulti: !!s?.selMulti, selSingleSlider: !!s?.selSingleSlider,
   }
   buildMenu()
 })
@@ -347,6 +348,7 @@ function buildMenu() {
           e2("compose-polygon", "多边形生成...", "CmdOrCtrl+Shift+D", editState.hasMap),
           e2("compose-stream", "滑条转连打...", null, editState.hasSlider),
           e2("compose-merge", "合并滑条", null, editState.selMulti),
+          e2("compose-sym-slider", "对称滑条...", null, editState.selSingleSlider), // v236
         ]
       })(),
     },

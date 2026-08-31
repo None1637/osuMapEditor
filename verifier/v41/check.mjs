@@ -25,7 +25,7 @@ section('bezierPath.ts: 顺时针弧修复 (step 带符号, 不再双重 dir)');
 {
   const src = readSrc('src/osu/convert/bezierPath.ts');
   assert(/const a0 = start \+ step \* i, a1 = a0 \+ step/.test(src), '角度推进用带符号 step (不乘 dir)');
-  assert(/Math\.abs\(total\) \/ \(Math\.PI \/ 2\)/.test(src), '分块数取 |total|');
+  assert(/Math\.abs\(total\) \/ thetaMax/.test(src), '分块数取 |total| (v237: thetaMax 误差驱动, 下钳 90° 段数不增)');
   assert(!/dir \* step/.test(src), '无 dir*step 双重取反残留');
 }
 

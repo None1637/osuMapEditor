@@ -25,7 +25,7 @@ fs.unlinkSync(out);
 section('store.ts: 转换预览/应用机制');
 {
   const src = readSrc('src/osu/store.ts');
-  assert(/conversionDialog: 'stream' \| 'split' \| 'merge'( \| 'polygon')?( \| 'duplicate')? \| null/.test(src), 'conversionDialog 字段 (v141: curve 项随曲线互转废弃移除)');
+  assert(/conversionDialog: 'stream' \| 'split' \| 'merge'( \| 'polygon')?( \| 'duplicate')?( \| 'symSlider')? \| null/.test(src), 'conversionDialog 字段 (v141: curve 项随曲线互转废弃移除; v236: 兼容新增 symSlider 可选项)');
   assert(src.includes('conversionPreview'), 'conversionPreview 字段');
   assert(/setConversionPreview[\s\S]{0,220}emitSelection\(\)/.test(src), '预览走 emitSelection (不重建事件表)');
   assert(/applyConversion[\s\S]*?pushUndo\(\)[\s\S]*?sort\(\(a, b\) => a\.time - b\.time\)/.test(src), '应用转换: 一次 undo + 重排序');
