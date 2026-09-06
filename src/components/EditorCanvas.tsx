@@ -1183,7 +1183,12 @@ export function EditorCanvas() {
           }
           if (best >= 0) {
             store.pushUndo(); // 一次操作一次 undo; emit 顺带 bump dataVersion (长度可能变, tick 事件重建)
-            applySliderPoints(so, insertSliderPoint(ctrl, best, bestT));
+            const wasLinear = so.curveType === 'L'; // v240
+            const newPts = insertSliderPoint(ctrl, best, bestT);
+            applySliderPoints(so, newPts);
+            // v240: 直线滑条新增白点 → 恰 3 点 (头+新点+尾) 时切换为圆弧 (stable 同款);
+            // 仅插入路径升级, 拖动/删除已有折线节点不变形
+            if (wasLinear && so.curveType === 'L' && newPts.length === 3) so.curveType = 'P';
             resnapSliderLength(bm, so, store.beatSnap); // lazer: 插入控制点后 SnapTo (长度按新几何吸附节拍)
             invalidatePath(so.id);
             store.emit();

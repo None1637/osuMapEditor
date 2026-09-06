@@ -37,7 +37,8 @@ section('sliderPath.ts: 长度吸附纯函数');
 section('EditorCanvas.tsx: 四处操作接线');
 {
   const src = readSrc('src/components/EditorCanvas.tsx');
-  assert(/insertSliderPoint\(ctrl, best, bestT\)\);\s*\n\s*resnapSliderLength/.test(src), '插入节点后 resnap');
+  // v240 适配: 插入与 resnap 之间加入 L→P 升级 (恰 3 点切换圆弧), 断言放宽为同序先后
+  assert(/insertSliderPoint\(ctrl, best, bestT\)[\s\S]*?so\.curveType = 'P';[\s\S]*?resnapSliderLength/.test(src), '插入节点后 resnap (v240: 中间含 L→P 升级)');
   assert(/resnapSliderLength\(bm, o, store\.beatSnap\);\s*\n\s*invalidatePath\(o\.id\);/.test(src), '节点拖拽中实时 resnap (预览即最终值)');
   assert(/deleteSliderPoint[\s\S]*?resnapSliderLength\(bm, so, store\.beatSnap\)/.test(src), '删除节点后 resnap');
   assert(/sliderGeometryLength\(o\.curveType[\s\S]*?geo < \(o\.length \?\? 0\)\) o\.length = snapSliderLength/.test(src), '切换白红: 仅几何变短才重吸附 (lazer 条件)');

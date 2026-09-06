@@ -14,6 +14,17 @@ const Row = ({ label, children }: { label: string; children: React.ReactNode }) 
   </div>
 );
 
+// v239: 间隔 = a × 1/b 拍 (a,b 均为整数; 取代 v238 的单分数下拉); 内部仍存数字拍 intervalBeats = a/b
+const BEAT_DENOMS = [1, 2, 3, 4, 6, 8, 12, 16];
+// 数字拍分解 a/b: 取首个使 v*b 为整数 (a>=1) 的分母; 不可分解 (遗留小数) 回退 a=v, b=1
+const splitBeat = (v: number): [number, number] => {
+  for (const b of BEAT_DENOMS) {
+    const a = v * b;
+    if (Math.abs(a - Math.round(a)) < 1e-6 && Math.round(a) >= 1) return [Math.round(a), b];
+  }
+  return [v, 1];
+};
+
 export function DuplicateDialog() {
   useEditor();
   const [params, setParams] = useState<DuplicateParams>(() => loadParams('duplicate', DEFAULT_DUPLICATE_PARAMS));
@@ -71,9 +82,21 @@ export function DuplicateDialog() {
         <DraftNum value={params.count} testid="count" min={1} max={99} set={v => upd({ count: Math.round(v) })} />
       </Row>
       <Row label="间隔 (拍)">
-        <DraftNum value={params.intervalBeats} testid="intervalBeats" min={0.25} max={64} step={0.25}
-          set={v => upd({ intervalBeats: v })} />
-        <span className="text-white/40">每份相对上一份</span>
+        {/* v239: a × 1/b 拍 (a,b 整数); 内部仍存数字拍; 遗留小数 a 取整后收敛 */}
+        {(() => {
+          const [a, b] = splitBeat(params.intervalBeats);
+          return (<>
+            <DraftNum value={a} testid="intervalNum" min={1} max={99}
+              set={v => upd({ intervalBeats: Math.round(v) / b })} />
+            <span className="text-white/40">× 1 /</span>
+            <select value={String(b)} data-conv="intervalBeats"
+              onChange={e => upd({ intervalBeats: a / parseInt(e.target.value) })}
+              className="bg-black/40 border border-white/15 rounded px-1 py-0.5 text-white">
+              {BEAT_DENOMS.map(d => <option key={d} value={d}>{d}</option>)}
+            </select>
+            <span className="text-white/40">拍 · 每份相对上一份</span>
+          </>);
+        })()}
       </Row>
       <Row label="旋转 °/份">
         <DraftNum value={params.rotateDeg} testid="rotateDeg" min={-360} max={360}

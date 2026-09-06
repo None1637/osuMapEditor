@@ -1898,3 +1898,20 @@
 - 效果: 小半径大弧减段 (r=30 的 150° 弧 2 段→1 段, 减段弧误差 ≤0.2px); 大半径弧受 90° 下钳与旧实现逐点一致 (v41 Crystalia 用例不受影响)。
 - 适配: v41 (旧 90° 分块表达式断言改 thetaMax)。
 - 验证: verifier/v237 (减点实证/段数单调/误差阈值/端点精确/共线退化); tsc 通过; 全量回归除既有基线失败 (v28/v137/v138/v142) 外全绿。
+
+## v238 批量复制间隔 (拍) 改节拍分数下拉 (v239 取代为 a×1/b)
+- 需求: 批量复制的间隔 (拍) 改成 1/2、1/4、1/8、1/16 等形式, 而不是 0.25 拍。
+- 实现 (DuplicateDialog.tsx): DraftNum 小数输入 → select 下拉 (v239 起进一步改为 a×1/b, 见下); 内部 params.intervalBeats 仍存数字拍, computeDuplicate/时间换算/持久化格式不变; DOM 钩子 data-conv="intervalBeats" 不变。
+- 适配: v65 (五个参数输入断言中 intervalBeats 改 select 形式); v239 起本验证器断言更新为 BEAT_DENOMS 形态。
+- 验证: verifier/v238; tsc 通过。
+
+## v239 批量复制间隔 = a × 1/b 拍 (a,b 均为整数)
+- 需求: 间隔 (拍) 应该是 a*1/b 拍 (a,b 均为整数), v238 只有 1/b, 补充分子 a 的设置。
+- 实现 (DuplicateDialog.tsx): INTERVALS 下拉 → BEAT_DENOMS 分母表 [1,2,3,4,6,8,12,16] + splitBeat 分解 (数字拍 → 首个使 v*b 为整数且 >=1 的分母; 遗留小数回退 a=v,b=1, 用户改 a 取整后收敛); UI = DraftNum(a, min 1) +「× 1 /」+ select(b); 回写 intervalBeats = a/b (数字拍, 持久化/计算不变)。
+- 验证: verifier/v239; tsc 通过; 全量回归除既有基线失败 (v28/v137/v138/v142) 外全绿。
+
+## v240 直线滑条新增白点切换为圆弧
+- 需求: 给已有的直线滑条新增白色控制点时滑条类型应切换为圆弧 (此前新增后仍为直线)。
+- 实现 (EditorCanvas.tsx 节点层插入处): 插入前记 wasLinear, insertSliderPoint + applySliderPoints 后若仍为 'L' 且恰 3 点 (头+新点+尾) 则 curveType='P' (stable 同款); 仅插入路径升级 — resolveSliderCurveType 的 L 保持语义不动, 拖动/删除已有折线 (L 3 点) 节点不变形。
+- 适配: v26 (插入后 resnap 断言放宽为含中间升级步骤的同序匹配)。
+- 验证: verifier/v240; tsc 通过; 全量回归除既有基线失败 (v28/v137/v138/v142) 外全绿。

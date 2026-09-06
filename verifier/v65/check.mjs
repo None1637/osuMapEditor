@@ -36,8 +36,9 @@ section('duplicate.ts: 复制语义');
 section('DuplicateDialog.tsx: 参数窗口 + 实时预览 + 一次 undo');
 {
   const src = readSrc('src/components/convert/DuplicateDialog.tsx');
-  assert(/testid="count"/.test(src) && /testid="intervalBeats"/.test(src) && /testid="rotateDeg"/.test(src)
-    && /testid="dx"/.test(src) && /testid="dy"/.test(src), '五个参数输入');
+  // v238 适配: 间隔 (拍) 改节拍分数下拉 (select data-conv="intervalBeats"), 不再是 DraftNum testid
+  assert(/testid="count"/.test(src) && /data-conv="intervalBeats"/.test(src) && /testid="rotateDeg"/.test(src)
+    && /testid="dx"/.test(src) && /testid="dy"/.test(src), '五个参数输入 (间隔为节拍分数下拉, v238)');
   // v166 适配: 批量复制锚点改用独立的 dupOriginMode/dupCustomOrigin, 不再复用左侧栏变换原点
   assert(/data-conv=\{`origin-\$\{m\}`\}/.test(src) && /store\.setDupOriginMode\(m\)/.test(src), '锚点三模式用独立 store.dupOriginMode (v166)');
   assert(/testid="originX"/.test(src) && /store\.setDupCustomOrigin/.test(src), '自定义锚点输入 (v166: 独立 dupCustomOrigin, 画布可拖拽)');
