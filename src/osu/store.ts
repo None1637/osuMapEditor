@@ -89,6 +89,12 @@ class EditorStore {
   playfieldScale = 1.0;
   // v235: 吸附到物件总开关 (默认开) — 关闭后物件中心/滑条尾吸附、几何辅助吸附、间距辅助线吸附、拖拽整体吸附全部停用
   objectSnapEnabled = true;
+  // v241: 放置态 — 放置工具 (circle/slider/spinner) 下 Q/W/E/R 预设下次放下物件的 newCombo/hitsound;
+  // NC 仅一次 (放置一个物件后自动复位), W/E/R 音效位放置后保持; select 工具下 Q/W/E/R 仍作用于选中物件
+  placeNewCombo = false;
+  placeHitSound = 0;
+  togglePlaceNewCombo() { this.placeNewCombo = !this.placeNewCombo; this.emitSelection(); }
+  togglePlaceHitSound(bit: number) { this.placeHitSound ^= bit; this.emitSelection(); }
   // v56: 位置网格 (lazer OsuGridToolboxGroup + rectangularGridSnapToggle)
   gridSnap = false; // Grid Snap 开关 (lazer 默认 False); 网格线始终显示 (lazer LayerBelowRuleset)
   gridType: 'square' | 'triangle' | 'circle' | 'none' = 'square'; // v119: none = 无网格 (渲染与吸附同时停)

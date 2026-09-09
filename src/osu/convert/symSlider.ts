@@ -16,6 +16,9 @@
 //     (节点序列末点), 份 i 首节点对齐份 i-1 末节点; 拼头: 份 n 末节点对齐原滑条头, 份 i 末节点对齐份 i+1
 //     首节点 (i 从大到小)。对齐后所有接缝天然重合 (走红锚点去重分支); 拼头段序列 = [份1..份n, 原] (各份正向,
 //     取代初版"拼头逆序+内反转")。join=none 不平移 (各份保持变换原位)。
+// v243: 源滑条为圆弧 (curveType='P') 时先整体转贝塞尔 (sliderToBezierSegments+segmentsToPoints,
+//   v237 误差驱动减点, 误差 ≤0.2px) 再做对称/拼接 — 否则拼接结果恒 'B', 原弧段直接嵌入会被
+//   当成普通贝塞尔控制点 (三点一段折线/二次曲线), 与原圆弧形状不一致; 独立副本也一并转 'B'。
 // 拼接 (join='tail'/'head'):
 //   - 段序列: 拼尾 = [原, 份1..份n]; 拼头 = [份1..份n, 原]
 //   - 接缝处重复坐标点 = 红锚点分段 (segmentsToPoints 同款): 段 k>0 首点先写一次作接缝,
@@ -27,6 +30,7 @@ import type { Beatmap, HitObject, Vec2 } from '../parser';
 import { genId } from '../parser';
 import { sliderGeometryLength } from '../sliderPath';
 import { sliderTailPoint } from '../objectSnap';
+import { segmentsToPoints, sliderToBezierSegments } from './bezierPath';
 
 export type SymSliderMode = 'axis' | 'point' | 'rotate' | 'translate';
 
@@ -96,7 +100,14 @@ export function computeSymSlider(bm: Beatmap, o: HitObject, p: SymSliderParams):
   if (o.type !== 'slider') return [];
   const count = p.mode === 'rotate' || p.mode === 'translate'
     ? Math.max(1, Math.min(99, Math.round(p.count))) : 1;
-  const nodes: Vec2[] = [{ x: o.x, y: o.y }, ...(o.curvePoints ?? [])];
+  // v243: 圆弧滑条 (P) 先转贝塞尔再变换 — 拼接结果恒 'B', 原弧段不转会被当普通贝塞尔控制点,
+  //   形状与原圆弧不一致; 独立副本同样转 'B' 保持几何一致 (转换误差 ≤0.2px, v237 误差驱动)
+  let workType = o.curveType ?? 'L';
+  let nodes: Vec2[] = [{ x: o.x, y: o.y }, ...(o.curvePoints ?? [])];
+  if (o.curveType === 'P') {
+    const pts = segmentsToPoints(sliderToBezierSegments(o)); // 含头部; 段接缝重复点 (红锚点)
+    if (pts.length >= 2) { nodes = pts; workType = 'B'; }
+  }
   // 拼接锚点: 拼头 = 原滑条头; 拼尾/独立副本 = 滑条尾 (v236 二轮修正: axis/point 的对称中心与缩放锚点恒用它)
   const joinAnchor = p.join === 'head' ? { x: o.x, y: o.y } : sliderTailPoint(bm, o);
   // rotate/translate 用 anchor 字段; point 中心 = 拼接锚点
@@ -146,12 +157,14 @@ export function computeSymSlider(bm: Beatmap, o: HitObject, p: SymSliderParams):
       }
     }
   } else {
-    // 独立副本: curveType/time/endTime/slides/音效等继承原滑条, length 按各份几何全长重算
+    // 独立副本: time/endTime/slides/音效等继承原滑条, length 按各份几何全长重算
+    // v243: curveType 用 workType (源为圆弧 P 时副本随转换变 'B')
     return copies.map(pts => ({
       ...o, id: genId(),
+      curveType: workType,
       x: pts[0].x, y: pts[0].y,
       curvePoints: pts.slice(1),
-      length: Math.round(sliderGeometryLength(o.curveType ?? 'L', pts) * 100) / 100,
+      length: Math.round(sliderGeometryLength(workType, pts) * 100) / 100,
     }));
   }
 

@@ -1,6 +1,6 @@
 // 可拖动的参数窗口 (F1-F4 转换功能共用): 标题栏拖拽移动, 右上角关闭
 // v85: 打开时显示在视口正中央 (挂载后按实测宽高居中一次, 之后拖拽不再复位)
-import { useLayoutEffect, useRef, useState, type ReactNode, type PointerEvent } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode, type PointerEvent } from 'react';
 import { X } from 'lucide-react'; // v181: 关闭按钮 emoji ✕ → lucide
 
 /** 居中落点 (纯函数): 视口 (vw,vh) 内放 (w,h) 窗口的左上角, 负值钳 0 */
@@ -61,6 +61,14 @@ export function loadParams<T>(key: string, defaults: T): T {
 }
 export function saveParams<T>(key: string, v: T) {
   try { localStorage.setItem('osu-editor:conv:' + key, JSON.stringify(v)); } catch { /* 配额满忽略 */ }
+}
+
+/** v242: 窗口关闭 (组件卸载) 时保存参数 — 应用/取消/右上角关窗统一覆盖, 不再只在点「应用」时保存;
+ *  ref 跟随最新值, 卸载 cleanup 落盘 (应用按钮的即时 saveParams 保留, 双写无害) */
+export function useSaveParamsOnClose<T>(key: string, v: T) {
+  const ref = useRef(v);
+  ref.current = v;
+  useEffect(() => () => saveParams(key, ref.current), [key]);
 }
 
 /** v40: 数字输入 (草稿态) — 聚焦期间保留原始文本, 全选重打不被 clamp/格式化打断;

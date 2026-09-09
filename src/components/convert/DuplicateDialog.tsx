@@ -3,13 +3,14 @@
 // v68: 可选同时复制物件范围内绿线 (滑条 = 整条 duration); 向量≠0 时画布绘制箭头, 拖箭头头改向量
 import { useEffect, useMemo, useState } from 'react';
 import { store, useEditor } from '@/osu/store';
-import { DraggableDialog, DraftNum, loadParams, saveParams } from '../DraggableDialog';
+import { DraggableDialog, DraftNum, loadParams, saveParams, useSaveParamsOnClose } from '../DraggableDialog';
 import { computeDuplicate, computeDuplicateTiming, computeDuplicateScaleTiming, DEFAULT_DUPLICATE_PARAMS, type DuplicateParams } from '@/osu/duplicate';
 import { sliderTailPoint } from '@/osu/objectSnap';
 
 const Row = ({ label, children }: { label: string; children: React.ReactNode }) => (
-  <div className="flex items-center gap-2">
-    <span className="w-16 text-white/50">{label}</span>
+  // v239: flex-wrap + label 禁换行 — 行宽不足时整组掉行, 不再把 label/「× 1 /」拦腰截断
+  <div className="flex items-center gap-2 flex-wrap">
+    <span className="min-w-16 whitespace-nowrap text-white/50">{label}</span>
     {children}
   </div>
 );
@@ -28,6 +29,7 @@ const splitBeat = (v: number): [number, number] => {
 export function DuplicateDialog() {
   useEditor();
   const [params, setParams] = useState<DuplicateParams>(() => loadParams('duplicate', DEFAULT_DUPLICATE_PARAMS));
+  useSaveParamsOnClose('duplicate', params); // v242: 关窗 (含取消/X) 也保存
   const bm = store.beatmap;
   const objs = useMemo(
     () => (bm ? bm.hitObjects.filter(o => store.selected.has(o.id)) : []),
@@ -82,19 +84,22 @@ export function DuplicateDialog() {
         <DraftNum value={params.count} testid="count" min={1} max={99} set={v => upd({ count: Math.round(v) })} />
       </Row>
       <Row label="间隔 (拍)">
-        {/* v239: a × 1/b 拍 (a,b 整数); 内部仍存数字拍; 遗留小数 a 取整后收敛 */}
+        {/* v239: a × 1/b 拍 (a,b 整数); 内部仍存数字拍; 遗留小数 a 取整后收敛; 整组 nowrap 不拦腰断行 */}
         {(() => {
           const [a, b] = splitBeat(params.intervalBeats);
           return (<>
-            <DraftNum value={a} testid="intervalNum" min={1} max={99}
-              set={v => upd({ intervalBeats: Math.round(v) / b })} />
-            <span className="text-white/40">× 1 /</span>
-            <select value={String(b)} data-conv="intervalBeats"
-              onChange={e => upd({ intervalBeats: a / parseInt(e.target.value) })}
-              className="bg-black/40 border border-white/15 rounded px-1 py-0.5 text-white">
-              {BEAT_DENOMS.map(d => <option key={d} value={d}>{d}</option>)}
-            </select>
-            <span className="text-white/40">拍 · 每份相对上一份</span>
+            <span className="flex items-center gap-1 whitespace-nowrap">
+              <DraftNum value={a} testid="intervalNum" min={1} max={99}
+                set={v => upd({ intervalBeats: Math.round(v) / b })} />
+              <span className="text-white/40">× 1 /</span>
+              <select value={String(b)} data-conv="intervalBeats"
+                onChange={e => upd({ intervalBeats: a / parseInt(e.target.value) })}
+                className="bg-black/40 border border-white/15 rounded px-1 py-0.5 text-white">
+                {BEAT_DENOMS.map(d => <option key={d} value={d}>{d}</option>)}
+              </select>
+              <span className="text-white/40">拍</span>
+            </span>
+            <span className="text-white/40">每份相对上一份</span>
           </>);
         })()}
       </Row>

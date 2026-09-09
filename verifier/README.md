@@ -1915,3 +1915,24 @@
 - 实现 (EditorCanvas.tsx 节点层插入处): 插入前记 wasLinear, insertSliderPoint + applySliderPoints 后若仍为 'L' 且恰 3 点 (头+新点+尾) 则 curveType='P' (stable 同款); 仅插入路径升级 — resolveSliderCurveType 的 L 保持语义不动, 拖动/删除已有折线 (L 3 点) 节点不变形。
 - 适配: v26 (插入后 resnap 断言放宽为含中间升级步骤的同序匹配)。
 - 验证: verifier/v240; tsc 通过; 全量回归除既有基线失败 (v28/v137/v138/v142) 外全绿。
+
+## v241 放置态: 放置工具下 Q/W/E/R 预设下次放下物件的 NC/音效
+- 需求: 放置物件前按 Q 能将下次放下的物件设置为 new combo; W/E/R 也能为下次放置的物件增加音效。
+- 实现: store.placeNewCombo/placeHitSound + toggle 方法 (默认关; **NC 仅一次 — 放置一个物件后自动复位, W/E/R 音效位放置后保持**); App.tsx 快捷键按 store.tool 分流 — 放置工具 (circle/slider/spinner) → 放置态, select 工具 → 选中物件/时间轴节点 (v213) 原语义; EditorCanvas 四处放置点 (circle/finishSlider/finishFreehandSlider/finishSpinner) 读放置态并在放置后复位 NC — **slider/spinner 原硬编码 newCombo:true 移除, 统一由放置态决定 (行为变化: 放滑条/转盘默认不再自动 NC, 需要时按 Q)**; 左栏工具区放置工具激活时显示放置态指示行 (NC/口哨/Finish/拍手 高亮)。
+- 验证: verifier/v241; tsc 通过; 全量回归除既有基线失败 (v28/v137/v138/v142) 外全绿。
+
+## v242 转换窗口关闭时保存参数
+- 需求: 批量复制等窗口应该在关闭时保存其值, 而不是仅在应用时保存。
+- 实现 (src/components/DraggableDialog.tsx): 新增 useSaveParamsOnClose(key, params) — ref 跟随最新值, 卸载 cleanup 落盘 (应用/取消/X 关窗统一覆盖); 五个转换弹窗全部接线 (duplicate/stream/split/polygon/symSlider); 应用按钮的即时 saveParams 保留 (双写无害)。
+- 验证: verifier/v242; tsc 通过; 全量回归除既有基线失败 (v28/v137/v138/v142) 外全绿。
+
+## v243 对称滑条圆弧 (P) 源先转贝塞尔
+- 需求: 使用对称滑条时, 如果当前所选滑条是圆弧滑条, 需要转成贝塞尔, 否则滑条形状不一致。
+- 实现 (src/osu/convert/symSlider.ts computeSymSlider): curveType='P' 时先 sliderToBezierSegments+segmentsToPoints 展开为贝塞尔节点 (v237 误差驱动减点, 误差 ≤0.2px), workType='B' 参与变换/拼接 — 否则拼接结果恒 'B', 原弧段被当普通贝塞尔控制点 (三点一段折线/二次曲线), 与原圆弧形状不一致; join='none' 独立副本 curveType 也用 workType (随转换变 'B'), length 按 workType 几何重算; L/B 源不受影响, 原对象不被改。
+- 验证: verifier/v243 (副本/拼接 curveType + 几何一致性采样 ≤1px + 拼接全长 ≈2× 弧长 + 时长翻倍 + L/B 源不变); tsc 通过; 全量回归除既有基线失败 (v28/v137/v138/v142) 外全绿。
+
+## v244 放置态指示移到右侧栏顶部且始终显示
+- 需求: 将放置态 Q/W/E/R 预设下次放置物件的 UI 移到右侧栏顶部且始终显示。
+- 实现 (src/App.tsx): 左栏工具区的 v241 放置态指示行 (仅放置工具时条件显示) 移除, 同款指示块 (NC(Q)/口哨(W)/Finish(E)/拍手(R) 高亮逻辑不变) 改挂右侧栏 <Inspector /> 之前 (border-b 分隔), 不再按 store.tool 条件渲染 — select 工具下也可见。
+- 适配: v241 (指示位置断言注释更新为右栏顶部, 断言本身不变)。
+- 验证: verifier/v244; tsc 通过; 全量回归除既有基线失败 (v28/v137/v138/v142) 外全绿。

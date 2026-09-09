@@ -1,7 +1,7 @@
 // v64 多边形生成弹窗 (lazer PolygonGenerationPopover): 圆心固定游玩区中心 (256,192), 实时预览 + 参数记忆 + 一次 undo
 import { useEffect, useMemo, useState } from 'react';
 import { store, useEditor } from '@/osu/store';
-import { DraggableDialog, DraftNum, loadParams, saveParams } from '../DraggableDialog';
+import { DraggableDialog, DraftNum, loadParams, saveParams, useSaveParamsOnClose } from '../DraggableDialog';
 import { computePolygon, DEFAULT_POLYGON_PARAMS, POLYGON_LIMITS as L, type PolygonParams } from '@/osu/convert/polygon';
 
 const Row = ({ label, children }: { label: string; children: React.ReactNode }) => (
@@ -21,6 +21,7 @@ export function PolygonDialog() {
       && bm.hitObjects.filter(o => store.selected.has(o.id)).every(o => !!o.newCombo);
     return p;
   });
+  useSaveParamsOnClose('polygon', params); // v242: 关窗 (含取消/X) 也保存
 
   const result = useMemo(
     () => (bm ? computePolygon(bm, store.currentTime, store.beatSnap, params) : { objects: [], outOfBounds: false, startTime: 0 }),

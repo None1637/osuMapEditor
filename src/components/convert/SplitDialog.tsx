@@ -1,7 +1,7 @@
 // F2 参数窗口: 滑条等时间拆分 (实时预览 + 参数持久化, 照 StreamDialog 模式)
 import { useEffect, useMemo, useState } from 'react';
 import { store, useEditor } from '@/osu/store';
-import { DraggableDialog, DraftNum, loadParams, saveParams } from '../DraggableDialog';
+import { DraggableDialog, DraftNum, loadParams, saveParams, useSaveParamsOnClose } from '../DraggableDialog';
 import { computeSplit, DEFAULT_SPLIT_PARAMS, type SplitParams } from '@/osu/convert/split';
 
 // v41 修复: Row 提升到模块级 (组件内定义 = 每次渲染新组件类型 -> 子树重挂载 -> 输入框击键即失焦)
@@ -15,6 +15,7 @@ const Row = ({ label, children }: { label: string; children: React.ReactNode }) 
 export function SplitDialog() {
   useEditor();
   const [params, setParams] = useState<SplitParams>(() => loadParams('split', DEFAULT_SPLIT_PARAMS));
+  useSaveParamsOnClose('split', params); // v242: 关窗 (含取消/X) 也保存
   const bm = store.beatmap;
   // 仅单选滑条时可用 (Inspector 只在单选滑条时给入口; 这里兜底校验)
   const slider = useMemo(() => {

@@ -258,12 +258,21 @@ export default function App() {
       // hitsound / newCombo 切换 (lazer/stable 同款, 作用于全部选中物件): Q newCombo, W whistle, E finish, R clap
       if (!e.ctrlKey && !e.metaKey && !e.altKey) {
         const k = e.key.toLowerCase();
+        // v241: 放置工具 (circle/slider/spinner) 下 Q/W/E/R 预设下次放下物件的 NC/音效 (stable 放置态);
+        // select 工具维持原语义 (选中物件 / 时间轴选中节点 v213)
+        if (store.tool !== 'select') {
+          if (k === 'q') { store.togglePlaceNewCombo(); return; }
+          if (k === 'w') { store.togglePlaceHitSound(2); return; }
+          if (k === 'e') { store.togglePlaceHitSound(4); return; }
+          if (k === 'r') { store.togglePlaceHitSound(8); return; }
+        } else {
         // v213: 时间轴选中了滑条节点 (折返点/尾) 时, W/E/R 只作用于选中节点 (stable per-edge 音效)
         const hs = store.selectedEdges.size > 0 ? (b: number) => store.toggleEdgeHitSound(b) : (b: number) => store.toggleSelectedHitSound(b);
         if (k === 'q') { store.toggleSelectedNewCombo(); return; }
         if (k === 'w') { hs(2); return; }
         if (k === 'e') { hs(4); return; }
         if (k === 'r') { hs(8); return; }
+        }
         // v32: J/K 选中物件前移/后移一个当前节拍吸附; v209: 逻辑下沉 store.nudgeSelectedBySnap (编辑菜单 前移/后移 共用)
         if (k === 'j' || k === 'k') {
           store.nudgeSelectedBySnap(k === 'j' ? -1 : 1);
@@ -671,6 +680,15 @@ export default function App() {
             </div>
             {/* 右侧检查器 (v129: 背景半透明 /75 + pointer-events-auto) */}
             <div className="w-56 shrink-0 bg-[#16161d]/75 border-l border-white/10 overflow-auto pointer-events-auto">
+              {/* v244: 放置态指示移到右侧栏顶部且始终显示 (原 v241 在左栏工具区, 仅放置工具时显示) —
+                  放置工具下按 Q/W/E/R 预设下次放下物件的 NC (仅一次, 放置后复位) 与音效 (保持) */}
+              <div className="px-3 py-2 text-[11px] text-white/45 flex gap-x-2 flex-wrap border-b border-white/10" title="放置态: 放置工具下按 Q/W/E/R 预设下次放下物件的 New Combo (仅一次, 放置后复位) 与音效 (保持)">
+                放置
+                <span className={store.placeNewCombo ? 'text-pink-300 font-bold' : ''}>NC(Q)</span>
+                <span className={(store.placeHitSound & 2) ? 'text-pink-300 font-bold' : ''}>口哨(W)</span>
+                <span className={(store.placeHitSound & 4) ? 'text-pink-300 font-bold' : ''}>Finish(E)</span>
+                <span className={(store.placeHitSound & 8) ? 'text-pink-300 font-bold' : ''}>拍手(R)</span>
+              </div>
               <Inspector />
               <div className="p-3 text-xs text-white/40 space-y-1 border-t border-white/10">
                 <div className="font-bold text-white/60">快捷键</div>

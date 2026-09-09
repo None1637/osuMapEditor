@@ -11,7 +11,7 @@
 //   (store.symSliderAxisView/symSliderAxisDragHandler, v210 对称轴同款接线; 拖拽回写 1 位小数)。
 import { useEffect, useMemo, useState } from 'react';
 import { store, useEditor } from '@/osu/store';
-import { DraggableDialog, DraftNum, loadParams, saveParams } from '../DraggableDialog';
+import { DraggableDialog, DraftNum, loadParams, saveParams, useSaveParamsOnClose } from '../DraggableDialog';
 import { computeSymSlider, DEFAULT_SYM_SLIDER_PARAMS, type SymSliderMode, type SymSliderParams } from '@/osu/convert/symSlider';
 
 const Row = ({ label, children }: { label: string; children: React.ReactNode }) => (
@@ -26,6 +26,7 @@ export function SymSliderDialog() {
   // v236 二轮修正: 参数集换代 (轴配置简化为 axisDir 三选 v/h/custom); loadParams 浅合并,
   //   旧持久化数据缺新字段时回退默认值 (多余的旧键残留无害, 下次保存即清)
   const [params, setParams] = useState<SymSliderParams>(() => loadParams('symSlider', DEFAULT_SYM_SLIDER_PARAMS));
+  useSaveParamsOnClose('symSlider', params); // v242: 关窗 (含取消/X) 也保存
   const bm = store.beatmap;
   // 恰好选中 1 个滑条才有意义; 打开后选中漂移则提示并禁用应用 (不强制关窗)
   const obj = useMemo(() => {

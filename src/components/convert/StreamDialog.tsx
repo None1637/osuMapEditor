@@ -1,7 +1,7 @@
 // F1 参数窗口: 滑条转连打 (实时预览 + 参数持久化)
 import { useEffect, useMemo, useState } from 'react';
 import { store, useEditor } from '@/osu/store';
-import { DraggableDialog, DraftNum, loadParams, saveParams } from '../DraggableDialog';
+import { DraggableDialog, DraftNum, loadParams, saveParams, useSaveParamsOnClose } from '../DraggableDialog';
 import { computeStream, DEFAULT_STREAM_PARAMS, type StreamCurve, type StreamParams } from '@/osu/convert/stream';
 
 // v40: 曲线简化 — 等距/线性变化/先加后减/先减后加; v222: + 指数变化 (带指数参数)
@@ -31,6 +31,7 @@ function loadStreamParams(): StreamParams {
 export function StreamDialog() {
   useEditor();
   const [params, setParams] = useState<StreamParams>(loadStreamParams);
+  useSaveParamsOnClose('stream', params); // v242: 关窗 (含取消/X) 也保存
   const bm = store.beatmap;
   const sliders = useMemo(
     () => (bm ? bm.hitObjects.filter(o => store.selected.has(o.id) && o.type === 'slider') : []),

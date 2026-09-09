@@ -1222,8 +1222,9 @@ export function EditorCanvas() {
       const sp = snapPlacement(p);
       store.addObject({
         id: genId(), type: 'circle', x: Math.round(sp.x), y: Math.round(sp.y),
-        time: Math.round(snapTime(store.currentTime)), newCombo: false, comboSkip: 0, hitSound: 0,
+        time: Math.round(snapTime(store.currentTime)), newCombo: store.placeNewCombo, comboSkip: 0, hitSound: store.placeHitSound, // v241: 放置态 (Q/W/E/R 预设)
       });
+      store.placeNewCombo = false; // v241: NC 仅一次 (放置后复位; W/E/R 音效位保持)
     } else if (store.tool === 'spinner') {
       // v180: 对齐 lazer SpinnerPlacementBlueprint — 左键只提交起点 (吸附当前细分), 进入放置中状态;
       // 之后终点实时跟随编辑器当前时间 (滚动时间轴/播放拉长), 右键完成; 放置中左键无效
@@ -1311,8 +1312,9 @@ export function EditorCanvas() {
       id: genId(), type: 'slider', x: head.x, y: head.y,
       time: Math.round(snapPlacementTime(bm.timingPoints, store.currentTime, store.beatSnap)),
       curveType: computed.curveType, curvePoints: pathPts, slides: 1, length: len,
-      newCombo: true, comboSkip: 0, hitSound: 0,
+      newCombo: store.placeNewCombo, comboSkip: 0, hitSound: store.placeHitSound, // v241: 放置态 (Q/W/E/R 预设; 取代原硬编码 NC=true)
     });
+    store.placeNewCombo = false; // v241: NC 仅一次 (放置后复位)
     store.pendingSlider = [];
     store.pendingCursor = null;
     store.emit();
@@ -1353,8 +1355,9 @@ export function EditorCanvas() {
       id: genId(), type: 'slider', x: ctrl[0].x, y: ctrl[0].y,
       time: Math.round(snapPlacementTime(bm.timingPoints, store.currentTime, store.beatSnap)),
       curveType, curvePoints: ctrl.slice(1), slides: 1, length: len,
-      newCombo: true, comboSkip: 0, hitSound: 0,
+      newCombo: store.placeNewCombo, comboSkip: 0, hitSound: store.placeHitSound, // v241: 放置态 (Q/W/E/R 预设; 取代原硬编码 NC=true)
     });
+    store.placeNewCombo = false; // v241: NC 仅一次 (放置后复位)
     store.pendingSlider = [];
     store.pendingCursor = null;
     store.emit();
@@ -1813,8 +1816,9 @@ export function EditorCanvas() {
       store.pendingSpinner = null;
       store.addObject({
         id: genId(), type: 'spinner', x: 256, y: 192,
-        time: start, endTime, newCombo: true, comboSkip: 0, hitSound: 0,
+        time: start, endTime, newCombo: store.placeNewCombo, comboSkip: 0, hitSound: store.placeHitSound, // v241: 放置态 (Q/W/E/R 预设; 取代原硬编码 NC=true)
       });
+      store.placeNewCombo = false; // v241: NC 仅一次 (放置后复位)
       return;
     }
     // v30: 四种模式通用 — 右键命中物件 -> 删除该物件
