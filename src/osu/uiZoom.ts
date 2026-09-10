@@ -54,3 +54,15 @@ export function zoomClientY(clientY: number): number { return clientY / uiZoom()
 
 /** canvas 光栅 dpr = devicePixelRatio × zoom (backing = 布局宽 × zoomDpr = 屏幕物理像素) */
 export function zoomDpr(): number { return (window.devicePixelRatio || 1) * uiZoom(); }
+
+// ---- v246: canvas backing 尺寸取整适配 ----
+// r.width×dpr 常为分数 (zoom/dpr 分数), 旧代码 `c.width !== r.width * dpr` 拿整数 backing 与分数比,
+// 几乎恒真 → 每帧重设 canvas 宽高 (位图重建 + 上下文状态重置 + GPU 纹理重传), 普通谱面也跑不满帧率。
+// 统一 round 到整数像素, 并返回实际变换系数 sx/sy (= backing/布局, 替代 dpr, 保证映射精确无 1px 偏差)。
+export function fitCanvas(c: HTMLCanvasElement, r: LayoutRect): { sx: number; sy: number } {
+  const dpr = zoomDpr();
+  const bw = Math.max(1, Math.round(r.width * dpr));
+  const bh = Math.max(1, Math.round(r.height * dpr));
+  if (c.width !== bw || c.height !== bh) { c.width = bw; c.height = bh; }
+  return { sx: bw / r.width, sy: bh / r.height };
+}

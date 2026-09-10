@@ -1936,3 +1936,56 @@
 - 实现 (src/App.tsx): 左栏工具区的 v241 放置态指示行 (仅放置工具时条件显示) 移除, 同款指示块 (NC(Q)/口哨(W)/Finish(E)/拍手(R) 高亮逻辑不变) 改挂右侧栏 <Inspector /> 之前 (border-b 分隔), 不再按 store.tool 条件渲染 — select 工具下也可见。
 - 适配: v241 (指示位置断言注释更新为右栏顶部, 断言本身不变)。
 - 验证: verifier/v244; tsc 通过; 全量回归除既有基线失败 (v28/v137/v138/v142) 外全绿。
+
+## v245 全选/播放性能优化 (CDP 实测驱动)
+- 需求: 2000 物件全选达到 60 帧; 1000 绿线播放达到至少 240 帧。
+- profile (verifier/v245/profile.mjs, 无头 Edge + CPU Profiler, 合成 2000 物件/1000 绿线谱面):
+  基线 A=2.8fps (帧忙 337ms — 逐物件选中装饰的软件光栅占满), B=60fps (帧忙 11.3ms —
+  emitPlayback 每帧全量 React 重渲 + 两时间轴全量重绘 + svPoints 每帧排序 + measureText 每药丸每帧)。
+- 优化 (A): renderer.ts 选中装饰离屏层缓存 drawSelectionLayer (键 = 数据版本+选区签名+变换矩阵+画布尺寸+
+  样式开关+皮肤序号; 帧内 1 次 drawImage; v40 不可见选中物件画装饰语义保留; 视觉差异: 装饰整体盖在物件上层);
+  followPointPairs 按谱面缓存; EditorCanvas currentQuads (选中框包围盒)/computeCombos 帧级 memo;
+  网格/背景/边框静态层缓存 (staticLayerRef)。
+- 优化 (B): store.emitPlaybackFrame 逐帧独立通道 + usePlaybackFrame (仅 TimingPanel 订阅; emitPlayback
+  保留给脏标记/弹窗/菜单等低频轻量刷新); Timelines 上时间轴红/绿线同色合批一次 fill、节拍 tick 按级合批、
+  药丸 measureText 缓存 (measureCached)、svPoints/stackInfo/computeCombos 帧级 memo;
+  BottomTimeline 静态层缓存 (kiai/刻度/红绿线/书签/粉点全入层, 只播放头逐帧画; 粉点 arc 改 2px 方块)。
+- 实测结果 (GPU 无头 Edge): A 2.8fps→240fps (rAF 上限, 帧忙 0.25ms), B 60fps→240fps (帧忙 0.26ms)。
+  运行: node verifier/v245/profile.mjs (需 7100 dev server; PROFILE_SW=1 软件渲染对照)。
+- 适配: v40 (装饰统一层构建) / v56, v61, v78, v117, v119, v152, v158, v159, v161, v162, v190 (源码断言跟随新形态)。
+- 验证: verifier/v245; tsc -b 通过; 全量回归除既有基线失败 (v28/v137/v138/v142) 外全绿。
+## v246 普通谱面跑不满帧率修复 (波形合批 + backing 取整 + 层裁剪)
+- 需求: v245 后全选/播放场景帧数明显提高, 但打开任意谱面都跑不到 240 帧。
+- 根因 1 (波形面板, 最大头): drawWave 逐列 fillRect (3757 列/帧 × 240fps ≈ 90 万次/秒; CDP fillRect 探针
+  实测为全部画布操作第一位, 分辨率越高列越多; 波形面板默认开启 → 任意谱面受害)。修复: 列汇成单 Path 一次 fill。
+- 根因 2 (backing 分数尺寸): 三处画布 `c.width !== r.width * dpr` 整数比分数恒真 → 每帧重建位图
+  (uiZoom×devicePixelRatio 几乎恒为分数, 非 2560×1440 窗口或 125%/150% 缩放必中)。
+  修复: uiZoom.ts fitCanvas (round + 返回 sx/sy 精确变换系数), 主画布/上/下时间轴三处统一。
+- 根因 3: v245 静态层/选中装饰层整画布尺寸, 大窗口高 dpr 每帧全幅 blit 带宽浪费。
+  修复: 静态层裁剪到游玩区设备矩形 (+8px), 选中层裁剪到选区内容包围盒 (路径点 ± 2r+16, 画布外不贴)。
+- 附带: 上时间轴物件数字 fillText 位图缓存 fillTextCached (密集谱面 600+ 次/帧字形光栅热点)。
+- 实测 (verifier/v245/profile.mjs, 无头 Edge RTX4090 硬件加速, 2K 窗口 dsf1.5):
+  C 静止 203.6→239.3fps, D 播放 216.5→237.7fps, A/B 顶满 240;
+  场景E 密集播放 (PROFILE_E_INTERVAL): 20/s (≈300BPM 1/4 连打) = 239.5fps, 40/s = 217fps, 100/s ≈ 113fps
+  (同屏 ~220 物件缩圈 overdraw 的光栅面积上限, 超真实谱面密度 5 倍, canvas2d 物理上限; 物件本体
+  draw call 合成缓存实测无提升已回退)。
+  探针: verifier/v246/fillrect-probe.mjs / area-probe.mjs / gpu-probe.mjs / shot.mjs (需 7100 dev server)。
+- 适配: v245 (层原点/空标记与贴回偏移断言跟随新形态), v217 (zoomDpr → fitCanvas 断言跟随)。
+- 验证: verifier/v246; tsc -b 通过; 全量回归除既有基线失败 (v28/v137/v138/v142) 外全绿。
+
+## v247 exe (Electron) 大窗口掉帧修复 (强制 ANGLE OpenGL 后端)
+- 现象: 打包 exe / npx electron 在 2560x1511 最大化窗口下任意谱面仅 ~88fps (frameP95=12.6ms ≈ 3 个
+  240Hz vsync), JS 帧忙仅 0.3ms — 与页面内容无关, 是 Chromium 150 默认 D3D11 呈现路径在大窗口下的
+  容器级问题。同机 headed Edge 同尺寸 240fps 满帧。
+- 诊断 (verifier/v246/electron-npx-probe.mjs, 直起 node_modules electron 二进制免打包快速迭代):
+  基线 88fps; 800x600 小窗口 240 满帧 (→ 窗口尺寸相关呈现成本); force-color-profile=srgb 无效 (排除 HDR);
+  use-angle=vulkan 34fps 软件光栅不可用; use-angle=d3d11on12 83fps 同默认; **use-angle=gl 240 满帧**。
+  GPU feature 对比 (verifier/v246/gpu-compare.mjs): Electron 与 Edge 光栅特性均 enabled, 差异在呈现路径。
+- 修复: electron/main.cjs 顶层 `app.commandLine.appendSwitch("use-angle", "gl")` (app ready 前)。
+- 进程卫生坑: 便携 exe 是 NSIS 自解压壳, kill 壳不杀真实 App 进程 (解到 %TEMP%); 探针一律直起
+  node_modules/electron/dist/electron.exe (杀 PID 即真杀)。
+- 验证: verifier/v247; npx electron 实测静止/播放 88→240fps。
+## v248 exe 内嵌服务器端口 7100 → 7199
+- 7100 是 dev vite 端口, 旧版 exe 优先绑 7100, 与 dev server 同开时 Windows SO_REUSEADDR 语义下
+  双 listener 都 LISTENING, exe 可能加载到 dev 代码/端口混乱。7199 为 exe 专用, 被占仍回退随机端口。
+- 验证: verifier/v248。

@@ -13,7 +13,7 @@ import { pickTimeNearestHit } from '@/osu/hitPick'; // v154: 重叠命中挑离�
 import { selectionScaleQuad, scaleHandleAnchors, anchorPoint, hitScaleHandle, anchorAxis, dragToScale, anchorOpposite, minimumEnclosingCircleCenter, movablePoints, snapshotScaleStates, applyScaleDrag, selectionBoxVisible, selectionDisplayQuad, hitRotationHandle, rotationHandlePoints, angleDeltaDeg, snapRotation, rotationOrigin, applyRotateDrag, scaledPosition, type ScaleAnchor, type RotateCorner, type ScaleObjectState, type Quad } from '@/osu/selectionBox';
 import { ctrlPoints, nodeEntries, nearestNode, nodesInRect, nodeBounds, withRedPartners, snapshotNodes, transformNodesFromSnapshot } from '@/osu/nodeSelection';
 import { isVisibleAt } from '@/osu/lifecycle';
-import { uiZoom, zoomRect, zoomClientX, zoomClientY, zoomDpr } from '@/osu/uiZoom'; // v217
+import { uiZoom, zoomRect, zoomClientX, zoomClientY, fitCanvas } from '@/osu/uiZoom'; // v217; v246: fitCanvas
 import { displaySettings } from '@/osu/displaySettings'; // v168: 背景图亮度
 import { distanceLockRef, distanceLockDistance } from '@/osu/spacing'; // v145
 import { genId, timingAt, csToRadius, arToPreempt, type Beatmap, type HitObject } from '@/osu/parser';
@@ -112,14 +112,31 @@ export function EditorCanvas() {
   // 当前缩放参考包围盒与显示包围盒 (手柄画在显示框上, 缩放数学用位置包围盒 — lazer 同款分离)
   // v50: 仅选中一个单点/转盘时不显示框 (selectionBoxVisible)
   // v52: 显示盒 = 路径实体盒 (lazer blueprint SelectionQuad union + INFLATE 5), P 滑条弧身鼓出也包住
+  // v245: 帧级 memo — 全选 2000 物件时 selectionDisplayQuad 每帧遍历全部选中滑条路径采样点是热点
+  //   (CDP 实测), 盒只随 数据/选区 变, 播放/鼠标移动不重算
+  const quadsRef = useRef<{ key: string; bm: Beatmap; v: { q: Quad; dq: Quad } | null } | null>(null);
+  const selectionSig = () => { // 顺序无关选区签名 (id 全局唯一)
+    let s = (store.selected.size * 2654435761) | 0;
+    for (const id of store.selected) s = (s + id) | 0;
+    for (const [objId, idxs] of store.selectedNodes) for (const k of idxs) s = (s + objId * 31 + k) | 0;
+    return s;
+  };
   const currentQuads = (bm: Beatmap): { q: Quad; dq: Quad } | null => {
+    const key = `${store.getDataVersion()}|${selectionSig()}`;
+    if (quadsRef.current && quadsRef.current.key === key && quadsRef.current.bm === bm) return quadsRef.current.v;
+    let v: { q: Quad; dq: Quad } | null = null;
     // v117: 节点选区非空时, 选中框/手柄作用于选中节点 (节点层优先于物件层)
-    if (store.nodeSelectionCount) return nodeBounds(bm, store.selectedNodes, getStackOffsets(bm), 8);
-    const objs = selectedMovable(bm);
-    if (!selectionBoxVisible(objs)) return null;
-    const q = selectionScaleQuad(objs); // 缩放参考盒 (lazer OriginalSurroundingQuad: 头 + 控制点)
-    const dq = selectionDisplayQuad(bm, objs, csToRadius(bm.difficulty.cs)); // 显示盒 (lazer: 整条路径含半径 + 5)
-    return q && dq ? { q, dq } : null;
+    if (store.nodeSelectionCount) v = nodeBounds(bm, store.selectedNodes, getStackOffsets(bm), 8);
+    else {
+      const objs = selectedMovable(bm);
+      if (selectionBoxVisible(objs)) {
+        const q = selectionScaleQuad(objs); // 缩放参考盒 (lazer OriginalSurroundingQuad: 头 + 控制点)
+        const dq = selectionDisplayQuad(bm, objs, csToRadius(bm.difficulty.cs)); // 显示盒 (lazer: 整条路径含半径 + 5)
+        v = q && dq ? { q, dq } : null;
+      }
+    }
+    quadsRef.current = { key, bm, v };
+    return v;
   };
   // 自定义原点标记可见条件: 自定义模式且有选区 (无选区时变换不生效, 标记无意义)
   // v165/v166: 批量复制窗口打开时改用弹窗独立的 dupOriginMode (勾选自定义即始终显示, 取消选中不消失; 与左侧栏变换互不干扰)
@@ -129,6 +146,9 @@ export function EditorCanvas() {
   // v166: 画布标记/拖拽当前绑定的自定义原点 (批量复制窗口打开 = 弹窗独立原点)
   const activeCustomOrigin = () => (store.conversionDialog === 'duplicate' ? store.dupCustomOrigin : store.customOrigin);
   const cursorRef = useRef<{ x: number; y: number; inside: boolean }>({ x: 0, y: 0, inside: false });
+  // v245: 网格/背景/边框静态层缓存 (帧循环里按键复用, 见 loop 内静态层块)
+  // v246: x/y = 层在主画布设备像素中的原点 (层裁剪到游玩区设备矩形, 不再整画布尺寸)
+  const staticLayerRef = useRef<{ key: string; c: HTMLCanvasElement; x: number; y: number } | null>(null);
   // 堆叠偏移缓存: 仅谱面数据变更 (dataVersion) 时重算
   const stackRef = useRef<{ ver: number; bm: Beatmap; map: Map<number, { dx: number; dy: number }> } | null>(null);
   const getStackOffsets = (bm: Beatmap): Map<number, { dx: number; dy: number }> => {
@@ -137,6 +157,15 @@ export function EditorCanvas() {
       stackRef.current = { ver, bm, map: computeStackOffsets(bm) };
     }
     return stackRef.current.map;
+  };
+  // v245: combo 信息帧级缓存 — 原每帧 computeCombos O(n) (CDP 实测热点); 内容只随谱面数据变
+  const comboRef = useRef<{ ver: number; bm: Beatmap; map: ReturnType<typeof computeCombos> } | null>(null);
+  const getCombos = (bmView: Beatmap): ReturnType<typeof computeCombos> => {
+    const ver = store.getDataVersion();
+    if (!comboRef.current || comboRef.current.ver !== ver || comboRef.current.bm !== bmView) {
+      comboRef.current = { ver, bm: bmView, map: computeCombos(bmView) };
+    }
+    return comboRef.current.map;
   };
 
   // v56: 网格吸附 (lazer: 对象吸附 > 距离吸附 > 位置网格, 网格最后应用并覆盖; 间距 = gridSpacing ?? 谱面 GridSize)
@@ -527,72 +556,103 @@ export function EditorCanvas() {
           if (store.currentTime >= store.songLength()) store.pause();
         }
         const g = c.getContext('2d')!;
-        const dpr = zoomDpr(); // v217: dpr × zoom (backing = 屏幕物理像素, 布局空间绘制)
         const r = zoomRect(c); // v217: 布局空间 (固定 px 内容随整体缩放)
-        if (c.width !== r.width * dpr) { c.width = r.width * dpr; c.height = r.height * dpr; }
-        g.setTransform(dpr, 0, 0, dpr, 0, 0);
+        const { sx, sy } = fitCanvas(c, r); // v246: backing 取整 (原分数比较致每帧重建位图)
+        g.setTransform(sx, 0, 0, sy, 0, 0);
         g.fillStyle = '#111116';
         g.fillRect(0, 0, r.width, r.height);
         const { scale, ox, oy } = playfieldTransform(r);
         g.save();
         g.translate(ox, oy); g.scale(scale, scale);
-        // v56: 位置网格 (lazer PositionSnapGrid, 始终显示; 线 alpha 0.1, 过原点首线 0.2; 圆形首圆 0.8)
-        // v119: gridType 'none' = 无网格, 不渲染 (贴近游玩表现)
+        // v245: 网格/背景/边框静态层缓存 — 内容与帧无关 (网格类型/间距/旋转/原点 + 背景图/亮度 + 变换矩阵
+        //   决定), 原每帧逐线/逐弧 stroke + 背景 drawImage 是播放场景光栅热点 (CDP 实测); 合成到离屏位图,
+        //   键不变时每帧仅 1 次 drawImage。绘制顺序保持: 网格 → 背景 → 边框。
+        //   v246: 位图裁剪到游玩区设备矩形 (原为整画布尺寸, blit 带宽浪费)。
         {
-          const gs = store.gridSpacing ?? bm.editor.gridSize;
-          if (gs > 0 && store.gridType !== 'none') {
-            g.save();
-            g.beginPath(); g.rect(0, 0, PW, PH); g.clip();
-            g.strokeStyle = 'rgb(255,255,255)'; // 亮度走 globalAlpha (lazer: 线 0.1, 过原点首线 0.2, 圆 0.2 首圆 0.8)
-            g.lineWidth = 1 / scale;
-            const O = store.currentGridOrigin(); // v78: 网格线过自定义中心 (吸附与渲染同一原点)
-            if (store.gridType === 'circle') {
-              const maxD = Math.hypot(Math.max(O.x, PW - O.x), Math.max(O.y, PH - O.y));
-              const n = Math.floor(maxD / gs) + 1;
-              for (let i = 0; i <= n; i++) {
-                g.globalAlpha = i === 0 ? 0.8 : 0.2;
-                g.beginPath(); g.arc(O.x, O.y, Math.max(1.5 / scale, i * gs), 0, Math.PI * 2); g.stroke();
-              }
-              g.globalAlpha = 1;
-            } else {
-              const fams = store.gridType === 'square'
-                ? { normals: squareNormals(store.gridRotation), lineSpacing: gs }
-                : triangleGrid(gs, store.gridRotation);
-              const maxD = Math.hypot(PW, PH);
-              const K = Math.ceil(maxD / fams.lineSpacing) + 1;
-              for (const nv of fams.normals) {
-                for (let k = -K; k <= K; k++) {
-                  const cx = O.x + nv.x * fams.lineSpacing * k, cy = O.y + nv.y * fams.lineSpacing * k;
-                  g.globalAlpha = k === 0 ? 0.2 : 0.1; // lazer: 过原点首线更亮
-                  g.beginPath();
-                  g.moveTo(cx + nv.y * maxD, cy - nv.x * maxD);
-                  g.lineTo(cx - nv.y * maxD, cy + nv.x * maxD);
-                  g.stroke();
+          const m0 = g.getTransform();
+          const O0 = store.currentGridOrigin();
+          const gs0 = store.gridSpacing ?? bm.editor.gridSize;
+          const bg0 = store.backgroundImg;
+          const key = [c.width, c.height, m0.a.toFixed(4), m0.d.toFixed(4), m0.e.toFixed(2), m0.f.toFixed(2),
+            store.gridType, gs0, store.gridRotation, O0.x, O0.y,
+            store.backgroundUrl ?? '', bg0?.width ?? 0, bg0?.height ?? 0, displaySettings.bgBrightness].join('|');
+          // v246: 层裁剪到游玩区设备矩形 (+8px 边距覆盖边框线宽) — 原整画布尺寸, 大窗口/高 dpr 下
+          //   每帧全幅 drawImage 带宽开销让普通谱面也跑不满帧率; 内容全部被 clip 在游玩区内故裁剪安全。
+          const M = 8;
+          const rx = Math.max(0, Math.floor(Math.min(m0.e, m0.e + PW * m0.a)) - M);
+          const ry = Math.max(0, Math.floor(Math.min(m0.f, m0.f + PH * m0.d)) - M);
+          const rw = Math.min(c.width, Math.ceil(Math.max(m0.e, m0.e + PW * m0.a)) + M) - rx;
+          const rh = Math.min(c.height, Math.ceil(Math.max(m0.f, m0.f + PH * m0.d)) + M) - ry;
+          if (!staticLayerRef.current || staticLayerRef.current.key !== key) {
+            if (!staticLayerRef.current) staticLayerRef.current = { key, c: document.createElement('canvas'), x: rx, y: ry };
+            staticLayerRef.current.key = key;
+            staticLayerRef.current.x = rx; staticLayerRef.current.y = ry;
+            const lc = staticLayerRef.current.c;
+            if (lc.width !== Math.max(1, rw) || lc.height !== Math.max(1, rh)) { lc.width = Math.max(1, rw); lc.height = Math.max(1, rh); }
+            const lg = lc.getContext('2d')!;
+            lg.setTransform(1, 0, 0, 1, 0, 0);
+            lg.clearRect(0, 0, lc.width, lc.height);
+            lg.setTransform(m0.a, m0.b, m0.c, m0.d, m0.e - rx, m0.f - ry);
+            // v56: 位置网格 (lazer PositionSnapGrid, 始终显示; 线 alpha 0.1, 过原点首线 0.2; 圆形首圆 0.8)
+            // v119: gridType 'none' = 无网格, 不渲染 (贴近游玩表现)
+            if (gs0 > 0 && store.gridType !== 'none') {
+              lg.save();
+              lg.beginPath(); lg.rect(0, 0, PW, PH); lg.clip();
+              lg.strokeStyle = 'rgb(255,255,255)'; // 亮度走 globalAlpha (lazer: 线 0.1, 过原点首线 0.2, 圆 0.2 首圆 0.8)
+              lg.lineWidth = 1 / scale;
+              if (store.gridType === 'circle') {
+                const maxD = Math.hypot(Math.max(O0.x, PW - O0.x), Math.max(O0.y, PH - O0.y));
+                const n = Math.floor(maxD / gs0) + 1;
+                for (let i = 0; i <= n; i++) {
+                  lg.globalAlpha = i === 0 ? 0.8 : 0.2;
+                  lg.beginPath(); lg.arc(O0.x, O0.y, Math.max(1.5 / scale, i * gs0), 0, Math.PI * 2); lg.stroke();
                 }
+                lg.globalAlpha = 1;
+              } else {
+                const fams = store.gridType === 'square'
+                  ? { normals: squareNormals(store.gridRotation), lineSpacing: gs0 }
+                  : triangleGrid(gs0, store.gridRotation);
+                const maxD = Math.hypot(PW, PH);
+                const K = Math.ceil(maxD / fams.lineSpacing) + 1;
+                for (const nv of fams.normals) {
+                  for (let k = -K; k <= K; k++) {
+                    const cx = O0.x + nv.x * fams.lineSpacing * k, cy = O0.y + nv.y * fams.lineSpacing * k;
+                    lg.globalAlpha = k === 0 ? 0.2 : 0.1; // lazer: 过原点首线更亮
+                    lg.beginPath();
+                    lg.moveTo(cx + nv.y * maxD, cy - nv.x * maxD);
+                    lg.lineTo(cx - nv.y * maxD, cy + nv.x * maxD);
+                    lg.stroke();
+                  }
+                }
+                lg.globalAlpha = 1;
               }
-              g.globalAlpha = 1;
+              lg.restore();
             }
+            // 谱面背景图 (压暗显示, cover 适配游玩区)
+            // v168: 亮度 = 显示设置 bgBrightness (默认 35 = 旧固定 0.35, 表现不变)
+            if (bg0) {
+              const s = Math.max(PW / bg0.width, PH / bg0.height);
+              const bw = bg0.width * s, bh = bg0.height * s;
+              lg.save();
+              lg.beginPath(); lg.rect(0, 0, PW, PH); lg.clip();
+              lg.globalAlpha = displaySettings.bgBrightness / 100;
+              lg.drawImage(bg0, (PW - bw) / 2, (PH - bh) / 2, bw, bh);
+              lg.globalAlpha = 1;
+              lg.fillStyle = 'rgba(10,10,16,0.45)';
+              lg.fillRect(0, 0, PW, PH);
+              lg.restore();
+            }
+            // 游玩区边框
+            lg.strokeStyle = 'rgba(255,255,255,0.08)';
+            lg.strokeRect(0, 0, PW, PH);
+          }
+          if (rw > 0 && rh > 0) { // v246: 游玩区完全在画布外时不贴
+            g.save();
+            g.setTransform(1, 0, 0, 1, 0, 0);
+            g.drawImage(staticLayerRef.current.c, staticLayerRef.current.x, staticLayerRef.current.y);
             g.restore();
           }
         }
-        // 谱面背景图 (压暗显示, cover 适配游玩区)
-        // v168: 亮度 = 显示设置 bgBrightness (默认 35 = 旧固定 0.35, 表现不变)
-        const bg = store.backgroundImg;
-        if (bg) {
-          const s = Math.max(PW / bg.width, PH / bg.height);
-          const bw = bg.width * s, bh = bg.height * s;
-          g.save();
-          g.beginPath(); g.rect(0, 0, PW, PH); g.clip();
-          g.globalAlpha = displaySettings.bgBrightness / 100;
-          g.drawImage(bg, (PW - bw) / 2, (PH - bh) / 2, bw, bh);
-          g.globalAlpha = 1;
-          g.fillStyle = 'rgba(10,10,16,0.45)';
-          g.fillRect(0, 0, PW, PH);
-          g.restore();
-        }
-        // 游玩区边框
-        g.strokeStyle = 'rgba(255,255,255,0.08)';
-        g.strokeRect(0, 0, PW, PH);
         // 放置预览 (幽灵 note): 单点/转盘/滑条工具下实时显示
         const cur = cursorRef.current;
         // 转换预览 (F1-F4): v44 合并视图单趟渲染 — 源物件隐藏, 预览物件按时间并入,
@@ -612,7 +672,8 @@ export function EditorCanvas() {
         const __pt0 = performance.now(); // v99: 渲染性能采样 (CDP 读 window.__perfRender)
         renderPlayfield({
           g, bm: bmView, skin, time: store.currentTime,
-          selected: selView, comboInfo: computeCombos(bmView), stackOffsets: getStackOffsets(bm),
+          selected: selView, cacheKey: String(store.getDataVersion()), // v245: 帧级缓存键 (选中装饰层/followPoint)
+          comboInfo: getCombos(bmView), stackOffsets: getStackOffsets(bm),
         }, store.pendingSlider,
           // v207: 已有控制点时预览幻影用吸附后的 pendingCursor (onMouseMove 里与落点同公式), 否则原始光标 (头部幽灵)
           cur.inside && store.tool === 'slider' && !store.playing
@@ -947,7 +1008,7 @@ export function EditorCanvas() {
         }
         g.restore();
         // v234: 原 v117 画布内「滑条节点控制」提示移至右侧栏 Inspector (见 Inspector.tsx HintsBlock)
-        if (store.playing) store.emitPlayback(); // 播放中只刷 UI, 不使 hitsound 事件表失效
+        if (store.playing) store.emitPlaybackFrame(); // v245: 逐帧刷新走独立通道 (原 emitPlayback 每帧全量重渲整树是热点); 不使 hitsound 事件表失效
       }
       raf = requestAnimationFrame(loop);
     };

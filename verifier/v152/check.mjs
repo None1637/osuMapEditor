@@ -40,7 +40,7 @@ section('EditorCanvas.tsx: 原有播放泵保留 (edit 页签双泵幂等)');
 {
   const src = readSrc('src/components/EditorCanvas.tsx');
   assert(/store\.currentTime = store\.positionMs\(\); \/\/ WebAudio采样级时钟/.test(src), 'EditorCanvas 播放推进保留');
-  assert(/if \(store\.playing\) store\.emitPlayback\(\);/.test(src), 'EditorCanvas 播放中 UI 刷新保留');
+  assert(/if \(store\.playing\) store\.emitPlaybackFrame\(\);/.test(src), 'EditorCanvas 播放中 UI 刷新保留 (v245: 改走 emitPlaybackFrame 逐帧独立通道)');
 }
 
 if (failures) { console.error(`\nV152_FAILED: ${failures} 处失败`); process.exit(1); }

@@ -26,7 +26,7 @@ fs.unlinkSync(out);
 section('Timelines.tsx: 药丸绘制前按 x 升序排序');
 {
   const src = readSrc('src/components/Timelines.tsx');
-  assert(/measureText\(p\.text\)\.width \+ 10 \}\)\)\.sort\(\(a, b\) => a\.x - b\.x\)/.test(src), 'pillLayout 前 sort by x (v190)');
+  assert(/measureCached\(g, p\.text\) \+ 10 \}\)\)\.sort\(\(a, b\) => a\.x - b\.x\)/.test(src), 'pillLayout 前 sort by x (v190; v245: 测宽改 measureCached 缓存)');
   assert(/for \(let oi = drawList\.length - 1; oi >= 0; oi--\)/.test(src), '物件仍倒序绘制 (v189 语义保留, v197 改倒序索引遍历)');
 }
 

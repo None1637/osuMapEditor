@@ -20,21 +20,21 @@ section('中线 + 粉点');
 {
   assert(/const mid = r\.height \* 0\.5;/.test(bt), '定义中线 mid = 高度一半');
   assert(/fillRect\(0, mid, r\.width, 1\)/.test(bt), '绘制水平中线 (全宽 1px)');
-  assert(/g\.arc\(x\(o\.time\), mid, 1, 0, Math\.PI \* 2\)/.test(bt), '粉点 r=1 落在中线上');
+  assert(/lg\.rect\(x\(o\.time\) - 1, mid - 1, 2, 2\)/.test(bt), '粉点 r=1 落在中线上 (v245: 静态层内合批为 2px 方块)');
   // 中线画在粉点之前 (粉点压住中线)
-  assert(bt.indexOf('fillRect(0, mid, r.width, 1)') < bt.indexOf('g.arc(x(o.time), mid, 1,'), '中线在粉点之前绘制');
+  assert(bt.indexOf('fillRect(0, mid, r.width, 1)') < bt.indexOf('lg.rect(x(o.time) - 1, mid - 1, 2, 2)'), '中线在粉点之前绘制 (v245: 粉点改合批方块)');
 }
 
 section('红/绿线上半 · 蓝线下半 · 黄线全高');
 {
-  assert(/g\.fillRect\(x\(tp\.time\), 0, 1, mid\)/.test(bt), '红/绿 timing 线只画上半 (0 ~ mid; v161 起 1px)');
+  assert(/lg\.rect\(x\(tp\.time\), 0, 1, mid\)/.test(bt), '红/绿 timing 线只画上半 (0 ~ mid; v161 起 1px; v245: 静态层内红/绿各合批一次 fill)');
   assert(/g\.fillRect\(x\(b\), mid, 1, r\.height - mid\)/.test(bt), '书签蓝线只画下半 (mid ~ height; v161 起 1px)');
   assert(/g\.fillRect\(x\(bm\.general\.previewTime\), 0, 1, r\.height\)/.test(bt), '预览点黄线全高 (中线上下; v161 起 1px)');
 }
 
 section('kiai 半高');
 {
-  assert(/g\.fillRect\(x0, mid \/ 2, Math\.max\(1, x1 - x0\), mid\)/.test(bt), 'kiai 橙区高度 = mid (约一半; v161 垂直居中于中线)');
+  assert(/lg\.rect\(x0, mid \/ 2, Math\.max\(1, x1 - x0\), mid\)/.test(bt), 'kiai 橙区高度 = mid (约一半; v161 垂直居中于中线; v245: 静态层内合批)');
   assert(!/fillRect\(x0, 0, Math\.max\(1, x1 - x0\), r\.height\)/.test(bt), 'kiai 不再全高');
 }
 

@@ -1,17 +1,18 @@
 import { useEffect, useRef, useState } from 'react';
 import { X } from 'lucide-react'; // v181: ✕ → lucide
-import { store, useEditor } from '@/osu/store';
+import { store, useEditor, usePlaybackFrame } from '@/osu/store';
 import type { TimingPoint } from '@/osu/parser';
 import { defaultNewPoint, setEffectBit, EFFECT_KIAI, EFFECT_OMIT_BARLINE, formatMsTime, activeGreenAt, scrollTargetIndex } from '@/osu/timingEdit';
 
 // Timing 面板: 增删改红线(BPM)/绿线(SV), 以及难度参数 CS/AR/OD/HP
 // v70: full 模式改为紧凑独立窗口 (w-fit 居中, 行高紧凑, 属性连续排版并居中);
 //   时间输入框后带 h:mm:ss.mmm 显示; 鼠标悬停时间轴红/绿线 -> 对应行高亮 (store.timelineHoverTp);
-//   当前时间生效绿线行实时高亮 (随 currentTime 变化, 播放中 emitPlayback 驱动重渲染)
+//   当前时间生效绿线行实时高亮 (随 currentTime 变化, v245 起播放中走 emitPlaybackFrame 逐帧通道驱动重渲染)
 // v71: 滚动条收进窗口内部 (表格区 max-h + overflow), 顶部控制栏固定不滚;
 //   切到 timing 页签时自动滚动到当前生效绿线行 (无生效绿线则最近一条 <= currentTime 的点)
 export function TimingPanel({ full = false }: { full?: boolean }) {
   useEditor();
+  usePlaybackFrame(); // v245: 播放中逐帧更新 (生效绿线行高亮/时间显示), 独立通道不再依赖全量重渲
   const scrollRef = useRef<HTMLDivElement>(null);
   // v157: All/红线/绿线 页签过滤 (仅 full 窗口; 过滤不影响全局索引 i, updateTp/滚动定位不变)
   const [filter, setFilter] = useState<'all' | 'red' | 'green'>('all');

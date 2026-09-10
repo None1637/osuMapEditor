@@ -48,7 +48,7 @@ section('renderer.ts: 选中装饰全时段渲染');
 {
   const src = readSrc('src/osu/renderer.ts');
   assert(/function drawSelectionDecor/.test(src), '选中装饰抽为 drawSelectionDecor');
-  assert(/visSet[\s\S]*?if \(!rc\.selected\.has\(o\.id\) \|\| visSet\.has\(o\.id\)\) continue/.test(src), '未出现的选中物件也画选中装饰');
+  assert(/for \(const o of bm\.hitObjects\) if \(rc\.selected\.has\(o\.id\)\) drawSelectionDecor\(lrc, o, radius\);/.test(src), '未出现的选中物件也画选中装饰 (v245: 统一在离屏层构建循环, 覆盖可见+不可见)');
 }
 
 section('EditorCanvas/Timelines: 预览选中效果 + 时间轴预览 + Ctrl 切换');

@@ -41,9 +41,9 @@ section('App.tsx: zoom 容器');
 section('EditorCanvas.tsx: 布局空间绘制/命中');
 {
   const src = readSrc('src/components/EditorCanvas.tsx');
-  assert(/import \{ uiZoom, zoomRect, zoomClientX, zoomClientY, zoomDpr \} from '@\/osu\/uiZoom';/.test(src), '导入适配工具');
+  assert(/import \{ uiZoom, zoomRect, zoomClientX, zoomClientY, fitCanvas \} from '@\/osu\/uiZoom';/.test(src), '导入适配工具 (v246: zoomDpr → fitCanvas)');
   assert(!/c\.getBoundingClientRect\(\)/.test(src), '不再直接用视觉 rect');
-  assert(/const dpr = zoomDpr\(\);/.test(src) && /const r = zoomRect\(c\);/.test(src), '渲染: zoomDpr + zoomRect');
+  assert(/const \{ sx, sy \} = fitCanvas\(c, r\);/.test(src) && /const r = zoomRect\(c\);/.test(src), '渲染: fitCanvas + zoomRect (v246: backing 取整, sx/sy = backing/布局, 取代 zoomDpr)');
   assert(/zoomClientX\(e\.clientX\) - r\.left - ox/.test(src), 'toOsu: 布局空间命中');
   assert(/10 \/ uiZoom\(\) \/ playfieldTransform\(zoomRect\(c\)\)\.scale/.test(src), '手柄命中容差按视觉 px 基准换算 (v223: 经 playfieldTransform, 含游玩区平移/缩放)');
   assert(/\(r\.left \+ ox \+ x \* scale\) \* z/.test(src), '__osuToClient 乘 zoom 回视觉 client 坐标 (CDP 测试兼容)');
@@ -52,7 +52,7 @@ section('EditorCanvas.tsx: 布局空间绘制/命中');
 section('Timelines.tsx: 布局空间绘制/命中');
 {
   const src = readSrc('src/components/Timelines.tsx');
-  assert(/import \{ zoomRect, zoomClientX, zoomClientY, zoomDpr \} from '@\/osu\/uiZoom';/.test(src), '导入适配工具');
+  assert(/import \{ zoomRect, zoomClientX, zoomClientY, fitCanvas \} from '@\/osu\/uiZoom';/.test(src), '导入适配工具 (v246: zoomDpr → fitCanvas)');
   assert(!/getBoundingClientRect/.test(src), '不再直接用视觉 rect (物件大圆/药丸随整体缩放)');
   assert(!/window\.devicePixelRatio/.test(src), '光栅统一 zoomDpr');
   assert(!/(?<!zoomClientX\()e\.clientX/.test(src) && !/(?<!zoomClientY\()e\.clientY/.test(src), '事件坐标全部经 zoomClientX/Y');

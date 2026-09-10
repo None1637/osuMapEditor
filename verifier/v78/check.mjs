@@ -37,7 +37,7 @@ section('EditorCanvas.tsx: 吸附/渲染/拖拽接线');
   const src = readSrc('src/components/EditorCanvas.tsx');
   assert(/snapToGrid\(p, store\.gridType, store\.currentGridOrigin\(\)/.test(src), 'gridSnapAt 用 currentGridOrigin');
   assert(/snapToGrid\(\{ x: orig\.x \+ dx, y: orig\.y \+ dy \}, store\.gridType, store\.currentGridOrigin\(\)/.test(src), '物件拖拽网格吸附用 currentGridOrigin');
-  assert(/const O = store\.currentGridOrigin\(\)/.test(src), '网格线渲染与吸附同一原点');
+  assert(/const O0 = store\.currentGridOrigin\(\)/.test(src), '网格线渲染与吸附同一原点 (v245: 静态层内 O 改名 O0)');
   assert(/if \(store\.gridOriginCustom && store\.gridType !== 'none'\)/.test(src) && /'#4df3ff'/.test(src), '自定义中心标记渲染 (青色 #4df3ff; v119: 无网格时不显示)');
   assert(/gridOriginDragRef\.current = true/.test(src) && /store\.gridOriginCustom && store\.gridType !== 'none' && Math\.hypot\(store\.gridOrigin\.x - p\.x/.test(src), 'mousedown 标记命中 (全工具可拖; v119: 无网格时不可拖)');
   assert(/store\.setGridOrigin\(snapWithGeo\(bm, cp, snapToNearby\(cp, targets\)\) \?\? cp\)/.test(src), '拖拽做物件+辅助吸附, 不做网格吸附 (防自锁)');

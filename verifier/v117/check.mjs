@@ -33,7 +33,7 @@ assert(/nodesMoveDragRef = useRef/.test(cv), '画布: nodesMoveDragRef');
 assert(/nodeMarqueeRef = useRef/.test(cv), '画布: nodeMarqueeRef');
 assert(/nodeScaleDragRef = useRef/.test(cv), '画布: nodeScaleDragRef');
 assert(/nodeRotateDragRef = useRef/.test(cv), '画布: nodeRotateDragRef');
-assert(/if \(store\.nodeSelectionCount\) return nodeBounds\(bm, store\.selectedNodes, getStackOffsets\(bm\), 8\);/.test(cv), 'currentQuads: 节点选区优先于物件框');
+assert(/if \(store\.nodeSelectionCount\) v = nodeBounds\(bm, store\.selectedNodes, getStackOffsets\(bm\), 8\);/.test(cv), 'currentQuads: 节点选区优先于物件框 (v245: memo 化, 分支改赋值不走 return)');
 
 // EditorCanvas: Alt 层入口 (lockNotes 门控)
 assert(/if \(e\.altKey && !store\.lockNotes\)/.test(cv), 'Alt 分支: lockNotes 门控');

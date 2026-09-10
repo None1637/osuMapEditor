@@ -1,9 +1,9 @@
 import { useEffect, useRef } from 'react';
 import { Pause, Play, Square, X } from 'lucide-react'; // v181: ▶/⏸/⏹/✕ → lucide (v221: 删 ⏮/⏭)
 import { store, useEditor } from '@/osu/store';
-import { timingAt, sliderVelocityAt, type TimingPoint } from '@/osu/parser';
+import { timingAt, sliderVelocityAt, type TimingPoint, type Beatmap, type HitObject } from '@/osu/parser';
 import { computeCombos, comboColor, invalidatePath, mergedWithPreview, objectEndAt } from '@/osu/renderer';
-import { beatTicks, TICK_COLORS } from '@/osu/beatTicks';
+import { beatTicks, TICK_COLORS, type TickLevel } from '@/osu/beatTicks';
 import { defaultNewPoint } from '@/osu/timingEdit';
 import { selectionSpacingInfo, previewSpacingInfo } from '@/osu/spacing';
 import { timelineMarkerHit, timelineBarHit, timelineNodeHit, stackInfo, stackLayout } from '@/osu/timelineHit';
@@ -16,7 +16,7 @@ import { pendingSliderTimeline, spinnerPlacementEnd } from '@/osu/sliderPath'; /
 import { getSkin } from '@/osu/skin';
 import { displaySettings } from '@/osu/displaySettings'; // v132: 显示设置 (皮肤颜色)
 import { drawWave, drawSpectro, type SpectroScroll } from '@/osu/waveformDraw';
-import { zoomRect, zoomClientX, zoomClientY, zoomDpr } from '@/osu/uiZoom'; // v217: 布局空间绘制/命中
+import { zoomRect, zoomClientX, zoomClientY, fitCanvas } from '@/osu/uiZoom'; // v217: 布局空间绘制/命中; v246: fitCanvas
 import {
   bpmPillText, svPoints, svPillText, samplePill, pillLayout,
   PILL_RED, PILL_LIME, PILL_PINK, PILL_PINK_ALT, PILL_TEXT,
@@ -25,6 +25,19 @@ import {
 function fmt(ms: number) {
   const m = Math.floor(ms / 60000), s = Math.floor((ms % 60000) / 1000), mm = Math.floor(ms % 1000);
   return `${m}:${String(s).padStart(2, '0')}.${String(mm).padStart(3, '0')}`;
+}
+
+// v245: 药丸文本测宽缓存 — measureText 每帧每药丸一次是 CDP 实测热点; 同 font+text 宽度恒定
+const textWidthCache = new Map<string, number>();
+function measureCached(g: CanvasRenderingContext2D, text: string): number {
+  const key = g.font + '|' + text;
+  let w = textWidthCache.get(key);
+  if (w === undefined) {
+    if (textWidthCache.size > 4096) textWidthCache.clear(); // 兜底防膨胀 (药丸文本种类很少)
+    w = g.measureText(text).width;
+    textWidthCache.set(key, w);
+  }
+  return w;
 }
 
 // 上方时间轴 (stable 风格): 物件大圆行 (combo 染色/数字/滑条连体) + 节拍 tick 行
@@ -44,6 +57,29 @@ const mixDark = (hex: string, k = 0.55) => {
   const m = (c: number, d: number) => Math.round(c * k + d * (1 - k));
   return `rgb(${m(r, 0x2e)},${m(g, 0x2e)},${m(b, 0x38)})`;
 };
+// v246: 时间轴数字文本位图缓存 — fillText 每帧每物件一次 (密集谱面 6s 窗口 600+ 物件) 是 CDP 实测热点
+//   (软件光栅下字形每帧重新光栅化); 同 font+text 渲染结果恒定, 预渲染成离屏位图后 drawImage 居中。
+//   内容仅 1~16 combo 序号 × 有限字号, 缓存天然有界; 超 512 项清空防内存膨胀。
+//   (位图上下 pad 对称 → 墨迹垂直居中于位图, drawImage 中心对齐即等价原 middle 基线, 误差 ≤1px)
+const textSpriteCache = new Map<string, HTMLCanvasElement>();
+function fillTextCached(g: CanvasRenderingContext2D, text: string, x: number, y: number) {
+  const key = g.font + '|' + g.fillStyle + '|' + text;
+  let c = textSpriteCache.get(key);
+  if (!c) {
+    if (textSpriteCache.size > 512) textSpriteCache.clear();
+    const m = g.measureText(text);
+    const asc = m.actualBoundingBoxAscent || 10, desc = m.actualBoundingBoxDescent || 2, pad = 2;
+    c = document.createElement('canvas');
+    c.width = Math.max(1, Math.ceil(m.width) + pad * 2);
+    c.height = Math.max(1, Math.ceil(asc + desc) + pad * 2);
+    const cg = c.getContext('2d')!;
+    cg.font = g.font; cg.fillStyle = g.fillStyle as string;
+    cg.fillText(text, pad, pad + asc);
+    textSpriteCache.set(key, c);
+  }
+  g.drawImage(c, x - c.width / 2, y - c.height / 2);
+}
+
 /** combo 色半透明: 滑条连体条填充 */
 const alphaOf = (hex: string, a: number) => {
   const [r, g, b] = hexRgb(hex);
@@ -107,11 +143,11 @@ function drawTimelineObject(g: CanvasRenderingContext2D, sx: number, ex: number,
   g.beginPath(); g.arc(sx, cy, rad, 0, Math.PI * 2); g.stroke();
   if (st.dashed) g.setLineDash([]);
   if (st.number) {
-    g.fillStyle = '#ffffff';
+    g.save();
     g.font = `bold ${rad * 0.85}px sans-serif`;
-    g.textAlign = 'center'; g.textBaseline = 'middle';
-    g.fillText(st.number, sx, cy + 1);
-    g.textAlign = 'start'; g.textBaseline = 'alphabetic';
+    g.fillStyle = '#ffffff';
+    fillTextCached(g, st.number, sx, cy + 1); // v246: 位图缓存 (原 fillText + textAlign/Baseline 切换)
+    g.restore();
   }
   // v213: 节点音效色点 (圆内侧顶部一排, 避开下方 sample 药丸; 位为 0 不画)
   if (st.edgeSounds) {
@@ -307,6 +343,10 @@ export function TopTimeline() {
   useEffect(() => {
     const c = ref.current; if (!c) return;
     let raf = 0;
+    // v245: 帧级 memo — combo/堆叠/SV 药丸只随谱面数据 (dataVersion) 变, 播放逐帧不再重算 (CDP 实测热点)
+    let memoCombos: { ver: number; bm: Beatmap; map: ReturnType<typeof computeCombos> } | null = null;
+    let memoStacks: { ver: number; arr: HitObject[]; map: ReturnType<typeof stackInfo> } | null = null;
+    let memoSv: { ver: number; pts: TimingPoint[]; out: ReturnType<typeof svPoints> } | null = null;
     let lastTs = 0; // v102: 帧间隔 (边缘滚动 ramp/速度积分用)
     const draw = () => {
       const nowTs = performance.now();
@@ -324,9 +364,8 @@ export function TopTimeline() {
       const bm = store.beatmap;
       const g = c.getContext('2d')!;
       const r = zoomRect(c); // v217: 布局空间
-      const dpr = zoomDpr(); // v217: dpr × zoom (backing = 屏幕物理像素)
-      if (c.width !== r.width * dpr) { c.width = r.width * dpr; c.height = r.height * dpr; }
-      g.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const { sx: dpr, sy } = fitCanvas(c, r); // v246: backing 取整 (v217 zoomDpr 分数比较致每帧重建位图)
+      g.setTransform(dpr, 0, 0, sy, 0, 0);
       // v129: 半透明底 — 上时间轴为浮层, 能看到背后游玩的物件
       g.fillStyle = 'rgba(12,12,17,0.72)';
       g.fillRect(0, 0, r.width, r.height);
@@ -342,14 +381,24 @@ export function TopTimeline() {
         // 红/绿 timing 线 (v61: 三角旗 -> 竖线, 对齐 lazer PointVisualisation 竖条语义):
         // lazer 色 Red2 #eb4747 / Lime1 #b2ff66, 全高 2px 竖线, 同刻多条叠放更亮
         // v68: 批量复制"复制绿线"预览 — 副本绿线一并画出 (WYSIWYG)
-        const convPrev = store.conversionPreview;
-        for (const tp of convPrev?.timingPoints?.length
-          ? [...bm.timingPoints, ...convPrev.timingPoints]
-          : bm.timingPoints) {
-          const tx = x(tp.time);
-          if (tx < -4 || tx > r.width + 4) continue;
-          g.fillStyle = tp.uninherited ? 'rgba(235,71,71,0.55)' : 'rgba(178,255,102,0.45)';
-          g.fillRect(tx - 1, 0, 2, r.height);
+        // v245: 合批 — 同色汇成一条路径一次 fill (原逐条 fillStyle+fillRect,
+        //   1000 绿线场景每帧 1000 次状态切换+填充, CDP 实测热点)
+        const convPrev = store.conversionPreview; // v44/v68: 转换预览 (源物件隐藏/绿线副本)
+        {
+          const tps = convPrev?.timingPoints?.length
+            ? [...bm.timingPoints, ...convPrev.timingPoints]
+            : bm.timingPoints;
+          for (const wantRed of [true, false]) {
+            g.fillStyle = wantRed ? 'rgba(235,71,71,0.55)' : 'rgba(178,255,102,0.45)';
+            g.beginPath();
+            for (const tp of tps) {
+              if (tp.uninherited !== wantRed) continue;
+              const tx = x(tp.time);
+              if (tx < -4 || tx > r.width + 4) continue;
+              g.rect(tx - 1, 0, 2, r.height);
+            }
+            g.fill();
+          }
         }
         // 分隔线
         g.strokeStyle = 'rgba(255,255,255,0.12)';
@@ -358,12 +407,19 @@ export function TopTimeline() {
         const cy = OBJ_H / 2;
         // v44: 转换预览走合并视图 — combo 数字/颜色按合并后列表计算, 与转换应用后一致
         const bmView = mergedWithPreview(bm, convPrev);
-        const combos = computeCombos(bmView);
+        // v245: 帧级 memo (转换预览打开时 bmView 每帧新建 → 自然 miss, 行为同旧)
+        const dataVer = store.getDataVersion();
+        if (!memoCombos || memoCombos.ver !== dataVer || memoCombos.bm !== bmView)
+          memoCombos = { ver: dataVer, bm: bmView, map: computeCombos(bmView) };
+        const combos = memoCombos.map;
         // v40: 转换预览 — 源物件隐藏, 结果物件以选中样式 (黄环) 一并绘制
         const prevIds = new Set((convPrev?.objects ?? []).map(o => o.id));
         const drawList = bmView.hitObjects;
         // v162: 同刻物件按文件顺序从下往上堆叠 (level 0 = 文件靠前 = 最下); v189: 堆叠不再缩半径
-        const stacks = stackInfo(drawList);
+        // v245: 帧级 memo (stackInfo 每帧 O(n) 双 Map 分配是 CDP 实测热点)
+        if (!memoStacks || memoStacks.ver !== dataVer || memoStacks.arr !== drawList)
+          memoStacks = { ver: dataVer, arr: drawList, map: stackInfo(drawList) };
+        const stacks = memoStacks.map;
         const samplePills: { x: number; text: string; alt: boolean }[] = []; // v53
         // v189: 按时间倒序画 (晚物件先画, 早物件后画压上层, 与游玩区/stable 一致) —
         //       1ms 偏移的叠放 (Aspire) 中早物件不再被晚物件的头圆完全盖住; 同刻组内稳定排序保持文件顺序
@@ -436,7 +492,7 @@ export function TopTimeline() {
         {
           g.font = 'bold 10px sans-serif';
           // v190: v189 起物件倒序绘制, 收集到的药丸 x 为降序; pillLayout 依赖升序, 否则全部误判重叠收缩成点
-          const items = samplePills.map(p => ({ ...p, w: g.measureText(p.text).width + 10 })).sort((a, b) => a.x - b.x);
+          const items = samplePills.map(p => ({ ...p, w: measureCached(g, p.text) + 10 })).sort((a, b) => a.x - b.x); // v245: 测宽走缓存
           const kinds = pillLayout(items);
           items.forEach((p, i) => {
             g.fillStyle = p.alt ? PILL_PINK_ALT : PILL_PINK;
@@ -452,18 +508,27 @@ export function TopTimeline() {
           });
         }
         // 节拍 tick 行: 按 beatSnap 细分, 小节长白线 / 整拍白 / 1/2 红 / 1/3 紫 / 1/4 蓝 / 其他黄
+        // v245: tick 合批 — 同级同色一次 stroke (原逐 tick 切 strokeStyle/globalAlpha/lineWidth)
         const tickTop = OBJ_H + 3;
-        for (const tick of beatTicks(bm.timingPoints, t0, t0 + win, store.beatSnap)) {
-          const tx = x(tick.time);
-          if (tx < -2 || tx > r.width + 2) continue;
-          const long = tick.level === 'measure';
-          g.strokeStyle = TICK_COLORS[tick.level];
-          g.globalAlpha = tick.level === 'beat' || long ? 0.9 : 0.8;
-          g.lineWidth = long ? 2 : 1.5;
-          g.beginPath();
-          g.moveTo(tx, tickTop);
-          g.lineTo(tx, long ? r.height - 2 : tickTop + (r.height - tickTop) * 0.55);
-          g.stroke();
+        {
+          const groups = new Map<TickLevel, number[]>();
+          for (const tick of beatTicks(bm.timingPoints, t0, t0 + win, store.beatSnap)) {
+            const tx = x(tick.time);
+            if (tx < -2 || tx > r.width + 2) continue;
+            let xs = groups.get(tick.level);
+            if (!xs) groups.set(tick.level, (xs = []));
+            xs.push(tx);
+          }
+          for (const [level, xs] of groups) {
+            const long = level === 'measure';
+            g.strokeStyle = TICK_COLORS[level];
+            g.globalAlpha = level === 'beat' || long ? 0.9 : 0.8;
+            g.lineWidth = long ? 2 : 1.5;
+            g.beginPath();
+            const y1 = long ? r.height - 2 : tickTop + (r.height - tickTop) * 0.55;
+            for (const tx of xs) { g.moveTo(tx, tickTop); g.lineTo(tx, y1); }
+            g.stroke();
+          }
           g.globalAlpha = 1;
         }
         // v53/v61: timing 药丸 (lazer 时间轴标签): 红线 = BPM (红), 全部绿线 = SV 倍率 (绿); 画在 tick 之上
@@ -471,7 +536,7 @@ export function TopTimeline() {
           g.font = 'bold 9.5px sans-serif';
           g.textAlign = 'center'; g.textBaseline = 'middle';
           const drawPill = (px: number, py: number, text: string, bg: string, sel = false) => {
-            const w = g.measureText(text).width + 10; // lazer HitObjectPointPiece: Padding=5 两侧
+            const w = measureCached(g, text) + 10; // v245: 测宽走缓存 (lazer HitObjectPointPiece: Padding=5 两侧)
             g.fillStyle = bg;
             g.beginPath(); g.roundRect(px - w / 2, py, w, 13, 6.5); g.fill();
             if (sel) { // v102: 选中绿线 — 与选中物件同款黄色描边
@@ -487,7 +552,10 @@ export function TopTimeline() {
             if (tx < -20 || tx > r.width + 20) continue;
             drawPill(tx, 63, bpmPillText(tp.beatLength), PILL_RED);
           }
-          for (const p of svPoints(bm.timingPoints)) {
+          // v245: SV 药丸数据帧级 memo (原每帧 [...points].sort() 全表复制排序, 1000 绿线实测热点)
+          if (!memoSv || memoSv.ver !== dataVer || memoSv.pts !== bm.timingPoints)
+            memoSv = { ver: dataVer, pts: bm.timingPoints, out: svPoints(bm.timingPoints) };
+          for (const p of memoSv.out) {
             const tx = x(p.time);
             if (tx < -20 || tx > r.width + 20) continue;
             drawPill(tx, 76.5, svPillText(p.sv), PILL_LIME, store.selectedGreenLines.has(p.time));
@@ -898,72 +966,110 @@ export function BottomTimeline() {
   useEffect(() => {
     const c = ref.current; if (!c) return;
     let raf = 0;
+    // v245: 静态层缓存 — 下时间轴除播放头外全部内容 (半透明底/kiai 区/节拍刻度/红绿线/书签/预览点/中线/
+    //   物件粉点) 只随谱面数据 (dataVersion) 与画布尺寸变, 原每帧全量重画 (1000 绿线 + 全曲拍点 +
+    //   逐物件 arc, CDP 实测热点); 缓存到离屏位图, 键不变时每帧 1 次 drawImage + 播放头
+    let layer: { key: string; c: HTMLCanvasElement } | null = null;
     const draw = () => {
       const bm = store.beatmap;
       const g = c.getContext('2d')!;
       const r = zoomRect(c); // v217: 布局空间
-      const dpr = zoomDpr(); // v217: dpr × zoom (backing = 屏幕物理像素)
-      if (c.width !== r.width * dpr) { c.width = r.width * dpr; c.height = r.height * dpr; }
-      g.setTransform(dpr, 0, 0, dpr, 0, 0);
-      // v129: 半透明底 — 下时间轴为浮层, 能看到背后游玩的物件
-      g.fillStyle = 'rgba(16,16,24,0.7)';
-      g.fillRect(0, 0, r.width, r.height);
+      const { sx: dpr, sy } = fitCanvas(c, r); // v246: backing 取整 (v217 zoomDpr 分数比较致每帧重建位图)
+      g.setTransform(dpr, 0, 0, sy, 0, 0);
       if (bm) {
         const len = store.songLength();
         const x = (ms: number) => (ms / len) * r.width;
-        // v155: stable 风格全局时间轴 —
-        // kiai 橙区 (半高, 垂直居中于中线; v161) → 节拍刻度 (v158) → 红/绿 timing 线 (上半, 1px; v161) → 书签蓝线 (下半, 1px; v161)
-        //   → 预览点黄线 (全高, 1px; v161) → 水平中线 (v159) → 物件粉点 (在线上, r=1; v159) → 白色播放头 (v158)
-        const mid = r.height * 0.5;
-        const greens = bm.timingPoints.filter(tp => !tp.uninherited);
-        for (let gi = 0; gi < greens.length; gi++) {
-          const tp = greens[gi];
-          if (!(tp.effects & 1)) continue; // effects bit0 = kiai
-          const x0 = x(tp.time), x1 = x(greens[gi + 1]?.time ?? len);
-          g.fillStyle = 'rgba(255,150,30,0.28)';
-          g.fillRect(x0, mid / 2, Math.max(1, x1 - x0), mid); // v161: 半高且中心落在中线上 (y = h/4 ~ 3h/4)
-        }
-        // 节拍刻度 (v158: 对齐 stable — 每拍底部短刻度, 小节首拍更长更亮, 替代原秒刻度)
-        {
-          const reds = bm.timingPoints.filter(tp => tp.uninherited);
-          for (let ri = 0; ri < reds.length; ri++) {
-            const rd = reds[ri];
-            const segEnd = reds[ri + 1]?.time ?? len;
-            const meter = Math.max(1, rd.meter);
-            for (let k = 0; ; k++) {
-              const t = rd.time + k * rd.beatLength;
-              if (t >= segEnd - 1e-6) break;
-              const down = k % meter === 0;
-              const h = down ? 10 : 5;
-              g.fillStyle = down ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.25)';
-              g.fillRect(x(t), r.height - h, 1, h);
+        const key = [store.getDataVersion(), c.width, c.height, Math.round(len)].join('|');
+        if (!layer || layer.key !== key) {
+          if (!layer) layer = { key, c: document.createElement('canvas') };
+          layer.key = key;
+          const lc = layer.c;
+          if (lc.width !== c.width || lc.height !== c.height) { lc.width = c.width; lc.height = c.height; }
+          const lg = lc.getContext('2d')!;
+          lg.setTransform(1, 0, 0, 1, 0, 0);
+          lg.clearRect(0, 0, lc.width, lc.height);
+          lg.setTransform(dpr, 0, 0, sy, 0, 0); // v246: sy 与主画布一致 (取整后 sx/sy 微差)
+          // v129: 半透明底 — 下时间轴为浮层, 能看到背后游玩的物件
+          lg.fillStyle = 'rgba(16,16,24,0.7)';
+          lg.fillRect(0, 0, r.width, r.height);
+          // v155: stable 风格全局时间轴 —
+          // kiai 橙区 (半高, 垂直居中于中线; v161) → 节拍刻度 (v158) → 红/绿 timing 线 (上半, 1px; v161) → 书签蓝线 (下半, 1px; v161)
+          //   → 预览点黄线 (全高, 1px; v161) → 水平中线 (v159) → 物件粉点 (在线上, r=1; v159) → 白色播放头 (v158, 帧绘制)
+          const mid = r.height * 0.5;
+          const greens = bm.timingPoints.filter(tp => !tp.uninherited);
+          lg.fillStyle = 'rgba(255,150,30,0.28)';
+          lg.beginPath();
+          for (let gi = 0; gi < greens.length; gi++) {
+            const tp = greens[gi];
+            if (!(tp.effects & 1)) continue; // effects bit0 = kiai
+            const x0 = x(tp.time), x1 = x(greens[gi + 1]?.time ?? len);
+            lg.rect(x0, mid / 2, Math.max(1, x1 - x0), mid); // v161: 半高且中心落在中线上 (y = h/4 ~ 3h/4); v245: kiai 区合批
+          }
+          lg.fill();
+          // 节拍刻度 (v158: 对齐 stable — 每拍底部短刻度, 小节首拍更长更亮, 替代原秒刻度)
+          // v245: 按 亮/暗 两级各合批一次 fill (原逐拍 fillStyle+fillRect)
+          {
+            const reds = bm.timingPoints.filter(tp => tp.uninherited);
+            const rects: number[][] = [[], []]; // [0]=普通拍, [1]=小节首拍
+            for (let ri = 0; ri < reds.length; ri++) {
+              const rd = reds[ri];
+              const segEnd = reds[ri + 1]?.time ?? len;
+              const meter = Math.max(1, rd.meter);
+              for (let k = 0; ; k++) {
+                const t = rd.time + k * rd.beatLength;
+                if (t >= segEnd - 1e-6) break;
+                rects[k % meter === 0 ? 1 : 0].push(t);
+              }
+            }
+            for (let lv = 0; lv < 2; lv++) {
+              if (!rects[lv].length) continue;
+              lg.fillStyle = lv ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.25)';
+              lg.beginPath();
+              const h = lv ? 10 : 5;
+              for (const t of rects[lv]) lg.rect(x(t), r.height - h, 1, h);
+              lg.fill();
             }
           }
+          // timing 点竖线 (红线 = BPM/拍号, 绿线 = SV/音效; v159: 只画中线上方; v161: 1px; v245: 红/绿各合批一次 fill)
+          for (const wantRed of [true, false]) {
+            lg.fillStyle = wantRed ? 'rgba(255,85,85,0.8)' : 'rgba(85,221,85,0.65)';
+            lg.beginPath();
+            for (const tp of bm.timingPoints) {
+              if (tp.uninherited !== wantRed) continue;
+              lg.rect(x(tp.time), 0, 1, mid);
+            }
+            lg.fill();
+          }
+          // 书签蓝线 (Ctrl+B 添加 / Ctrl+Shift+B 删除; v159: 只画中线下方; v161: 1px)
+          lg.fillStyle = 'rgba(80,160,255,0.9)';
+          for (const b of bm.editor.bookmarks) lg.fillRect(x(b), mid, 1, r.height - mid);
+          // 预览点黄线 ([General] PreviewTime; v159: 中线上下全高; v161: 1px)
+          if (bm.general.previewTime >= 0) {
+            lg.fillStyle = 'rgba(255,220,60,0.9)';
+            lg.fillRect(x(bm.general.previewTime), 0, 1, r.height);
+          }
+          // v159: 水平中线 (stable 样式 — 物件粉点都落在这根线上)
+          lg.fillStyle = 'rgba(255,255,255,0.35)';
+          lg.fillRect(0, mid, r.width, 1);
+          // 物件粉点 (v155: 粉竖线改粉点; v158: 加亮 0.9; v159: 半径 1 且落在中线上, 对齐 stable)
+          // v245: 合批为一条路径一次 fill (原逐物件 beginPath+arc+fill)
+          lg.fillStyle = 'rgba(255,105,180,0.9)';
+          lg.beginPath();
+          for (const o of bm.hitObjects) lg.rect(x(o.time) - 1, mid - 1, 2, 2); // r=1 圆点 ≈ 2px 方块 (1px 级渲染无差)
+          lg.fill();
         }
-        // timing 点竖线 (红线 = BPM/拍号, 绿线 = SV/音效; v159: 只画中线上方; v161: 1px)
-        for (const tp of bm.timingPoints) {
-          g.fillStyle = tp.uninherited ? 'rgba(255,85,85,0.8)' : 'rgba(85,221,85,0.65)';
-          g.fillRect(x(tp.time), 0, 1, mid);
-        }
-        // 书签蓝线 (Ctrl+B 添加 / Ctrl+Shift+B 删除; v159: 只画中线下方; v161: 1px)
-        g.fillStyle = 'rgba(80,160,255,0.9)';
-        for (const b of bm.editor.bookmarks) g.fillRect(x(b), mid, 1, r.height - mid);
-        // 预览点黄线 ([General] PreviewTime; v159: 中线上下全高; v161: 1px)
-        if (bm.general.previewTime >= 0) {
-          g.fillStyle = 'rgba(255,220,60,0.9)';
-          g.fillRect(x(bm.general.previewTime), 0, 1, r.height);
-        }
-        // v159: 水平中线 (stable 样式 — 物件粉点都落在这根线上)
-        g.fillStyle = 'rgba(255,255,255,0.35)';
-        g.fillRect(0, mid, r.width, 1);
-        // 物件粉点 (v155: 粉竖线改粉点; v158: 加亮 0.9; v159: 半径 1 且落在中线上, 对齐 stable)
-        g.fillStyle = 'rgba(255,105,180,0.9)';
-        for (const o of bm.hitObjects) {
-          g.beginPath(); g.arc(x(o.time), mid, 1, 0, Math.PI * 2); g.fill();
-        }
+        g.save();
+        g.setTransform(1, 0, 0, 1, 0, 0);
+        g.drawImage(layer.c, 0, 0);
+        g.restore();
         // 播放头 (v158: 对齐 stable — 白色竖线, 不再粉色填充已过区域)
         g.strokeStyle = '#ffffff'; g.lineWidth = 2;
         g.beginPath(); g.moveTo(x(store.currentTime), 0); g.lineTo(x(store.currentTime), r.height); g.stroke();
+      } else {
+        layer = null;
+        // v129: 半透明底 — 下时间轴为浮层, 能看到背后游玩的物件
+        g.fillStyle = 'rgba(16,16,24,0.7)';
+        g.fillRect(0, 0, r.width, r.height);
       }
       raf = requestAnimationFrame(draw);
     };

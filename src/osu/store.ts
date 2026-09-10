@@ -446,6 +446,14 @@ class EditorStore {
   emit() { this.version++; this.dataVersion++; this.refreshDirty(); this.listeners.forEach(f => f()); } // v140: 数据变更后按内容指纹重算脏标记
   /** 播放中的高频 UI 刷新: 重建 UI 但不使 hitsound 事件表失效 (否则每帧重建+重排程 -> 音效叠爆) */
   emitPlayback() { this.version++; this.listeners.forEach(f => f()); }
+  /** v245: 播放逐帧刷新独立通道 — 只有真正随播放时间逐帧变化的 UI (TimingPanel 生效绿线行/时间显示)
+   *  订阅; EditorCanvas 播放中每帧改走它, 不再全量重渲整棵组件树 (1000 绿线播放场景 CDP 实测热点)。
+   *  注意: emitPlayback (轻量全量刷新) 仍保留给脏标记/弹窗/菜单状态等低频事件 */
+  private playbackFrameListeners = new Set<() => void>();
+  private playbackFrameVersion = 0;
+  subscribePlaybackFrame = (fn: () => void) => { this.playbackFrameListeners.add(fn); return () => { this.playbackFrameListeners.delete(fn); }; };
+  getPlaybackFrameVersion = () => this.playbackFrameVersion;
+  emitPlaybackFrame() { this.playbackFrameVersion++; this.playbackFrameListeners.forEach(f => f()); }
   /** 选择集变化: 与谱面数据无关, 不使 hitsound 事件表失效 (框选拖拽期间每 mousemove 触发) */
   emitSelection() { this.version++; this.listeners.forEach(f => f()); }
 
@@ -1858,4 +1866,9 @@ if (typeof window !== 'undefined') {
 export function useEditor(): EditorStore {
   useSyncExternalStore(store.subscribe, store.getVersion);
   return store;
+}
+
+/** v245: 订阅播放逐帧刷新 (仅播放中每帧触发; 谱面数据/选区变化请用 useEditor) */
+export function usePlaybackFrame(): void {
+  useSyncExternalStore(store.subscribePlaybackFrame, store.getPlaybackFrameVersion);
 }

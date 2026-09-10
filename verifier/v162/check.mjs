@@ -37,7 +37,7 @@ section('timelineHit.ts: stackInfo / stackLayout + 命中扩展');
 section('Timelines.tsx: 渲染堆叠');
 {
   const src = readSrc('src/components/Timelines.tsx');
-  assert(/const stacks = stackInfo\(drawList\);/.test(src), '绘制前计算堆叠信息');
+  assert(/map: stackInfo\(drawList\)/.test(src) && /const stacks = memoStacks\.map;/.test(src), '绘制前计算堆叠信息 (v245: 帧级 memo, dataVersion+引用双键)');
   assert(/drawTimelineObject\(g, sx, ex, lay\.yOf\(si\.level\), lay\.rad,/.test(src), '按堆叠位置/半径绘制');
   assert(/const stackGeomOf = /.test(src), 'stackGeomOf: 非堆叠 undefined (旧 x-only 行为)');
 }

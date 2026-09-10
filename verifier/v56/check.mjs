@@ -43,8 +43,8 @@ section('EditorCanvas.tsx: 渲染 + 放置/拖拽接线');
 {
   const src = readSrc('src/components/EditorCanvas.tsx');
   assert(/store\.gridSpacing \?\? bm\.editor\.gridSize/.test(src), '间距 = gridSpacing ?? 谱面 GridSize');
-  assert(/squareNormals\(store\.gridRotation\)/.test(src) && /triangleGrid\(gs, store\.gridRotation\)/.test(src), '正方形/三角形线族渲染');
-  assert(/g\.arc\(O\.x, O\.y, Math\.max\(1\.5 \/ scale, i \* gs\)/.test(src), '圆形同心圆渲染 (lazer 中心最小直径)');
+  assert(/squareNormals\(store\.gridRotation\)/.test(src) && /triangleGrid\(gs0, store\.gridRotation\)/.test(src), '正方形/三角形线族渲染 (v245: 静态层内 gs 改名 gs0)');
+  assert(/lg\.arc\(O0\.x, O0\.y, Math\.max\(1\.5 \/ scale, i \* gs0\)/.test(src), '圆形同心圆渲染 (lazer 中心最小直径; v245: 静态层内 g/O/gs 改名 lg/O0/gs0)');
   assert(/k === 0 \? 0\.2 : 0\.1/.test(src) && /i === 0 \? 0\.8 : 0\.2/.test(src), '过原点首线/首圆更亮 (lazer alpha)');
   const iNear = src.indexOf('if (near) return gridSnapAt(bm, near);');
   assert(iNear > 0, 'snapPlacement: 物件吸附后也过网格 (lazer 位置网格最后覆盖)');

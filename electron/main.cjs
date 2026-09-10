@@ -43,6 +43,10 @@ function makeLocalFsHandler(createLocalFsHandler) {
 // v187: 撤销 v182 的 disable-frame-rate-limit — 实测部分机器上该开关让合成器非节流连发,
 // rAF 每秒数百次触发全量 React 重渲染, CPU 打满导致界面帧率暴跌。
 // 原生 rAF 本身跟随显示器 vsync (高刷屏自动跑 144/165Hz), 无需开关干预; 保持硬件加速开启即可。
+// v247: 强制 ANGLE OpenGL 后端 — Chromium 150 默认 D3D11 呈现路径在 2K 等大窗口下每帧合成/呈现
+// 耗时 ~11ms (实测 2560x1511 最大化仅 ~88fps, 与页面内容无关); GL 后端同场景满帧 240fps。
+// (实测对比: vulkan 34fps 软件光栅不可用; d3d11on12 与默认 d3d11 同样 83fps; 小窗口下各后端均满帧)
+app.commandLine.appendSwitch("use-angle", "gl")
 const DIST_DIR = path.join(__dirname, "..", "dist")
 const MIME = {
   ".html": "text/html; charset=utf-8", ".js": "text/javascript", ".css": "text/css",
@@ -88,7 +92,7 @@ function listen(server, port) {
 
 async function startServer() {
   const server = createServer()
-  try { return await listen(server, 7100) } // 固定端口优先 (与启动脚本一致)
+  try { return await listen(server, 7199) } // v248: exe 专用固定端口 (7100 是 dev vite 端口, 同开时旧版会劫持/混乱)
   catch { return await listen(server, 0) }  // 被占用则随机端口
 }
 

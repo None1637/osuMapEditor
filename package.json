@@ -1,7 +1,7 @@
 {
   "name": "osu-map-editor",
   "private": true,
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "对标 osu!lazer 的 osu!standard 谱面编辑器 (Web / Windows 桌面版, 非官方粉丝作品)",
   "author": "osu! Map Editor contributors",
   "license": "MIT",

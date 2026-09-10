@@ -130,7 +130,7 @@ node verifier/vN/cdp-*.mjs        # CDP 端到端（需 7100 dev server）
 
 ## 8. 封装为独立 exe（Electron）
 
-- 入口 `electron/main.cjs`：内嵌 HTTP 服务器（静态 `dist/` + `/api/local-fs/*`，端口 7100 被占则随机）+ BrowserWindow 加载 `http://127.0.0.1:<port>`（启动即 `maximize()`）；preload `electron/preload.cjs` 经 contextBridge 暴露 `window.osuEditor`
+- 入口 `electron/main.cjs`：内嵌 HTTP 服务器（静态 `dist/` + `/api/local-fs/*`，优先固定端口 7199（v248，避开 dev vite 的 7100），被占则随机）+ BrowserWindow 加载 `http://127.0.0.1:<port>`（启动即 `maximize()`）；顶层强制 `--use-angle=gl`（v247，Chromium 150 默认 D3D11 呈现路径在大窗口下掉帧）；preload `electron/preload.cjs` 经 contextBridge 暴露 `window.osuEditor`
 - exe 的配置存 `<userData>/settings.json`（`{ osuPath, songsDir, skinDir }`），由首跑向导写入；与 dev 的 `local-dirs.json` 互不干扰
 - 首跑向导 `src/components/FirstRunWizard.tsx`：`get-settings.firstRun`（曲库目录未配置/失效）→ 原生对话框选 osu! 目录（主进程拿绝对路径）→ `list-skin-dirs` 列出 `<osu>/Skins` 选皮肤 → `save-settings` 持久化（songsDir/skinDir 自动推导）并立即生效；菜单"设置 → 重新配置 osu! 目录与皮肤"可再次打开
 - exe 启动即曲库界面（`App.tsx` 中 `showLibrary` 初始值 = `isElectron()`）；dev/浏览器无 preload 注入 → 直进编辑界面（调试不变）。向导完成后用 `libraryKey` 自增重挂载曲库面板强制重新扫描（见 §4 坑 21）

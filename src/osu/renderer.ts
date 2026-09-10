@@ -99,6 +99,8 @@ export interface RenderCtx {
   skin: Skin;
   time: number;
   selected: Set<number>;
+  /** v245: 帧级缓存键 (EditorCanvas 传 dataVersion) — 选中装饰离屏层/followPoint 对缓存按它失效 */
+  cacheKey?: string;
   /** v201: combo = lazer ComboIndex (皮肤色用), comboWithOffset = ComboIndexWithOffsets (谱面 [Colours] 用), index = 显示数字 */
   comboInfo: Map<number, { combo: number; comboWithOffset: number; index: number }>;
   /** 物件堆叠偏移 (osu px): key=物件 id, 无条目表示不偏移; 由 stacking.ts 按谱面数据预算 */
@@ -208,18 +210,76 @@ export function renderPlayfield(rc: RenderCtx, pending?: { x: number; y: number;
     else if (o.type === 'slider') drawSlider(rc, o, radius, color, ci.index, dt, preempt, sliderNodeLinger);
     else drawSpinner(rc, o, dt, preempt);
     g.restore();
-
-    if (rc.selected.has(o.id)) drawSelectionDecor(rc, o, radius);
   }
 
-  // v40: 未出现 (不在渲染时间窗) 的选中物件也画选中装饰 — 否则转连打/拆分等预览看不到全貌
-  const visSet = new Set(visible.map(o => o.id));
-  for (const o of bm.hitObjects) {
-    if (!rc.selected.has(o.id) || visSet.has(o.id)) continue;
-    drawSelectionDecor(rc, o, radius);
-  }
+  // v245: 选中装饰统一走离屏层缓存 (原逐物件穿插在物件循环内/后绘制, 2000 物件全选时每帧
+  //   逐物件重画是全选场景最大热点 — CDP 实测 3fps, 帧忙时 ~330ms 几乎全是软件光栅)。
+  //   视觉差异: 装饰整体盖在全部物件上层 (原为逐物件穿插); v40 "不可见选中物件也画装饰" 语义保留。
+  if (rc.selected.size) drawSelectionLayer(rc, radius);
 
   if (pending && pending.length) drawPendingSlider(rc, pending, cursor ?? null, pendingDistanceLock);
+}
+
+// v245: 选中装饰离屏层 — 装饰内容与当前时间无关 (位置/堆叠/选区/样式/皮肤/变换决定),
+//   合成到离屏位图, 键不变时每帧仅 1 次 drawImage; 编辑/选区/缩放/设置变更经键失效重建。
+// v246: 层裁剪到选中物件内容包围盒 (原为整画布尺寸, 大窗口/高 dpr 下每帧全幅 blit 带宽开销大)。
+let selLayer: { key: string; c: HTMLCanvasElement; x: number; y: number; empty: boolean } | null = null;
+const skinIds = new WeakMap<Skin, number>(); // 皮肤对象 → 序号 (hitcircleselect 等贴图随皮肤整体更换)
+let skinSeq = 0;
+
+function drawSelectionLayer(rc: RenderCtx, radius: number) {
+  const { g, bm } = rc;
+  const m = g.getTransform();
+  let sig = 0;
+  for (const id of rc.selected) sig = (sig + id) | 0; // 顺序无关选区签名 (id 全局唯一, 和+数量足够)
+  let sid = skinIds.get(rc.skin);
+  if (!sid) skinIds.set(rc.skin, (sid = ++skinSeq));
+  const key = [rc.cacheKey ?? '', rc.selected.size, sig, g.canvas.width, g.canvas.height,
+    m.a.toFixed(4), m.b.toFixed(4), m.c.toFixed(4), m.d.toFixed(4), m.e.toFixed(2), m.f.toFixed(2),
+    displaySettings.selectionStyle, displaySettings.sliderPointStyle, sid].join('|');
+  if (!selLayer || selLayer.key !== key) {
+    // v246: 内容包围盒 (osu px) — 物件位置/滑条路径点 ± (2r+16) (描边环/头尾选框/控制点柄/堆叠偏移均在内)
+    const pad = radius * 2 + 16;
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    for (const o of bm.hitObjects) {
+      if (!rc.selected.has(o.id)) continue;
+      const pts = o.type === 'slider' ? getSliderPath(bm, o).points : [{ x: o.x, y: o.y }];
+      for (const p of pts) {
+        if (p.x < x0) x0 = p.x; if (p.y < y0) y0 = p.y;
+        if (p.x > x1) x1 = p.x; if (p.y > y1) y1 = p.y;
+      }
+    }
+    x0 -= pad; y0 -= pad; x1 += pad; y1 += pad;
+    // osu 包围盒四角 → 设备 px (m 一般无旋转, 仍按四角变换求外接矩形), 再裁剪到画布
+    const cw = g.canvas.width, ch = g.canvas.height;
+    let rx = Infinity, ry = Infinity, rx1 = -Infinity, ry1 = -Infinity;
+    for (const [cx, cy] of [[x0, y0], [x1, y0], [x0, y1], [x1, y1]] as const) {
+      const dx = m.a * cx + m.c * cy + m.e, dy = m.b * cx + m.d * cy + m.f;
+      if (dx < rx) rx = dx; if (dy < ry) ry = dy;
+      if (dx > rx1) rx1 = dx; if (dy > ry1) ry1 = dy;
+    }
+    rx = Math.max(0, Math.floor(rx)); ry = Math.max(0, Math.floor(ry));
+    const rw = Math.min(cw, Math.ceil(rx1)) - rx, rh = Math.min(ch, Math.ceil(ry1)) - ry;
+    if (!selLayer) selLayer = { key, c: document.createElement('canvas'), x: 0, y: 0, empty: true };
+    selLayer.key = key;
+    selLayer.x = rx; selLayer.y = ry;
+    selLayer.empty = rw <= 0 || rh <= 0; // 选区完全在画布外 (v223 平移/缩放得再远也不重建不贴图)
+    const c = selLayer.c;
+    if (c.width !== Math.max(1, rw) || c.height !== Math.max(1, rh)) { c.width = Math.max(1, rw); c.height = Math.max(1, rh); }
+    if (!selLayer.empty) {
+      const lg = c.getContext('2d')!;
+      lg.setTransform(1, 0, 0, 1, 0, 0);
+      lg.clearRect(0, 0, c.width, c.height);
+      lg.setTransform(m.a, m.b, m.c, m.d, m.e - rx, m.f - ry); // 与主画布同一变换 (平移减掉层原点), 装饰按 osu 坐标画进层
+      const lrc: RenderCtx = { ...rc, g: lg };
+      for (const o of bm.hitObjects) if (rc.selected.has(o.id)) drawSelectionDecor(lrc, o, radius);
+    }
+  }
+  if (selLayer.empty) return;
+  g.save();
+  g.setTransform(1, 0, 0, 1, 0, 0);
+  g.drawImage(selLayer.c, selLayer.x, selLayer.y);
+  g.restore();
 }
 
 // follow points: 连接同 combo 相邻物件 (lazer FollowPointRenderer), 画在物件下层;
@@ -227,10 +287,21 @@ export function renderPlayfield(rc: RenderCtx, pending?: { x: number; y: number;
 // maxSize (128x64) 上限 = lazer WithMaximumSize 居中裁剪 (逐轴独立, 非等比缩放), @2x 按 ScaleAdjust 换算;
 // 序列帧皮肤 (followpoint-{n}.png): 帧 = floor((time - 该点 fadeInTime) / frameMs) % 帧数
 // (lazer SkinnableTextureAnimation: PlaybackPosition = time - AnimationStartTime, 循环)
+// v245: followPointPairs 每帧全量重建数组是纯开销 — 对内容只随谱面数据变, 按 bm 引用 + cacheKey 缓存
+const fpPairsCache = new WeakMap<Beatmap, { key: string; pairs: { start: HitObject; end: HitObject }[] }>();
+function followPointPairsMemo(rc: RenderCtx): { start: HitObject; end: HitObject }[] {
+  const hit = fpPairsCache.get(rc.bm);
+  const key = rc.cacheKey ?? '';
+  if (hit && hit.key === key) return hit.pairs;
+  const pairs = followPointPairs(rc.bm);
+  fpPairsCache.set(rc.bm, { key, pairs });
+  return pairs;
+}
+
 function drawFollowPoints(rc: RenderCtx, radius: number) {
   const { g, bm, skin, time } = rc;
   const frames = skin.followpointFrames;
-  for (const { start, end } of followPointPairs(bm)) {
+  for (const { start, end } of followPointPairsMemo(rc)) {
     for (const p of followPointsBetween(bm, start, end, time, rc.stackOffsets)) {
       if (p.alpha <= 0) continue;
       const img = frames.length > 1

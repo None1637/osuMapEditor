@@ -26,6 +26,9 @@ export function drawWave(g: CanvasRenderingContext2D, buf: AudioBuffer, t0: numb
   grad.addColorStop(0, WAVE_EDGE); grad.addColorStop(0.5, WAVE_CORE); grad.addColorStop(1, WAVE_EDGE);
   g.fillStyle = grad;
   const center = H / 2, half = H / 2 - 2 * dpr;
+  // v246: 全部列汇成一条路径一次 fill — 原逐列 fillRect (3757 列/帧 × 240fps ≈ 90 万次/秒调用,
+  //   CDP 探针实测为全部画布操作的第一热点, 逐 call 的状态/光栅开销远超像素本身); 间隙列 continue 跳过即可
+  g.beginPath();
   for (let cx = 0; cx < cols; cx++) {
     // v112: +WAVEFORM_VISUAL_OFFSET_MS 采样 → 内容左移 20ms (lazer 显示约定, 见常量注释)
     const msA = t0 + (cx / W) * win + WAVEFORM_VISUAL_OFFSET_MS;
@@ -42,8 +45,9 @@ export function drawWave(g: CanvasRenderingContext2D, buf: AudioBuffer, t0: numb
     if (mn === Infinity) continue;
     const yTop = center - mx * half;
     const yBot = center - mn * half;
-    g.fillRect(cx, yTop, 1, Math.max(1, yBot - yTop));
+    g.rect(cx, yTop, 1, Math.max(1, yBot - yTop));
   }
+  g.fill();
   // 中心线
   g.fillStyle = 'rgba(255,255,255,0.12)';
   g.fillRect(0, center, W, 1);
