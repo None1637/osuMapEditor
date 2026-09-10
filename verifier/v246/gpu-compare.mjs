@@ -3,6 +3,7 @@
 import { spawn } from 'child_process';
 import path from 'path';
 import fs from 'fs';
+import os from 'os';
 import { fileURLToPath } from 'url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
@@ -41,7 +42,7 @@ const edgeExe = 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe';
 const edgeBin = fs.existsSync(edgeExe) ? edgeExe : 'C:/Program Files/Microsoft/Edge/Application/msedge.exe';
 
 const el = await dumpGpu('electron', path.join(root, 'node_modules', 'electron', 'dist', 'electron.exe'), ['.'], root);
-const ed = await dumpGpu('edge', edgeBin, ['--user-data-dir=' + path.join(root, 'verifier', 'v246', '.edge-profile-gpu'), 'about:blank'], root);
+const ed = await dumpGpu('edge', edgeBin, ['--user-data-dir=' + path.join(os.tmpdir(), 'osu-editor-gpu-compare-edge'), 'about:blank'], root);
 
 console.log('== electron ==');
 console.log(JSON.stringify(el, null, 1));

@@ -31,3 +31,6 @@ verifier/**/_bundle.mjs
 
 # v185: 开发模式谱面备份输出 (exe 同目录 backup_beatmaps; dev 时落在 app/)
 backup_beatmaps/
+
+# v246: CDP 探针浏览器 profile 残留 (防再次误提交)
+verifier/**/.edge-profile-*/
