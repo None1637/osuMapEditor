@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { Pause, Play, Square, X } from 'lucide-react'; // v181: ▶/⏸/⏹/✕ → lucide (v221: 删 ⏮/⏭)
-import { store, useEditor } from '@/osu/store';
+import { store, useEditor, usePlaybackFrame } from '@/osu/store';
 import { timingAt, sliderVelocityAt, type TimingPoint, type Beatmap, type HitObject } from '@/osu/parser';
 import { computeCombos, comboColor, invalidatePath, mergedWithPreview, objectEndAt } from '@/osu/renderer';
 import { beatTicks, TICK_COLORS, type TickLevel } from '@/osu/beatTicks';
@@ -335,8 +335,9 @@ export function TopTimeline() {
   /** v137: 暗化层 (背景/上层两种模式共用同一层半透明暗色):
    *  波形在下层 -> 暗化波形 (物件/红绿线等内容保持正常亮度);
    *  波形在上层 -> 暗化时间轴内容 (波形全亮盖在最上层) */
+  // v271: 「时间轴半透明」开 = 减淡 (原 0.5 与波形底叠加后透过率仅 22%, 观感纯黑); v272: 0.2→0.1
   const drawDimOverlay = (g: CanvasRenderingContext2D, r: { width: number; height: number }) => {
-    g.fillStyle = 'rgba(8,8,12,0.5)';
+    g.fillStyle = displaySettings.timelineTransparent ? 'rgba(8,8,12,0.1)' : 'rgba(8,8,12,0.5)'; // v272: 0.2→0.1
     g.fillRect(0, 0, r.width, r.height);
   };
 
@@ -365,9 +366,14 @@ export function TopTimeline() {
       const g = c.getContext('2d')!;
       const r = zoomRect(c); // v217: 布局空间
       const { sx: dpr, sy } = fitCanvas(c, r); // v246: backing 取整 (v217 zoomDpr 分数比较致每帧重建位图)
+      // v274: 每帧先清画布 — backing 尺寸不变时 canvas 内容保留, 半透明底 fillRect 逐帧 source-over
+      //       累积收敛成不透明黑 (= 「半透明无效/纯黑」的真根因), v272 降 alpha 后累积变慢反而拖出残影
+      g.setTransform(1, 0, 0, 1, 0, 0);
+      g.clearRect(0, 0, c.width, c.height);
       g.setTransform(dpr, 0, 0, sy, 0, 0);
       // v129: 半透明底 — 上时间轴为浮层, 能看到背后游玩的物件
-      g.fillStyle = 'rgba(12,12,17,0.72)';
+      // v255: 显示设置「时间轴半透明」开 = 更透视, 关 = 旧 0.72 暗底; v272: 开 alpha 0.4→0.15
+      g.fillStyle = displaySettings.timelineTransparent ? 'rgba(12,12,17,0.15)' : 'rgba(12,12,17,0.72)'; // v272: 0.4→0.15 (仍遮挡物件)
       g.fillRect(0, 0, r.width, r.height);
       if (bm) {
         const win = 6000 / (bm.editor.timelineZoom || 1);
@@ -961,6 +967,7 @@ export function TopTimeline() {
 // 下方全局时间轴 + 播放控制
 export function BottomTimeline() {
   useEditor();
+  usePlaybackFrame(); // v252: 播放中逐帧刷新左下角时间/百分比 (播放帧只 bump playbackFrameVersion, 不走 useEditor 的主 version, 原实现播放中时间静止不动)
   const ref = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -975,11 +982,14 @@ export function BottomTimeline() {
       const g = c.getContext('2d')!;
       const r = zoomRect(c); // v217: 布局空间
       const { sx: dpr, sy } = fitCanvas(c, r); // v246: backing 取整 (v217 zoomDpr 分数比较致每帧重建位图)
+      // v274: 每帧先清画布 (同上时间轴 — 静态层半透明, 不清帧会累积成不透明)
+      g.setTransform(1, 0, 0, 1, 0, 0);
+      g.clearRect(0, 0, c.width, c.height);
       g.setTransform(dpr, 0, 0, sy, 0, 0);
       if (bm) {
         const len = store.songLength();
         const x = (ms: number) => (ms / len) * r.width;
-        const key = [store.getDataVersion(), c.width, c.height, Math.round(len)].join('|');
+        const key = [store.getDataVersion(), c.width, c.height, Math.round(len), displaySettings.timelineTransparent ? 1 : 0].join('|'); // v255: 半透明开关进缓存 key, 切换即重建静态层
         if (!layer || layer.key !== key) {
           if (!layer) layer = { key, c: document.createElement('canvas') };
           layer.key = key;
@@ -990,7 +1000,8 @@ export function BottomTimeline() {
           lg.clearRect(0, 0, lc.width, lc.height);
           lg.setTransform(dpr, 0, 0, sy, 0, 0); // v246: sy 与主画布一致 (取整后 sx/sy 微差)
           // v129: 半透明底 — 下时间轴为浮层, 能看到背后游玩的物件
-          lg.fillStyle = 'rgba(16,16,24,0.7)';
+          // v255: 显示设置「时间轴半透明」开 = 更透视, 关 = 旧 0.7 暗底; v272: 开 alpha 0.4→0.15
+          lg.fillStyle = displaySettings.timelineTransparent ? 'rgba(16,16,24,0.15)' : 'rgba(16,16,24,0.7)'; // v272: 0.4→0.15
           lg.fillRect(0, 0, r.width, r.height);
           // v155: stable 风格全局时间轴 —
           // kiai 橙区 (半高, 垂直居中于中线; v161) → 节拍刻度 (v158) → 红/绿 timing 线 (上半, 1px; v161) → 书签蓝线 (下半, 1px; v161)
@@ -1068,7 +1079,8 @@ export function BottomTimeline() {
       } else {
         layer = null;
         // v129: 半透明底 — 下时间轴为浮层, 能看到背后游玩的物件
-        g.fillStyle = 'rgba(16,16,24,0.7)';
+        // v255: 显示设置「时间轴半透明」开 = 更透视, 关 = 旧 0.7 暗底; v272: 开 alpha 0.4→0.15
+        g.fillStyle = displaySettings.timelineTransparent ? 'rgba(16,16,24,0.15)' : 'rgba(16,16,24,0.7)'; // v272: 0.4→0.15
         g.fillRect(0, 0, r.width, r.height);
       }
       raf = requestAnimationFrame(draw);
@@ -1083,7 +1095,7 @@ export function BottomTimeline() {
   };
 
   return (
-    <div className="flex items-stretch gap-2 h-20 px-2 py-1.5 bg-[#151520]/70">{/* v129: 背景半透明 */}
+    <div className="flex items-stretch gap-2 h-20 px-2 py-1.5" style={{ background: displaySettings.timelineTransparent ? 'rgba(21,21,32,0.1)' : 'rgba(21,21,32,0.7)' }}>{/* v129: 背景半透明; v255: 透明度由显示设置控制; v271: 0.4→0.25; v272: →0.1 (仍遮挡物件) */}
       {/* v155: 左侧当前时间 + 进度百分比 (stable 底部时间轴样式; 原右侧时间显示移到此处) */}
       <div className="flex flex-col justify-center shrink-0 font-mono text-xs leading-4 select-none w-24" data-bottom-time>
         <span className="text-white/85">{fmt(store.currentTime)}</span>
@@ -1111,7 +1123,8 @@ export function BottomTimeline() {
             ))}
           </div>
         </div>
-        <button onClick={() => store.togglePlay()} className="px-3 py-1.5 rounded bg-pink-500 hover:bg-pink-400 text-white text-sm font-bold w-12 flex items-center justify-center" title="空格">
+        {/* v256: 播放按钮改低调配色 (原亮粉色在深色底栏过于刺眼), 与旁边回到开头按钮一致 */}
+        <button onClick={() => store.togglePlay()} className="px-3 py-1.5 rounded bg-white/10 hover:bg-white/20 text-white text-sm font-bold w-12 flex items-center justify-center" title="空格">
           {store.playing ? <Pause className="w-4 h-4" fill="currentColor" /> : <Play className="w-4 h-4" fill="currentColor" />}
         </button>
         <button onClick={() => { store.pause(); store.seek(0); }} className="px-2 py-1.5 rounded bg-white/10 hover:bg-white/20 text-white text-sm flex items-center" title="回到开头"><Square className="w-4 h-4" fill="currentColor" /></button>
@@ -1129,9 +1142,39 @@ export function SelectionInfoPanel() {
   // v145: 无选区且有放置预览幽灵时, 实时显示预览间距 (time 取 currentTime, 与 snapPlacement 放置公式同源);
   // 拖动选中物件时 info 分支因 EditorCanvas 拖动末尾 emitSelection 而实时刷新
   const pv = !info && bm && store.placementPreview ? previewSpacingInfo(bm, store.placementPreview, store.currentTime) : null;
+  // v268: 节点信息改首末距离 (用户反馈: 不要逐节点列出, 要「所有选中节点中最前一个节点到前一节点的距离」
+  // 与「最后一个节点到后一节点的距离」; 跨滑条时按物件时间排序取两端; 索引语义同 v260: ctrl=[头,...curvePoints])
+  let nodeInfo: { count: number; firstIdx: number; prevDist: number | null; lastIdx: number; nextDist: number | null } | null = null;
+  if (bm && store.nodeSelectionCount) {
+    const groups: { time: number; ctrl: { x: number; y: number }[]; idxs: number[] }[] = [];
+    for (const [objId, idxs] of store.selectedNodes) {
+      const o = bm.hitObjects.find(x => x.id === objId);
+      if (!o || o.type !== 'slider') continue;
+      groups.push({ time: o.time, ctrl: [{ x: o.x, y: o.y }, ...(o.curvePoints ?? [])], idxs: [...idxs].sort((a, b) => a - b) });
+    }
+    if (groups.length) {
+      groups.sort((a, b) => a.time - b.time);
+      const dist = (c: { x: number; y: number }[], a: number, b: number) =>
+        c[a] && c[b] ? Math.round(Math.hypot(c[a].x - c[b].x, c[a].y - c[b].y)) : null;
+      const gf = groups[0], gl = groups[groups.length - 1];
+      const firstIdx = gf.idxs[0], lastIdx = gl.idxs[gl.idxs.length - 1];
+      nodeInfo = {
+        count: groups.reduce((n, g) => n + g.idxs.length, 0),
+        firstIdx, prevDist: dist(gf.ctrl, firstIdx - 1, firstIdx),
+        lastIdx, nextDist: dist(gl.ctrl, lastIdx, lastIdx + 1),
+      };
+    }
+  }
   return (
-    <div className="w-40 shrink-0 bg-[#0c0c11]/72 border-l border-white/10 flex flex-col items-end justify-center px-2 font-mono text-[11px] leading-5 text-white/85 select-none whitespace-nowrap">{/* v129: 背景半透明 */}
-      {info ? (
+    <div className="w-40 shrink-0 border-l border-white/10 flex flex-col items-end justify-center px-2 font-mono text-[11px] leading-5 text-white/85 select-none whitespace-nowrap" style={{ background: displaySettings.timelineTransparent ? 'rgba(12,12,17,0.15)' : 'rgba(12,12,17,0.72)' }}>{/* v129: 背景半透明; v255: 透明度由显示设置控制 */}
+      {nodeInfo ? (
+        <>
+          <div className="text-white/60">滑条点 ×{nodeInfo.count}</div>
+          {/* v268: 最前选中节点到前一节点的距离 / 最后选中节点到后一节点的距离 (无端点显示 —) */}
+          <div className="text-white/60">前 #{nodeInfo.firstIdx}← <span className="text-cyan-300">{nodeInfo.prevDist === null ? '—' : `${nodeInfo.prevDist}px`}</span></div>
+          <div className="text-white/60">后 #{nodeInfo.lastIdx}→ <span className="text-cyan-300">{nodeInfo.nextDist === null ? '—' : `${nodeInfo.nextDist}px`}</span></div>
+        </>
+      ) : info ? (
         <>
           <div>x:{info.x} y:{info.y}</div>
           {/* v55: 倍率后括号附原始 osu 像素距离, 如 0.00x(0px) */}

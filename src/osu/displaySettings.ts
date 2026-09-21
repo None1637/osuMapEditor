@@ -20,6 +20,12 @@ export interface DisplaySettings {
   sliderPointStyle: 'stable' | 'lazer';
   /** v232: 物件选中效果 ('stable' = 皮肤 hitcircleselect 圆角方框, 滑条头尾各一张; 'lazer' = 高亮描边环/青色虚线环, 旧行为) */
   selectionStyle: 'stable' | 'lazer';
+  /** v253: 右下角帧数显示 (关 = 不挂载 FpsCounter) */
+  showFps: boolean;
+  /** v254: 选中物件的黄色包围框 + 缩放/旋转手柄 (关 = 只显示选中效果, 不画黄框) */
+  selectionBounds: boolean;
+  /** v255: 上下时间轴 UI 更半透明 (开 = 底 alpha≈0.4 更透视; 关 = v129 的 0.7 暗底) */
+  timelineTransparent: boolean;
 }
 
 /** 布尔开关键 (DisplayPanel 开关行用; bgBrightness 是数值, 走 setDisplayNumber) */
@@ -40,6 +46,9 @@ function loadDisplaySettings(): DisplaySettings {
     bgBrightness: 35, // v168: 旧固定 alpha 0.35
     sliderPointStyle: 'stable', // v231: 默认 stable 红/白小方格
     selectionStyle: 'stable',   // v232: 默认 stable hitcircleselect 选框
+    showFps: true,              // v253: 默认显示帧数 (v220 起的行为)
+    selectionBounds: true,      // v254: 默认画黄框 (v49 起的行为)
+    timelineTransparent: true,  // v255: 默认更半透明 (用户需求: 上下时间轴想要半透明)
   };
   try {
     const raw = localStorage.getItem(LS_KEY);
@@ -57,6 +66,9 @@ function loadDisplaySettings(): DisplaySettings {
       // v231/v232: 字符串枚举白名单校验, 非法值回退默认
       sliderPointStyle: p.sliderPointStyle === 'stable' || p.sliderPointStyle === 'lazer' ? p.sliderPointStyle : def.sliderPointStyle,
       selectionStyle: p.selectionStyle === 'stable' || p.selectionStyle === 'lazer' ? p.selectionStyle : def.selectionStyle,
+      showFps: p.showFps !== false,
+      selectionBounds: p.selectionBounds !== false,
+      timelineTransparent: p.timelineTransparent !== false,
     };
   } catch { return def; }
 }

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { store, useEditor } from '@/osu/store';
 import { getSkin, hitcircleSpriteWidth, type Skin } from '@/osu/skin';
-import { renderPlayfield, computeCombos, getSliderPath, invalidatePath, mergedWithPreview, drawDistanceGuideRing, drawPendingSpinner } from '@/osu/renderer';
+import { renderPlayfield, computeCombos, getSliderPath, invalidatePath, mergedWithPreview, drawDistanceGuideRing, drawPendingSpinner, drawSliderControlPoints } from '@/osu/renderer'; // v259: hover 预览滑条点复用控制点绘制
 import { computePendingPath, insertSliderPoint, deleteSliderPoint, toggleSliderPointRed, resolveSliderCurveType, nearestOnSegment, sliderGeometryLength, snapSliderLength, resnapSliderLength, redPairPartner, isRedPairPoint, SliderPath, preserveArcsForBezier, placementLength, snapPlacementTime, spinnerPlacementEnd } from '@/osu/sliderPath';
 import { objectSnapPoints, snapToNearby, snapDragDelta, type Pt } from '@/osu/objectSnap';
 import { sliderHelperCircle, sliderHelperLines, clipLineToBox, geoHelperSnap, geoHelperSources, geoDistSources, distGuideSnap, geoDragCorrection, GEO_CLIP_BOX, type GeoLine, type GeoCircle } from '@/osu/geometryHelpers';
@@ -34,6 +34,7 @@ const PANEL_BOTTOM_H = 82; // 下时间轴行高: 80 (h-20) + 2 (border-t-2)
 const GAP_TOP = 18, GAP_BOTTOM = 10; // 用户规格: 上 18px / 下 10px 间隔
 const RESERVED_TOP = PANEL_TOP_H + GAP_TOP;        // 111
 const RESERVED_BOTTOM = PANEL_BOTTOM_H + GAP_BOTTOM; // 92
+// v270 二轮: 用户反馈铺满方向错误, 还原 v129 固定预留 (纯黑底色另有根因, 见 v271)
 function viewTransform(r: { width: number; height: number }) {
   const availH = Math.max(80, r.height - RESERVED_TOP - RESERVED_BOTTOM);
   const scale = Math.min(r.width / PW, (availH / (PH + PAD_Y * 2)) * 1.2); // v130: 1.1 → 1.2
@@ -58,7 +59,7 @@ export function EditorCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const skinRef = useRef<Skin | null>(null);
   const dragRef = useRef<{ ids: number[]; startX: number; startY: number; orig: Map<number, { x: number; y: number; curve?: { x: number; y: number }[] }>; moved: boolean } | null>(null);
-  const nodeDragRef = useRef<{ objId: number; pointIndex: number; pairWith: number | null; startX: number; startY: number; moved: boolean; toggleRed: boolean } | null>(null);
+  const nodeDragRef = useRef<{ objId: number; pointIndex: number; pairWith: number | null; startX: number; startY: number; moved: boolean; toggleRed: boolean; pending: Pt | null } | null>(null);
   // 框选: 选择工具下空白处按下拖动 (base = 按下时已有选区, Shift 追加)
   const marqueeRef = useRef<{ x0: number; y0: number; x1: number; y1: number; base: number[] } | null>(null);
   // v34: 自定义变换原点标记拖拽 (UI 状态, 不进 undo)
@@ -85,8 +86,11 @@ export function EditorCanvas() {
   } | null>(null);
   // v50: 手柄悬停 (光标形状 + 旋转手柄淡入显示; lazer hover 语义)
   const hoverHandleRef = useRef<{ type: 'scale' | 'rotate'; anchor: string } | null>(null);
+  // v259: hover 滑条预览 — 选择工具下光标悬停在未选中滑条上时显示其控制点 (stable 同款); 渲染循环直接读 ref
+  const hoverSliderRef = useRef<number | null>(null);
   // v117: 节点多选拖拽 (Alt 层) — 整体移动 (anchor = 按下节点, orig = Begin 快照)
-  const nodesMoveDragRef = useRef<{ anchor: { objId: number; idx: number }; startX: number; startY: number; orig: Map<number, Map<number, Pt>>; moved: boolean } | null>(null);
+  // v264: pending = rAF 节流 (mousemove 只记最新光标, 帧循环每次最多应用一次)
+  const nodesMoveDragRef = useRef<{ anchor: { objId: number; idx: number }; startX: number; startY: number; orig: Map<number, Map<number, Pt>>; moved: boolean; pending: Pt | null } | null>(null);
   // v117: 节点框选 (Alt+空白拖动; base = 修饰键追加的已有节点)
   const nodeMarqueeRef = useRef<{ x0: number; y0: number; x1: number; y1: number; base: [number, number][] } | null>(null);
   // v117: 节点选区缩放/旋转手柄拖拽 (复用物件手柄几何, 变换写回节点而非整物件)
@@ -122,7 +126,9 @@ export function EditorCanvas() {
     return s;
   };
   const currentQuads = (bm: Beatmap): { q: Quad; dq: Quad } | null => {
-    const key = `${store.getDataVersion()}|${selectionSig()}`;
+    // v250: 键改用 getVersion — 拖拽中原地改坐标只走 emitSelection (不 bump dataVersion),
+    // 用 dataVersion 做键会让选中框/装饰层在拖动期间停在旧位置
+    const key = `${store.getVersion()}|${selectionSig()}`;
     if (quadsRef.current && quadsRef.current.key === key && quadsRef.current.bm === bm) return quadsRef.current.v;
     let v: { q: Quad; dq: Quad } | null = null;
     // v117: 节点选区非空时, 选中框/手柄作用于选中节点 (节点层优先于物件层)
@@ -271,6 +277,7 @@ export function EditorCanvas() {
     const origin = alt ? sd.defaultOrigin : anchorOpposite(sd.quad, sd.anchor);
     const r = applyScaleDrag(bm, selectedMovable(bm), sd.states, raw, origin, anchorAxis(sd.anchor), store.beatSnap, sd.quad);
     for (const id of r.sliders) invalidatePath(id);
+    if (sd.moved) store.commitDragFrame(); // v275: bump version — 选中装饰层 (selLayer key 含 getVersion) 随拖拽重建跟随物件
   };
 
   // 应用一次旋转拖拽 (lazer OsuSelectionRotationHandler.Update: 累积角度 + Shift 吸附 15°, 从 Begin 快照重算)
@@ -284,6 +291,7 @@ export function EditorCanvas() {
     if (deg !== 0) rd.moved = true;
     const r = applyRotateDrag(selectedMovable(bm), rd.states, deg, rd.origin);
     for (const id of r.sliders) invalidatePath(id);
+    if (rd.moved) store.commitDragFrame(); // v275: 同缩放 — 装饰层跟随
   };
 
   // v117: 节点选区缩放拖拽 (复用物件手柄几何: dragToScale/anchorOpposite/anchorAxis; 从 Begin 快照重算, 写回节点)
@@ -302,6 +310,7 @@ export function EditorCanvas() {
       if (o) resnapSliderLength(bm, o, store.beatSnap);
       invalidatePath(id);
     }
+    if (sd.moved) store.commitDragFrame(); // v275: 同物件缩放 — 装饰层跟随
   };
 
   // v117: 节点选区旋转拖拽 (累积角度 + Shift 吸附 15°, 从 Begin 快照重算)
@@ -323,6 +332,7 @@ export function EditorCanvas() {
       if (o) resnapSliderLength(bm, o, store.beatSnap);
       invalidatePath(id);
     }
+    if (rd.moved) store.commitDragFrame(); // v275: 同物件旋转 — 装饰层跟随
   };
 
   // v50: 手柄对应的光标形状
@@ -555,6 +565,14 @@ export function EditorCanvas() {
           store.currentTime = store.positionMs(); // WebAudio采样级时钟, offset < 1ms
           if (store.currentTime >= store.songLength()) store.pause();
         }
+        // v264: 节点拖动 rAF 节流 — mousemove 只记 pending, 这里每帧最多应用一次
+        // (原每 mousemove 全量 apply+emit, 高回报率鼠标下同帧重复应用是实测热点)
+        {
+          const nmd0 = nodesMoveDragRef.current;
+          if (nmd0?.pending) { const q = nmd0.pending; nmd0.pending = null; applyNodesMoveDrag(q); }
+          const nd0 = nodeDragRef.current;
+          if (nd0?.pending) { const q = nd0.pending; nd0.pending = null; applyNodeDrag(q); }
+        }
         const g = c.getContext('2d')!;
         const r = zoomRect(c); // v217: 布局空间 (固定 px 内容随整体缩放)
         const { sx, sy } = fitCanvas(c, r); // v246: backing 取整 (原分数比较致每帧重建位图)
@@ -672,7 +690,7 @@ export function EditorCanvas() {
         const __pt0 = performance.now(); // v99: 渲染性能采样 (CDP 读 window.__perfRender)
         renderPlayfield({
           g, bm: bmView, skin, time: store.currentTime,
-          selected: selView, cacheKey: String(store.getDataVersion()), // v245: 帧级缓存键 (选中装饰层/followPoint)
+          selected: selView, cacheKey: String(store.getVersion()), // v245: 帧级缓存键 (选中装饰层/followPoint); v250: 改用 getVersion — 拖拽中原地改坐标只 bump version (emitSelection), dataVersion 不变会导致装饰层停在原位
           comboInfo: getCombos(bmView), stackOffsets: getStackOffsets(bm),
         }, store.pendingSlider,
           // v207: 已有控制点时预览幻影用吸附后的 pendingCursor (onMouseMove 里与落点同公式), 否则原始光标 (头部幽灵)
@@ -690,6 +708,20 @@ export function EditorCanvas() {
           const pf = (w.__perfRender ??= []);
           pf.push(performance.now() - __pt0);
           if (pf.length > 900) pf.splice(0, pf.length - 900);
+        }
+        // v259: hover 滑条点预览 (stable 同款) — 悬停未选中滑条时叠加其控制点连线/手柄,
+        // alpha 稍淡以区别于选中态; 含堆叠偏移 (与 drawSelectionDecor 同源)
+        {
+          const hid = hoverSliderRef.current;
+          const ho = hid !== null ? bm.hitObjects.find(o => o.id === hid) : null;
+          if (ho && ho.type === 'slider' && !store.selected.has(ho.id)) {
+            const hoff = getStackOffsets(bm).get(ho.id);
+            g.save();
+            g.translate(hoff?.dx ?? 0, hoff?.dy ?? 0);
+            g.globalAlpha = 0.75;
+            drawSliderControlPoints(g, ho);
+            g.restore();
+          }
         }
         // 框选矩形
         const mq = marqueeRef.current;
@@ -718,7 +750,10 @@ export function EditorCanvas() {
           g.setLineDash([]);
         }
         // v49: 选中框 (lazer SelectionBox): 黄色边框包住选区 (含物件半径外扩) + 边/角缩放手柄
-        if (store.tool === 'select' && store.selected.size > 0) {
+        // v254: 显示设置「选中包围框」可关闭整个黄框+手柄 (选中效果本身不受影响)
+        // v267: 门控补上节点选区 — v265 起节点选区不再并入物件选区, 只看 selected.size 会让
+        //       节点框选的黄框/旋转缩放手柄消失 (currentQuads 本身已支持节点层, 见 v117)
+        if (store.tool === 'select' && (store.selected.size > 0 || store.nodeSelectionCount > 0) && displaySettings.selectionBounds) {
           const quads = currentQuads(bm);
           if (quads) {
             const { q, dq } = quads;
@@ -772,6 +807,17 @@ export function EditorCanvas() {
           const offs = getStackOffsets(bm);
           const rr = 10 / scale; // ~10 屏幕 px 换算 osu px
           g.save();
+          // v265: 节点选区不再并入物件选区 — 对有选中节点但物件未选中的滑条, 补画控制多边形/手柄
+          // (物件已选中的由 drawSelectionDecor 画过, 不重复; 与 v259 hover 预览同一 drawSliderControlPoints)
+          for (const objId of store.selectedNodes.keys()) {
+            const o = bm.hitObjects.find(x => x.id === objId);
+            if (!o || o.type !== 'slider' || store.selected.has(objId)) continue;
+            const so2 = offs.get(objId);
+            g.save();
+            g.translate(so2?.dx ?? 0, so2?.dy ?? 0);
+            drawSliderControlPoints(g, o);
+            g.restore();
+          }
           g.strokeStyle = '#f2b544';
           g.lineWidth = 2 / scale;
           for (const [objId, idxs] of store.selectedNodes) {
@@ -1032,7 +1078,9 @@ export function EditorCanvas() {
     const offs = getStackOffsets(bm); // 命中测试用堆叠后显示位置
     // 可见即可选: 命中窗口与渲染窗口完全一致 (含淡入/淡出期; 修复滑条开始 600ms 后
     // 仍在屏却点不中、以及 AR>5 时 preempt<1200 导致不可见物件可被误选的问题)
-    const objs = bm.hitObjects.filter(o => isVisibleAt(bm, o, store.currentTime));
+    // v273: 已选中物件例外 — 即使当前时间不可见也参与命中 (选中装饰层始终画出选中标记,
+    //       用户可据此点击; 需求「选中物件后, 即使当前时间不可见也需要能交互 (拖动等)」)
+    const objs = bm.hitObjects.filter(o => isVisibleAt(bm, o, store.currentTime) || store.selected.has(o.id));
     // v154: 收集全部命中, 重叠时优先选离当前时间最近者 (旧逻辑倒序取首个 = 恒选最晚上层物件)
     const hits: HitObject[] = [];
     for (const o of objs) {
@@ -1189,24 +1237,16 @@ export function EditorCanvas() {
           return;
         }
       }
-      // v117: Alt 层 — 节点多选 (点选/加选/框选 + 整体拖动); 物件层行为不受影响
+      // v117: Alt 层 — 节点多选; v265: Alt 动作只作用于滑条点, 进入即清空物件选区 (忽略 hit circle/slider);
+      // v266: Alt+点击 = 纯切换单个节点选中 (加选/取消, 不再拖动 — 移动改由普通拖拽已选节点, 见下);
+      //       Alt+空白 = 节点框选 (Shift/Ctrl 在现有节点选区上追加)
       if (e.altKey && !store.lockNotes) { // v115: 锁定物件 — 节点选/拖禁用
+        if (store.selected.size) { store.selected.clear(); store.emitSelection(); } // v265: 忽略 hit circle/slider
         const offs = getStackOffsets(bm);
         const sliders = bm.hitObjects.filter(o => o.type === 'slider' && isVisibleAt(bm, o, store.currentTime));
         const hitNode = nearestNode(sliders, offs, p); // 跨滑条最近优先, 并列取序号在前
         if (hitNode) {
-          if (e.shiftKey || e.ctrlKey || e.metaKey) {
-            store.toggleSelectedNode(hitNode.objId, hitNode.idx); // 加选/取消单个节点
-          } else {
-            const cur = store.selectedNodes.get(hitNode.objId);
-            if (!cur?.has(hitNode.idx)) store.setSelectedNodes([[hitNode.objId, hitNode.idx]]); // 未选中才重置 (保留拖动多选)
-          }
-          store.beginDrag();
-          store.canvasDragging = true;
-          nodesMoveDragRef.current = {
-            anchor: hitNode, startX: p.x, startY: p.y,
-            orig: snapshotNodes(bm, withRedPartners(bm, store.selectedNodes)), moved: false,
-          };
+          store.toggleSelectedNode(hitNode.objId, hitNode.idx); // v266: 加选/取消单个节点
           return;
         }
         // Alt+空白: 节点框选 (Shift/Ctrl 在现有节点选区上追加)
@@ -1216,6 +1256,23 @@ export function EditorCanvas() {
         };
         store.canvasDragging = true;
         return;
+      }
+      // v266: 普通拖拽已选滑条点 = 移动整个框选组 (用户模型: 框选两个以上滑条点后, 拖其中任一点动全组;
+      // 无修饰键才拦截, 带 Shift/Ctrl 留给物件框选追加/单滑条节点编辑等既有行为)
+      if (!store.lockNotes && store.nodeSelectionCount && !e.shiftKey && !e.ctrlKey && !e.metaKey) {
+        const offs = getStackOffsets(bm);
+        // v273: 已选节点所在滑条即使当前时间不可见也可整组拖 (与物件命中同一例外)
+        const sliders = bm.hitObjects.filter(o => o.type === 'slider' && (isVisibleAt(bm, o, store.currentTime) || store.selected.has(o.id) || store.selectedNodes.has(o.id)));
+        const hitNode = nearestNode(sliders, offs, p);
+        if (hitNode && store.selectedNodes.get(hitNode.objId)?.has(hitNode.idx)) { // 仅命中已选节点才整组拖
+          store.beginDrag();
+          store.canvasDragging = true;
+          nodesMoveDragRef.current = {
+            anchor: hitNode, startX: p.x, startY: p.y,
+            orig: snapshotNodes(bm, withRedPartners(bm, store.selectedNodes)), moved: false, pending: null,
+          };
+          return;
+        }
       }
       // 优先检测选中滑条的控制点手柄(节点编辑); v115: 锁定物件 — 节点拖拽/插点禁用
       const selObjs = bm.hitObjects.filter(o => store.selected.has(o.id));
@@ -1230,7 +1287,7 @@ export function EditorCanvas() {
           store.canvasDragging = true;
           // 红锚点记录配对下标: 拖拽时成对移动 (v29: 不再把红点拆成两个白点)
           // v118: toggleRed = 按下时 Ctrl — stable 行为: 按住 Ctrl 点击白点才转红, 直接点击仅选中
-          nodeDragRef.current = { objId: so.id, pointIndex: hitIdx, pairWith: redPairPartner(ctrl, hitIdx), startX: p.x, startY: p.y, moved: false, toggleRed: e.ctrlKey || e.metaKey };
+          nodeDragRef.current = { objId: so.id, pointIndex: hitIdx, pairWith: redPairPartner(ctrl, hitIdx), startX: p.x, startY: p.y, moved: false, toggleRed: e.ctrlKey || e.metaKey, pending: null };
           return;
         }
         // v118: 按住 Ctrl 点击线段才在该线段最近点插入新白色节点 (stable 行为; 红锚点零长线段跳过; 不按 Ctrl 落到物件命中)
@@ -1424,6 +1481,70 @@ export function EditorCanvas() {
     store.emit();
   };
 
+  // v264: 节点拖动应用 (rAF 节流) — mousemove 只记 pending 最新光标, 帧循环/mouseup 调这里每帧最多应用一次;
+  // 提交走 commitDragFrame 轻量通道 (原 commitDrag 每 mousemove 全量 emit: dirtyFingerprint 全表指纹 +
+  // dataVersion 失效 (堆叠/combo/静态层/hitsound 事件表) 是 CDP 实测热点), 拖拽结束 mouseup 由完整 commitDrag() 补齐
+  const applyNodesMoveDrag = (cp: Pt) => {
+    const nmd = nodesMoveDragRef.current;
+    const bm = store.beatmap;
+    if (!nmd || !bm) return;
+    // v233: 移动阈值 4px→1 格, 与 hitcircle 拖拽一致, 超过即视为拖动; 锚节点吃吸附, delta 取整后同步全部选中节点
+    if (!nmd.moved) {
+      if (Math.abs(cp.x - nmd.startX) + Math.abs(cp.y - nmd.startY) <= 1) return;
+      nmd.moved = true;
+    }
+    const offs = getStackOffsets(bm);
+    const aOff = offs.get(nmd.anchor.objId);
+    const a0 = nmd.orig.get(nmd.anchor.objId)?.get(nmd.anchor.idx);
+    if (a0) {
+      const a0d = { x: a0.x + (aOff?.dx ?? 0), y: a0.y + (aOff?.dy ?? 0) }; // 锚节点显示位置 (含堆叠偏移)
+      const exclude = new Set(nmd.orig.keys()); // v96 同款: 辅助吸附排除被拖滑条自身, 防自锁
+      const near = snapWithGeo(bm, cp, snapToNearby(cp, objectSnapPoints(bm, bm.hitObjects.filter(x => !exclude.has(x.id) && isVisibleAt(bm, x, store.currentTime)))), exclude);
+      const sp = gridSnapAt(bm, near ?? cp);
+      const dx = Math.round(sp.x - a0d.x), dy = Math.round(sp.y - a0d.y);
+      const ids = transformNodesFromSnapshot(bm, nmd.orig, pt => ({ x: pt.x + dx, y: pt.y + dy }));
+      for (const id of ids) {
+        const o = bm.hitObjects.find(x => x.id === id);
+        if (o) resnapSliderLength(bm, o, store.beatSnap); // 拖拽中实时 SnapTo (与单节点拖拽同款)
+        invalidatePath(id);
+      }
+      store.commitDragFrame(); // v264: 轻量逐帧提交
+    }
+  };
+  const applyNodeDrag = (p: Pt) => {
+    const nd = nodeDragRef.current;
+    const bm = store.beatmap;
+    if (!nd || !bm) return;
+    // v233: 移动阈值 4px→1 格, 与 hitcircle 一致; 未移动时 mouseup 视为点击, 白点切红
+    if (!nd.moved) {
+      if (Math.abs(p.x - nd.startX) + Math.abs(p.y - nd.startY) <= 1) return;
+      nd.moved = true;
+    }
+    const o = bm.hitObjects.find(x => x.id === nd.objId);
+    if (o) {
+      // v29: 控制点允许超出游玩区域 (不钳制到 0..512/0..384)
+      // v76: 节点拖拽吃物件吸附 + 网格吸附 (与放置同款规则: 物件吸附优先, 网格最后应用并覆盖;
+      // 目标 = 除本滑条外的可见物件; 红锚点成对移动取同一吸附点, 重复对不拆散)
+      // v96: 辅助吸附排除被拖滑条自身 (直线延伸线/三点圆由被拖点决定, 点必在辅助线上, 只能辅助线跟点动)
+      const near = snapWithGeo(bm, p, snapToNearby(p, objectSnapPoints(bm, bm.hitObjects.filter(x => x.id !== nd.objId && isVisibleAt(bm, x, store.currentTime)))), new Set([nd.objId]));
+      const sp = gridSnapAt(bm, near ?? p);
+      const nx = Math.round(sp.x), ny = Math.round(sp.y);
+      const setPt = (idx: number) => {
+        if (idx === 0) { o.x = nx; o.y = ny; }
+        else if (o.curvePoints && o.curvePoints[idx - 1]) {
+          o.curvePoints[idx - 1].x = nx;
+          o.curvePoints[idx - 1].y = ny;
+        }
+      };
+      setPt(nd.pointIndex);
+      if (nd.pairWith !== null) setPt(nd.pairWith); // 红锚点成对移动, 保持重复对不拆散
+      // lazer DragInProgress: 拖拽中实时 SnapTo (长度按新几何全长吸附节拍, 预览即最终值)
+      resnapSliderLength(bm, o, store.beatSnap);
+      invalidatePath(o.id);
+      store.commitDragFrame(); // v264: 轻量逐帧提交
+    }
+  };
+
   const onMouseMove = (e: React.MouseEvent) => {
     // v223: 中键拖动游玩区 — 视觉位移 / uiZoom -> 布局 px, 再 / 基础适配 scale -> osu px 偏移
     // (用户缩放倍率 s 在偏移之后生效, 此处不除 s: 内容始终 1:1 跟随光标)
@@ -1444,6 +1565,12 @@ export function EditorCanvas() {
     // v207: 控制点预览走落点同款吸附 (snapSliderCtrlPoint) — 幻影节点与点击落点一致, 所见即所放
     store.pendingCursor = store.tool === 'slider' && store.pendingSlider.length > 0 ? snapSliderCtrlPoint({ x: cp.x, y: cp.y }) : null;
     const bm = store.beatmap;
+    // v259: hover 滑条点预览 (stable 同款) — 选择工具 + 非拖拽 + 无对话框时, 光标悬停未选中滑条记录其 id,
+    // 渲染循环叠加画控制点连线/手柄 (与选中装饰同源 drawSliderControlPoints)
+    if (store.tool === 'select' && bm && !store.canvasDragging && !store.conversionDialog) {
+      const hit = hitTest(cp.x, cp.y);
+      hoverSliderRef.current = hit && hit.type === 'slider' && !store.selected.has(hit.id) ? hit.id : null;
+    } else hoverSliderRef.current = null;
     // v145: 放置预览幽灵位置 -> store (间距面板实时预览间距; 与画布幻影同走 snapPlacement, 所见即所得。
     // 仅 圆圈工具 / 滑条无锚点 且 非拖拽非播放 且 光标在游玩区内 时有效, 否则置空)
     {
@@ -1561,33 +1688,18 @@ export function EditorCanvas() {
         maxX: Math.max(nmq.x0, nmq.x1), maxY: Math.max(nmq.y0, nmq.y1),
       };
       const sliders = bm.hitObjects.filter(o => o.type === 'slider' && isVisibleAt(bm, o, store.currentTime));
-      store.setSelectedNodes([...nmq.base, ...nodesInRect(sliders, getStackOffsets(bm), r)]);
+      // v277: 已选节点所在滑条当前时间不可见时保留 (框选进行中时间改变/播放, 不掉出选区)
+      const keepNodes = nodeEntries(store.selectedNodes).filter(([objId]) => {
+        const o = bm.hitObjects.find(x => x.id === objId);
+        return !!o && !isVisibleAt(bm, o, store.currentTime);
+      });
+      store.setSelectedNodes([...nmq.base, ...keepNodes, ...nodesInRect(sliders, getStackOffsets(bm), r)]);
       return;
     }
-    // v117: 节点整体拖动 (v233: 移动阈值 4px→1 格, 与 hitcircle 拖拽一致, 超过即视为拖动; 锚节点吃吸附, delta 取整后同步全部选中节点)
+    // v117: 节点整体拖动 — v264: rAF 节流, 只记 pending (应用在帧循环 applyNodesMoveDrag)
     const nmd = nodesMoveDragRef.current;
     if (nmd && bm) {
-      if (!nmd.moved) {
-        if (Math.abs(cp.x - nmd.startX) + Math.abs(cp.y - nmd.startY) <= 1) return;
-        nmd.moved = true;
-      }
-      const offs = getStackOffsets(bm);
-      const aOff = offs.get(nmd.anchor.objId);
-      const a0 = nmd.orig.get(nmd.anchor.objId)?.get(nmd.anchor.idx);
-      if (a0) {
-        const a0d = { x: a0.x + (aOff?.dx ?? 0), y: a0.y + (aOff?.dy ?? 0) }; // 锚节点显示位置 (含堆叠偏移)
-        const exclude = new Set(nmd.orig.keys()); // v96 同款: 辅助吸附排除被拖滑条自身, 防自锁
-        const near = snapWithGeo(bm, cp, snapToNearby(cp, objectSnapPoints(bm, bm.hitObjects.filter(x => !exclude.has(x.id) && isVisibleAt(bm, x, store.currentTime)))), exclude);
-        const sp = gridSnapAt(bm, near ?? cp);
-        const dx = Math.round(sp.x - a0d.x), dy = Math.round(sp.y - a0d.y);
-        const ids = transformNodesFromSnapshot(bm, nmd.orig, pt => ({ x: pt.x + dx, y: pt.y + dy }));
-        for (const id of ids) {
-          const o = bm.hitObjects.find(x => x.id === id);
-          if (o) resnapSliderLength(bm, o, store.beatSnap); // 拖拽中实时 SnapTo (与单节点拖拽同款)
-          invalidatePath(id);
-        }
-        store.commitDrag();
-      }
+      nmd.pending = { x: cp.x, y: cp.y };
       return;
     }
     // 框选拖拽: 实时更新选区
@@ -1598,43 +1710,19 @@ export function EditorCanvas() {
         minX: Math.min(mq.x0, mq.x1), minY: Math.min(mq.y0, mq.y1),
         maxX: Math.max(mq.x0, mq.x1), maxY: Math.max(mq.y0, mq.y1),
       };
-      store.select([...mq.base, ...objectsInRect(
+      // v277: 已选中但当前时间不可见的物件保留在选区 — 框选进行中时间改变 (播放/滚轮/边缘滚动)
+      // 时, 每帧重算的「当前可见 ∩ 框」会把它们掉出 (用户需求: 不要取消选中这些物件)
+      const keepHidden = bm.hitObjects.filter(o => !isVisibleAt(bm, o, store.currentTime) && store.selected.has(o.id)).map(o => o.id);
+      store.select([...mq.base, ...keepHidden, ...objectsInRect(
         // v45: 只框选当前可见物件 (与单击命中同一可见窗口, 不再把全时间物件都框进来)
         bm.hitObjects.filter(o => isVisibleAt(bm, o, store.currentTime)),
         r, getStackOffsets(bm))]);
       return;
     }
-    // 滑条节点拖拽 (v233: 移动阈值 4px→1 格, 与 hitcircle 一致; 未移动时 mouseup 视为点击, 白点切红)
+    // 滑条节点拖拽 — v264: rAF 节流, 只记 pending (应用在帧循环 applyNodeDrag)
     const nd = nodeDragRef.current;
     if (nd && bm) {
-      const p = toOsu(e);
-      if (!nd.moved) {
-        if (Math.abs(p.x - nd.startX) + Math.abs(p.y - nd.startY) <= 1) return;
-        nd.moved = true;
-      }
-      const o = bm.hitObjects.find(x => x.id === nd.objId);
-      if (o) {
-        // v29: 控制点允许超出游玩区域 (不钳制到 0..512/0..384)
-        // v76: 节点拖拽吃物件吸附 + 网格吸附 (与放置同款规则: 物件吸附优先, 网格最后应用并覆盖;
-        // 目标 = 除本滑条外的可见物件; 红锚点成对移动取同一吸附点, 重复对不拆散)
-        // v96: 辅助吸附排除被拖滑条自身 (直线延伸线/三点圆由被拖点决定, 点必在辅助线上, 只能辅助线跟点动)
-        const near = snapWithGeo(bm, p, snapToNearby(p, objectSnapPoints(bm, bm.hitObjects.filter(x => x.id !== nd.objId && isVisibleAt(bm, x, store.currentTime)))), new Set([nd.objId]));
-        const sp = gridSnapAt(bm, near ?? p);
-        const nx = Math.round(sp.x), ny = Math.round(sp.y);
-        const setPt = (idx: number) => {
-          if (idx === 0) { o.x = nx; o.y = ny; }
-          else if (o.curvePoints && o.curvePoints[idx - 1]) {
-            o.curvePoints[idx - 1].x = nx;
-            o.curvePoints[idx - 1].y = ny;
-          }
-        };
-        setPt(nd.pointIndex);
-        if (nd.pairWith !== null) setPt(nd.pairWith); // 红锚点成对移动, 保持重复对不拆散
-        // lazer DragInProgress: 拖拽中实时 SnapTo (长度按新几何全长吸附节拍, 预览即最终值)
-        resnapSliderLength(bm, o, store.beatSnap);
-        invalidatePath(o.id);
-        store.commitDrag();
-      }
+      nd.pending = { x: cp.x, y: cp.y };
       return;
     }
     const d = dragRef.current;
@@ -1773,7 +1861,9 @@ export function EditorCanvas() {
     }
     // v117: 节点整体拖动收尾 — 未拖动即 Alt 纯点选, 弹出 beginDrag 空快照
     if (nodesMoveDragRef.current) {
-      if (nodesMoveDragRef.current.moved) store.commitDrag(); else store.undo();
+      const nmd = nodesMoveDragRef.current;
+      if (nmd.pending) { const q = nmd.pending; nmd.pending = null; applyNodesMoveDrag(q); } // v264: 落点补齐
+      if (nmd.moved) store.commitDrag(); else store.undo();
       nodesMoveDragRef.current = null;
       return;
     }
@@ -1799,6 +1889,7 @@ export function EditorCanvas() {
     if (nodeDragRef.current) {
       const nd = nodeDragRef.current;
       nodeDragRef.current = null;
+      if (nd.pending) { const q = nd.pending; nd.pending = null; applyNodeDrag(q); } // v264: 落点补齐
       if (nd.moved) { store.commitDrag(); return; }
       // 点击手柄 (未拖拽): 仅白点切红 (mousedown 的 beginDrag 快照即本次 undo)
       // v29: 红点点击不再有任何操作 — 红->白改用右键 (避免误触拆对)
@@ -1904,6 +1995,7 @@ export function EditorCanvas() {
       onMouseUp={onMouseUp}
       onMouseLeave={() => {
         cursorRef.current.inside = false;
+        hoverSliderRef.current = null; // v259: 光标出游玩区, 清 hover 滑条点预览
         store.setPlacementPreview(null); // v145: 光标出游玩区, 清放置预览
         if (canvasRef.current) canvasRef.current.style.cursor = '';
         // v50: 缩放/旋转拖拽不因离开画布而终止 (window mousemove/mouseup 接管)

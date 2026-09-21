@@ -1989,3 +1989,276 @@
 - 7100 是 dev vite 端口, 旧版 exe 优先绑 7100, 与 dev server 同开时 Windows SO_REUSEADDR 语义下
   双 listener 都 LISTENING, exe 可能加载到 dev 代码/端口混乱。7199 为 exe 专用, 被占仍回退随机端口。
 - 验证: verifier/v248。
+## v249 独立窗口抗全局缩放 (分辨率缩小时不跟随缩小)
+- 需求: 显示设置/音量设置/多边形生成/批量复制等所有独立窗口, 分辨率缩小后不随 v217 全局 zoom 缩小,
+  除非视口比窗口自然尺寸还小 (才等比缩小容纳)。
+- 实现: DraggableDialog 自身反缩放 zoom c=fit/z (fit=dialogFit 容纳系数, 留 8px 边距) + --fs-comp:1
+  (覆盖 v225 文本补偿, 恢复自然字号); pos 改视觉 px, left=pos/fit (Chromium 150 实测 fixed 的 left/top
+  与宽高一样被 祖先zoom×自身zoom 连乘); resize 后拖拽位置钳回视口。遮罩居中型 (UnsavedDialog/
+  SkinListPanel/FirstRunWizard) 走 uiZoom.useCounterZoom (反缩放 + 实测中心差 transform 补偿收敛)。
+- 坑: 无头 Edge 119 的 getBoundingClientRect 不反映 CSS zoom, 本验证必须用 Electron (Chromium 150)
+  驱动壳 (verifier/v249/el-driver) 实测。
+- 实测 (cdp-v249.mjs): 1280x720 (zoom=0.6) 多边形窗口视觉宽 300=自然宽 (旧行为 180) 且居中 ±0.5px,
+  拖拽 (+100,+80) 精确跟随; 360x280 极小窗口 fit=0.88 收缩不溢出; UnsavedDialog 同样反缩放+居中。
+- 适配: v85 (定位断言跟随 pos/fit 新形态)。
+- 验证: verifier/v249 (check 含 dialogFit 纯函数边界); tsc -b 通过。
+## v250 多选拖动选中标记不跟随修复 (缓存键 dataVersion → getVersion)
+- 现象: 选中多个物件拖动时, 物件本体走了但选中标记 (hitcircleselect 辉光/选中框) 停在原位。
+- 根因: v245 性能优化把选中装饰层 (renderer.drawSelectionLayer) 与选中框 (currentQuads) 缓存键定为
+  dataVersion; 拖拽移动是原地改坐标 + emitSelection (刻意不 bump dataVersion — 避免 hitsound 事件表
+  重建), 键不变 → 层不重绘。物件本体不受影响 (主渲染每帧读活坐标)。
+- 修复: 几何相关缓存键改用 store.getVersion() (emit/emitSelection/emitPlayback 都 bump; 播放逐帧走独立
+  playbackFrameVersion 不冲缓存)。位置无关派生数据 (堆叠偏移/combo 信息) 仍用 dataVersion。
+- 坑: CDP Input.dispatchMouseEvent 不触发本 canvas 的拖拽, 沿用 v26 模式直接向
+  canvas.cursor-crosshair 派发 MouseEvent。
+- 实测 (cdp-v250.mjs): 选两个孤立单点拖 (+100,+70), 新头位置有亮色选中装饰、旧位置零残留。
+- 适配: v245 (cacheKey 断言跟随 getVersion)。
+- 验证: verifier/v250; tsc -b 通过。
+
+## v251 播放中滚滚轮后 hitsound 16kHz+ 消失 (音质劣化) 修复
+- 根因 (探针实测定位, verifier/v251/*.mjs): Chromium 对 `start(when)` 的 **when 非采样整数** 的
+  AudioBufferSourceNode 走线性插值渲染路径 — 最小复现 (frac-when-probe): when 偏移 0.5 采样 =>
+  16kHz -6dB / 22kHz -17dB 低通倾斜, 与故障录谱逐频点吻合。
+- 触发链: 播放中滚滚轮 → `seekWhilePlaying` 落点来自浮点 `positionMs()` (相位跟踪时钟, 亚 ms 精度)
+  → 重锚后 hitsound 排程时刻 = startW + (整数 mapMs - 浮点 t)/1000 **全部落上小数采样相位**
+  → 之后所有 hitsound 被低通; 小数相位接近 0.5 采样时最重 (故时好时坏/双态)。
+  点时间轴/暂停再播的位置是整数 ms (48k 下 = 采样整数), 故不复现 — 与用户反馈完全吻合。
+- 修复 (store.ts):
+  1) `seekWhilePlaying`/`play` 的锚点 (音乐源 offset 与 startW) 吸附到采样网格 (≤0.5 采样 ~10µs, 不可闻);
+  2) hitsound sink / 节拍器 / 滑条循环音的 when 逐个吸附到采样整数
+     (44.1kHz 设备上整数 ms 也非采样整数, 仅靠锚点吸附不够);
+  3) `stopAllHitVoices` 改走新增 `allHitVoices` 主集 — 只 drain 限流器会漏掉被并发上限逐出的 voice
+     (其淡出/停止排程在旧时间线上, seek 后退时幽灵重播叠加)。
+- 探针 (Electron 直起 node_modules/electron/dist/electron.exe, 内嵌 dist 与 exe 同音频路径):
+  wheel-spectrum-probe (双总线分带对比) / voice-diff-probe (voice 级锚点对比) /
+  storm-trace-probe (HF 逐 50ms 时序) / raw-capture-probe (worklet 原始采样+Goertzel 离线分析) /
+  bisect-probe (单次 seek 即复现) / frac-when-probe (Chromium 线性插值最小复现)。
+- 实测: 修复前 bisect B(单次 seek)/C(风暴) 常态化 -3~-8dB 且逐 run 抖动; 修复后 4 连跑 A/B/C
+  全等 (-76.4dB), wheel-spectrum 全频段 SPECTRUM_SAME。
+- 适配: v122 (stopAllHitVoices 断言改为 allHitVoices 主集); v226 (startW 断言跟随采样吸附); v60 (时钟锚定断言跟随吸附后 offset)。
+- 验证: verifier/v251; tsc -b 通过。
+
+## v252 左下角时间/百分比播放中实时刷新
+- 需求: soulten「左下角的資訊在播放時不會改變」(显示类4, bug)。
+- 根因: BottomTimeline 只用 useEditor() 订阅; 播放逐帧走独立通道 playbackFrameVersion
+  (v245 性能设计, 不 bump 主 version), 播放中左下角文本静止。
+- 修复: BottomTimeline 增加 usePlaybackFrame() (与 TimingPanel 既有模式一致)。
+- 验证: verifier/v252; tsc -b 通过。
+
+## v253 帧数显示开关 (显示设置)
+- 需求: soulten「fps顯示開關」(没那么重要1, 用户要求提前做)。
+- 实现: displaySettings.showFps (默认 true 保持 v220 行为) + 显示设置面板开关行
+  + App.tsx 按开关条件挂载 FpsCounter (关 = 完全不挂载)。
+- 验证: verifier/v253; tsc -b 通过。
+
+## v254 选中包围框 (黄框) 开关 (显示设置)
+- 需求: soulten「增加黃框開關」(显示类2)。
+- 实现: displaySettings.selectionBounds (默认 true 保持 v49 行为) + 显示设置面板开关行
+  + EditorCanvas 选中框整块 (v49 黄框 + 缩放/旋转手柄) 门控; 物件选中效果本身不受影响。
+- 验证: verifier/v254; tsc -b 通过。
+
+## v255 上下时间轴半透明开关 (显示设置)
+- 需求: soulten「上下時間軸UI半透明」(显示类3)。
+- 实现: displaySettings.timelineTransparent (默认 true = 更透 alpha≈0.4, 关 = v129 的 0.7 暗底)。
+  触点: 上时间轴帧填充 / 下时间轴静态层 (缓存 key 含开关, 切换即重建) / 无谱面分支 /
+  底栏容器 / 右上信息面板 (后两者改内联样式读 displaySettings)。
+- 验证: verifier/v255; tsc -b 通过。
+
+## v256 播放按钮配色改低调
+- 需求: soulten「右下角的播放按鈕怎麼特別紅...」(没那么重要5)。
+- 实现: bg-pink-500/hover:bg-pink-400 → bg-white/10/hover:bg-white/20 (与回到开头按钮一致)。
+- 验证: verifier/v256; tsc -b 通过。
+
+## v257 stable 滑条控制点再缩小
+- 需求: soulten「stable滑條點有點肥」「點還是有點肥」(没那么重要2)。
+- 历史: 16 → 5/k (v231) → 10/k (边长翻倍对齐 stable ~8x8) → v257 改 7/k
+  (stable 实测 ~8x8 含描边; 7/k 填充 + 1/k 居中描边 ≈ 8px 总宽)。
+- 验证: verifier/v257; tsc -b 通过。
+
+## v258 数值输入框 Adobe 式拖动调值
+- 需求: soulten「增加數值的控制方法」(机制类1) —「可以做成adobe那樣按住數字就可以靠滑鼠
+  水平方向移動改變數值, 會比放一個小滑條好調」。
+- 实现: DraggableDialog 的 DraftNum (7 个对话框 45 处共用的数字输入组件) 加 pointer 拖动:
+  pointerdown 记录起点并 setPointerCapture; 3px 阈值进入拖动 (不影响点击聚焦/选字);
+  1px = 1 step, Shift ×10, Alt ×0.1; 按 step 小数位取整防 0.30000000004;
+  拖动中光标 ew-resize 且阻止文本选择; 抬起后 blur 退出草稿态回显最终值。
+- 范围: 仅 DraftNum 覆盖的转换对话框; 裸 input (TimingPanel/Inspector/SetupPage/GeoSnapPanel) 后续补。
+- 验证: verifier/v258; tsc -b 通过。
+
+## v259 hover 滑条点预览 (stable 同款)
+- 需求: soulten「游標在滑條上的時候顯示其滑條點」「滑上去時想要跟stable一樣會預覽滑條的點」(机制类3)。
+- 实现: renderer.ts 控制点连线+手柄抽为导出函数 drawSliderControlPoints (选中装饰/hover 共用);
+  EditorCanvas onMouseMove 选择工具 + 非拖拽 + 无对话框时 hitTest 记录 hoverSliderRef
+  (仅未选中滑条); 渲染循环叠加画控制点 (alpha 0.75 区别于选中态, 含堆叠偏移); 出画布清除。
+- 验证: verifier/v259; tsc -b 通过。
+
+## v260 右上角详细信息显示选中滑条点
+- 需求: soulten「右上角的詳細資訊不會顯示滑條點的資訊」(机制类6)。
+- 实现: SelectionInfoPanel 在 nodeSelectionCount > 0 时改显示节点列表
+  (标题「滑条点 ×N」+ 每节点 #序号/红白锚点/x,y 坐标, 最多 3 行 + 计数);
+  索引语义与 EditorCanvas 节点选中同源: ctrl = [头, ...curvePoints], 红 = 与前一点同坐标。
+- 验证: verifier/v260; tsc -b 通过。
+
+## v261 恢复播放防闪回
+- 需求: soulten「暫停後撥放的瞬間 會突然顯示更早時間軸的畫面」。
+- 根因: play() 锚定 startW = ctx 现在 +20ms 启动 (v216 确定性锚定), positionMs 渲染取
+  heardNowMs = rawNow - outputLatency (~5-40ms) — 启动后最初几帧渲染位置比暂停点早几十 ms。
+- 修复: play() 记录 resumeFloorMs = 暂停点; positionMs 钳制渲染位置不低于该下限,
+  时钟自然超过后自清; pause() 清除。hitsound 排程走 rawNowMs/ctxTimeForMapTime 不受影响。
+- 验证: verifier/v261; tsc -b 通过。
+
+## v263 窗口条隐藏 (Electron)
+- 需求: soulten「視窗條隱藏」「再許個願 視窗條可以隱藏」(显示类6)。
+- 实现: 显示设置面板 Electron 专属开关 → preload setHideTitleBar → IPC set-hide-title-bar
+  写 settings.json; createWindow 读 hideTitleBar → titleBarStyle:'hidden' + titleBarOverlay
+  (#101016 底/白图标, 保留原生最小/最大/关闭); 页签栏兼作拖拽区 (-webkit-app-region: drag,
+  各按钮 no-drag, 右侧留白 140px 避开 overlay); 重启后生效 (titleBarStyle 只能建窗时指定)。
+- 注: v262 (stable 选中框样式) 经与用户确认暂缓 — 差异点需先对齐 stable 客户端实测。
+- 验证: verifier/v263; tsc -b 通过。
+
+## v264 拖动滑条点性能优化 (用户反馈 100fps)
+- 需求: soulten「移動滑條點的時候剩下100fps」。
+- profile (verifier/v264/profile-nodedrag.mjs, 2000 物件谱面单滑条节点拖动画圆 3s, CDP+CPU Profiler):
+  优化前 83.8fps / busyAvg 8.23ms — 热点: getBoundingClientRect (每 mousemove + 每帧多次),
+  dirtyFingerprint (commitDrag→emit 全表指纹 O(n)), React 全树重渲 (每 mousemove 全量 emit),
+  dataVersion 失效 (堆叠偏移/combo/下时间轴静态层/hitsound 事件表)。
+- 修复:
+  1) uiZoom.zoomRect 缓存 (WeakMap + resize/scroll 失效 + 2s TTL; 画布为 v129 浮层布局, rect 仅窗口变化时变);
+  2) 节点拖动 rAF 节流 — mousemove 只记 pending 最新光标, 帧循环每帧最多应用一次
+     (applyNodesMoveDrag/applyNodeDrag 抽出), mouseup 落点补齐;
+  3) store.commitDragFrame 轻量逐帧提交 — bump version (v250 装饰层键跟随) 但不 bump dataVersion
+     且不算脏指纹; 拖拽结束 mouseup 走完整 commitDrag() 补齐 (hitsound 事件表/脏标记)。
+- 实测: 83.8 → 193.7fps, busyAvg 8.23 → 1.04ms (dev 模式 jsxDEV 占残余热点大头, 生产 exe 更高)。
+- 验证: verifier/v264 (check + profile); tsc -b 通过。
+
+## v265 Alt 框选只选滑条点 (忽略 hit circle/slider)
+- 需求: soulten「然後alt框選就只框選滑條點吧? 忽略hit circle跟slider」。
+- 根因: setSelectedNodes/toggleSelectedNode 把节点所在滑条自动并入 store.selected
+  → 蓝框选中标记 (用户截图), 且 Delete 会误删整条滑条。
+- 修复: 两个节点选区 API 不再并入物件选区; Alt 层进入时清空已有物件选区;
+  渲染补画 — 对有选中节点但物件未选中的滑条画控制多边形/手柄 (原靠并入触发 drawSelectionDecor;
+  与 v259 hover 预览同一 drawSliderControlPoints)。
+- 适配: v117 (并入断言反转)。
+- 验证: verifier/v265 + verifier/v266/cdp-v266.mjs (E2E: 框内 circle 不选, 物件选区为空); tsc -b 通过。
+
+## v266 拖已选滑条点移动整组 + Alt 点击切换节点选中
+- 需求: soulten「框選兩個或以上滑條點時 用游標移動其中一個滑條點就能移動整個框選組,
+  然後alt的功能就可以變成選取更多滑條點或著取消已經選取的滑條點」。
+- 旧模型 (v117): Alt+点击节点 = 重置选区并开始拖动; Alt+Shift/Ctrl+点击 = 切换。
+- 新模型: Alt+点击 = 纯切换 (加选/取消, 不拖动); 普通 (无修饰键) 拖拽已选节点 = 整组移动
+  (走 nodesMoveDragRef, 红锚点伙伴/吸附/阈值与旧 Alt 拖动一致); Alt+空白拖动 = 节点框选 (不变)。
+- 验证: verifier/v266 (check + cdp E2E: 整组同 delta 移动/Alt 点击取消与重新加选); tsc -b 通过。
+
+## v267 选中多个滑条节点时黄框恢复显示
+- 需求: 用户反馈「选中多个滑条节点时的黄框消失了, 导致无法对选中的节点旋转/缩放」。
+- 根因: v265 起节点选区不再并入物件选区 (selectedNodes 独立), 而 v49 黄框门控只看
+  store.selected.size > 0 — 纯节点选区时门控为假, 黄框与旋转/缩放手柄整组消失。
+- 修复: EditorCanvas 黄框门控补上 store.nodeSelectionCount > 0
+  (currentQuads/手柄命中本身已支持节点层, 见 v117, 无需改)。
+- 适配: v254 (门控断言扩展为物件选区或节点选区)。
+- 验证: verifier/v267; tsc -b 通过。
+
+## v268 详细信息滑条点改首末节点距离
+- 需求: 用户反馈「详细信息显示滑条点需要显示所有节点中最前一个节点距离前一个节点的距离,
+  与最后一个节点距离后一个节点的距离, 而不是现在每个节点」。
+- 实现: SelectionInfoPanel v260 逐节点列表替换为 nodeInfo — 滑条点 ×N /
+  前 #i← Npx (最前选中节点到前一节点) / 后 #j→ Npx (最后选中节点到后一节点);
+  跨滑条按物件时间排序取两端, 无端点显示 —; 索引语义不变 (ctrl=[头,...curvePoints])。
+- 适配: v260 (逐节点列表断言替换为首末距离断言)。
+- 验证: verifier/v268; tsc -b 通过。
+
+## v269 数值框拖动调值敏感度 5px = 1 step
+- 需求: 用户反馈「数值框拖动调值的敏感度太高了, 调成默认5像素1step」。
+- 实现: DraggableDialog DraftNum 拖动公式 d.v0 + dx * step * mult → d.v0 + (dx / 5) * step * mult
+  (v258 原 1px = 1 step 太敏感; Shift ×10 / Alt ×0.1 倍率与 3px 点击阈值不变)。
+- 适配: v258 (公式断言更新)。
+- 验证: verifier/v269; tsc -b 通过。
+
+## v270 游玩区预留还原 (铺满方案被否决)
+- 经过: v270 初版把「时间轴半透明」开启时 viewTransform 预留改为 0 (游玩区铺满全画布,
+  让物件透到面板后面); 用户反馈「不该调整为游玩区铺满全画布, 还原成给上下时间轴预留
+  111px/92px」→ 已还原 v129 固定预留。半透明无效的真正根因与修复见 v271。
+- 适配: v129/v130 断言随之还原。
+- 验证: verifier/v270 (还原确认); tsc -b 通过。
+
+## v271 时间轴半透明减淡波形底/暗化层 (修复「底色是纯黑的」)
+- 需求: 用户反馈「时间轴半透明仍然无效, 上下两个时间轴的底色是纯黑的」。
+- 根因: v255 只降了时间轴 canvas 底 alpha (0.4), 但波形链路还有两层暗色叠加 —
+  上时间轴 = WAVE_BG rgba(20,20,20,0.55) + drawDimOverlay rgba(8,8,12,0.5),
+  透过率 0.45*0.5 ≈ 22%, 叠在 #111116 画布底色上观感纯黑;
+  下时间轴 = canvas 底 0.4 + 容器 div 0.4, 透过率 36%。
+- 修复 (半透明开关「开」时, 「关」保持原值): waveformDraw WAVE_BG 0.55→0.25 (waveBg()),
+  SPECTRO_BG_ALPHA 140→70 (spectroBgAlpha()), SpectroScroll 缓存键补 bgA (开关切换即重建离屏);
+  Timelines drawDimOverlay 0.5→0.2; 下时间轴容器 div 0.4→0.25。
+- 适配: v105 (频谱像素公式 bgA 变量化), v111 (SpectroScroll 接口补 bgA), v129 (容器 alpha)。
+- 验证: verifier/v271; tsc -b 通过; build 通过。
+
+## v272 时间轴半透明 alpha 再降 (修复「还是会遮挡物件」)
+- 需求: 用户反馈「上下时间轴还是会遮挡物件, 上时间轴开启波形图后倒是有点透明」
+  (截图: 下时间轴带完全遮住大圆环; 上时间轴波形模式隐约透出物件)。
+- 分析: v271 后透过率 — 上时间轴 0.6 / 下时间轴 0.45, 白色物件仍太暗, 观感=遮挡。
+- 修复 (半透明开关「开」时, 「关」保持原值, 全部再降一档): 上时间轴帧填充 0.4→0.15;
+  下时间轴静态层/无谱面分支 0.4→0.15; 容器 div 0.25→0.1; SelectionInfoPanel 0.4→0.15;
+  波形底 0.25→0.12; 频谱底 70→40; 暗化层 0.2→0.1。
+  现透过率: 上无波形 0.85 / 波形模式 ≈0.79 / 下时间轴 ≈0.77。
+- 适配: v255/v129/v271 断言更新到终值。
+- 验证: verifier/v272; tsc -b 通过; build 通过。
+
+## v273 选中物件当前时间不可见时仍可交互
+- 需求: 用户反馈「选中物件后, 即使点击的选中物件当前时间不可见, 也需要能交互
+  (拖动等所有适用于当前可见物件的交互)」。
+- 根因: hitTest 命中候选只含 isVisibleAt 可见物件 — 不可见的选中物件有选中装饰层
+  (drawSelectionDecor 不过滤可见性, 蓝框可见) 却点不中。
+- 修复: EditorCanvas 两处放开已选例外 —
+  1) hitTest 候选 = 可见物件 ∪ 已选中物件 (v171 已选优先语义不变, 未选中不可见物件仍不可点);
+  2) v266 整组节点拖的滑条候选同样放开已选节点所在滑条 (节点选区独立于物件选区, v265)。
+  框选 (物件/节点) 仍只框可见物件 (v45/v117 语义不变)。
+- 适配: v266 (grp 截取窗口 900→1300, v273 插入注释所致)。
+- 验证: verifier/v273; tsc -b 通过; build 通过。
+
+## v274 上下时间轴每帧清画布 (残影 + 半透明累积成不透明的真根因)
+- 需求: 用户反馈「v272改动导致播放时上方时间轴有残影, 且上下时间轴仍然完全不透明」。
+- 根因: TopTimeline/BottomTimeline 的 draw 循环从不 clearRect — v246 后 backing 尺寸不变时
+  canvas 位图保留, 半透明底 fillRect 每帧 source-over 叠加:
+  · alpha 0.4/0.72 时 3~5 帧收敛到≈不透明黑 = 历轮「半透明无效/底色纯黑」的主因
+    (v270/v271/v272 降 alpha 都只延缓收敛; 波形开时"有点透明"是因 drawWave 内部有 clearRect);
+  · alpha 降到 0.15 (v272) 后收敛变慢 (残量 0.85^n), 移动物件拖出残影尾巴。
+- 修复: 两个 draw 循环开头 setTransform(identity) + clearRect 全画布, 再进 css px 坐标系。
+- 验证: verifier/v274; tsc -b 通过; build 通过。
+
+## v275 旋转/缩放拖拽中选中装饰层实时跟随
+- 需求: 用户反馈「旋转/缩放选中物件时, 物件选中效果没有跟着动」(截图: 物件已变形,
+  黄框跟随, 但选中描边停在原位)。
+- 根因: drawSelectionLayer 是缓存层 (v246), key 含 cacheKey = String(store.getVersion()) (v250);
+  而 applyScaleUpdate/applyRotateUpdate/applyNodeScaleUpdate/applyNodeRotateUpdate 四个拖拽应用函数
+  只改数据 + invalidatePath, 从不 bump version → key 不变 → 装饰层停在 Begin 快照位置
+  (物件本体每帧重画、黄框每帧从 currentQuads 实时算, 所以只有缓存装饰层不动)。
+- 修复: 四个函数末尾 moved 时走 store.commitDragFrame() 轻量逐帧提交 (v264 通道:
+  bump version 但不 bump dataVersion/不算脏指纹); mouseup 仍走完整 commitDrag() 不变。
+- 验证: verifier/v275; tsc -b 通过; build 通过。
+
+## v276 已聚焦输入框内框选文字不触发拖动调值
+- 需求: 用户反馈「框选输入框中数字时不要触发左右拖动数值」。
+- 根因: v258 DraftNum pointerdown 无条件 setPointerCapture + 记拖动起点 — 已聚焦输入框内
+  拖动 (想框选数字) 超 3px 即被接管为调值, preventDefault 阻止选字。
+- 修复: pointerdown 时若输入框已聚焦 (document.activeElement === currentTarget) 直接 return,
+  拖动留给原生文本选择; 调值只在未聚焦输入框上按下拖动 (= 点击即聚焦的那次交互)。
+- 验证: verifier/v276; tsc -b 通过; build 通过。
+
+## v277 框选进行中时间改变时保留已选中但不可见的物件/节点
+- 需求: 用户反馈「框选物件时如果时间改变, 不要取消选中哪些已选中但当前时间不可见的物件」。
+- 根因: 框选拖动每帧重算选区 = 按下时 base + 当前框内「可见」物件 (v45); 框选进行中
+  播放/滚轮/边缘滚动改变时间后, 之前框进但已不可见的物件掉出重算结果 = 被取消选中。
+- 修复: 重算时并入「已选中但当前不可见」的物件 (物件框选 keepHidden) 与
+  「所在滑条不可见的已选节点」 (节点框选 keepNodes, 经 nodeEntries);
+  可见物件的反向框选取消语义不变 (可见物件不进 keep 集)。
+- 验证: verifier/v277; tsc -b 通过; build 通过。
+
+## v278 网格吸附旋转角度与网格中心持久化 (重启恢复)
+- 需求: 用户反馈「加上记住网格吸附旋转角度和网格中心的功能, 关闭exe后下次打开能恢复成上次设置的样子」。
+- 实现: store.ts 新增 LS_GRID_SETTINGS = 'osu-editor:grid-settings' (localStorage, Electron 同样持久):
+  loadGridSettings 模块级加载 (rotation 钳 ±180 / origin 钳游玩区 / custom 布尔), 三个字段初始化
+  用持久化值; 新增 setGridRotation setter (App.tsx 两处直接字段赋值改走 setter),
+  setGridOrigin/setGridOriginCustom/setGridRotation 内 saveGridSettings() 即时写盘
+  (画布上网格中心标记拖拽经 setGridOrigin, 一并覆盖)。
+- 验证: verifier/v278; tsc -b 通过; build 通过。

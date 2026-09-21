@@ -3,10 +3,12 @@
 import { useState } from 'react';
 import { TriangleAlert } from 'lucide-react'; // v181: ⚠ → lucide
 import { store, useEditor } from '@/osu/store';
+import { useCounterZoom } from '@/osu/uiZoom';
 
 export function UnsavedDialog() {
   useEditor();
   const [saving, setSaving] = useState(false);
+  const cz = useCounterZoom(); // v249: 抗全局缩放
   const action = store.pendingAction;
   if (!action) return null;
   const m = store.beatmap?.metadata;
@@ -22,7 +24,7 @@ export function UnsavedDialog() {
 
   return (
     <div className="fixed inset-0 z-[60] bg-black/70 flex items-center justify-center" data-unsaved-dialog="root">
-      <div className="w-[420px] max-w-[92vw] bg-[#16161d] border border-[#333] rounded-lg p-5 shadow-2xl">
+      <div ref={cz.ref} style={cz.style} className="w-[420px] max-w-[92vw] bg-[#16161d] border border-[#333] rounded-lg p-5 shadow-2xl">
         <div className="text-sm font-semibold mb-1 flex items-center gap-1.5"><TriangleAlert className="w-4 h-4" />未保存的改动</div>
         <div className="text-xs text-slate-400 mb-4 break-all">
           当前谱面{title ? ` (${title})` : ''}有未保存的改动, 继续将丢失这些改动。

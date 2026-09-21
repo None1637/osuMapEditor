@@ -29,7 +29,7 @@ section('DraggableDialog.tsx: 初始居中');
   assert(/Math\.max\(0, Math\.round\(\(vw - w\) \/ 2\)\)/.test(src), '水平居中 + 钳 0');
   assert(/Math\.max\(0, Math\.round\(\(vh - h\) \/ 2\)\)/.test(src), '垂直居中 + 钳 0');
   assert(/useLayoutEffect/.test(src) && /pos === null/.test(src), '挂载后实测宽高居中一次 (pos===null 才执行)');
-  assert(/left: pos\?\.x \?\? -9999/.test(src), '测量前藏在屏外 (避免闪烁)');
+  assert(/left: pos \? pos\.x \/ fit : -9999/.test(src), '测量前藏在屏外 (避免闪烁); v249: 视觉px定位 (left = pos/fit, 反缩放后 视觉=布局×fit)');
   assert(!/useState\(\{ x: 120, y: 100 \}\)/.test(src), '不再有固定 (120,100) 落点');
 }
 

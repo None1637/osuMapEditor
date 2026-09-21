@@ -36,7 +36,7 @@ section('store.ts: 网格状态');
   const src = readSrc('src/osu/store.ts');
   assert(/gridSnap = false/.test(src), '开关默认关 (lazer TernaryState.False)');
   assert(/gridType: 'square' \| 'triangle' \| 'circle' \| 'none' = 'square'/.test(src), '类型默认正方形 (v119: +none 无网格)');
-  assert(/gridSpacing: number \| null = null/.test(src) && /gridRotation = 0/.test(src), '间距跟随 GridSize + 旋转 0');
+  assert(/gridSpacing: number \| null = null/.test(src) && /gridRotation = persistedGrid\.rotation/.test(src), '间距跟随 GridSize + 旋转默认 0 (v278 适配: 持久化恢复, 无存储时 def.rotation=0)');
 }
 
 section('EditorCanvas.tsx: 渲染 + 放置/拖拽接线');

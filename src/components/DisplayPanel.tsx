@@ -1,6 +1,8 @@
 // v132: 显示设置面板 (页签栏右侧「显示设置」按钮) — 开关行样式仿 GeoSnapPanel
+import { useEffect, useState } from 'react';
 import { store, useEditor } from '@/osu/store';
 import { displaySettings, type BoolDisplayKey, type StrDisplayKey } from '@/osu/displaySettings';
+import { getElectronAPI, isElectron } from '@/osu/electronBridge'; // v263: 窗口条隐藏开关 (Electron 专属)
 import { DraggableDialog } from './DraggableDialog';
 
 const ROWS: { key: BoolDisplayKey; name: string; desc: string }[] = [
@@ -11,6 +13,10 @@ const ROWS: { key: BoolDisplayKey; name: string; desc: string }[] = [
   { key: 'hitExplosion', name: 'note 点击特效 (Hit Explosion)', desc: '单点命中后暂留并放大淡出; 关闭则命中立即消失' },
   // v147
   { key: 'hitAnimation', name: 'note 打击动画 (Hit Animation)', desc: '命中后播放 240ms 放大淡出动画; 关闭则不放大, 命中后原大小残留 800ms 渐隐, 缩圈缩到圈边后向外反弹一点再停住 (osu!stable 编辑器同款; 需点击特效开启)' },
+  // v253/v254/v255
+  { key: 'showFps', name: '帧数显示 (FPS Counter)', desc: '右下角悬浮的实时帧数; 关闭则完全不挂载' },
+  { key: 'selectionBounds', name: '选中包围框 (Selection Bounds)', desc: '选中物件的黄色包围框与缩放/旋转手柄; 关闭则只显示物件选中效果' },
+  { key: 'timelineTransparent', name: '时间轴半透明 (Timeline Transparency)', desc: '上下时间轴背景更透明可透视游玩区; 关闭则为暗色不透明底' },
 ];
 
 // v231/v232: stable/lazer 二选下拉行 (布局仿下方 bgBrightness 的 custom 行)
@@ -23,6 +29,11 @@ const SELECT_ROWS: { key: StrDisplayKey; name: string; desc: string; options: ['
 
 export function DisplayPanel() {
   useEditor();
+  // v263: 窗口条隐藏 (Electron 专属; 写 settings.json, 重启后生效)
+  const [hideTitleBar, setHideTitleBar] = useState<boolean | null>(null);
+  useEffect(() => {
+    getElectronAPI()?.getSettings().then(s => setHideTitleBar(!!s.hideTitleBar)).catch(() => { });
+  }, []);
   return (
     <DraggableDialog title="显示设置" testid="display-panel" width={380} onClose={() => store.setDisplayPanelOpen(false)}>
       <div className="space-y-2.5">
@@ -68,6 +79,21 @@ export function DisplayPanel() {
             {displaySettings.bgBrightness}%
           </div>
         </div>
+        {/* v263: 窗口条隐藏 (Electron 专属; 重启后生效; 页签栏兼作拖拽区) */}
+        {isElectron() && hideTitleBar !== null && (
+          <div className="flex items-center gap-2.5" data-display-row="hideTitleBar">
+            <button onClick={() => { const v = !hideTitleBar; setHideTitleBar(v); getElectronAPI()?.setHideTitleBar(v).catch(() => { }); }}
+              data-display-toggle="hideTitleBar"
+              className={`w-9 h-5 rounded-full relative shrink-0 transition-colors ${hideTitleBar ? 'bg-sky-500' : 'bg-white/15'}`}
+              title={hideTitleBar ? '点击关闭' : '点击开启'}>
+              <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all ${hideTitleBar ? 'left-[18px]' : 'left-0.5'}`} />
+            </button>
+            <div className="min-w-0">
+              <div className={`text-xs ${hideTitleBar ? 'text-white/90' : 'text-white/45'}`}>隐藏窗口标题栏 (Hide Title Bar)</div>
+              <div className="text-[10px] text-white/40 leading-4">去掉系统标题栏, 保留右上角最小/最大/关闭; 页签栏空白处可拖动窗口; 重启后生效</div>
+            </div>
+          </div>
+        )}
         <div className="text-[10px] text-white/35 pt-1 border-t border-white/10">
           设置即时生效并自动记忆; 仅影响编辑器内显示, 不写入谱面文件。
         </div>

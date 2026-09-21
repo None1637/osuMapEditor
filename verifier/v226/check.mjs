@@ -21,7 +21,7 @@ const seekBody = src.slice(src.indexOf('seekWhilePlaying(t: number)'), src.index
 
 section('seekWhilePlaying: 硬切换 (常速支路)');
 {
-  assert(/const now = actx\.currentTime;\s*\n[\s\S]*?const startW = now \+ 0\.003;/.test(seekBody), '统一切换时刻 startW = now+3ms');
+  assert(/const now = actx\.currentTime;\s*\n[\s\S]*?const startW = Math\.round\(\(now \+ 0\.003\) \* sr\) \/ sr;/.test(seekBody), '统一切换时刻 startW = now+3ms (v251: 吸附到采样整数)');
   assert(/og\.cancelScheduledValues\(now\);/.test(seekBody), '旧 sourceGain 取消旧自动化');
   assert(/og\.setValueAtTime\(og\.value, now\);/.test(seekBody), '旧源从当前增益值起斜坡 (防跳变)');
   assert(/og\.linearRampToValueAtTime\(0, startW \+ 0\.002\)/.test(seekBody), '旧源 2ms 斜降到 0');

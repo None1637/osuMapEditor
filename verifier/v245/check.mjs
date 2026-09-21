@@ -38,7 +38,7 @@ section('renderer.ts: 选中装饰离屏层 + followPoint 缓存');
 section('EditorCanvas.tsx: 帧级 memo + 静态层');
 {
   const src = readSrc('src/components/EditorCanvas.tsx');
-  assert(/cacheKey: String\(store\.getDataVersion\(\)\)/.test(src), 'renderPlayfield 传 cacheKey (dataVersion)');
+  assert(/cacheKey: String\(store\.getVersion\(\)\)/.test(src), 'renderPlayfield 传 cacheKey (v250: getVersion — 拖动中原地改坐标只 bump version, dataVersion 做键会让装饰层停原位)');
   assert(/const getCombos = \(bmView: Beatmap\)/.test(src) && /comboRef\.current = \{ ver, bm: bmView, map: computeCombos\(bmView\) \}/.test(src),
     'computeCombos 帧级 memo');
   assert(/const quadsRef = useRef/.test(src) && /selectionSig\(\)/.test(src) && /quadsRef\.current = \{ key, bm, v \}/.test(src),

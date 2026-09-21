@@ -32,8 +32,8 @@ section('renderer.ts: 控制点手柄按 sliderPointStyle 分支');
   // v231 尺寸修正: 用户对照 stable 截图确认方格约 5 屏幕像素宽, 原 头14/其余12 过大, 统一为 5px
   // v231 尺寸修正: 屏幕像素目标 — 绘制时 g 带 dpr×zoom×scale 总变换, 从 getTransform 反算 osu 单位;
   // 实测 5/k 渲染约 4px, 用户对照 stable 截图确认目标 ~8x8, 边长翻倍为 10/k
-  assert(/const m = g\.getTransform\(\);/.test(src) && /const s = 10 \/ k;/.test(src) && /g\.lineWidth = 1 \/ k;/.test(src),
-    '方格边长 ~8 屏幕像素 (10/k 经 getTransform 反算, 描边同为 1 屏幕像素)');
+  assert(/const m = g\.getTransform\(\);/.test(src) && /const s = 7 \/ k;/.test(src) && /g\.lineWidth = 1 \/ k;/.test(src),
+    '方格边长 ~8 屏幕像素 (7/k 经 getTransform 反算 + 1/k 描边 ≈ 8px 总宽)'); // v257 适配: 10/k→7/k (用户反馈仍偏肥)
   assert(/g\.beginPath\(\); g\.arc\(x, y, isHead \? 7 : 6, 0, Math\.PI \* 2\); g\.fill\(\); g\.stroke\(\);/.test(src), 'lazer = 旧圆点行为保留');
   // 连线宽度: stable 1 屏幕像素 (getTransform 反算), lazer 保持 2 osu 单位
   assert(/g\.lineWidth = 1 \/ \(Math\.hypot\(m\.a, m\.b\) \|\| 1\);/.test(src) && /\} else \{\s*g\.lineWidth = 2;/.test(src),

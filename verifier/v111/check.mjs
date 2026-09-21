@@ -30,7 +30,7 @@ assert(/v184: 谱面信息从游玩区左下角移到页签栏/.test(app), 'v184
 assert(/export function spectroScrollStep/.test(wd), 'waveformData 导出 spectroScrollStep 纯函数');
 assert(/imgT0 \+ \(dx \* win\) \/ width/.test(wd), 'spectroScrollStep: newImgT0 = imgT0 + dx*win/width (残差留在 imgT0)');
 assert(/spectroScrollStep/.test(wp), 'drawSpectro 使用 spectroScrollStep');
-assert(/interface SpectroScroll \{ cv: HTMLCanvasElement; imgT0: number; win: number; w: number; h: number \}/.test(wp), '滚动缓存类型 = imgT0 簿记 (v127: SpectroScroll 接口)');
+assert(/interface SpectroScroll \{ cv: HTMLCanvasElement; imgT0: number; win: number; w: number; h: number; bgA: number \}/.test(wp), '滚动缓存类型 = imgT0 簿记 (v127: SpectroScroll 接口; v271 适配: 补 bgA 缓存键)');
 assert(!/frac: number/.test(wp) && !/sc\.frac/.test(wp), '旧 frac 双簿记已移除');
 assert(/renderSpectroStrip\(sc\.cv, buf, newImgT0/.test(wp), '新露出列按位图自身时间基准 newImgT0 采样 (接缝无时间差)');
 assert(/spectroScrollStep, WAVEFORM_VISUAL_OFFSET_MS \} from '.\/waveformData'/.test(wp) && !/pixelShift \} from '.\/waveformData'/.test(wp),

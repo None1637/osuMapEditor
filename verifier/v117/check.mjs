@@ -25,7 +25,7 @@ assert(/export function ctrlPoints/.test(ns) && /export function nearestNode/.te
 // store: 节点选区状态与 API
 assert(/selectedNodes = new Map<number, Set<number>>\(\);/.test(store), 'store: selectedNodes 字段');
 assert(/get nodeSelectionCount\(\)/.test(store), 'store: nodeSelectionCount');
-assert(/for \(const id of m\.keys\(\)\) this\.selected\.add\(id\);/.test(store), 'setSelectedNodes: 节点所在滑条自动并入物件选区');
+assert(!/for \(const id of m\.keys\(\)\) this\.selected\.add\(id\);/.test(store), 'setSelectedNodes: 不并入物件选区 (v265 适配: Alt 只选滑条点, 原并入致蓝框+Delete 误删整条滑条)');
 assert(/clearNodeSelection\(\)/.test(store), 'store: clearNodeSelection');
 
 // EditorCanvas: 四个拖拽 ref + currentQuads 分流
@@ -50,13 +50,13 @@ assert((cv.match(/if \(store\.nodeSelectionCount\) \{\s*const orig = snapshotNod
 // EditorCanvas: mousemove 三分支
 assert(/applyNodeRotateUpdate\(cp, e\.shiftKey\)/.test(cv), 'mousemove: 节点旋转拖拽');
 assert(/applyNodeScaleUpdate\(cp, e\.shiftKey, e\.altKey\)/.test(cv), 'mousemove: 节点缩放拖拽');
-assert(/store\.setSelectedNodes\(\[\.\.\.nmq\.base, \.\.\.nodesInRect/.test(cv), 'mousemove: 节点框选实时更新');
+assert(/store\.setSelectedNodes\(\[\.\.\.nmq\.base, \.\.\.keepNodes, \.\.\.nodesInRect/.test(cv), 'mousemove: 节点框选实时更新 (v277 适配: 保留不可见滑条的已选节点)');
 assert(/transformNodesFromSnapshot\(bm, nmd\.orig, pt => \(\{ x: pt\.x \+ dx, y: pt\.y \+ dy \}\)\)/.test(cv), 'mousemove: 节点整体平移');
 
 // EditorCanvas: 收尾 (canvas mouseup + window mouseup)
 assert((cv.match(/if \(nodeScaleDragRef\.current\.moved\) store\.commitDrag\(\); else store\.undo\(\);/g) || []).length === 2, 'nodeScaleDrag 收尾 x2 (canvas + window)');
 assert((cv.match(/if \(nodeRotateDragRef\.current\.moved\) store\.commitDrag\(\); else store\.undo\(\);/g) || []).length === 2, 'nodeRotateDrag 收尾 x2 (canvas + window)');
-assert(/if \(nodesMoveDragRef\.current\.moved\) store\.commitDrag\(\); else store\.undo\(\);/.test(cv), 'nodesMoveDrag 收尾 (未拖动弹空快照)');
+assert(/if \(nmd\.moved\) store\.commitDrag\(\); else store\.undo\(\);/.test(cv), 'nodesMoveDrag 收尾 (未拖动弹空快照)'); // v264 适配: 落点补齐后取局部 nmd
 
 // EditorCanvas: 渲染 (高亮环 / 框选矩形 / 提示)
 assert(/if \(store\.nodeSelectionCount\) \{\s*const offs = getStackOffsets\(bm\);\s*const rr = 10 \/ scale;/.test(cv), '渲染: 选中节点黄环');

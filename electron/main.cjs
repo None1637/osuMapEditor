@@ -107,7 +107,14 @@ ipcMain.handle("get-settings", () => {
     skinName: s.skinDir ? path.basename(s.skinDir) : null,
     firstRun: !dirExists(s.songsDir),
     suggestedOsuPath: dirExists(suggested) ? suggested : null,
+    hideTitleBar: !!s.hideTitleBar, // v263: 窗口条隐藏开关 (重启生效)
   }
+})
+
+// v263: 窗口条隐藏 — 显示设置面板开关写入 settings.json, 下次启动 createWindow 读取生效
+ipcMain.handle("set-hide-title-bar", (_e, b) => {
+  writeSettings({ ...readSettings(), hideTitleBar: !!b })
+  return !!b
 })
 
 // v94: 最近难度列表 (渲染端启动时取 recents[0] 自动恢复上次谱面)
@@ -148,10 +155,15 @@ ipcMain.on("close-confirmed", () => { isDirty = false; win?.close() })
 
 async function createWindow() {
   const port = await startServer()
+  // v263: 窗口条隐藏 (显示设置面板开关 → settings.json hideTitleBar, 重启生效) —
+  // titleBarStyle hidden 去标题栏但保留原生最小/最大/关闭 (Windows 经 titleBarOverlay 着色贴近应用底色;
+  // 页面侧拖拽区 = 页签栏, 见 App.tsx [-webkit-app-region])
+  const frameless = !!readSettings().hideTitleBar
   win = new BrowserWindow({
     width: 1440,
     height: 900,
     backgroundColor: "#101016",
+    ...(frameless ? { titleBarStyle: "hidden", titleBarOverlay: { color: "#101016", symbolColor: "#e8e8f0", height: 32 } } : {}),
     webPreferences: {
       preload: path.join(__dirname, "preload.cjs"),
       contextIsolation: true,

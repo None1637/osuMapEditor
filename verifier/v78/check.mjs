@@ -25,8 +25,8 @@ fs.unlinkSync(out);
 section('store.ts: 网格中心状态');
 {
   const src = readSrc('src/osu/store.ts');
-  assert(/gridOrigin: Pt = \{ x: 256, y: 192 \}/.test(src), 'gridOrigin 默认游玩区中心');
-  assert(/gridOriginCustom = false/.test(src), 'gridOriginCustom 默认关');
+  assert(/gridOrigin: Pt = persistedGrid\.origin/.test(src) && /origin: \{ x: 256, y: 192 \}/.test(src), 'gridOrigin 默认游玩区中心 (v278 适配: 持久化恢复, 无存储时 def.origin=256,192)');
+  assert(/gridOriginCustom = persistedGrid\.custom/.test(src) && /custom: !!p\.custom/.test(src), 'gridOriginCustom 默认关 (v278 适配: 持久化恢复, 无存储时 def.custom=false)');
   assert(/setGridOrigin\(p: Pt\)/.test(src) && /Math\.round\(p\.x\)/.test(src), 'setGridOrigin 取整');
   assert(/setGridOriginCustom\(b: boolean\)/.test(src), 'setGridOriginCustom');
   assert(/currentGridOrigin\(\): Pt \{ return this\.gridOriginCustom \? this\.gridOrigin : GRID_ORIGIN; \}/.test(src), 'currentGridOrigin: custom ? gridOrigin : GRID_ORIGIN');

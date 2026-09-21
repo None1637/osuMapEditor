@@ -35,6 +35,7 @@ import { SkinListPanel } from '@/components/SkinListPanel';
 import { UnsavedDialog } from '@/components/UnsavedDialog'; // v120
 import { TransformDialog } from '@/components/TransformDialog'; // v209: 旋转/缩放独立窗口
 import { FpsCounter } from '@/components/FpsCounter'; // v220: 右下角帧数显示
+import { displaySettings } from '@/osu/displaySettings'; // v253: 帧数显示开关
 
 // v191: 工具按钮文本前加 Lucide 图标
 const TOOLS: { id: Tool; label: string; key: string; icon: typeof MousePointer2 }[] = [
@@ -140,12 +141,17 @@ export default function App() {
   // 首跑向导完成后自增, 强制重挂载曲库面板 → 用刚保存的配置重新扫描
   // (面板在向导出现前已挂载, 仅靠 setShowLibrary(true) 不会重跑恢复逻辑)
   const [libraryKey, setLibraryKey] = useState(0);
+  // v263: 窗口条隐藏 (Electron, 重启生效) — 生效时页签栏兼作窗口拖拽区, 右侧留白避开原生窗口按钮
+  const [hideTitleBar, setHideTitleBar] = useState(false);
 
   // Electron: 首跑 (曲库目录未配置) 显示配置向导; 菜单"重新配置"也可再次打开
   useEffect(() => {
     const api = getElectronAPI();
     if (!api) return;
-    api.getSettings().then(s => { if (s.firstRun) setShowWizard(true); }).catch(() => { });
+    api.getSettings().then(s => {
+      if (s.firstRun) setShowWizard(true);
+      setHideTitleBar(!!s.hideTitleBar); // v263
+    }).catch(() => { });
     api.onOpenSetup(() => setShowWizard(true));
   }, []);
 
@@ -413,14 +419,19 @@ export default function App() {
       {/* v127: 原 h-12 顶部标题行 (粉色加粗标题文字) 已删除 — 无实际功能 */}
 
       {/* 页签栏 (stable 风格大页签: compose / timing / song setup) */}
-      <div className="flex items-stretch gap-1 px-3 bg-[#101016] border-b border-white/10 shrink-0">
+      {/* v263: 窗口条隐藏生效时, 页签栏兼作窗口拖拽区 (-webkit-app-region: drag), 各按钮 no-drag,
+          右侧留白 ~140px 避开 titleBarOverlay 的原生最小/最大/关闭按钮 */}
+      <div className="flex items-stretch gap-1 px-3 bg-[#101016] border-b border-white/10 shrink-0"
+        style={hideTitleBar ? { WebkitAppRegion: 'drag', paddingRight: 140 } as CSSProperties : undefined}>
         {([['edit', 'compose'], ['timing', 'timing']] as const).map(([id, label]) => (
           <button key={id} onClick={() => setTab(id)}
+            style={{ WebkitAppRegion: 'no-drag' } as CSSProperties}
             className={`px-7 py-2 text-lg tracking-wide transition-colors ${tab === id ? 'bg-[#2563eb] text-white font-bold rounded-t-md mt-1' : 'text-white/45 hover:text-white/80'}`}>
             {label}
           </button>
         ))}
         <button onClick={() => setTab('setup')}
+          style={{ WebkitAppRegion: 'no-drag' } as CSSProperties}
           className={`px-7 py-2 text-lg tracking-wide transition-colors ${tab === 'setup' ? 'bg-[#2563eb] text-white font-bold rounded-t-md mt-1' : 'text-white/45 hover:text-white/80'}`}>
           song setup
         </button>
@@ -446,12 +457,14 @@ export default function App() {
         {/* v144: 音量设置 — 显示设置左侧按钮 (主音量/歌曲音量/音效音量) */}
         <button onClick={() => store.setVolumePanelOpen(!store.volumePanelOpen)}
           data-volume-panel-btn
+          style={{ WebkitAppRegion: 'no-drag' } as CSSProperties}
           className={`self-center px-3 py-1 rounded text-sm transition-colors ${store.volumePanelOpen ? 'bg-red-500/40 border border-red-400/50' : 'bg-white/10 hover:bg-white/20'}`}
           title="音量设置: 主音量 / 歌曲音量 / 音效音量">
           <Volume2 className="inline-block w-4 h-4 mr-1 -mt-0.5" />音量
         </button>
         <button onClick={() => store.setDisplayPanelOpen(!store.displayPanelOpen)}
           data-display-panel-btn
+          style={{ WebkitAppRegion: 'no-drag' } as CSSProperties}
           className={`self-center px-3 py-1 rounded text-sm transition-colors ${store.displayPanelOpen ? 'bg-red-500/40 border border-red-400/50' : 'bg-white/10 hover:bg-white/20'}`}
           title="显示设置: 皮肤颜色 / 滑条轨迹线 / 缩圈 / 滑条渐出 / note 点击特效 开关">
           <Eye className="inline-block w-4 h-4 mr-1 -mt-0.5" />显示设置
@@ -571,7 +584,7 @@ export default function App() {
               onChange={e => {
                 store.gridType = e.target.value as 'square' | 'triangle' | 'circle' | 'none'; // v119: none = 无网格
                 const period = rotationPeriod(store.gridType); // lazer: 切换类型按周期归一旋转 (正方形 ±45, 三角形 ±30)
-                if (period !== null) store.gridRotation = normalizeRotation(store.gridRotation, period);
+                if (period !== null) store.setGridRotation(normalizeRotation(store.gridRotation, period)); // v278: 走 setter 持久化
                 store.emit();
               }}
               className="flex-1 min-w-0 bg-black/40 border border-white/15 rounded px-1.5 py-1 text-sm" title="网格类型 (lazer PositionSnapGridType; v119: 无网格 = 显示/吸附全关, 贴近游玩表现)">
@@ -592,7 +605,7 @@ export default function App() {
                 value={Math.round(store.gridRotation * 10) / 10}
                 onChange={e => {
                   const v = parseFloat(e.target.value);
-                  if (isFinite(v)) { store.gridRotation = Math.max(-180, Math.min(180, v)); store.emit(); }
+                  if (isFinite(v)) store.setGridRotation(Math.max(-180, Math.min(180, v))); // v278: 走 setter 持久化 (内含 emit)
                 }}
                 className="w-14 bg-black/40 border border-white/15 rounded px-1 py-0.5 text-right disabled:opacity-30" />
               °
@@ -750,8 +763,8 @@ export default function App() {
       {/* v120: 未保存改动提示 (z 层级最高, 盖住曲库等弹窗) */}
       <UnsavedDialog />
     </div>
-    {/* v220: 右下角帧数显示 — 悬浮于所有控件之上; 挂在 v217 zoom 容器外, 不随界面缩放 */}
-    <FpsCounter />
+    {/* v220: 右下角帧数显示 — 悬浮于所有控件之上; 挂在 v217 zoom 容器外, 不随界面缩放; v253: 显示设置可关 */}
+    {displaySettings.showFps && <FpsCounter />}
     </div>
   );
 }

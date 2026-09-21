@@ -32,4 +32,6 @@ contextBridge.exposeInMainWorld("osuEditor", {
   openBackupFolder: (info) => ipcRenderer.invoke("open-backup-folder", info),
   // v209: 编辑菜单置灰状态 (有谱面/有选中/剪贴板有内容)
   menuEditState: (s) => ipcRenderer.send("edit-menu-state", s),
+  // v263: 窗口条隐藏开关 (写 settings.json, 重启生效)
+  setHideTitleBar: (b) => ipcRenderer.invoke("set-hide-title-bar", b),
 })

@@ -329,9 +329,10 @@ function drawControlPointHandle(g: CanvasRenderingContext2D, x: number, y: numbe
   if (displaySettings.sliderPointStyle === 'stable') {
     // 10px 是屏幕像素目标: g 带 dpr×zoom×scale 总变换, 从当前矩阵反算 osu 单位边长与描边宽
     // (实测 5/k 渲染约 4px, 用户对照 stable 截图确认目标 ~8x8 → 边长翻倍为 10/k)
+    // v257: 用户反馈仍偏肥 — stable 实测 ~8x8 含描边, 边长改 7/k + 1px 居中描边 ≈ 8px 总宽
     const m = g.getTransform();
     const k = Math.hypot(m.a, m.b) || 1;
-    const s = 10 / k;
+    const s = 7 / k;
     g.lineWidth = 1 / k;
     g.fillRect(x - s / 2, y - s / 2, s, s);
     g.strokeRect(x - s / 2, y - s / 2, s, s);
@@ -348,6 +349,34 @@ function drawSelectionBox(g: CanvasRenderingContext2D, skin: Skin, x: number, y:
   if (!img) return;
   const s = r * 2 * hitcircleSpriteWidth(img) / 128;
   g.drawImage(img, x - s / 2, y - s / 2, s, s);
+}
+
+// v259: 控制点连线 + 手柄绘制抽为共用 — 选中装饰 (drawSelectionDecor) 与 hover 预览 (EditorCanvas) 复用
+// lazer PathControlPointConnection: 用 2px 白线 (PathRadius=1) 依次连接全部控制点,
+// 直观呈现贝塞尔/圆弧的控制多边形
+// v231: stable 控制点样式时连线改 1 屏幕像素 (与柄同 getTransform 反算); lazer 保持 2 osu 单位
+export function drawSliderControlPoints(g: CanvasRenderingContext2D, o: HitObject) {
+  const ctrl = [{ x: o.x, y: o.y }, ...(o.curvePoints ?? [])];
+  g.strokeStyle = '#ffffff'; g.globalAlpha *= 0.8;
+  if (displaySettings.sliderPointStyle === 'stable') {
+    const m = g.getTransform();
+    g.lineWidth = 1 / (Math.hypot(m.a, m.b) || 1);
+  } else {
+    g.lineWidth = 2;
+  }
+  g.beginPath();
+  ctrl.forEach((pt, j) => j === 0 ? g.moveTo(pt.x, pt.y) : g.lineTo(pt.x, pt.y));
+  g.stroke();
+  g.globalAlpha /= 0.8;
+  // 可拖拽的控制点手柄: 白色锚点, 重复点(红锚点)为红色
+  // v35: 倒序绘制 — 顺序在前的控制点渲染在更上层 (与命中优先级一致: 并列取序号在前);
+  // 红锚点重复对只画后一个 (红色), 前一个在正下方被完全遮住故跳过; 头部(idx 0)始终绘制
+  for (let idx = ctrl.length - 1; idx >= 0; idx--) {
+    const pt = ctrl[idx];
+    if (idx > 0 && idx < ctrl.length - 1 && ctrl[idx + 1].x === pt.x && ctrl[idx + 1].y === pt.y) continue;
+    const isRed = idx > 1 && ctrl[idx - 1].x === pt.x && ctrl[idx - 1].y === pt.y;
+    drawControlPointHandle(g, pt.x, pt.y, isRed, idx === 0); // v231: 样式开关在柄内分支
+  }
 }
 
 // 选中装饰: 滑条 = 身体高亮环 + 控制多边形 + 控制点手柄; 其他 = 青色虚线环
@@ -370,30 +399,7 @@ function drawSelectionDecor(rc: RenderCtx, o: HitObject, radius: number) {
       const tail = p.points[p.points.length - 1];
       if (tail) drawSelectionBox(g, skin, tail.x, tail.y, radius);
     }
-    // lazer PathControlPointConnection: 用 2px 白线 (PathRadius=1) 依次连接全部控制点,
-    // 直观呈现贝塞尔/圆弧的控制多边形
-    // v231: stable 控制点样式时连线改 1 屏幕像素 (与柄同 getTransform 反算); lazer 保持 2 osu 单位
-    const ctrl = [{ x: o.x, y: o.y }, ...(o.curvePoints ?? [])];
-    g.strokeStyle = '#ffffff'; g.globalAlpha *= 0.8;
-    if (displaySettings.sliderPointStyle === 'stable') {
-      const m = g.getTransform();
-      g.lineWidth = 1 / (Math.hypot(m.a, m.b) || 1);
-    } else {
-      g.lineWidth = 2;
-    }
-    g.beginPath();
-    ctrl.forEach((pt, j) => j === 0 ? g.moveTo(pt.x, pt.y) : g.lineTo(pt.x, pt.y));
-    g.stroke();
-    g.globalAlpha /= 0.8;
-    // 可拖拽的控制点手柄: 白色锚点, 重复点(红锚点)为红色
-    // v35: 倒序绘制 — 顺序在前的控制点渲染在更上层 (与命中优先级一致: 并列取序号在前);
-    // 红锚点重复对只画后一个 (红色), 前一个在正下方被完全遮住故跳过; 头部(idx 0)始终绘制
-    for (let idx = ctrl.length - 1; idx >= 0; idx--) {
-      const pt = ctrl[idx];
-      if (idx > 0 && idx < ctrl.length - 1 && ctrl[idx + 1].x === pt.x && ctrl[idx + 1].y === pt.y) continue;
-      const isRed = idx > 1 && ctrl[idx - 1].x === pt.x && ctrl[idx - 1].y === pt.y;
-      drawControlPointHandle(g, pt.x, pt.y, isRed, idx === 0); // v231: 样式开关在柄内分支
-    }
+    drawSliderControlPoints(g, o); // v259: 抽出共用 (hover 预览同用)
   } else if (stableSel) {
     // v232: stable — 单点/spinner 在 (x,y) 画一张 hitcircleselect
     drawSelectionBox(g, skin, o.x, o.y, radius);

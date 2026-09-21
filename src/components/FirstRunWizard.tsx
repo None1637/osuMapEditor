@@ -4,6 +4,7 @@ import { getElectronAPI, ipcErrorMessage } from '../osu/electronBridge';
 import { rememberSongsDir } from '../osu/library';
 import { applyServerSkin } from '../osu/serverSkin';
 import { serverDir } from '../osu/serverFs';
+import { useCounterZoom } from '../osu/uiZoom';
 
 /**
  * exe 首跑配置向导 (仅 Electron 环境出现):
@@ -11,6 +12,7 @@ import { serverDir } from '../osu/serverFs';
  * 之后每次启动由 App 启动恢复逻辑静默读盘, 不再需要本向导。
  */
 export function FirstRunWizard({ onDone }: { onDone: () => void }) {
+  const cz = useCounterZoom(); // v249: 抗全局缩放
   const api = getElectronAPI();
   const [osuPath, setOsuPath] = useState<string | null>(null);
   const [suggested, setSuggested] = useState<string | null>(null);
@@ -61,7 +63,7 @@ export function FirstRunWizard({ onDone }: { onDone: () => void }) {
 
   return (
     <div className="fixed inset-0 z-[60] bg-black/80 flex items-center justify-center">
-      <div className="w-[520px] max-w-[92vw] bg-[#16161d] border border-[#333] rounded-lg flex flex-col overflow-hidden">
+      <div ref={cz.ref} style={cz.style} className="w-[520px] max-w-[92vw] bg-[#16161d] border border-[#333] rounded-lg flex flex-col overflow-hidden">
         <div className="px-4 py-2.5 border-b border-[#2c2c38]">
           <span className="text-sm font-semibold flex items-center gap-1.5"><Music className="w-4 h-4" />首次配置</span>
         </div>

@@ -49,7 +49,7 @@ section('store.ts: tempo 引擎接线');
   assert(/this\.tempoNode\.schedule\(\{ output: startW, input: offset, rate: this\.playbackRate, active: true \}\)/.test(src), 'schedule 锚定 startW/offset/rate (节点自补偿延迟, 与 source.start 同语义)');
   assert(/tempoEndTimer = setTimeout/.test(src) && /不能提前 schedule 一个未来 stop/.test(src), '播完: 定时器播完逻辑 + 到点 stop (替代 ended 回执; 未来 stop 会吞掉 start, 已注明)');
   assert(/clearTimeout\(this\.tempoEndTimer\)/.test(src) && /this\.tempoNode\.stop\(\)/.test(src), 'stopSource 清定时器并 stop 节点');
-  assert(/clock\.rate = this\.playbackRate/.test(src) && /clock\.onStartedAtCtxTime\(startW, this\.currentTime\)/.test(src), '时钟锚定与 source 路径一致');
+  assert(/clock\.rate = this\.playbackRate/.test(src) && /clock\.onStartedAtCtxTime\(startW, offset \* 1000\)/.test(src), '时钟锚定与 source 路径一致 (v251: 锚定到采样网格吸附后的 offset, 与 source.start 同一值)');
   assert(/this\.audioBuffer !== buf/.test(src), '加载期间换歌守卫');
   assert(/ensureTempoNode\(\); \/\/ 预热/.test(src), '解码完成预热引擎');
   assert(/this\.audio\.preservesPitch = true/.test(src) && /webkitPreservesPitch/.test(src), 'HTMLAudio 降级路径 preservesPitch (浏览器原生不变调)');

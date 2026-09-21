@@ -59,6 +59,31 @@ function loadWavePanelOpen(): boolean {
   try { const v = localStorage.getItem(LS_WAVE_PANEL_OPEN); return v === null ? true : v === '1'; } catch { return true; }
 }
 
+// v278: 网格吸附设置持久化 (旋转角度 + 自定义网格中心) — 关闭 exe 后下次打开恢复上次设置
+interface GridSettingsPersist { rotation: number; origin: Pt; custom: boolean }
+const LS_GRID_SETTINGS = 'osu-editor:grid-settings';
+function loadGridSettings(): GridSettingsPersist {
+  const def: GridSettingsPersist = { rotation: 0, origin: { x: 256, y: 192 }, custom: false };
+  try {
+    const raw = localStorage.getItem(LS_GRID_SETTINGS);
+    if (!raw) return def;
+    const p = JSON.parse(raw) as Partial<GridSettingsPersist>;
+    return {
+      rotation: typeof p.rotation === 'number' && isFinite(p.rotation) ? Math.max(-180, Math.min(180, p.rotation)) : def.rotation,
+      origin: p.origin && isFinite(p.origin.x) && isFinite(p.origin.y)
+        ? { x: Math.max(0, Math.min(512, Math.round(p.origin.x))), y: Math.max(0, Math.min(384, Math.round(p.origin.y))) } : def.origin,
+      custom: !!p.custom,
+    };
+  } catch { return def; }
+}
+const persistedGrid = loadGridSettings();
+/** 在 setGridRotation/setGridOrigin/setGridOriginCustom 内调用 (运行时 store 已初始化, TDZ 无碍) */
+function saveGridSettings() {
+  try {
+    localStorage.setItem(LS_GRID_SETTINGS, JSON.stringify({ rotation: store.gridRotation, origin: store.gridOrigin, custom: store.gridOriginCustom }));
+  } catch { /* 隐私模式等忽略 */ }
+}
+
 // v127: 波形显示模式 (波形图/频谱图) 与层级 (背景/上层) 持久化 (原 WaveformPanel 组件内状态, 面板废弃后入 store)
 const LS_WAVE_MODE = 'osu-editor:wavepanel:mode';
 const LS_WAVE_ON_TOP = 'osu-editor:wavepanel:ontop';
@@ -76,6 +101,8 @@ class EditorStore {
   selectedGreenLines = new Set<number>();
   currentTime = 0;
   playing = false;
+  /** v261: 恢复播放渲染位置下限 (暂停点); play() 记录, positionMs 钳制到时钟超过后自清, pause() 清除 */
+  resumeFloorMs: number | null = null;
   tool: Tool = 'select';
   distanceLock = false; // 是否启用 DistanceSpacing 锁定间距 (lazer ComposerDistanceSnapProvider.DistanceSnapToggle 默认 TernaryState.False)
   /** v115: 锁定物件 (stable 「编辑 > Lock Notes」): 开启后无法移动/修改/删除任何已有物件;
@@ -99,13 +126,15 @@ class EditorStore {
   gridSnap = false; // Grid Snap 开关 (lazer 默认 False); 网格线始终显示 (lazer LayerBelowRuleset)
   gridType: 'square' | 'triangle' | 'circle' | 'none' = 'square'; // v119: none = 无网格 (渲染与吸附同时停)
   gridSpacing: number | null = null; // null = 跟随谱面 [Editor] GridSize (lazer 初始值); 修改时写回 editor.gridSize
-  gridRotation = 0; // 度; 圆形禁用 (lazer GridLinesRotation.Disabled)
+  gridRotation = persistedGrid.rotation; // 度; 圆形禁用 (lazer GridLinesRotation.Disabled); v278: 持久化恢复
   // v78: 自定义网格中心 (lazer OsuGridToolboxGroup 的 StartPositionX/Y 可配; 默认 = 游玩区中心 GRID_ORIGIN)
   // 与自定义变换原点同款逻辑: UI 状态不入 undo/谱面, 画布标记可拖拽 (吸附规则与物件同级)
-  gridOrigin: Pt = { x: 256, y: 192 };
-  gridOriginCustom = false;
-  setGridOrigin(p: Pt) { this.gridOrigin = { x: Math.round(p.x), y: Math.round(p.y) }; this.emitSelection(); }
-  setGridOriginCustom(b: boolean) { this.gridOriginCustom = b; this.emitSelection(); }
+  gridOrigin: Pt = persistedGrid.origin; // v278: 持久化恢复
+  gridOriginCustom = persistedGrid.custom; // v278: 持久化恢复
+  setGridOrigin(p: Pt) { this.gridOrigin = { x: Math.round(p.x), y: Math.round(p.y) }; saveGridSettings(); this.emitSelection(); } // v278: 持久化
+  setGridOriginCustom(b: boolean) { this.gridOriginCustom = b; saveGridSettings(); this.emitSelection(); } // v278
+  /** v278: 网格旋转角度设置入口 (原 App.tsx 直接字段赋值) — 统一在此持久化 */
+  setGridRotation(deg: number) { this.gridRotation = deg; saveGridSettings(); this.emit(); }
   // v163: 限制物件在游玩区域内 (默认开 = 既有行为); 关闭后放置/拖动/网格吸附均不钳制到 0..512/0..384
   limitToPlayfield = true;
   setLimitToPlayfield(b: boolean) { this.limitToPlayfield = b; this.emitSelection(); }
@@ -322,6 +351,9 @@ class EditorStore {
   // v144: 音乐总线 (常速 source / 变速 tempoNode 统一经此进 destination; 增益 = 主*歌曲音量)
   private musicBus: GainNode | null = null;
   private voiceLimiter = new VoiceLimiter<AudioBuffer, { src: AudioBufferSourceNode; gain: GainNode }>(SAMPLE_CONCURRENCY);
+  /** v251: 全部存活 hitsound voice 主集 (含被限流器逐出的) — stopAllHitVoices 用它保证
+   *  seek/暂停时所有已排程 voice 都能被立即停止, 不漏旧时间线上的幽灵 voice */
+  private allHitVoices = new Set<{ src: AudioBufferSourceNode; gain: GainNode }>();
   /** 调试: 当前活跃 voice 数 / 历史峰值 (CDP 验证用) */
   debugVoiceStats = { active: 0, maxSeen: 0 };
   playbackRate: number = 1;
@@ -456,6 +488,11 @@ class EditorStore {
   emitPlaybackFrame() { this.playbackFrameVersion++; this.playbackFrameListeners.forEach(f => f()); }
   /** 选择集变化: 与谱面数据无关, 不使 hitsound 事件表失效 (框选拖拽期间每 mousemove 触发) */
   emitSelection() { this.version++; this.listeners.forEach(f => f()); }
+  /** v264: 拖拽逐帧提交 (rAF 每帧一次, v264 起节点拖动不再每 mousemove 全量 emit) —
+   *  bump version (装饰层/帧级缓存跟随, v250 同款键) 但不 bump dataVersion
+   *  (堆叠偏移/combo/下时间轴静态层/hitsound 事件表不失效) 且不算脏指纹
+   *  (refreshDirty = 全表指纹 O(n), 拖动期每帧调用是实测热点); 拖拽结束 mouseup 走完整 commitDrag() 补齐 */
+  commitDragFrame() { this.version++; this.listeners.forEach(f => f()); }
 
   setBackground(url: string | null) {
     this.backgroundUrl = url;
@@ -609,11 +646,13 @@ class EditorStore {
    *  快速淡出后停止 (防咔哒); ended 后注销。startCtx/endCtx = AudioContext 时间 (秒), endCtx 缺省 = 自然播完 */
   private trackVoice(buf: AudioBuffer, src: AudioBufferSourceNode, gain: GainNode, startCtx: number, endCtx = startCtx + buf.duration) {
     const rec = { src, gain };
+    this.allHitVoices.add(rec); // v251
     for (const old of this.voiceLimiter.register(buf, rec, startCtx, endCtx)) {
       old.v.gain.gain.setTargetAtTime(0, startCtx, 0.008); // ~25ms 淡出
       try { old.v.src.stop(startCtx + 0.05); } catch { /* noop */ }
     }
     src.addEventListener('ended', () => {
+      this.allHitVoices.delete(rec); // v251
       this.voiceLimiter.release(buf, rec);
       this.debugVoiceStats.active = this.voiceLimiter.totalCount();
     });
@@ -621,9 +660,14 @@ class EditorStore {
     if (this.debugVoiceStats.active > this.debugVoiceStats.maxSeen) this.debugVoiceStats.maxSeen = this.debugVoiceStats.active;
   }
 
-  /** v122: 立即停止全部 hitsound voice (暂停/换谱/引擎停止; 含已预排程未发声的 — 否则暂停后音效还在响) */
+  /** v122: 立即停止全部 hitsound voice (暂停/换谱/引擎停止; 含已预排程未发声的 — 否则暂停后音效还在响)
+   *  v251: 改走 allHitVoices 主集 — 只 drain 限流器会漏掉"已被并发上限逐出"的 voice:
+   *  它们已被移出限流器队列, 淡出/停止排程在旧时间线上, seek 后仍在错误时刻发声
+   *  (播放中滚滚轮后退时, 同一段落的 hitsound 幽灵重播层层叠加 => 16k+ 糊掉/音质劣化) */
   private stopAllHitVoices() {
-    for (const e of this.voiceLimiter.drain()) { try { e.v.src.stop(); } catch { /* noop */ } }
+    this.voiceLimiter.drain(); // 清空限流器队列 (voice 本体由主集统一停止)
+    for (const v of this.allHitVoices) { try { v.src.stop(); } catch { /* noop */ } }
+    this.allHitVoices.clear();
     this.debugVoiceStats.active = 0;
   }
 
@@ -641,6 +685,12 @@ class EditorStore {
       this.scheduler = new HitSoundScheduler(this.clock, {
         schedule: (at, soundId, fallbacks, volume) => {
           if (!this.actx) return;
+          // v251: when 吸附到采样整数 — Chromium 对非采样整数 when 的 source 走线性插值渲染
+          // (实测偏移 0.5 采样: 16kHz -6dB / 22kHz -17dB, 听感 = 高频消失); 44.1kHz 设备上
+          // 整数 ms 的事件时刻也天然不是采样整数 (1ms = 44.1 采样), 必须逐 voice 吸附;
+          // 误差 ≤ 0.5 采样 (~10µs), 对可闻时序/相位无影响
+          const sr = this.actx.sampleRate;
+          at = Math.round(at * sr) / sr;
           // 回退链: 谱面自定义(含序号回退) -> 默认同 set -> 默认 normal 同音效
           let buf = this.hitBuffers.get(soundId);
           let used = soundId;
@@ -786,8 +836,10 @@ class EditorStore {
     const horizon = this.clock.rawNowMs() + 250;
     while (this.metroCursor < this.metroBeats.length && this.metroBeats[this.metroCursor].t <= horizon) {
       const b = this.metroBeats[this.metroCursor++];
-      const at = this.clock.ctxTimeForMapTime(b.t);
-      if (at === null) continue; // 已开始的拍不补播 (与 seek 静音一致)
+      const at0 = this.clock.ctxTimeForMapTime(b.t);
+      if (at0 === null) continue; // 已开始的拍不补播 (与 seek 静音一致)
+      const srM = this.actx.sampleRate;
+      const at = Math.round(at0 * srM) / srM; // v251: 采样网格吸附 (同 sink.schedule)
       const buf = this.defaultBuffers.get(b.down ? 'normal-hitwhistle' : 'normal-hitnormal') ?? this.defaultBuffers.get('normal-hitnormal');
       if (!buf) continue;
       const src = this.actx.createBufferSource();
@@ -811,9 +863,12 @@ class EditorStore {
     const horizon = this.clock.rawNowMs() + 250;
     while (this.loopCursor < this.slideLoops.length && this.slideLoops[this.loopCursor].startMs <= horizon) {
       const lp = this.slideLoops[this.loopCursor++];
-      const at = this.clock.ctxTimeForMapTime(lp.startMs);
-      const endAt = this.clock.ctxTimeForMapTime(lp.endMs);
-      if (at === null) continue; // 已开始的循环不补播 (与 seek 静音一致)
+      const srL = this.actx.sampleRate; // v251: 采样网格吸附 (同 sink.schedule)
+      const at0 = this.clock.ctxTimeForMapTime(lp.startMs);
+      const endAt0 = this.clock.ctxTimeForMapTime(lp.endMs);
+      if (at0 === null) continue; // 已开始的循环不补播 (与 seek 静音一致)
+      const at = Math.round(at0 * srL) / srL;
+      const endAt = endAt0 === null ? null : Math.round(endAt0 * srL) / srL;
       const buf = this.hitBuffers.get(lp.soundId) ?? this.defaultBuffers.get(lp.soundId) ?? this.defaultBuffers.get('normal-sliderslide');
       if (!buf) continue;
       this.debugPush(lp.startMs, lp.soundId, lp.volume ?? 100, 'loop:' + lp.soundId, 'loop');
@@ -855,7 +910,15 @@ class EditorStore {
       this.scheduler?.tick();
       this.tickSlideLoops();
       this.tickMetronome(); // v156: 节拍器 (开关见原生 Timing 菜单)
-      return this.clock.heardNowMs();
+      // v261: 恢复播放防闪回 — play() 锚定 20ms 后启动, heardNowMs 再减 outputLatency (~5-40ms),
+      // 启动后最初几帧位置比暂停点早几十 ms, 画面瞬间跳回更早内容 (用户反馈); 钳制不低于暂停点,
+      // 时钟自然超过后放行 (hitsound 排程走 rawNowMs/ctxTimeForMapTime, 不受此钳制影响)
+      const h = this.clock.heardNowMs();
+      if (this.resumeFloorMs !== null) {
+        if (h < this.resumeFloorMs) return this.resumeFloorMs;
+        this.resumeFloorMs = null;
+      }
+      return h;
     }
     if (this.playing && this.audio) return this.audio.currentTime * 1000;
     return this.currentTime;
@@ -1287,12 +1350,13 @@ class EditorStore {
       if (!s) m.set(objId, (s = new Set()));
       s.add(idx);
     }
-    for (const id of m.keys()) this.selected.add(id);
+    // v265: 不再把滑条并入物件选区 (Alt 框选只选滑条点, 忽略 hit circle/slider;
+    // 原并入会让选中的滑条显示蓝框且 Delete 误删整条滑条)
     this.selectedNodes = m;
     this.emitSelection();
   }
 
-  /** Alt+Shift/Ctrl 点选: 加选/减选单个节点 (加选时滑条自动并入物件选区) */
+  /** Alt+点击: 加选/减选单个节点 (v266 起为 Alt 唯一点击语义; v265: 不再并入物件选区) */
   toggleSelectedNode(objId: number, idx: number) {
     const m = new Map(this.selectedNodes);
     let s = m.get(objId);
@@ -1302,7 +1366,6 @@ class EditorStore {
       if (s.size) m.set(objId, s); else m.delete(objId);
     } else {
       m.set(objId, new Set([...(s ?? []), idx]));
-      this.selected.add(objId);
     }
     this.selectedNodes = m;
     this.emitSelection();
@@ -1661,6 +1724,14 @@ class EditorStore {
     this.currentTime = t;
     if (this.audioBuffer && this.actx && this.clock) {
       const actx = this.actx;
+      const sr = actx.sampleRate;
+      // v251: 采样网格吸附 — Chromium 对 when 非采样整数的 AudioBufferSourceNode 走线性插值渲染,
+      // 实测 when 偏移 0.5 采样 => 16kHz -6dB / 22kHz -17dB, 听感 = 16k+ 高频消失。
+      // 播放中滚滚轮时 t 来自浮点 positionMs(), 不吸附会让之后所有 hitsound (排程时刻 =
+      // startW + (整数 mapMs - t)/1000) 落上小数采样相位; 点时间轴/暂停再播的位置是整数 ms 故不复现。
+      // 吸附量 ≤ 0.5 采样 (~10µs), 不可闻。
+      t = Math.round(t / 1000 * sr) / sr * 1000;
+      this.currentTime = t;
       const offset = t / 1000;
       if (offset >= this.audioBuffer.duration) {
         this.pause();
@@ -1669,13 +1740,7 @@ class EditorStore {
         return;
       }
       const now = actx.currentTime;
-      // v226: 硬切换 + 极短防爆音斜坡 — 取代 v216 交叉淡变。
-      // v216 的 ~10-20ms 交叉淡变在单次 seek 不可闻, 但滚轮连击时链式重叠:
-      // 任意瞬间 2~4 份"同曲不同进度"同时发声 (播放中步长 ~0.5s/格),
-      // 听感 = 持续的双重曝光/响度抽动 (用户反馈: 播放中滚滚轮仍降质, 点时间轴不复现
-      // — 后者走 pause/play 零重叠硬切)。改为统一切换时刻 startW: 旧源 2ms 斜降到 0,
-      // 新源 startW 启动 2ms 斜升到 1, 重叠窗 ~2ms (仅防爆音咔哒), 听感 = 即时跳位。
-      const startW = now + 0.003;
+      const startW = Math.round((now + 0.003) * sr) / sr;
       const bus = this.ensureMusicBus();
       if (this.tempoActive && this.tempoNode) {
         // v226: 变速支路 dip 贴紧切换点单次短窗 (~5ms), 不再"立即拉零 + 延迟恢复"
@@ -1743,10 +1808,15 @@ class EditorStore {
       const clock = this.ensureClock();
       this.actx!.resume().catch(() => { });
       this.stopSource();
-      const offset = this.currentTime / 1000;
-      if (offset >= this.audioBuffer.duration) { this.playing = false; this.emit(); return; }
-      // 确定性锚定: 延迟 20ms 启动, W 时刻谱面位置精确 = currentTime
-      const startW = this.actx!.currentTime + 0.02;
+      const offset0 = this.currentTime / 1000;
+      if (offset0 >= this.audioBuffer.duration) { this.playing = false; this.emit(); return; }
+      // v251: 采样网格吸附 (机制见 seekWhilePlaying) — 引擎重建 (含变速重启) 同样保证
+      // hitsound 排程时刻落在采样整数上; 吸附量 ≤ 0.5 采样 (~10µs), 不可闻
+      const sr = this.actx!.sampleRate;
+      const offset = Math.round(offset0 * sr) / sr;
+      this.resumeFloorMs = this.currentTime; // v261: 恢复播放渲染位置钳制下限 = 暂停点 (防闪回, 见 positionMs)
+      // 确定性锚定: 延迟 20ms 启动, W 时刻谱面位置精确 = offset
+      const startW = Math.round((this.actx!.currentTime + 0.02) * sr) / sr;
       if (this.playbackRate !== 1 && this.tempoNode) {
         // 变速不变调 (lazer AudioAdjustments.Tempo): signalsmith-stretch 引擎.
         // schedule 锚点 = AudioContext 时间线, 与 source.start(startW, offset) 同一语义;
@@ -1790,7 +1860,7 @@ class EditorStore {
         this.sourceGain = sg;
       }
       clock.rate = this.playbackRate;
-      clock.onStartedAtCtxTime(startW, this.currentTime);
+      clock.onStartedAtCtxTime(startW, offset * 1000); // v251: 锚定到吸附后的采样网格 offset
       this.rebuildEventsIfDirty();
       this.scheduler?.resync();
       this.scheduler?.setMuted(false);
@@ -1810,6 +1880,7 @@ class EditorStore {
     } else if (this.playing) {
       this.currentTime = this.positionMs();
     }
+    this.resumeFloorMs = null; // v261: 暂停即失效 (下次 play 重新记录)
     this.playing = false;
     this.stopSource();
     this.stopSlideLoops();

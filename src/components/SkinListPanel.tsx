@@ -3,6 +3,7 @@ import { Check, Palette, X } from 'lucide-react'; // v181: ✓/🎨/✕ → luci
 import { getElectronAPI, ipcErrorMessage } from '../osu/electronBridge';
 import { applyServerSkin } from '../osu/serverSkin';
 import { skinSourceName } from '../osu/skin';
+import { useCounterZoom } from '../osu/uiZoom';
 
 /**
  * exe 皮肤面板: 列出 <osu!>/Skins 下的全部皮肤, 点击即应用并保存到 settings.json。
@@ -29,6 +30,7 @@ function Row({ name, label, current, busy, onChoose }: {
 }
 
 export function SkinListPanel({ onClose }: { onClose: () => void }) {
+  const cz = useCounterZoom(); // v249: 抗全局缩放
   const api = getElectronAPI();
   const [osuPath, setOsuPath] = useState<string | null>(null);
   const [current, setCurrent] = useState<string | null>(null);
@@ -75,7 +77,7 @@ export function SkinListPanel({ onClose }: { onClose: () => void }) {
 
   return (
     <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center" onClick={onClose}>
-      <div className="w-[480px] max-w-[92vw] bg-[#16161d] border border-[#333] rounded-lg flex flex-col overflow-hidden"
+      <div ref={cz.ref} style={cz.style} className="w-[480px] max-w-[92vw] bg-[#16161d] border border-[#333] rounded-lg flex flex-col overflow-hidden"
            onClick={e => e.stopPropagation()}>
         <div className="flex items-center gap-3 px-4 py-2.5 border-b border-[#2c2c38]">
           <span className="text-sm font-semibold flex items-center gap-1.5"><Palette className="w-4 h-4" />皮肤</span>

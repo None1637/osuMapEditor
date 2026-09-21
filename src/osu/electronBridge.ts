@@ -10,6 +10,8 @@ export interface ElectronSettings {
   firstRun: boolean;
   /** 探测到的默认 osu! 路径 (%LOCALAPPDATA%/osu!), 无则 null */
   suggestedOsuPath: string | null;
+  /** v263: 窗口条隐藏 (重启生效) */
+  hideTitleBar: boolean;
 }
 
 export interface PickOsuDirResult {
@@ -51,6 +53,8 @@ export interface ElectronAPI {
   openBackupFolder(info: { artist: string; title: string }): Promise<{ ok: boolean; error?: string }>;
   /** v209: 上报编辑菜单置灰状态 (有谱面/有选中/剪贴板有内容; 值变化才发) */
   menuEditState(state: ElectronEditMenuState): void;
+  /** v263: 窗口条隐藏开关 (写 settings.json, 重启后生效) */
+  setHideTitleBar(b: boolean): Promise<boolean>;
 }
 
 /** v94: 最近难度条目 (主进程 settings.json recents) */
