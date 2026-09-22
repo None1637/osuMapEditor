@@ -27,7 +27,7 @@ assert(/hideTitleBar: boolean;/.test(bridge), 'ElectronSettings 类型含 hideTi
 assert(/setHideTitleBar\(b: boolean\): Promise<boolean>;/.test(bridge), 'ElectronAPI 类型含 setHideTitleBar');
 
 const app = fs.readFileSync(path.join(root, 'src/App.tsx'), 'utf8');
-assert(/WebkitAppRegion: 'drag', paddingRight: 140/.test(app), '页签栏拖拽区 + 右侧留白避开 overlay');
+assert(/WebkitAppRegion: 'drag' \} as CSSProperties : undefined/.test(app), '页签栏拖拽区 (v280 二轮: paddingRight 140 移至菜单条行 — overlay 只覆盖窗口顶行)');
 assert((app.match(/WebkitAppRegion: 'no-drag'/g) ?? []).length >= 4, '页签栏各按钮 no-drag (页签×3 + 音量 + 显示设置)');
 
 const panel = fs.readFileSync(path.join(root, 'src/components/DisplayPanel.tsx'), 'utf8');

@@ -2262,3 +2262,46 @@
   setGridOrigin/setGridOriginCustom/setGridRotation 内 saveGridSettings() 即时写盘
   (画布上网格中心标记拖拽经 setGridOrigin, 一并覆盖)。
 - 验证: verifier/v278; tsc -b 通过; build 通过。
+
+## v279 窗口条隐藏只隐标题栏, 保留菜单栏
+- 需求: 用户反馈「隐藏标题栏应该只隐藏标题栏, 不要把exe的菜单栏也隐藏了」。
+- 根因: v263 用 titleBarStyle:'hidden' — Windows 上该模式会连带隐藏应用菜单栏。
+- 修复: frameless 配置显式 autoHideMenuBar: false, 建窗后 setMenuBarVisibility(true);
+  标题栏隐藏/窗口按钮 overlay/拖拽区行为不变 (v263)。
+- 验证: verifier/v279; build 通过。
+
+## v279 窗口条隐藏保留菜单栏 — 原生方案实测不可行 (被 v280 取代)
+- 需求: 用户反馈「隐藏标题栏应该只隐藏标题栏, 不要把exe的菜单栏也隐藏了」。
+- 结论: Windows 上 titleBarStyle:'hidden' (WCO) 不渲染菜单栏; autoHideMenuBar:false +
+  setMenuBarVisibility(true) 打包实跑截图实证无效 (verifier/v279/menubar-shot.png)。
+  无效代码已移除, 菜单栏改应用内自绘 → v280。
+
+## v280 应用内 HTML 菜单栏 (VS Code 同款)
+- 实现: main.cjs buildMenu 模板序列化 (serializeMenuItems: label/enabled/separator/radio●/
+  checkbox✓/accelerator/submenu, 叶子分配 id → menuActions 执行表, role reload/devtools/quit
+  等价实现), buildMenu 末尾 send("menu-definition") + get-menu-definition handle (页面首拉)
+  + menu-item-click 执行; preload/bridge 三 API; MenuBar.tsx 顶级横排 + 下拉 + hover 子菜单,
+  CmdOrCtrl→Ctrl 显示, 点击外部/Esc 关闭, 菜单条兼拖拽区 (右侧留白 140 避开 overlay);
+  App.tsx hideTitleBar 时页签栏上方渲染; 原生菜单仍 setApplicationMenu (accelerator 全局生效)。
+- 验证: verifier/v280/check.mjs + cdp-v280.mjs (electron 实跑: 菜单条 6 顶级项渲染,
+  「编辑」下拉 22 项含 accelerator 显示, 点击「全选」selected.size=586 生效, 点击外部关闭);
+  整屏截图确认菜单条显示在标题栏原位置; tsc -b / build 通过。
+
+## v280 二轮修正: 页签栏移除 paddingRight 140
+- 需求: 用户反馈「— ▢ ✕不该导致下面的两个按钮左移」(音量/显示设置被无故左移)。
+- 根因: v263 给页签栏加 paddingRight:140 避开 overlay 窗口按钮; v280 新增菜单条行
+  (h-7) 后 overlay (高 32px) 只覆盖窗口顶行 (= 菜单条行, 菜单条自身留白 140),
+  页签栏在其下方不被覆盖, 140 留白纯属多余。
+- 修复: App.tsx 页签栏 style 移除 paddingRight (保留 drag 区); verifier/v263 断言同步更新。
+
+## v281 两种标题栏模式统一用应用内自绘菜单条
+- 需求: 用户要求「把未隐藏标题栏的菜单条也改成用隐藏标题栏的菜单条」。
+- 实现: App.tsx 无条件渲染 <MenuBar overlay={hideTitleBar} /> (不再仅 hideTitleBar 时);
+  MenuBar.tsx 新增 overlay prop — hideTitleBar 时保留 drag 区 + paddingRight:140
+  (避开 WCO 窗口按钮), framed 模式 (原生标题栏在窗口上方) 无 drag/留白;
+  main.cjs 主窗口 autoHideMenuBar:true — 原生菜单栏默认隐藏避免重复,
+  原生菜单仍 setApplicationMenu (accelerator 全局快捷键保留, Alt 可临时呼出, Electron 固有行为)。
+- 验证: verifier/v281/check.mjs + cdp-v281.mjs (electron 实跑两模式: 菜单条 6 顶级项均渲染,
+  framed paddingRight=0/无 drag, overlay paddingRight=140/drag; CDP 截图 v281-framed.png /
+  v281-overlay.png); framed 模式整屏截图确认原生菜单栏不重复显示, 音量/显示设置贴右不左移;
+  tsc -b / build 通过; v280 断言同步更新。

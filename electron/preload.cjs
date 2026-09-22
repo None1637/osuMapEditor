@@ -34,4 +34,12 @@ contextBridge.exposeInMainWorld("osuEditor", {
   menuEditState: (s) => ipcRenderer.send("edit-menu-state", s),
   // v263: 窗口条隐藏开关 (写 settings.json, 重启生效)
   setHideTitleBar: (b) => ipcRenderer.invoke("set-hide-title-bar", b),
+  // v280: 应用内菜单栏 (hideTitleBar 模式下自绘) — 拉取/订阅菜单定义 + 点击回传
+  getMenuDefinition: () => ipcRenderer.invoke("get-menu-definition"),
+  onMenuDefinition: (cb) => {
+    const listener = (_e, def) => cb(def)
+    ipcRenderer.on("menu-definition", listener)
+    return () => ipcRenderer.removeListener("menu-definition", listener)
+  },
+  menuItemClick: (id) => ipcRenderer.send("menu-item-click", id),
 })

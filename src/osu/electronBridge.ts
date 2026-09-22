@@ -55,6 +55,23 @@ export interface ElectronAPI {
   menuEditState(state: ElectronEditMenuState): void;
   /** v263: 窗口条隐藏开关 (写 settings.json, 重启后生效) */
   setHideTitleBar(b: boolean): Promise<boolean>;
+  /** v280: 应用内菜单栏 — 拉取当前菜单定义 (挂载时) */
+  getMenuDefinition(): Promise<ElectronMenuNode[] | null>;
+  /** v280: 订阅菜单定义更新 (每次 buildMenu 推送); 返回退订函数 */
+  onMenuDefinition(cb: (def: ElectronMenuNode[]) => void): () => void;
+  /** v280: 应用内菜单项点击 (id 由菜单定义携带, 主进程查表执行) */
+  menuItemClick(id: string): void;
+}
+
+/** v280: 序列化菜单节点 (主进程 buildMenu 模板 → 渲染端自绘菜单条) */
+export interface ElectronMenuNode {
+  type?: 'separator' | 'radio' | 'checkbox';
+  label?: string;
+  enabled?: boolean;
+  checked?: boolean;
+  accelerator?: string;
+  id?: string; // 叶子项 (可操作)
+  submenu?: ElectronMenuNode[];
 }
 
 /** v94: 最近难度条目 (主进程 settings.json recents) */

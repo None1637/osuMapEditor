@@ -158,11 +158,16 @@ async function createWindow() {
   // v263: 窗口条隐藏 (显示设置面板开关 → settings.json hideTitleBar, 重启生效) —
   // titleBarStyle hidden 去标题栏但保留原生最小/最大/关闭 (Windows 经 titleBarOverlay 着色贴近应用底色;
   // 页面侧拖拽区 = 页签栏, 见 App.tsx [-webkit-app-region])
+  // v279: Windows 上 titleBarStyle:'hidden' (WCO) 会连带隐藏应用菜单栏, 且
+  // autoHideMenuBar:false + setMenuBarVisibility(true) 实测均不渲染 → 菜单栏改应用内自绘 (见 v280)
   const frameless = !!readSettings().hideTitleBar
   win = new BrowserWindow({
     width: 1440,
     height: 900,
     backgroundColor: "#101016",
+    // v281: 两种标题栏模式统一用应用内自绘菜单条 (MenuBar.tsx) — 原生菜单栏默认隐藏;
+    // 原生菜单仍 setApplicationMenu (accelerator 全局快捷键保留, Alt 可临时呼出原生菜单)
+    autoHideMenuBar: true,
     ...(frameless ? { titleBarStyle: "hidden", titleBarOverlay: { color: "#101016", symbolColor: "#e8e8f0", height: 32 } } : {}),
     webPreferences: {
       preload: path.join(__dirname, "preload.cjs"),
@@ -263,13 +268,46 @@ ipcMain.handle("open-backup-folder", (_e, p) => {
   } catch (e) { return { ok: false, error: String((e && e.message) || e) } }
 })
 
+// v280: 应用内菜单栏 — Windows 上 titleBarStyle:'hidden' (WCO) 不渲染原生菜单栏 (v279 实测
+// autoHideMenuBar:false + setMenuBarVisibility 均无效), 改为把菜单模板序列化推给渲染端自绘
+// (VS Code 同款方案); 原生菜单仍 setApplicationMenu 保留 (accelerator 全局生效);
+// v281: 非隐藏模式也统一用自绘菜单条, 原生菜单栏由 BrowserWindow autoHideMenuBar 默认隐藏
+let menuActions = new Map() // id → 执行函数 (click 闭包或 role 等价实现)
+let menuSeq = 0
+let lastMenuDef = null
+function serializeMenuItems(items) {
+  return items.map((it) => {
+    if (it.type === "separator") return { type: "separator" }
+    const node = { label: it.label ?? "", enabled: it.enabled !== false }
+    if (it.type === "radio" || it.type === "checkbox") { node.type = it.type; node.checked = !!it.checked }
+    if (it.accelerator) node.accelerator = String(it.accelerator)
+    if (it.submenu) {
+      node.submenu = serializeMenuItems(it.submenu)
+    } else {
+      const id = "mi" + (++menuSeq)
+      const clickFn = it.click, role = it.role
+      menuActions.set(id, () => {
+        if (clickFn) clickFn()
+        else if (role === "reload") win?.webContents.reload()
+        else if (role === "toggleDevTools") win?.webContents.toggleDevTools()
+        else if (role === "quit") app.quit()
+      })
+      node.id = id
+    }
+    return node
+  })
+}
+// 渲染端挂载时主动拉取 (首次 buildMenu 早于页面加载, send 会丢); 此后每次 buildMenu 主动 push
+ipcMain.handle("get-menu-definition", () => lastMenuDef)
+ipcMain.on("menu-item-click", (_e, id) => { menuActions.get(id)?.() })
+
 function buildMenu() {
   const songsDir = readSettings().songsDir
   const curFolderAbs = menuState?.folderRel && songsDir ? path.join(songsDir, menuState.folderRel) : null
   const curFileAbs = curFolderAbs && menuState ? path.join(curFolderAbs, menuState.file) : null
   const recents = readSettings().recents ?? []
   const send = (cmd) => win?.webContents.send("menu-cmd", cmd)
-  const menu = Menu.buildFromTemplate([
+  const template = [
     {
       label: "文件",
       submenu: [
@@ -418,8 +456,13 @@ function buildMenu() {
       ],
     },
     // (v123: v121 的菜单栏指示器已移除 — 原生菜单项无法右对齐, 改为应用内顶栏最右侧浮层)
-  ])
+  ]
+  const menu = Menu.buildFromTemplate(template)
   Menu.setApplicationMenu(menu)
+  // v280: 推送应用内菜单栏定义 (hideTitleBar 模式下渲染端自绘菜单条)
+  menuActions.clear()
+  lastMenuDef = serializeMenuItems(template)
+  win?.webContents.send("menu-definition", lastMenuDef)
 }
 
 app.on("window-all-closed", () => app.quit())

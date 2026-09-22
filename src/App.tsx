@@ -14,6 +14,7 @@ import { Inspector } from '@/components/Inspector';
 import { StreamDialog } from '@/components/convert/StreamDialog';
 import { GeoSnapPanel } from '@/components/GeoSnapPanel';
 import { DisplayPanel } from '@/components/DisplayPanel'; // v132: 显示设置面板
+import { MenuBar } from '@/components/MenuBar'; // v280: 应用内菜单栏 (hideTitleBar 时)
 import { VolumePanel } from '@/components/VolumePanel'; // v144: 音量设置面板
 import { PatternPanel } from '@/components/PatternPanel';
 import { TimingPointDialog } from '@/components/TimingPointDialog';
@@ -418,11 +419,16 @@ export default function App() {
     >
       {/* v127: 原 h-12 顶部标题行 (粉色加粗标题文字) 已删除 — 无实际功能 */}
 
+      {/* v280: 应用内菜单栏 — hideTitleBar 时 Windows WCO 不渲染原生菜单栏, 自绘菜单条替代 (VS Code 风格);
+          v281: 两种标题栏模式统一用自绘菜单条 (非隐藏模式下原生菜单栏由主进程 autoHideMenuBar 隐藏) */}
+      <MenuBar overlay={hideTitleBar} />
+
       {/* 页签栏 (stable 风格大页签: compose / timing / song setup) */}
-      {/* v263: 窗口条隐藏生效时, 页签栏兼作窗口拖拽区 (-webkit-app-region: drag), 各按钮 no-drag,
-          右侧留白 ~140px 避开 titleBarOverlay 的原生最小/最大/关闭按钮 */}
+      {/* v263: 窗口条隐藏生效时, 页签栏兼作窗口拖拽区 (-webkit-app-region: drag), 各按钮 no-drag;
+          v280 二轮: 页签栏不再 paddingRight — overlay 窗口按钮 (高 32px) 只覆盖窗口顶行 (= 菜单条行,
+          菜单条自身留白 140), 页签栏在其下不被覆盖 (原 140 留白导致音量/显示设置按钮被无故左移) */}
       <div className="flex items-stretch gap-1 px-3 bg-[#101016] border-b border-white/10 shrink-0"
-        style={hideTitleBar ? { WebkitAppRegion: 'drag', paddingRight: 140 } as CSSProperties : undefined}>
+        style={hideTitleBar ? { WebkitAppRegion: 'drag' } as CSSProperties : undefined}>
         {([['edit', 'compose'], ['timing', 'timing']] as const).map(([id, label]) => (
           <button key={id} onClick={() => setTab(id)}
             style={{ WebkitAppRegion: 'no-drag' } as CSSProperties}
