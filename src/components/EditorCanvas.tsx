@@ -16,7 +16,7 @@ import { isVisibleAt } from '@/osu/lifecycle';
 import { uiZoom, zoomRect, zoomClientX, zoomClientY, fitCanvas } from '@/osu/uiZoom'; // v217; v246: fitCanvas
 import { displaySettings } from '@/osu/displaySettings'; // v168: 背景图亮度
 import { distanceLockRef, distanceLockDistance } from '@/osu/spacing'; // v145
-import { genId, timingAt, csToRadius, arToPreempt, type Beatmap, type HitObject } from '@/osu/parser';
+import { genId, timingAt, csToRadius, arToPreempt, snapAcrossRedLine, type Beatmap, type HitObject } from '@/osu/parser';
 import { IncrementalBSplineBuilder } from '@/osu/freehand/bsplineBuilder';
 import { fitSegmentsToPoints } from '@/osu/freehand/freehandFit';
 
@@ -1105,7 +1105,8 @@ export function EditorCanvas() {
     const bm = store.beatmap!;
     const { red } = timingAt(bm.timingPoints, t);
     const div = red.beatLength / store.beatSnap;
-    return red.time + Math.round((t - red.time) / div) * div;
+    const snapped = red.time + Math.round((t - red.time) / div) * div;
+    return snapAcrossRedLine(bm.timingPoints, t, snapped); // v285: lazer 跨红线就近规则
   };
 
   const onMouseDown = (e: React.MouseEvent) => {

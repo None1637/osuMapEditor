@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Pause, Play, Square, X } from 'lucide-react'; // v181: ▶/⏸/⏹/✕ → lucide (v221: 删 ⏮/⏭)
 import { store, useEditor, usePlaybackFrame } from '@/osu/store';
-import { timingAt, sliderVelocityAt, type TimingPoint, type Beatmap, type HitObject } from '@/osu/parser';
+import { timingAt, sliderVelocityAt, snapAcrossRedLine, type TimingPoint, type Beatmap, type HitObject } from '@/osu/parser';
 import { computeCombos, comboColor, invalidatePath, mergedWithPreview, objectEndAt } from '@/osu/renderer';
 import { beatTicks, TICK_COLORS, type TickLevel } from '@/osu/beatTicks';
 import { defaultNewPoint } from '@/osu/timingEdit';
@@ -196,7 +196,8 @@ export function TopTimeline() {
     const bm = store.beatmap!;
     const { red } = timingAt(bm.timingPoints, t);
     const div = red.beatLength / store.beatSnap;
-    return red.time + Math.round((t - red.time) / div) * div;
+    const snapped = red.time + Math.round((t - red.time) / div) * div;
+    return snapAcrossRedLine(bm.timingPoints, t, snapped); // v285: lazer 跨红线就近规则
   };
 
   const finishMarkerDrag = () => {
@@ -335,9 +336,9 @@ export function TopTimeline() {
   /** v137: 暗化层 (背景/上层两种模式共用同一层半透明暗色):
    *  波形在下层 -> 暗化波形 (物件/红绿线等内容保持正常亮度);
    *  波形在上层 -> 暗化时间轴内容 (波形全亮盖在最上层) */
-  // v271: 「时间轴半透明」开 = 减淡 (原 0.5 与波形底叠加后透过率仅 22%, 观感纯黑); v272: 0.2→0.1
+  // v284: 半透明为唯一行为 (开关移除) — 减淡 (原 0.5 与波形底叠加后透过率仅 22%, 观感纯黑); v272: 0.2→0.1
   const drawDimOverlay = (g: CanvasRenderingContext2D, r: { width: number; height: number }) => {
-    g.fillStyle = displaySettings.timelineTransparent ? 'rgba(8,8,12,0.1)' : 'rgba(8,8,12,0.5)'; // v272: 0.2→0.1
+    g.fillStyle = 'rgba(8,8,12,0.1)'; // v272: 0.2→0.1; v284: 固定
     g.fillRect(0, 0, r.width, r.height);
   };
 
@@ -372,8 +373,8 @@ export function TopTimeline() {
       g.clearRect(0, 0, c.width, c.height);
       g.setTransform(dpr, 0, 0, sy, 0, 0);
       // v129: 半透明底 — 上时间轴为浮层, 能看到背后游玩的物件
-      // v255: 显示设置「时间轴半透明」开 = 更透视, 关 = 旧 0.72 暗底; v272: 开 alpha 0.4→0.15
-      g.fillStyle = displaySettings.timelineTransparent ? 'rgba(12,12,17,0.15)' : 'rgba(12,12,17,0.72)'; // v272: 0.4→0.15 (仍遮挡物件)
+      // v284: 半透明为唯一行为 (开关移除); v272: 开 alpha 0.4→0.15
+      g.fillStyle = 'rgba(12,12,17,0.15)'; // v272: 0.4→0.15 (仍遮挡物件); v284: 固定
       g.fillRect(0, 0, r.width, r.height);
       if (bm) {
         const win = 6000 / (bm.editor.timelineZoom || 1);
@@ -989,7 +990,7 @@ export function BottomTimeline() {
       if (bm) {
         const len = store.songLength();
         const x = (ms: number) => (ms / len) * r.width;
-        const key = [store.getDataVersion(), c.width, c.height, Math.round(len), displaySettings.timelineTransparent ? 1 : 0].join('|'); // v255: 半透明开关进缓存 key, 切换即重建静态层
+        const key = [store.getDataVersion(), c.width, c.height, Math.round(len)].join('|'); // v284: 半透明开关移除, 移出缓存 key
         if (!layer || layer.key !== key) {
           if (!layer) layer = { key, c: document.createElement('canvas') };
           layer.key = key;
@@ -1000,8 +1001,8 @@ export function BottomTimeline() {
           lg.clearRect(0, 0, lc.width, lc.height);
           lg.setTransform(dpr, 0, 0, sy, 0, 0); // v246: sy 与主画布一致 (取整后 sx/sy 微差)
           // v129: 半透明底 — 下时间轴为浮层, 能看到背后游玩的物件
-          // v255: 显示设置「时间轴半透明」开 = 更透视, 关 = 旧 0.7 暗底; v272: 开 alpha 0.4→0.15
-          lg.fillStyle = displaySettings.timelineTransparent ? 'rgba(16,16,24,0.15)' : 'rgba(16,16,24,0.7)'; // v272: 0.4→0.15
+          // v284: 半透明为唯一行为 (开关移除); v272: 开 alpha 0.4→0.15
+          lg.fillStyle = 'rgba(16,16,24,0.15)'; // v272: 0.4→0.15; v284: 固定
           lg.fillRect(0, 0, r.width, r.height);
           // v155: stable 风格全局时间轴 —
           // kiai 橙区 (半高, 垂直居中于中线; v161) → 节拍刻度 (v158) → 红/绿 timing 线 (上半, 1px; v161) → 书签蓝线 (下半, 1px; v161)
@@ -1079,8 +1080,8 @@ export function BottomTimeline() {
       } else {
         layer = null;
         // v129: 半透明底 — 下时间轴为浮层, 能看到背后游玩的物件
-        // v255: 显示设置「时间轴半透明」开 = 更透视, 关 = 旧 0.7 暗底; v272: 开 alpha 0.4→0.15
-        g.fillStyle = displaySettings.timelineTransparent ? 'rgba(16,16,24,0.15)' : 'rgba(16,16,24,0.7)'; // v272: 0.4→0.15
+        // v284: 半透明为唯一行为 (开关移除); v272: 开 alpha 0.4→0.15
+        g.fillStyle = 'rgba(16,16,24,0.15)'; // v272: 0.4→0.15; v284: 固定
         g.fillRect(0, 0, r.width, r.height);
       }
       raf = requestAnimationFrame(draw);
@@ -1095,7 +1096,7 @@ export function BottomTimeline() {
   };
 
   return (
-    <div className="flex items-stretch gap-2 h-20 px-2 py-1.5" style={{ background: displaySettings.timelineTransparent ? 'rgba(21,21,32,0.1)' : 'rgba(21,21,32,0.7)' }}>{/* v129: 背景半透明; v255: 透明度由显示设置控制; v271: 0.4→0.25; v272: →0.1 (仍遮挡物件) */}
+    <div className="flex items-stretch gap-2 h-20 px-2 py-1.5" style={{ background: 'rgba(21,21,32,0.1)' }}>{/* v129: 背景半透明; v271: 0.4→0.25; v272: →0.1 (仍遮挡物件); v284: 固定 (开关移除) */}
       {/* v155: 左侧当前时间 + 进度百分比 (stable 底部时间轴样式; 原右侧时间显示移到此处) */}
       <div className="flex flex-col justify-center shrink-0 font-mono text-xs leading-4 select-none w-24" data-bottom-time>
         <span className="text-white/85">{fmt(store.currentTime)}</span>
@@ -1166,7 +1167,7 @@ export function SelectionInfoPanel() {
     }
   }
   return (
-    <div className="w-40 shrink-0 border-l border-white/10 flex flex-col items-end justify-center px-2 font-mono text-[11px] leading-5 text-white/85 select-none whitespace-nowrap" style={{ background: displaySettings.timelineTransparent ? 'rgba(12,12,17,0.15)' : 'rgba(12,12,17,0.72)' }}>{/* v129: 背景半透明; v255: 透明度由显示设置控制 */}
+    <div className="w-40 shrink-0 border-l border-white/10 flex flex-col items-end justify-center px-2 font-mono text-[11px] leading-5 text-white/85 select-none whitespace-nowrap" style={{ background: 'rgba(12,12,17,0.15)' }}>{/* v129: 背景半透明; v284: 固定 (开关移除) */}
       {nodeInfo ? (
         <>
           <div className="text-white/60">滑条点 ×{nodeInfo.count}</div>

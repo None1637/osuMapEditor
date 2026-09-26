@@ -102,7 +102,7 @@ section('TransformDialog.tsx: 旋转/缩放窗口 (复制左侧栏变换功能)'
   assert(/DraggableDialog/.test(src), '可拖动窗口');
   assert(/store\.setOriginMode\(m\)/.test(src) && /originMode === 'custom'/.test(src), '原点选择 (选区/中心/自定义) 复制');
   assert(/store\.rotateSelected\(-Math\.abs\(angle\), origin\)/.test(src) && /store\.rotateSelected\(Math\.abs\(angle\), origin\)/.test(src), '逆/顺时针旋转按钮');
-  assert(/store\.scaleSelected\(factor, origin\)/.test(src), '缩放应用按钮');
+  assert(/store\.scaleSelected\(factor, factorY, origin\)/.test(src), '缩放应用按钮 (v282 起双轴)');
 }
 
 if (failures) { console.error(`V209 FAILED: ${failures}`); process.exit(1); }

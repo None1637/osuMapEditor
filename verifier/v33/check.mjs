@@ -18,7 +18,7 @@ section('store.ts: 原点三模式');
   assert(/export type TransformOrigin = 'selection' \| 'playfield' \| Pt/.test(src), 'TransformOrigin 类型导出');
   assert(/resolveOrigin[\s\S]*?'playfield'\) return \{ x: 256, y: 192 \}/.test(src), 'playfield 原点 = (256,192)');
   assert(/rotateSelected\(deg: number, origin: TransformOrigin = 'selection'\)/.test(src), 'rotateSelected 任意角度 + origin');
-  assert(/scaleSelected\(s: number, origin: TransformOrigin = 'selection'\)/.test(src), 'scaleSelected 任意倍率 + origin');
+  assert(/scaleSelected\(sx: number, sy: number \| TransformOrigin = sx, origin: TransformOrigin = 'selection'\)/.test(src), 'scaleSelected 任意倍率 + origin (v282 起双轴, 兼容旧调用)');
   assert(/flipSelected\(axis: 'h' \| 'v', origin: TransformOrigin = 'selection'\)/.test(src), 'flipSelected + origin');
 }
 
@@ -28,7 +28,7 @@ section('Inspector.tsx: 变换面板 UI');
   for (const t of ['origin-${m}', 'testid="custom-x"', 'testid="custom-y"', 'testid="angle"', 'testid="factor"', 'data-tf={testid}'])
     assert(src.includes(t), `面板控件 ${t}`);
   assert(/store\.rotateSelected\(Math\.abs\(angle\), origin\)/.test(src), '旋转按钮使用输入角度 + 原点');
-  assert(/store\.scaleSelected\(factor, origin\)/.test(src), '缩放按钮使用输入倍率 + 原点');
+  assert(/store\.scaleSelected\(factor, factorY, origin\)/.test(src), '缩放按钮使用输入倍率 + 原点 (v282 起双轴)');
   assert(/store\.flipSelected\('h', origin\)/.test(src), '镜像按钮使用原点');
 }
 

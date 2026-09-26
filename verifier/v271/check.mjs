@@ -18,17 +18,17 @@ let failures = 0;
 function assert(cond, msg) { if (!cond) { failures++; console.error('  FAIL:', msg); } else console.log('  ok:', msg); }
 
 const wd = fs.readFileSync(path.join(root, 'src/osu/waveformDraw.ts'), 'utf8');
-assert(/v271: 「时间轴半透明」开 = 更淡的底/.test(wd), 'v271 注释在');
-assert(/const waveBg = \(\) => displaySettings\.timelineTransparent \? 'rgba\(20,20,20,0\.12\)' : WAVE_BG/.test(wd), '波形底 0.55→0.12 (半透明模式; v272 再降)');
-assert(/const spectroBgAlpha = \(\) => displaySettings\.timelineTransparent \? 40 : SPECTRO_BG_ALPHA/.test(wd), '频谱底 140→40 (半透明模式; v272 再降)');
+assert(/v284: 时间轴半透明为唯一行为/.test(wd), 'v284 注释在 (开关移除, 半透明固定)');
+assert(/const waveBg = \(\) => 'rgba\(20,20,20,0\.12\)'/.test(wd), '波形底固定 0.12 (v284: 开关移除)');
+assert(/const spectroBgAlpha = \(\) => 40/.test(wd), '频谱底固定 40 (v284: 开关移除)');
 assert(/g\.fillStyle = waveBg\(\)/.test(wd), 'drawWave 用 waveBg()');
 assert(/const bgA = spectroBgAlpha\(\)/.test(wd), 'renderSpectroStrip 用 spectroBgAlpha()');
 assert(/bgA: number \}.*v271: bgA 入缓存键/.test(wd), 'SpectroScroll 缓存键含 bgA');
 assert(/sc\.bgA !== bgA/.test(wd), '透明度开关变化触发频谱全量重绘');
 
 const tl = fs.readFileSync(path.join(root, 'src/components/Timelines.tsx'), 'utf8');
-assert(/displaySettings\.timelineTransparent \? 'rgba\(8,8,12,0\.1\)' : 'rgba\(8,8,12,0\.5\)'/.test(tl), '暗化层 0.5→0.1 (半透明模式; v272 再降)');
-assert(/displaySettings\.timelineTransparent \? 'rgba\(21,21,32,0\.1\)' : 'rgba\(21,21,32,0\.7\)'/.test(tl), '下时间轴容器底 0.4→0.1 (半透明模式; v272 再降)');
+assert(/g\.fillStyle = 'rgba\(8,8,12,0\.1\)'/.test(tl), '暗化层固定 0.1 (v284: 开关移除)');
+assert(/background: 'rgba\(21,21,32,0\.1\)'/.test(tl), '下时间轴容器底固定 0.1 (v284: 开关移除)');
 
 if (failures) { console.error(`\nV271_FAILED: ${failures} 处失败`); process.exit(1); }
 console.log('\nV271_ALL_PASSED');

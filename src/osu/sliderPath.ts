@@ -1,5 +1,5 @@
 // 滑条路径计算: 直线(L) / 三点圆弧(P) / 贝塞尔(B) / 卡特姆(C) / B样条(B4, lazer 扩展)
-import { sliderVelocityAt, timingAt, type Beatmap, type HitObject, type TimingPoint, type Vec2 } from './parser';
+import { sliderVelocityAt, timingAt, snapAcrossRedLine, type Beatmap, type HitObject, type TimingPoint, type Vec2 } from './parser';
 import { bSplineToPiecewiseLinear } from './freehand/pathApproximator';
 import { convertCircleToBezierAnchors } from './freehand/freehandFit';
 
@@ -47,9 +47,19 @@ export class SliderPath {
     let acc = 0, since = 0;
     for (let i = 1; i < fine.length; i++) {
       const d = Math.hypot(fine[i].x - fine[i - 1].x, fine[i].y - fine[i - 1].y);
+      // v283: pixelLength 截断精确落点 (lazer SliderPath.calculateLength: 截短后把末顶点沿末段方向
+      //   精确移到 expectedDistance 处) — 跨界时按 (expected-prev)/d 插值出精确切点加入再停;
+      //   原实现 acc >= expected 直接 break, 0.5px 去抖还可能吞掉跨界点, 尾点落后 expected 且
+      //   totalLength 与 cumulative 表互相矛盾 (positionAt(totalLength) 与 lazer 尾点不一致)
+      if (acc + d >= expectedLength) {
+        const t = d > 1e-9 ? (expectedLength - acc) / d : 0;
+        this.points.push({ x: fine[i - 1].x + (fine[i].x - fine[i - 1].x) * t, y: fine[i - 1].y + (fine[i].y - fine[i - 1].y) * t });
+        this.cumulative.push(expectedLength);
+        acc = expectedLength;
+        break;
+      }
       acc += d; since += d;
       if (since > 0.5) { this.points.push(fine[i]); this.cumulative.push(acc); since = 0; }
-      if (acc >= expectedLength) break;
     }
     // v148: expectedLength > 几何全长时沿末端切线线性延长 (lazer SliderPath.calculateLength:
     // calculatedPath[^1] = calculatedPath[^2] + dir * (expectedDistance - calculatedLength);
@@ -110,56 +120,47 @@ function linearPath(pts: Vec2[]): Vec2[] {
 }
 
 function perfectArcPath(pts: Vec2[]): Vec2[] {
-  // 三点确定圆弧; 若共线则退化为直线; 多于3点则分段
-  if (pts.length !== 3) {
-    const out: Vec2[] = [];
-    for (let i = 0; i + 2 < pts.length; i += 2) {
-      const seg = perfectArcPath(pts.slice(i, Math.min(i + 3, pts.length)));
-      out.push(...(i === 0 ? seg : seg.slice(1)));
-    }
-    if (pts.length % 2 === 0) {
-      const seg = linearPath(pts.slice(-2));
-      out.push(...seg.slice(1));
-    }
-    return out;
-  }
+  // v283: lazer SliderPath.calculateSubPath PERFECT_CURVE 对齐 (原实现把多段三点弧拼接 / 退化回退折线):
+  //   点数 != 3 不由本函数承担 — 解析层 (parser.ts v283) 已把 P≠3 整条转 'B'、3 点共线转 'L'
+  //   (lazer ConvertHitObjectParser.convertPoints); 此处兜底同样转贝塞尔
+  //   (lazer: subControlPoints.Length != 3 → break → BSplineToPiecewiseLinear, 即贝塞尔)
+  if (pts.length !== 3) return bezierPath(pts);
   const [a, b, c] = pts;
   const arc = circumArc(a, b, c);
-  if (!arc) return linearPath(pts);
-  const { cx, cy, r } = arc;
-  const a0 = Math.atan2(a.y - cy, a.x - cx);
-  const a1 = Math.atan2(b.y - cy, b.x - cx);
-  const a2 = Math.atan2(c.y - cy, c.x - cx);
-  // 判断方向: 用叉积
-  const cross = (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
-  const ccw = cross > 0;
-  let start = a0, end = a2;
-  // 确保经过 b
-  const norm = (ang: number, from: number, dir: number) => {
-    let d = (ang - from) * dir;
-    while (d < 0) d += Math.PI * 2;
-    return d / dir;
-  };
-  const dir = ccw ? 1 : -1;
-  const endRel = norm(end, start, dir);
-  const midRel = norm(a1, start, dir);
-  const total = midRel <= endRel ? endRel : endRel;
-  const steps = Math.max(8, Math.ceil(Math.abs(total) * r / 4));
+  // v283: 退化 (近共线, lazer CircularArcProperties.IsValid = false) 回退贝塞尔过 a,b,c (原回退折线)
+  if (!arc) return bezierPath(pts);
+  const { cx, cy, r, thetaStart, thetaRange, dir } = arc;
+  // v283: 采样数按径向误差 <=0.1px (lazer CircularArcToPiecewiseLinear):
+  //   amountPoints = ceil(θ / (2·acos(1−0.1/r))); 2r <= 0.1 的病态小弧取 2;
+  //   subPoints >= 1000 回退贝塞尔 (lazer SliderPath.calculateSubPath: 需 ~12 万 px 弧长才触发)
+  const subPoints = 2 * r <= 0.1 ? 2 : Math.max(2, Math.ceil(thetaRange / (2 * Math.acos(1 - 0.1 / r))));
+  if (subPoints >= 1000) return bezierPath(pts);
   const out: Vec2[] = [];
-  for (let i = 0; i <= steps; i++) {
-    const ang = start + dir * (Math.abs(total) * (i / steps));
-    out.push({ x: cx + r * Math.cos(ang), y: cy + r * Math.sin(ang) });
+  for (let i = 0; i < subPoints; i++) {
+    const theta = thetaStart + dir * (i / (subPoints - 1)) * thetaRange;
+    out.push({ x: cx + r * Math.cos(theta), y: cy + r * Math.sin(theta) });
   }
   return out;
 }
 
-function circumArc(a: Vec2, b: Vec2, c: Vec2): { cx: number; cy: number; r: number } | null {
+// v283: lazer CircularArcProperties 移植 — 退化判定统一到 double AlmostEquals(0, cross) (容差 1e-7,
+//   原 |d|<1e-6); 方向用 b 相对 AC 的侧向 (ortho 点积), 与 lazer 完全一致
+function circumArc(a: Vec2, b: Vec2, c: Vec2): { cx: number; cy: number; r: number; thetaStart: number; thetaRange: number; dir: number } | null {
+  const cross = (b.y - a.y) * (c.x - a.x) - (b.x - a.x) * (c.y - a.y);
+  if (Math.abs(cross) <= 1e-7) return null;
   const d = 2 * (a.x * (b.y - c.y) + b.x * (c.y - a.y) + c.x * (a.y - b.y));
-  if (Math.abs(d) < 1e-6) return null;
   const a2 = a.x * a.x + a.y * a.y, b2 = b.x * b.x + b.y * b.y, c2 = c.x * c.x + c.y * c.y;
   const cx = (a2 * (b.y - c.y) + b2 * (c.y - a.y) + c2 * (a.y - b.y)) / d;
   const cy = (a2 * (c.x - b.x) + b2 * (a.x - c.x) + c2 * (b.x - a.x)) / d;
-  return { cx, cy, r: Math.hypot(a.x - cx, a.y - cy) };
+  const r = Math.hypot(a.x - cx, a.y - cy);
+  const thetaStart = Math.atan2(a.y - cy, a.x - cx);
+  let thetaEnd = Math.atan2(c.y - cy, c.x - cx);
+  while (thetaEnd < thetaStart) thetaEnd += 2 * Math.PI;
+  let dir = 1, thetaRange = thetaEnd - thetaStart;
+  // 方向: b 在 A->C 哪一侧 (lazer: orthoAtoC = (ac.y, -ac.x), dot(ortho, b-a) < 0 → 反向)
+  const acx = c.x - a.x, acy = c.y - a.y;
+  if (acy * (b.x - a.x) - acx * (b.y - a.y) < 0) { dir = -1; thetaRange = 2 * Math.PI - thetaRange; }
+  return { cx, cy, r, thetaStart, thetaRange, dir };
 }
 
 function bezierPath(pts: Vec2[]): Vec2[] {
@@ -173,7 +174,9 @@ function bezierPath(pts: Vec2[]): Vec2[] {
   };
   for (let i = 0; i < pts.length; i++) {
     const p = pts[i];
-    if (segment.length > 0 && p.x === segment[segment.length - 1].x && p.y === segment[segment.length - 1].y) {
+    // v283: lazer convertPoints — 最后一个控制点不允许开启新的隐式段:
+    //   末尾重复对保留在同一贝塞尔段内 (更高阶); 原实现 flush 前段并丢弃最后的单点段 (贝塞尔降一阶)
+    if (i < pts.length - 1 && segment.length > 0 && p.x === segment[segment.length - 1].x && p.y === segment[segment.length - 1].y) {
       // 红点: 结束当前段
       flush();
     }
@@ -184,78 +187,66 @@ function bezierPath(pts: Vec2[]): Vec2[] {
   return out;
 }
 
-// v99: 大节点数贝塞尔性能 — 混合策略 (原实现每采样点 O(k²) de Casteljau, 1000 点单段 ≈ 6e9 次, 卡数十秒):
-//   <=24 点: 自适应剖分 (弦高 0.25px, 输出稀疏); >24 点: 截断 Bernstein 求值 (权重递推, 每点 O(窗口 ~6σ),
-//   总成本 ~12n·6√n — 1000 点实测毫秒级; 注意 de Casteljau 剖分不降阶, 大段递归是 2^d·n² 指数, 不可用)
-export function flattenBezier(pts: Vec2[], out: Vec2[]): void {
-  if (pts.length <= 24) { subdivideBezier(pts, out, 0); return; }
-  // 大段: 采样密度与旧版一致 (12n, >0.5px 去抖), 求值从 O(n²)/点 降为 O(窗口)/点
-  const m = Math.max(10, pts.length * 12);
-  for (let j = 0; j < m; j++) {
-    const p = bernsteinAt(pts, j / m);
-    if (out.length === 0 || Math.hypot(p.x - out[out.length - 1].x, p.y - out[out.length - 1].y) > 0.5) out.push(p);
+// v283: lazer PathApproximator.BSplineToPiecewiseLinear (degree = n-1, 即 BezierToPiecewiseLinear) 移植,
+//   全阶数统一: 迭代栈 + de Casteljau 中点剖分 (无递归, 大输入不会栈溢出), 平坦度 = 二阶差容差
+//   (lazer bezierIsFlatEnough, BEZIER_TOLERANCE = 0.25), 平坦段 lazer bezierApproximate 输出
+//   (与控制点同数量级的近似点)。扁平 number 数组零内层分配 — 1000 控制点锯齿/正弦实测 ~3-10ms
+//   (v99 性能语义保持: 原每采样点 O(k²) de Casteljau 卡数十秒)。
+//   原双轨 (<=24 弦高剖分 / >24 十二倍等参采样 + 截断 Bernstein) 移除: 大段等参采样在参数速度
+//   剧烈变化时曲率大区会留 >0.5px 的弦, 与 lazer 递归剖分结果不符。
+const BEZIER_FLAT_TOL_SQ = 0.25 * 0.25 * 4; // lazer: |p[i-1] - 2·p[i] + p[i+1]|² > 0.25²·4 → 不平坦
+
+// lazer bezierIsFlatEnough: 控制多边形二阶差 (曲率近似) 全部在容差内即足够平坦
+function bezierFlatEnough(xs: number[], ys: number[], n: number): boolean {
+  for (let i = 1; i < n - 1; i++) {
+    const dx = xs[i - 1] - 2 * xs[i] + xs[i + 1];
+    const dy = ys[i - 1] - 2 * ys[i] + ys[i + 1];
+    if (dx * dx + dy * dy > BEZIER_FLAT_TOL_SQ) return false;
   }
-  out.push({ x: pts[pts.length - 1].x, y: pts[pts.length - 1].y }); // t=1 末端点精确
+  return true;
 }
 
-// 截断 Bernstein 求值: b_i(t) = C(n,i)t^i(1-t)^(n-i), 权重集中在众数 i0=round(n·t) 附近 (σ=√(n·t(1-t))),
-// 从众数用相邻权重比向两侧递推, 相对权重 <1e-9 截断 — 与精确 de Casteljau 偏差 <1e-9·坐标量级
-function bernsteinAt(pts: Vec2[], t: number): Vec2 {
-  const n = pts.length - 1;
-  if (t <= 0) return { x: pts[0].x, y: pts[0].y };
-  if (t >= 1) return { x: pts[n].x, y: pts[n].y };
-  const i0 = Math.max(0, Math.min(n, Math.round(n * t)));
-  let sumW = 1, sx = pts[i0].x, sy = pts[i0].y;
-  let w = 1;
-  for (let i = i0; i < n; i++) { // 向大 i: b_{i+1}/b_i = (n-i)/(i+1) · t/(1-t)
-    w *= ((n - i) / (i + 1)) * (t / (1 - t));
-    if (w < 1e-9) break;
-    sumW += w; sx += pts[i + 1].x * w; sy += pts[i + 1].y * w;
-  }
-  w = 1;
-  for (let i = i0; i > 0; i--) { // 向小 i: b_{i-1}/b_i = i/(n-i+1) · (1-t)/t
-    w *= (i / (n - i + 1)) * ((1 - t) / t);
-    if (w < 1e-9) break;
-    sumW += w; sx += pts[i - 1].x * w; sy += pts[i - 1].y * w;
-  }
-  return { x: sx / sumW, y: sy / sumW };
-}
-
-// 自适应剖分 (小段用): de Casteljau 中点剖分递归, 内部控制点到首尾弦最大弦高 <=0.25px 即输出弦
-function subdivideBezier(pts: Vec2[], out: Vec2[], depth: number): void {
-  const a = pts[0], b = pts[pts.length - 1];
-  const dx = b.x - a.x, dy = b.y - a.y;
-  const len = Math.hypot(dx, dy);
-  let flat = true;
-  for (let i = 1; i < pts.length - 1; i++) {
-    const d = len < 1e-9
-      ? Math.hypot(pts[i].x - a.x, pts[i].y - a.y)
-      : Math.abs(dy * pts[i].x - dx * pts[i].y + b.x * a.y - b.y * a.x) / len;
-    if (d > 0.25) { flat = false; break; }
-  }
-  if (flat || depth >= 24) {
-    // 段接缝去重 (剖分左右半共享中点)
-    if (out.length === 0 || Math.hypot(a.x - out[out.length - 1].x, a.y - out[out.length - 1].y) > 0.01) out.push({ x: a.x, y: a.y });
-    out.push({ x: b.x, y: b.y });
-    return;
-  }
-  // de Casteljau 中点剖分: left = [p0, 各级首点, 顶点], right = [顶点, 各级末点, pn]
-  const left: Vec2[] = [], right: Vec2[] = [];
-  let cur = pts;
-  while (cur.length > 1) {
-    left.push(cur[0]);
-    right.push(cur[cur.length - 1]);
-    const next: Vec2[] = [];
-    for (let i = 0; i < cur.length - 1; i++) {
-      next.push({ x: (cur[i].x + cur[i + 1].x) / 2, y: (cur[i].y + cur[i + 1].y) / 2 });
+// lazer bezierSubdivide: de Casteljau 中点剖分为左右两段同阶控制点 (mxs/mys 为工作缓冲)
+function bezierSubdivideBuf(xs: number[], ys: number[], lxs: number[], lys: number[],
+  rxs: number[], rys: number[], mxs: number[], mys: number[], n: number): void {
+  for (let i = 0; i < n; i++) { mxs[i] = xs[i]; mys[i] = ys[i]; }
+  for (let i = 0; i < n; i++) {
+    lxs[i] = mxs[0]; lys[i] = mys[0];
+    rxs[n - i - 1] = mxs[n - i - 1]; rys[n - i - 1] = mys[n - i - 1];
+    for (let j = 0; j < n - i - 1; j++) {
+      mxs[j] = (mxs[j] + mxs[j + 1]) / 2;
+      mys[j] = (mys[j] + mys[j + 1]) / 2;
     }
-    cur = next;
   }
-  left.push(cur[0]);
-  right.push(cur[0]);
-  right.reverse();
-  subdivideBezier(left, out, depth + 1);
-  subdivideBezier(right, out, depth + 1);
+}
+
+// lazer bezierApproximate: 平坦段用 de Casteljau 扩展输出 n-1 个近似点 (含首点; 全曲线末点由 flattenBezier 最后统一补)
+function bezierApproximateBuf(xs: number[], ys: number[], n: number, out: Vec2[]): void {
+  const lxs = new Array<number>(2 * n - 1), lys = new Array<number>(2 * n - 1);
+  const rxs = new Array<number>(n), rys = new Array<number>(n), mxs = new Array<number>(n), mys = new Array<number>(n);
+  bezierSubdivideBuf(xs, ys, lxs, lys, rxs, rys, mxs, mys, n);
+  for (let i = 0; i < n - 1; i++) { lxs[n + i] = rxs[i + 1]; lys[n + i] = rys[i + 1]; }
+  out.push({ x: xs[0], y: ys[0] });
+  for (let i = 1; i < n - 1; i++) {
+    const k = 2 * i;
+    out.push({ x: 0.25 * (lxs[k - 1] + 2 * lxs[k] + lxs[k + 1]), y: 0.25 * (lys[k - 1] + 2 * lys[k] + lys[k + 1]) });
+  }
+}
+
+export function flattenBezier(pts: Vec2[], out: Vec2[]): void {
+  if (pts.length < 2) { for (const p of pts) out.push({ x: p.x, y: p.y }); return; }
+  // 迭代栈模拟递归 (lazer 同款 DFS, 先左后右); 相邻段共享剖分顶点, 天然无重复接缝点
+  const stack: { xs: number[]; ys: number[] }[] = [{ xs: pts.map(p => p.x), ys: pts.map(p => p.y) }];
+  while (stack.length > 0) {
+    const seg = stack.pop()!;
+    const n = seg.xs.length;
+    if (bezierFlatEnough(seg.xs, seg.ys, n)) { bezierApproximateBuf(seg.xs, seg.ys, n, out); continue; }
+    const lxs = new Array<number>(n), lys = new Array<number>(n), rxs = new Array<number>(n), rys = new Array<number>(n),
+      mxs = new Array<number>(n), mys = new Array<number>(n);
+    bezierSubdivideBuf(seg.xs, seg.ys, lxs, lys, rxs, rys, mxs, mys, n);
+    stack.push({ xs: rxs, ys: rys }, { xs: lxs, ys: lys });
+  }
+  out.push({ x: pts[pts.length - 1].x, y: pts[pts.length - 1].y }); // 全曲线精确末点
 }
 
 // v74: lazer B4| (degree-4 clamped 均匀 B 样条, 红点(重复点)分段; 手绘滑条落盘格式, 控制点少)
@@ -300,7 +291,7 @@ function catmullPath(pts: Vec2[]): Vec2[] {
   };
   for (let i = 0; i < n0 - 1; i++) {
     const p0 = get(i - 1), p1 = get(i), p2 = get(i + 1), p3 = get(i + 2);
-    const n = 15;
+    const n = 50; // v283: lazer PathApproximator.catmull_detail = 50 (原 15, 采样密度不足)
     for (let j = 0; j < n; j++) {
       const t = j / n, t2 = t * t, t3 = t2 * t;
       out.push({
@@ -321,7 +312,10 @@ export function getSliderPath(_bm: Beatmap, o: HitObject): SliderPath {
   let p = pathCache.get(o.id);
   if (!p) {
     const pts = [{ x: o.x, y: o.y }, ...(o.curvePoints ?? [])];
-    p = new SliderPath(o.curveType ?? 'L', pts, o.length ?? 100);
+    const curveType = o.curveType ?? 'L';
+    // v283: length 缺失 (lazer ExpectedDistance = null) 用几何全长, 不再 ?? 100 截到 100px
+    //   (解析层 parser.ts v283 加载时已填几何全长, 此处兜底程序化构造的无 length 对象)
+    p = new SliderPath(curveType, pts, o.length ?? sliderGeometryLength(curveType, pts));
     pathCache.set(o.id, p);
   }
   return p;
@@ -534,7 +528,8 @@ export function sliderLengthSnapDivisor(beatSnap: number): number {
 export function snapPlacementTime(points: TimingPoint[], currentTime: number, beatSnap: number): number {
   const { red } = timingAt(points, currentTime);
   const div = red.beatLength / beatSnap;
-  return red.time + Math.round((currentTime - red.time) / div) * div;
+  const snapped = red.time + Math.round((currentTime - red.time) / div) * div;
+  return snapAcrossRedLine(points, currentTime, snapped); // v285: lazer 跨红线就近规则
 }
 
 /** v180: 转盘放置终点 — lazer SpinnerPlacementBlueprint.updateEndTimeFromCurrent:

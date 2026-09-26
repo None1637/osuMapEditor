@@ -19,9 +19,9 @@ const tl = fs.readFileSync(path.join(root, 'src/components/Timelines.tsx'), 'utf
 const clears = tl.match(/v274: 每帧先清画布[\s\S]{0,200}?g\.clearRect\(0, 0, c\.width, c\.height\);/g) ?? [];
 assert(clears.length === 2, `上/下时间轴 draw 开头各一处每帧清画布 (实际 ${clears.length})`);
 assert(/g\.setTransform\(1, 0, 0, 1, 0, 0\);\s*g\.clearRect/.test(tl), '清画布在 identity 变换下 (设备像素全幅)');
-// 回归保护: 半透明底色值仍是 v272 终值
-assert(/displaySettings\.timelineTransparent \? 'rgba\(12,12,17,0\.15\)'/.test(tl), '上时间轴底 0.15 (v272) 保留');
-assert(/displaySettings\.timelineTransparent \? 'rgba\(16,16,24,0\.15\)'/.test(tl), '下时间轴底 0.15 (v272) 保留');
+// 回归保护: 半透明底色值仍是 v272 终值 (v284 适配: 开关移除, 固定)
+assert(/g\.fillStyle = 'rgba\(12,12,17,0\.15\)'/.test(tl), '上时间轴底 0.15 (v272) 保留');
+assert(/lg\.fillStyle = 'rgba\(16,16,24,0\.15\)'/.test(tl), '下时间轴底 0.15 (v272) 保留');
 
 if (failures) { console.error(`\nV274_FAILED: ${failures} 处失败`); process.exit(1); }
 console.log('\nV274_ALL_PASSED');

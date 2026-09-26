@@ -34,7 +34,7 @@ section('AudioClock.ts: 排程延迟修复');
 section('store.ts: 选区变换 + 选择集刷新不触发事件表重建');
 {
   const src = readSrc('src/osu/store.ts');
-  assert(/rotateSelected\(deg: number/.test(src) && src.includes('flipSelected(axis') && /scaleSelected\(s: number/.test(src), 'rotate/flip/scale 选区变换方法 (v33 起带 origin 参数)');
+  assert(/rotateSelected\(deg: number/.test(src) && src.includes('flipSelected(axis') && /scaleSelected\(sx: number/.test(src), 'rotate/flip/scale 选区变换方法 (v33 起带 origin 参数; v282 起 scale 双轴)');
   assert(/applyTransform[\s\S]*?pushUndo\(\)/.test(src), '变换一次操作一次 undo');
   assert(/applyTransform[\s\S]*?invalidatePath\(s\.id\)/.test(src), '变换后滑条路径缓存失效');
   assert(src.includes('emitSelection()'), '选择集专用刷新 (不 bump dataVersion)');
@@ -64,7 +64,7 @@ section('App.tsx / Inspector.tsx: 快捷键与变换按钮');
   assert(app.includes("store.rotateSelected(-90, 'playfield')") && app.includes("store.rotateSelected(90, 'playfield')"), 'Ctrl+,/. 旋转 90° (v75 起 lazer 键位; v192 起游玩区中心)');
   assert(app.includes("store.flipSelected('h', 'playfield')") && app.includes("store.flipSelected('v', 'playfield')"), 'Ctrl+H/J 镜像 (v192 起游玩区中心)');
   const insp = readSrc('src/components/Inspector.tsx');
-  assert(insp.includes('TransformPanel') && insp.includes('scaleSelected(factor, origin)'), 'Inspector 变换面板 (v33 起任意倍率输入 + 原点)');
+  assert(insp.includes('TransformPanel') && insp.includes('scaleSelected(factor, factorY, origin)'), 'Inspector 变换面板 (v33 起任意倍率输入 + 原点)');
 }
 
 if (failures) { console.error(`\nVERIFIER_V17_FAILED: ${failures} 处失败`); process.exit(1); }

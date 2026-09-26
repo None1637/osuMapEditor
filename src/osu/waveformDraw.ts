@@ -4,18 +4,16 @@
 //       对齐 lazer Editor.WAVEFORM_VISUAL_OFFSET (ppy/osu PR#26136) — 谱面计时应含 ~20ms 历史系统延迟,
 //       采样取 t+20 → 内容左移 20ms 对齐社区预期 (纯视觉, 不影响播放/hitsound)。
 import { getPeaks, getSpectroColumn, spectroColor, spectroScrollStep, WAVEFORM_VISUAL_OFFSET_MS } from './waveformData';
-import { displaySettings } from './displaySettings'; // v271
 
 // Audition 风波形配色 (v105: 背景半透明, 透出下层内容)
 export const WAVE_BG = 'rgba(20,20,20,0.55)';
-// v271: 「时间轴半透明」开 = 更淡的底 — 原 0.55 波形底 + 0.5 暗化层 (v137) 叠加后透过率仅 22%,
-//       叠在 #111116 画布底色上观感纯黑 (用户反馈「时间轴半透明无效, 底色是纯黑的」); 频谱底同理 140→70
-const waveBg = () => displaySettings.timelineTransparent ? 'rgba(20,20,20,0.12)' : WAVE_BG; // v272: 0.25→0.12 (仍遮挡物件)
+// v284: 时间轴半透明为唯一行为 (开关移除) — 固定淡底; 原 0.55 波形底 + 0.5 暗化层 (v137) 叠加后透过率仅 22%,
+//       叠在 #111116 画布底色上观感纯黑 (用户反馈「时间轴半透明无效, 底色是纯黑的」); 频谱底同理固定 40
+const waveBg = () => 'rgba(20,20,20,0.12)'; // v272: 0.25→0.12 (仍遮挡物件)
 const WAVE_EDGE = '#1e6e2e';  // 端部暗绿
 const WAVE_CORE = '#7fe07f';  // 核心亮绿
 /** 频谱底 alpha (无数据/静音处半透明); 数据像素随强度 140→255 */
-const SPECTRO_BG_ALPHA = 140;
-const spectroBgAlpha = () => displaySettings.timelineTransparent ? 40 : SPECTRO_BG_ALPHA; // v271; v272: 70→40
+const spectroBgAlpha = () => 40; // v271; v272: 70→40; v284: 固定 (开关移除, 原 SPECTRO_BG_ALPHA=140 分支删除)
 
 /** 频谱滚动缓存: 离屏位图 + 该位图精确表示的视口参数 (imgT0 为浮点毫秒, 亚像素残差留在其中, 不单独累积) */
 export interface SpectroScroll { cv: HTMLCanvasElement; imgT0: number; win: number; w: number; h: number; bgA: number } // v271: bgA 入缓存键 (半透明开关切换即重建)

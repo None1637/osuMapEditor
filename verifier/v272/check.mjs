@@ -17,16 +17,17 @@ let failures = 0;
 function assert(cond, msg) { if (!cond) { failures++; console.error('  FAIL:', msg); } else console.log('  ok:', msg); }
 
 const tl = fs.readFileSync(path.join(root, 'src/components/Timelines.tsx'), 'utf8');
-assert(/displaySettings\.timelineTransparent \? 'rgba\(12,12,17,0\.15\)' : 'rgba\(12,12,17,0\.72\)'/.test(tl), '上时间轴帧填充 0.15');
-assert((tl.match(/displaySettings\.timelineTransparent \? 'rgba\(16,16,24,0\.15\)' : 'rgba\(16,16,24,0\.7\)'/g) ?? []).length === 2, '下时间轴两处填充 0.15');
-assert(/displaySettings\.timelineTransparent \? 'rgba\(21,21,32,0\.1\)' : 'rgba\(21,21,32,0\.7\)'/.test(tl), '下时间轴容器 0.1');
-assert(/displaySettings\.timelineTransparent \? 'rgba\(12,12,17,0\.15\)' : 'rgba\(12,12,17,0\.72\)' \}\}/.test(tl), 'SelectionInfoPanel 0.15');
-assert(/displaySettings\.timelineTransparent \? 'rgba\(8,8,12,0\.1\)' : 'rgba\(8,8,12,0\.5\)'/.test(tl), '暗化层 0.1');
-assert(!/timelineTransparent \? 'rgba\(12,12,17,0\.4\)'/.test(tl) && !/timelineTransparent \? 'rgba\(16,16,24,0\.4\)'/.test(tl), '旧 0.4 值已移除');
+// v284 适配: 开关移除, 全部固定为「开」值
+assert(/g\.fillStyle = 'rgba\(12,12,17,0\.15\)'/.test(tl), '上时间轴帧填充 0.15 (v284: 固定)');
+assert((tl.match(/fillStyle = 'rgba\(16,16,24,0\.15\)'/g) ?? []).length === 2, '下时间轴两处填充 0.15 (v284: 固定)');
+assert(/background: 'rgba\(21,21,32,0\.1\)'/.test(tl), '下时间轴容器 0.1 (v284: 固定)');
+assert(/background: 'rgba\(12,12,17,0\.15\)' \}\}/.test(tl), 'SelectionInfoPanel 0.15 (v284: 固定)');
+assert(/g\.fillStyle = 'rgba\(8,8,12,0\.1\)'/.test(tl), '暗化层 0.1 (v284: 固定)');
+assert(!/timelineTransparent \?/.test(tl), 'v284: 开关三元全部移除');
 
 const wd = fs.readFileSync(path.join(root, 'src/osu/waveformDraw.ts'), 'utf8');
-assert(/'rgba\(20,20,20,0\.12\)' : WAVE_BG/.test(wd), '波形底 0.12');
-assert(/\? 40 : SPECTRO_BG_ALPHA/.test(wd), '频谱底 40');
+assert(/const waveBg = \(\) => 'rgba\(20,20,20,0\.12\)'/.test(wd), '波形底 0.12 (v284: 固定)');
+assert(/const spectroBgAlpha = \(\) => 40/.test(wd), '频谱底 40 (v284: 固定)');
 
 if (failures) { console.error(`\nV272_FAILED: ${failures} 处失败`); process.exit(1); }
 console.log('\nV272_ALL_PASSED');

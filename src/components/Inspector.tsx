@@ -35,6 +35,7 @@ export function Inspector() {
   // v33: 变换面板状态 (任意角度/倍率 + 三种原点); v34: 原点模式/自定义点提升到 store (画布标记渲染+拖拽共用)
   const [angle, setAngle] = useState(90);
   const [factor, setFactor] = useState(1.1);
+  const [factorY, setFactorY] = useState(1.1); // v282: 缩放支持仅X/仅Y (另一轴填 1)
   const originMode = store.originMode;
   const customX = store.customOrigin.x;
   const customY = store.customOrigin.y;
@@ -87,8 +88,11 @@ export function Inspector() {
       </div>
       <div className="flex items-center gap-1 flex-wrap">
         <span className="text-white/50">缩放</span>
-        <NumIn value={factor} set={setFactor} testid="factor" />
-        <Btn label="应用倍率" title="按输入倍率缩放 (滑条长度同步)" onClick={() => store.scaleSelected(factor, origin)} />
+        <span className="text-white/40">x</span>
+        <NumIn value={factor} set={setFactor} testid="factor" w="w-14" />
+        <span className="text-white/40">y</span>
+        <NumIn value={factorY} set={setFactorY} testid="factor-y" w="w-14" />
+        <Btn label="应用倍率" title="按输入倍率缩放 (仅X: y 填 1; 仅Y: x 填 1; 滑条长度同步)" onClick={() => store.scaleSelected(factor, factorY, origin)} />
       </div>
       <div className="flex items-center gap-1 flex-wrap">
         <span className="text-white/50">镜像</span>

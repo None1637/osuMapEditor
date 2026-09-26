@@ -24,8 +24,7 @@ export interface DisplaySettings {
   showFps: boolean;
   /** v254: 选中物件的黄色包围框 + 缩放/旋转手柄 (关 = 只显示选中效果, 不画黄框) */
   selectionBounds: boolean;
-  /** v255: 上下时间轴 UI 更半透明 (开 = 底 alpha≈0.4 更透视; 关 = v129 的 0.7 暗底) */
-  timelineTransparent: boolean;
+  // v284: timelineTransparent 开关移除 — 时间轴半透明成为唯一行为 (用户要求: 默认就是半透明, 不要开关)
 }
 
 /** 布尔开关键 (DisplayPanel 开关行用; bgBrightness 是数值, 走 setDisplayNumber) */
@@ -48,7 +47,7 @@ function loadDisplaySettings(): DisplaySettings {
     selectionStyle: 'stable',   // v232: 默认 stable hitcircleselect 选框
     showFps: true,              // v253: 默认显示帧数 (v220 起的行为)
     selectionBounds: true,      // v254: 默认画黄框 (v49 起的行为)
-    timelineTransparent: true,  // v255: 默认更半透明 (用户需求: 上下时间轴想要半透明)
+    // v284: timelineTransparent 移除 (半透明为唯一行为)
   };
   try {
     const raw = localStorage.getItem(LS_KEY);
@@ -68,7 +67,7 @@ function loadDisplaySettings(): DisplaySettings {
       selectionStyle: p.selectionStyle === 'stable' || p.selectionStyle === 'lazer' ? p.selectionStyle : def.selectionStyle,
       showFps: p.showFps !== false,
       selectionBounds: p.selectionBounds !== false,
-      timelineTransparent: p.timelineTransparent !== false,
+      // v284: timelineTransparent 移除 (localStorage 残留键忽略)
     };
   } catch { return def; }
 }

@@ -2,7 +2,7 @@
 // (osu.Game.Rulesets.Osu/Edit/PolygonGenerationPopover.cs:140-215)
 // 圆心固定游玩区中心 (256,192), 全部生成 HitCircle, 顶点 3-32 / 圈数 1-10 / 起始角 0-180° / DS 0.1-6
 import type { Beatmap, HitObject, TimingPoint } from '../parser';
-import { genId, timingAt } from '../parser';
+import { genId, timingAt, snapAcrossRedLine } from '../parser';
 
 export interface PolygonParams {
   vertices: number;     // 顶点数 3-32
@@ -24,7 +24,8 @@ export function snapBeatTime(points: TimingPoint[], divisor: number, time: numbe
   const { red } = timingAt(points, time);
   const step = red.beatLength / divisor;
   if (!(step > 0)) return Math.max(0, time);
-  return Math.max(0, red.time + Math.round((time - red.time) / step) * step);
+  const snapped = Math.max(0, red.time + Math.round((time - red.time) / step) * step);
+  return snapAcrossRedLine(points, time, snapped); // v285: lazer 跨红线就近规则
 }
 
 /**

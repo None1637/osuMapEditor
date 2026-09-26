@@ -76,7 +76,7 @@ section('store/UI: 面板与按钮接线');
   assert(/setDisplayFlag\(k: BoolDisplayKey, v: boolean\) \{ applyDisplayFlag\(k, v\); this\.emitSelection\(\); \}/.test(st), 'setDisplayFlag 转发 + emitSelection (v168: BoolDisplayKey)');
   const dp = readSrc('src/components/DisplayPanel.tsx');
   assert(/data-display-toggle=\{r\.key\}/.test(dp), '面板开关行 data 属性');
-  assert((dp.match(/key: '/g) || []).length === 11, '11 个设置行 (v132 原 5 个 + v147 打击动画 + v231/v232 两个下拉行 + v253/254/255 三个开关行)'); // v147 适配: 原断言 5 行; v231/v232 适配: SELECT_ROWS +2; v253/254/255 适配: ROWS +3
+  assert((dp.match(/key: '/g) || []).length === 10, '10 个设置行 (v132 原 5 个 + v147 打击动画 + v231/v232 两个下拉行 + v253/254 两个开关行)'); // v147 适配: 原断言 5 行; v231/v232 适配: SELECT_ROWS +2; v253/254 适配: ROWS +2; v284 适配: v255 时间轴半透明开关移除 (-1)
   const app = readSrc('src/App.tsx');
   assert(/data-display-panel-btn/.test(app), '页签栏「显示设置」按钮');
   assert(/\{store\.displayPanelOpen && <DisplayPanel \/>\}/.test(app), '面板渲染挂载');

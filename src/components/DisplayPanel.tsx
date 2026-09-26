@@ -13,10 +13,10 @@ const ROWS: { key: BoolDisplayKey; name: string; desc: string }[] = [
   { key: 'hitExplosion', name: 'note 点击特效 (Hit Explosion)', desc: '单点命中后暂留并放大淡出; 关闭则命中立即消失' },
   // v147
   { key: 'hitAnimation', name: 'note 打击动画 (Hit Animation)', desc: '命中后播放 240ms 放大淡出动画; 关闭则不放大, 命中后原大小残留 800ms 渐隐, 缩圈缩到圈边后向外反弹一点再停住 (osu!stable 编辑器同款; 需点击特效开启)' },
-  // v253/v254/v255
+  // v253/v254
   { key: 'showFps', name: '帧数显示 (FPS Counter)', desc: '右下角悬浮的实时帧数; 关闭则完全不挂载' },
   { key: 'selectionBounds', name: '选中包围框 (Selection Bounds)', desc: '选中物件的黄色包围框与缩放/旋转手柄; 关闭则只显示物件选中效果' },
-  { key: 'timelineTransparent', name: '时间轴半透明 (Timeline Transparency)', desc: '上下时间轴背景更透明可透视游玩区; 关闭则为暗色不透明底' },
+  // v284: 时间轴半透明开关移除 — 半透明为唯一行为 (用户要求: 默认就是半透明, 不要开关)
 ];
 
 // v231/v232: stable/lazer 二选下拉行 (布局仿下方 bgBrightness 的 custom 行)

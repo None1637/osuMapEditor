@@ -2305,3 +2305,63 @@
   framed paddingRight=0/无 drag, overlay paddingRight=140/drag; CDP 截图 v281-framed.png /
   v281-overlay.png); framed 模式整屏截图确认原生菜单栏不重复显示, 音量/显示设置贴右不左移;
   tsc -b / build 通过; v280 断言同步更新。
+
+## v282 缩放支持仅X轴/仅Y轴
+- 需求: 用户反馈缩放窗口只有单一倍率, 需要支持仅缩放 x 轴或仅缩放 y 轴。
+- 实现: transform.ts scaleObjects(objs, c, sx, sy=sx) 非等比 (sy 缺省=sx 保持旧行为);
+  滑条 pixelLength 系数 — 等比=s, 仅单轴 (另一轴=1)=该轴系数, 两轴不同且都≠1=几何平均 √(sx·sy) (近似);
+  store.scaleSelected(sx, sy, origin) 兼容旧调用 scaleSelected(s, origin);
+  Inspector 左侧栏缩放行 + TransformDialog 缩放窗口: 倍率改为 x/y 两个输入框 (仅X: y 填 1; 仅Y: x 填 1),
+  testid 新增 factor-y (原 factor = x 轴)。
+- 验证: verifier/v282/check.mjs; esbuild 打包 transform.ts 实跑 — 等比×2/仅X/仅Y/双轴(2,4)
+  坐标与长度均符合预期 (双轴 len=141·√8≈399); tsc -b / build 通过;
+  v17/v33/v146/v209 旧断言同步更新, 全量回归回基线 (v28/v137/v138/v142)。
+
+## v283 滑条路径实现与 osu!lazer 全面对齐 (7 项差异修复)
+- 背景: 用户要求对比项目与 lazer 滑条实现差异并全部修复 (分析依据: lazer master
+  SliderPath.cs / ConvertHitObjectParser.convertPoints / framework PathApproximator.cs /
+  CircularArcProperties.cs)。
+- 修复 (src/osu/sliderPath.ts + parser.ts):
+  1. P 型点数 ≠3: 解析层 (parser.ts) 整条转 BEZIER, 3 点共线转 LINEAR (lazer convertPoints);
+     computeRawPath('P', ≠3点) 兜底同样转贝塞尔 (原按步进 2 拼多段三点弧 — 形状完全不同);
+  2. Catmull-Rom 采样密度 15 → 50 (lazer catmull_detail, 急弯/bulb 处不再切角);
+  3. pixelLength 截断精确落点: 跨界按 (expected-prev)/d 插值出精确切点 (lazer calculateLength
+     把末顶点精确移到 expectedDistance), cumulative 表与 totalLength 不再矛盾, 尾部对齐 lazer;
+  4. 末尾重复控制点: 末控制点不开启新隐式段, 重复对保留在同一贝塞尔段 (更高阶, 原降一阶);
+  5. >24 控制点贝塞尔: 移除自研双轨 (弦高剖分/12n 等参采样+截断 Bernstein), 全阶数统一
+     lazer 移植 (二阶差平坦度 0.25 + de Casteljau 中点剖分 + bezierApproximate), 迭代栈无递归;
+  6. 圆弧: 采样数 = ceil(θ / (2·acos(1−0.1/r))) (径向误差 ≤0.1px), subPoints >= 1000 回退贝塞尔,
+     退化 (近共线, cross AlmostEquals 1e-7) 回退贝塞尔 (原回退折线);
+  7. length 缺失/<=0: 用几何全长 (lazer ExpectedDistance=null), 不再截到 100px。
+- 测试修正: v283 tests 的距离度量改为点到折线 (原点到顶点把零弦误差误判为大偏差;
+  线性段与 lazer 一样不细分); 差异4 判别点改 t=0.5 (两曲线 t≈0.65 处实距仅 ~3px);
+  圆弧切点容差 0.15 (截断沿折线, lazer 同款固有偏差); v141 多点弧参考路径改显式两段三点弧
+  (computeRawPath('P', ≠3点) 语义已变); v39/v99 断言同步更新。
+- 验证: verifier/v283/check.mjs (esbuild 数值测试: 截断切点/P 转换/catmull 50/末尾重复保留/
+  30 点参数速度剧变最大弦偏差/圆弧采样 18 点径向误差 0/超大弧回退/退化回退/length 兜底) 全过;
+  tsc -b / build 通过; 全量回归回基线 (v28/v137/v138/v142)。
+
+## v284 时间轴半透明成为唯一行为 (显示设置开关移除)
+- 需求: 用户要求「时间轴应该默认就是半透明的, 不要在显示设置里加开关」。
+- 实现: displaySettings.ts 移除 timelineTransparent 字段/默认值/持久化读取 (localStorage
+  残留键忽略); DisplayPanel.tsx 开关行移除; 所有按开关三元的底色固定为「开」值 —
+  waveformDraw waveBg 固定 rgba(20,20,20,0.12) / spectroBgAlpha 固定 40 (SPECTRO_BG_ALPHA=140
+  分支删除); Timelines 上帧填充 0.15 / 下静态层+无谱面分支 0.15 / 暗化层 0.1 / 容器 div 0.1 /
+  SelectionInfoPanel 0.15; 静态层缓存 key 不再含开关。
+- 验证: verifier/v284/check.mjs 全过; tsc -b / build 通过; v105/v129/v132/v255/v271/v272/v274
+  旧断言同步更新, 全量回归回基线 (v28/v137/v138/v142)。
+
+## v285 节拍吸附补上 lazer 跨红线就近规则
+- 背景: 与 lazer 时间对齐逻辑全面对比后发现的差异 — lazer ControlPointInfo.GetClosestSnappedTime
+  (无 referenceTime 分支): 就近 tick 吸附后, 若 TimingPointAfter(time) (严格大于 time 的第一条红线)
+  存在且不比就近 tick 更远则吸附到红线起点 (等距取红线, `Abs(time-snapped) < Abs(time-after.Time)
+  ? snapped : after.Time`); 项目 5 处吸附函数只有当前红线网格就近取整。变速图在下条红线前不足
+  半 tick 处放置/拖动, 两边落点差几~几十 ms。
+- 实现: parser.ts 新增 nextRedAfter + snapAcrossRedLine 共享助手; 接入 — snapPlacementTime
+  (sliderPath.ts, 放置时刻/转盘终点随之生效) / snapBeatTime (polygon.ts 多边形) / snapMs
+  (Timelines.tsx 物件/绿线拖拽) / snapTime (EditorCanvas.tsx 放置与拖放) / timingResnap
+  (store.ts 包 snapTimeToRedBeat)。滑条长度吸附 (snapSliderLength/placementLength) 不适用 —
+  lazer FindSnappedDistance 带 referenceTime=滑条头, 该分支本来就不做跨红线 (有源码断言保护)。
+- 验证: verifier/v285 (esbuild 数值: nextRedAfter 严格大于语义/tick 更近保持/红线更近跨线/
+  等距取红线/无下条红线原样/过 red1 后按新网格/负时间 clamp 保留; 源码断言 5 触点 +
+  长度吸附不适用); tsc -b / build 通过; 全量回归回基线 (v28/v137/v138/v142)。

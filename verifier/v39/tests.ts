@@ -19,7 +19,7 @@ function distToPath(p: Vec2, path: SliderPath): number {
 section('sliderPath: catmull 端点约定对齐 lazer (首 clamp / 末端外推), 带红点不分段');
 {
   // 末端外推 (v4 = 2*v3 - v2) vs 旧实现末端 clamp (v4 = v3): 三点 (0,0),(100,0),(100,100) 末段,
-  // 用 lazer 端点约定的 catmull 公式直接求值, 与 computeRawPath 采样点 (t = j/15) 逐点比对 (精确到浮点误差)
+  // 用 lazer 端点约定的 catmull 公式直接求值, 与 computeRawPath 采样点 (t = j/50, v283: catmull_detail 50) 逐点比对 (精确到浮点误差)
   const raw = SliderPath.computeRawPath('C', [{ x: 0, y: 0 }, { x: 100, y: 0 }, { x: 100, y: 100 }]);
   const cat = (v1: Vec2, v2: Vec2, v3: Vec2, v4: Vec2, t: number): Vec2 => {
     const t2 = t * t, t3 = t2 * t;
@@ -28,11 +28,11 @@ section('sliderPath: catmull 端点约定对齐 lazer (首 clamp / 末端外推)
       y: 0.5 * ((2 * v2.y) + (-v1.y + v3.y) * t + (2 * v1.y - 5 * v2.y + 4 * v3.y - v4.y) * t2 + (-v1.y + 3 * v2.y - 3 * v3.y + v4.y) * t3),
     };
   };
-  // 末段 (i=1): v1=(0,0) v2=(100,0) v3=(100,100) v4=外推 (100,200); raw[15+j] = t=j/15 采样
+  // 末段 (i=1): v1=(0,0) v2=(100,0) v3=(100,100) v4=外推 (100,200); raw[50+j] = t=j/50 采样 (v283: 15 -> 50)
   const v4e = { x: 100, y: 200 };
-  const maxErr = Math.max(...Array.from({ length: 15 }, (_, j) => {
-    const e = cat({ x: 0, y: 0 }, { x: 100, y: 0 }, { x: 100, y: 100 }, v4e, j / 15);
-    return Math.hypot(raw[15 + j].x - e.x, raw[15 + j].y - e.y);
+  const maxErr = Math.max(...Array.from({ length: 50 }, (_, j) => {
+    const e = cat({ x: 0, y: 0 }, { x: 100, y: 0 }, { x: 100, y: 100 }, v4e, j / 50);
+    return Math.hypot(raw[50 + j].x - e.x, raw[50 + j].y - e.y);
   }));
   // 对照: 若仍是旧 clamp (v4=v3=(100,100)), 中点 t=0.5 理论值 (106.25,50) 与外推值 (106.25,43.75) 差 6.25px
   assert(maxErr < 1e-6, `catmull 末端外推对齐 lazer (采样与公式最大误差 ${maxErr.toExponential(1)})`);

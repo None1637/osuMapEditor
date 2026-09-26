@@ -3,6 +3,8 @@
 //  1) parse -> serialize -> parse 两遍结果深度相等 (语义无损)
 //  2) 未建模内容 byte 级保留: [Events](含 storyboard/breaks/背景行)、[Colours]、
 //     未知 section、已建模 section 中的未知键、物件 hitSample / 滑条边缘音效原始字符串
+import { sliderGeometryLength } from './sliderPath';
+
 export interface Vec2 { x: number; y: number }
 
 export interface TimingPoint {
@@ -256,8 +258,24 @@ export function parseHitObjectLine(line: string): HitObject | null {
       const [cx, cy] = s.split(':');
       return { x: parseFloat(cx), y: parseFloat(cy) };
     });
+    // v283: lazer ConvertHitObjectParser.convertPoints 同款 edge-case (加载已有 .osu 与 lazer 一致;
+    //   编辑器内编辑后的 P≠3 降级仍由 sliderPath.resolveSliderCurveType 承担, 互不影响):
+    //   PERFECT_CURVE 控制点总数 (含头部) != 3 时整条转 BEZIER (曲线仍经过所有点,
+    //   原 sliderPath 按多段三点弧拼接, 形状不同); 3 点共线 (叉积 AlmostEquals(0,·), double 1e-7) 转 LINEAR
+    if (base.curveType === 'P') {
+      const all = [{ x: base.x, y: base.y }, ...base.curvePoints];
+      if (all.length !== 3) base.curveType = 'B';
+      else {
+        const [p0, p1, p2] = all;
+        const cross = (p1.y - p0.y) * (p2.x - p0.x) - (p1.x - p0.x) * (p2.y - p0.y);
+        if (Math.abs(cross) <= 1e-7) base.curveType = 'L';
+      }
+    }
     base.slides = parseInt(p[6] ?? '1') || 1;
-    base.length = parseFloat(p[7] ?? '100') || 100;
+    // v283: lazer ConvertHitObjectParser — length 字段缺失或 <=0 时 ExpectedDistance = null,
+    //   即用几何全长 (原实现缺省截到 100px)
+    const pl = p[7] === undefined ? 0 : parseFloat(p[7]);
+    base.length = pl > 0 ? pl : sliderGeometryLength(base.curveType, [{ x: base.x, y: base.y }, ...base.curvePoints]);
     base.edgeSoundsRaw = p[8];
     base.edgeSetsRaw = p[9];
     base.hitSampleRaw = p[10];
@@ -388,6 +406,23 @@ export function timingAt(points: TimingPoint[], time: number): { red: TimingPoin
     else green = p;
   }
   return { red, green };
+}
+
+/** v285: lazer ControlPointInfo.TimingPointAfter — 严格大于 time 的第一条红线 (points 按 time 有序; 无则 null) */
+export function nextRedAfter(points: TimingPoint[], time: number): TimingPoint | null {
+  for (const p of points) if (p.uninherited && p.time > time) return p;
+  return null;
+}
+
+/**
+ * v285: lazer ControlPointInfo.GetClosestSnappedTime 的跨红线就近规则 — 若下一条红线起点比就近 tick
+ * 更近则吸附到红线起点 (等距时取红线起点; lazer: `Math.Abs(time - snapped) < Math.Abs(time - after.Time)
+ * ? snapped : after.Time`)。仅用于无 referenceTime 的时间吸附 (放置时刻/拖动/多边形/resnap);
+ * 滑条长度吸附 (lazer FindSnappedDistance 带 referenceTime = 滑条头) 不适用本规则。
+ */
+export function snapAcrossRedLine(points: TimingPoint[], time: number, snapped: number): number {
+  const next = nextRedAfter(points, time);
+  return next && Math.abs(time - snapped) >= Math.abs(time - next.time) ? next.time : snapped;
 }
 
 /**

@@ -16,7 +16,7 @@ const wp = read('src/osu/waveformDraw.ts');
 
 // 半透明背景
 assert(/WAVE_BG = 'rgba\(20,20,20,0\.55\)'/.test(wp), '波形背景半透明 rgba(20,20,20,0.55)');
-assert(/SPECTRO_BG_ALPHA = 140/.test(wp), '频谱底 alpha 140');
+assert(/const spectroBgAlpha = \(\) => 40/.test(wp), '频谱底 alpha 40 (v284 适配: 开关移除, 固定; 原 SPECTRO_BG_ALPHA=140 分支删除)');
 assert(/bgA \+ t \* \(255 - bgA\)/.test(wp), '频谱像素 alpha 随强度 bgA→255 (v271 适配: 底 alpha 随半透明开关 140/70)');
 assert(/g\.clearRect\(0, 0, W, H\); \/\/ v105: 半透明底/.test(wp), '波形每帧先清屏防累积');
 assert(/g\.clearRect\(0, 0, W, H\); \/\/ v105: 半透明 —/.test(wp), '频谱主画布每帧先清屏防累积');

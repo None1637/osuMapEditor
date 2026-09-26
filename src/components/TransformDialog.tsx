@@ -12,6 +12,7 @@ export function TransformDialog({ mode }: { mode: 'rotate' | 'scale' | 'symmetry
   useEditor();
   const [angle, setAngle] = useState(90);
   const [factor, setFactor] = useState(1.1);
+  const [factorY, setFactorY] = useState(1.1); // v282: 缩放支持仅X/仅Y (另一轴填 1)
   const originMode = store.originMode;
   const origin: TransformOrigin = store.currentOrigin();
   const selCount = store.selected.size;
@@ -56,8 +57,11 @@ export function TransformDialog({ mode }: { mode: 'rotate' | 'scale' | 'symmetry
       {mode === 'scale' && (
         <div className="flex items-center gap-1 flex-wrap">
           <span className="text-white/50">倍率</span>
+          <span className="text-white/40">x</span>
           <DraftNum value={factor} set={setFactor} testid="factor" min={0.01} step={0.05} />
-          <button onClick={() => store.scaleSelected(factor, origin)} title="按输入倍率缩放 (滑条长度同步)"
+          <span className="text-white/40">y</span>
+          <DraftNum value={factorY} set={setFactorY} testid="factor-y" min={0.01} step={0.05} />
+          <button onClick={() => store.scaleSelected(factor, factorY, origin)} title="按输入倍率缩放 (仅X: y 填 1; 仅Y: x 填 1; 滑条长度同步)"
             className="px-1.5 py-1 rounded bg-white/10 hover:bg-white/20 border border-white/15 text-[11px]">
             应用倍率
           </button>

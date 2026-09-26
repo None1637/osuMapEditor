@@ -64,9 +64,12 @@ export function flipObjects(objs: HitObject[], c: Pt, axis: 'h' | 'v'): HitObjec
     : transformObjects(objs, p => ({ x: p.x, y: 2 * c.y - p.y }));
 }
 
-/** 等比缩放 (滑条 pixelLength 同步乘 s) */
-export function scaleObjects(objs: HitObject[], c: Pt, s: number): HitObject[] {
-  const sliders = transformObjects(objs, p => ({ x: c.x + (p.x - c.x) * s, y: c.y + (p.y - c.y) * s }));
+/** 等比缩放 (滑条 pixelLength 同步乘 s);
+ *  v282: 支持非等比 — sy 省略时 = sx (原行为); 仅X/仅Y 时长度按被缩放轴系数同步,
+ *  两轴不同且都 ≠1 时长度按几何平均 √(sx·sy) 近似 (路径真实长度无法由节点简单推出) */
+export function scaleObjects(objs: HitObject[], c: Pt, sx: number, sy: number = sx): HitObject[] {
+  const sliders = transformObjects(objs, p => ({ x: c.x + (p.x - c.x) * sx, y: c.y + (p.y - c.y) * sy }));
+  const s = sx === sy ? sx : sx === 1 ? sy : sy === 1 ? sx : Math.sqrt(sx * sy);
   for (const o of sliders) o.length = Math.max(1, Math.round((o.length ?? 0) * s));
   return sliders;
 }

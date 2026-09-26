@@ -1,7 +1,7 @@
 // 编辑器核心状态: 谱面数据 + 撤销/重做 + 剪贴板 + 选择 + 音频时钟
 import { useSyncExternalStore } from 'react';
 import type { Beatmap, HitObject, TimingPoint } from './parser';
-import { genId, timingAt, serializeOsu } from './parser';
+import { genId, timingAt, serializeOsu, snapAcrossRedLine } from './parser';
 import { invalidatePath } from './renderer';
 import { selectionCenter, rotateObjects, flipObjects, scaleObjects, reflectObjectsAcrossLine, type Pt } from './transform';
 import { reverseSelection } from './reverse';
@@ -1088,7 +1088,7 @@ class EditorStore {
       if (o.time < lo || o.time >= hi) continue;
       const red = effectivePointAt(bm.timingPoints, o.time, true);
       if (!red) continue;
-      const nt = snapTimeToRedBeat(red, o.time, snap);
+      const nt = snapAcrossRedLine(bm.timingPoints, o.time, snapTimeToRedBeat(red, o.time, snap)); // v285: lazer 跨红线就近规则
       const d = nt - o.time;
       if (!d) continue;
       o.time = nt;
@@ -1490,7 +1490,11 @@ class EditorStore {
   /** 镜像选区: 'h' 水平 (左右) / 'v' 垂直 (上下); origin 默认选区中心 */
   flipSelected(axis: 'h' | 'v', origin: TransformOrigin = 'selection') { this.applyTransform((objs, c) => flipObjects(objs, c, axis), origin); }
   /** 等比缩放选区 (滑条 pixelLength 同步缩放); origin 默认选区中心 */
-  scaleSelected(s: number, origin: TransformOrigin = 'selection') { if (s > 0) this.applyTransform((objs, c) => scaleObjects(objs, c, s), origin); }
+  scaleSelected(sx: number, sy: number | TransformOrigin = sx, origin: TransformOrigin = 'selection') {
+    // v282: 支持 scaleSelected(sx, sy, origin) 非等比; 兼容旧调用 scaleSelected(s, origin)
+    if (typeof sy !== 'number') { origin = sy; sy = sx; }
+    if (sx > 0 && sy > 0) this.applyTransform((objs, c) => scaleObjects(objs, c, sx, sy as number), origin);
+  }
 
   /** v75: 反转选区 (lazer Ctrl+G): 多选时间镜像 + 滑条路径反向 + newCombo 时序保持; 单选非滑条无操作; 一次 undo */
   reverseSelected() {

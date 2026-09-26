@@ -49,7 +49,7 @@ section('回归: 功能接线不变');
     assert(src.includes(`testid=${tid}`), `data-tf=${tid} 保留`);
   assert(src.includes('store.rotateSelected(-Math.abs(angle), origin)'), '逆时针旋转接线不变');
   assert(src.includes('store.rotateSelected(Math.abs(angle), origin)'), '顺时针旋转接线不变');
-  assert(src.includes('store.scaleSelected(factor, origin)'), '缩放应用接线不变');
+  assert(src.includes('store.scaleSelected(factor, factorY, origin)'), '缩放应用接线不变');
   assert(src.includes('store.setCustomOrigin({ x: v, y: store.customOrigin.y })'), '自定义原点 x 接线不变');
   assert(src.includes('store.setCustomOrigin({ x: store.customOrigin.x, y: v })'), '自定义原点 y 接线不变');
 }

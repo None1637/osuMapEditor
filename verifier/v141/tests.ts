@@ -65,7 +65,15 @@ section('P->B: 多点弧 (5 点 = 两段) 段接缝写重复点 (红锚点)');
   const r = p2b(p)!;
   const pts: Vec2[] = [{ x: r.x, y: r.y }, ...r.curvePoints!];
   assert(hasDupPair(pts, 200, 100), '两段弧接缝 (200,100) 重复对保留为红锚点');
-  const dev = maxPathDev(pathOf(p), pathOf(r));
+  // v283 适配: computeRawPath('P', ≠3点) 已改 lazer 语义 (兜底贝塞尔), 参考路径改为显式两段三点弧拼接
+  const srcPts: Vec2[] = [{ x: p.x, y: p.y }, ...p.curvePoints!];
+  const arc1 = new SliderPath('P', srcPts.slice(0, 3), sliderGeometryLength('P', srcPts.slice(0, 3)));
+  const arc2 = new SliderPath('P', srcPts.slice(2, 5), sliderGeometryLength('P', srcPts.slice(2, 5)));
+  const twoArc = {
+    totalLength: arc1.totalLength + arc2.totalLength,
+    positionAt: (d: number) => (d <= arc1.totalLength ? arc1.positionAt(d) : arc2.positionAt(d - arc1.totalLength)),
+  } as unknown as SliderPath;
+  const dev = maxPathDev(twoArc, pathOf(r));
   assert(dev < 0.5, `两段弧转换路径偏差 ${dev.toFixed(4)}px < 0.5px`);
 }
 
