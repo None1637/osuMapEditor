@@ -48,10 +48,11 @@ section('store.ts + App.tsx: Ctrl+方向键逐 px 移动');
   assert(/nudgeSelectedPosition\(dx: number, dy: number\)/.test(src), 'nudgeSelectedPosition');
   assert(/this\.pushUndo\(\)[\s\S]{0,200}o\.x \+= dx; o\.y \+= dy/.test(src), '一次按键一次 undo + 位置平移');
   const app = readSrc('src/App.tsx');
+  // v286 适配: 注册表派发 — ctrl-* 为有修饰绑定, 与无修饰的 seek-left/right 天然互斥 (精确匹配, 无顺序依赖)
   const iNudge = app.indexOf('store.nudgeSelectedPosition(v[0], v[1])');
-  const iSeek = app.indexOf("if (e.key === 'ArrowLeft' || e.key === 'ArrowRight')");
+  const iSeek = app.indexOf("case 'seek-left': case 'seek-right':");
   assert(iNudge > 0 && iSeek > 0 && iNudge < iSeek, 'Ctrl+方向键 nudge 在时间 seek 处理器之前');
-  assert(/e\.ctrlKey \|\| e\.metaKey/.test(app) && /store\.selected\.size/.test(app), '有选区时优先生效');
+  assert(/case 'ctrl-left': case 'ctrl-right': case 'ctrl-up': case 'ctrl-down':/.test(app) && /store\.selected\.size/.test(app), '有选区时优先生效');
 }
 
 section('Timelines.tsx: Prev/Next 格式 "{n}x({px}px)"');

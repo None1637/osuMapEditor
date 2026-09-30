@@ -82,18 +82,18 @@ section('electronMenu.ts: 编辑命令分发');
 section('App.tsx: 快捷键 + 状态上报 + 窗口挂载');
 {
   const src = readSrc('src/App.tsx');
-  assert(/e\.shiftKey && e\.key\.toLowerCase\(\) === 'r'\) \{ e\.preventDefault\(\); store\.openTransformDialog\('rotate'\)/.test(src), 'Ctrl+Shift+R 旋转窗口');
-  assert(/e\.shiftKey && e\.key\.toLowerCase\(\) === 's'\) \{ e\.preventDefault\(\); store\.openTransformDialog\('scale'\)/.test(src), 'Ctrl+Shift+S 缩放窗口');
-  assert(/!e\.shiftKey && e\.key\.toLowerCase\(\) === 'd'\) \{ e\.preventDefault\(\); if \(store\.selected\.size\) store\.openConversion\('duplicate'\)/.test(src), 'Ctrl+D 仿制 → 批量复制');
-  assert(/e\.key\.toLowerCase\(\) === 'x'\) \{ e\.preventDefault\(\); store\.cut\(\)/.test(src), 'Ctrl+X 剪切');
-  assert(/e\.key\.toLowerCase\(\) === 'a'\) \{ e\.preventDefault\(\); store\.selectAllObjects\(\)/.test(src), 'Ctrl+A 全选');
-  assert(/store\.nudgeSelectedBySnap\(k === 'j' \? -1 : 1\)/.test(src), 'J/K 走 store.nudgeSelectedBySnap');
+  // v286 适配: 注册表派发 (hotkeys.ts 默认键不变; 带修饰精确匹配 → Ctrl+Shift+S 天然先于 Ctrl+S, 不再依赖判定顺序)
+  assert(/case 'open-rotate': e\.preventDefault\(\); store\.openTransformDialog\('rotate'\)/.test(src), 'Ctrl+Shift+R 旋转窗口');
+  assert(/case 'open-scale': e\.preventDefault\(\); store\.openTransformDialog\('scale'\)/.test(src), 'Ctrl+Shift+S 缩放窗口');
+  assert(/case 'duplicate': e\.preventDefault\(\); if \(store\.selected\.size\) store\.openConversion\('duplicate'\)/.test(src), 'Ctrl+D 仿制 → 批量复制');
+  assert(/case 'cut': e\.preventDefault\(\); store\.cut\(\)/.test(src), 'Ctrl+X 剪切');
+  assert(/case 'select-all': e\.preventDefault\(\); store\.selectAllObjects\(\)/.test(src), 'Ctrl+A 全选');
+  assert(/case 'nudge-time-prev': store\.nudgeSelectedBySnap\(-1\)/.test(src) && /case 'nudge-time-next': store\.nudgeSelectedBySnap\(1\)/.test(src), 'J/K 走 store.nudgeSelectedBySnap');
   assert(/api\.menuEditState\(s\)/.test(src), 'edit-menu-state 上报');
   assert(/store\.transformDialog && <TransformDialog mode=\{store\.transformDialog\} \/>/.test(src), 'TransformDialog 挂载');
-  // Ctrl+Shift+S 必须在 Ctrl+S 之前判定
-  const iShiftS = src.indexOf("openTransformDialog('scale')");
-  const iSave = src.indexOf("e.key.toLowerCase() === 's') { e.preventDefault(); store.save()");
-  assert(iShiftS > 0 && iSave > 0 && iShiftS < iSave, 'Ctrl+Shift+S 判定在 Ctrl+S 之前');
+  // v286: 带修饰组合精确相等匹配 — Ctrl+Shift+S 只命中 open-scale, 不可能误落 save (注册表语义保证)
+  const hk = readSrc('src/osu/hotkeys.ts');
+  assert(/open-scale[\s\S]*?defaults: \['Ctrl\+Shift\+S'\]/.test(hk) && /id: 'save'[\s\S]*?defaults: \['Ctrl\+S'\]/.test(hk), 'Ctrl+Shift+S/Ctrl+S 默认键分离 (精确匹配, 无顺序依赖)');
 }
 
 section('TransformDialog.tsx: 旋转/缩放窗口 (复制左侧栏变换功能)');

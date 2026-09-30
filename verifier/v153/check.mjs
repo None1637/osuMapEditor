@@ -13,17 +13,17 @@ const src = fs.readFileSync(path.join(root, 'src/App.tsx'), 'utf8');
 
 section('App.tsx: V 键跳转最后物件');
 {
-  // 无修饰键块内 (与 Q/W/E/R/J/K 同块, 即 !ctrl && !meta && !alt)
-  const noModIdx = src.indexOf('if (!e.ctrlKey && !e.metaKey && !e.altKey)');
-  const vIdx = src.indexOf("k === 'v'");
-  assert(noModIdx > 0 && vIdx > noModIdx, 'V 在无修饰键块内 (不与 Ctrl+V 粘贴冲突)');
+  // v286 适配: 注册表派发 — V 为无修饰单键绑定 (hotkeys.ts), 带修饰精确匹配 → 不与 Ctrl+V 粘贴冲突
+  const hk = fs.readFileSync(path.join(root, 'src/osu/hotkeys.ts'), 'utf8');
+  assert(/jump-last[\s\S]*?defaults: \['V'\]/.test(hk), 'V 为无修饰单键绑定 (不与 Ctrl+V 粘贴冲突)');
+  const vIdx = src.indexOf("case 'jump-last':");
   const blk = src.slice(vIdx, vIdx + 400); // 含空谱面守卫 return + seek 行
   assert(/store\.beatmap; if \(!bm \|\| bm\.hitObjects\.length === 0\) return;/.test(blk), '无谱面/无物件时不动作');
   assert(/store\.seek\(Math\.max\(\.\.\.bm\.hitObjects\.map\(o => o\.time\)\)\)/.test(blk), 'seek 到最后物件 time (Math.max 不假定有序)');
   // 输入框/面板守卫在该键之前已存在 (回归确认)
   const guardIdx = src.indexOf("if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return;");
   assert(guardIdx > 0 && guardIdx < vIdx, '输入框聚焦守卫在 V 处理之前');
-  const modalGuard = src.indexOf('if (showLibrary || showSkin) return;');
+  const modalGuard = src.indexOf('if (showLibrary || showSkin || testPlay) return;'); // v287: 门控并入 testPlay
   assert(modalGuard > 0 && modalGuard < vIdx, '曲库/皮肤面板打开守卫在 V 处理之前');
 }
 

@@ -52,7 +52,7 @@ section('接线: store/App/Inspector');
   assert(/'polygon'( \| 'duplicate')?( \| 'symSlider')? \| null = null/.test(store), 'conversionDialog 含 polygon (v236: 兼容新增 symSlider 可选项)');
   const app = readSrc('src/App.tsx');
   assert(/\{store\.conversionDialog === 'polygon' && <PolygonDialog \/>\}/.test(app), 'App 挂载 PolygonDialog');
-  assert(/e\.shiftKey && e\.key\.toLowerCase\(\) === 'd'/.test(app) && /openConversion\('polygon'\)/.test(app), 'Ctrl+Shift+D 快捷键 (lazer 同款)');
+  assert(/polygon[\s\S]*?defaults: \['Ctrl\+Shift\+D'\]/.test(readSrc('src/osu/hotkeys.ts')) && /openConversion\('polygon'\)/.test(app), 'Ctrl+Shift+D 快捷键 (lazer 同款; v286 注册表默认键)');
   const insp = readSrc('src/components/Inspector.tsx');
   assert((insp.match(/data-conv-open="polygon"/g) || []).length === 2, 'Inspector 两分支均有 多边形生成 按钮');
 }

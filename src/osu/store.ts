@@ -199,6 +199,9 @@ class EditorStore {
   // v144: 音量设置面板 (显示设置左侧「音量」按钮; 值在 volumeSettings 模块单例)
   volumePanelOpen = false;
   setVolumePanelOpen(b: boolean) { this.volumePanelOpen = b; this.emitSelection(); }
+  // v286: 快捷键设置面板 (显示设置左侧「快捷键」按钮; 动作注册表/覆盖在 hotkeys 模块)
+  hotkeyPanelOpen = false;
+  setHotkeyPanelOpen(b: boolean) { this.hotkeyPanelOpen = b; this.emitSelection(); }
   setVolume(k: keyof VolumeSettings, v: number) { applyVolume(k, v); this.applyVolumeBuses(); this.emitSelection(); }
   /** v103: 解码后的整曲 PCM (波形/频谱数据源); 解码失败降级时为 null */
   getAudioBuffer(): AudioBuffer | null { return this.audioBuffer; }
@@ -357,6 +360,11 @@ class EditorStore {
   /** 调试: 当前活跃 voice 数 / 历史峰值 (CDP 验证用) */
   debugVoiceStats = { active: 0, maxSeen: 0 };
   playbackRate: number = 1;
+  /** v295/v296: 变速模式 — true=Frequency 变调 (直接重采样, 与 lazer DT/HT (ModRateAdjust.cs)
+   *  一致, 无时间拉伸失真); false=Tempo 不变调 (signalsmith-stretch, lazer 编辑器
+   *  PlaybackControl.cs 语义)。v296: 编辑器固定 false (不变调), UI 切换按钮已移除;
+   *  true 仅测试游玩 DT/HT 内部强制使用 (TestPlayOverlay 退出时恢复) */
+  rateAdjustPitch: boolean = false;
   private eventsVersion = -1;
 
   // v67: Ctrl+S 保存谱面 — 谱面来源 (曲库目录 + 原文件名), 保存结果/反馈消息
@@ -567,9 +575,9 @@ class EditorStore {
         this.degradedSync = true;
         this.audio = new Audio(url);
         this.audio.volume = musicGain(); // v144: 兜底 <audio> 同样受歌曲音量控制 (音量设置在 applyVolumeBuses 同步)
-        // 变速不变调 (lazer Tempo): 浏览器原生 time-stretch
-        this.audio.preservesPitch = true;
-        (this.audio as HTMLAudioElement & { webkitPreservesPitch?: boolean }).webkitPreservesPitch = true;
+        // 变速 (v295: 跟随 rateAdjustPitch — 变调=原生 playbackRate 重采样; 不变调=浏览器 time-stretch)
+        this.audio.preservesPitch = !this.rateAdjustPitch;
+        (this.audio as HTMLAudioElement & { webkitPreservesPitch?: boolean }).webkitPreservesPitch = !this.rateAdjustPitch;
         this.audio.addEventListener('ended', () => { this.playing = false; this.emit(); });
       });
     }
@@ -1821,7 +1829,7 @@ class EditorStore {
       this.resumeFloorMs = this.currentTime; // v261: 恢复播放渲染位置钳制下限 = 暂停点 (防闪回, 见 positionMs)
       // 确定性锚定: 延迟 20ms 启动, W 时刻谱面位置精确 = offset
       const startW = Math.round((this.actx!.currentTime + 0.02) * sr) / sr;
-      if (this.playbackRate !== 1 && this.tempoNode) {
+      if (this.playbackRate !== 1 && !this.rateAdjustPitch && this.tempoNode) { // v295: 变调模式走下方重采样支路
         // 变速不变调 (lazer AudioAdjustments.Tempo): signalsmith-stretch 引擎.
         // schedule 锚点 = AudioContext 时间线, 与 source.start(startW, offset) 同一语义;
         // 节点自补偿内部延迟 (120ms), 每块按映射重定位, 无漂移
@@ -1841,11 +1849,11 @@ class EditorStore {
         }, Math.max(0, (endCtx - this.actx!.currentTime) * 1000 + 50));
         this.tempoActive = true;
       } else {
-        if (this.playbackRate !== 1 && !this.tempoNode) {
+        if (this.playbackRate !== 1 && !this.rateAdjustPitch && !this.tempoNode) { // v295
           // worklet 未就绪: 本次退回 playbackRate (变调), 就绪后自动重进不变调引擎
           this.ensureTempoNode();
           this.tempoLoading?.then(() => {
-            if (this.playing && this.playbackRate !== 1 && this.tempoNode && !this.tempoActive) { this.pause(); this.play(); }
+            if (this.playing && this.playbackRate !== 1 && !this.rateAdjustPitch && this.tempoNode && !this.tempoActive) { this.pause(); this.play(); }
           });
         }
         const src = this.actx!.createBufferSource();
@@ -1899,6 +1907,22 @@ class EditorStore {
     if (this.playbackRate === rate) return;
     this.playbackRate = rate;
     if (this.playing) {
+      this.pause();
+      this.play();
+    }
+    this.emit();
+  }
+
+  /** v295: 切换 变调(Frequency)/不变调(Tempo) 变速模式; 播放中且 rate≠1 时重启重锚定。
+   *  v296: 不再持久化 (编辑器固定不变调, 仅测试游玩 DT/HT 临时切 true) */
+  setRateAdjustPitch(v: boolean) {
+    if (this.rateAdjustPitch === v) return;
+    this.rateAdjustPitch = v;
+    if (this.audio) { // 降级 <audio> 通道同步 (Web Audio 通道在 play() 分支生效)
+      this.audio.preservesPitch = !v;
+      (this.audio as HTMLAudioElement & { webkitPreservesPitch?: boolean }).webkitPreservesPitch = !v;
+    }
+    if (this.playing && this.playbackRate !== 1) {
       this.pause();
       this.play();
     }

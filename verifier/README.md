@@ -2365,3 +2365,298 @@
 - 验证: verifier/v285 (esbuild 数值: nextRedAfter 严格大于语义/tick 更近保持/红线更近跨线/
   等距取红线/无下条红线原样/过 red1 后按新网格/负时间 clamp 保留; 源码断言 5 触点 +
   长度吸附不适用); tsc -b / build 通过; 全量回归回基线 (v28/v137/v138/v142)。
+
+## v286 快捷键设置页面 + 自定义改键
+- 需求: 显示设置左边加快捷键设置按钮, 用于设置所有快捷键。
+- 实现:
+  - osu/hotkeys.ts (新建): HOTKEY_ACTIONS 注册表 (41 动作, id/label/category/defaults/menuId);
+    组合键规范 "Ctrl+Shift+S" (修饰序 Ctrl→Alt→Shift); 匹配规则 — 带修饰精确相等, 无修饰绑定
+    忽略 Shift (保旧 Shift+Q=Q 行为); 覆盖语义 = 改键替换该动作全部默认键; 持久化 localStorage
+    'osu-editor:hotkeys'; menuId 动作经 preload setAcceleratorOverrides → main.cjs acc() 同步原生
+    菜单 accelerator (save/timing 4 项真注册改键, 编辑/作图菜单 registerAccelerator:false 仅同步显示)。
+  - App.tsx: keydown 整体重写为注册表派发 (findHotkeyAction → switch), 语义全部保留 (空格
+    preventDefault / 工具切换清放置态 / QWER 放置预设 vs select 切换 / ctrl-arrow 选区 nudge 优先 /
+    seek Shift=4拍 / Esc 节点选区优先); 页签栏「显示设置」左侧新增「快捷键」按钮; 底部帮助块加
+    自定义改键提示。
+  - HotkeyPanel.tsx (新建): DraggableDialog 按分类列出全部动作; 点击键位 chip 进入捕获态
+    (按任意键… Esc取消), 冲突红字提示且不改键; 被覆盖动作显示重置按钮; 底部「全部恢复默认」;
+    捕获期间 setHotkeyCapture(true) 屏蔽全局派发。
+- 行为变化 (有意): Ctrl+1 等带修饰组合不再误触工具切换 (旧代码不看修饰); 带修饰组合精确匹配,
+  原「判定顺序敏感」(如 Ctrl+Shift+S 必须先于 Ctrl+S 判定) 问题消失。
+- 验证: verifier/v286 (esbuild 数值: 规范化/派发匹配/覆盖语义/冲突检测/Electron accelerator;
+  源码断言注册表/派发/按钮/面板/IPC); tsc -b / build 通过; v24/v32/v45/v55/v64/v67/v75/v77/
+  v113/v153/v155/v156/v158/v180/v209/v241 旧 keydown 源码断言同步为注册表派发形式, 全量回归
+  回基线 (v28/v137/v138/v142)。
+
+## v287 测试游玩功能 (参考 lazer EditorPlayer)
+- 需求: 参考 lazer 源码实现测试游玩; 可玩判定; 血条显示但不失败; 打完直接返回编辑器;
+  从当前时间的前几秒开始游玩 (逻辑参考 lazer)。
+- lazer 依据 (本地 osu.Game 核对): EditorPlayer.cs (markPreviousObjectsHit 满分预填/preventMiss/
+  ShowResults=false/CheckModsAllowFailure=false/完成延迟 Exit+RestoreState); OsuHitWindows.cs
+  (great/ok/meh = floor(DR(od,range))-0.5, MISS_WINDOW=400); Judgement.cs (NumericResultFor
+  300/100/50/tick10/repeat30/tail150, HealthIncreaseFor MAX=0.05); HitResult.cs AffectsCombo
+  (小 tick 不影响, LargeTickMiss/SliderTailHit 影响); SliderInputManager+DrawableSliderBall
+  (跟随圈 = 半径×2.4, 跟踪需按住击打键); Spinner.cs (CLEAR_RPM(90,150,225)/COMPLETE_RPM(250,380,430),
+  gap2) + DrawableSpinner (Progress≥1 Great / >0.9 Ok / >0.75 Meh / else Miss)。
+- 起始时间: editorTime ≤ 首物件 → 从头 (lazer gameplayStart 语义); 否则 startTime = editorTime-3000
+  (用户需求"前几秒开始"); editorTime 前结束的物件/nested 满分预填不可玩不判 Miss, 跨越的滑条
+  head 预填、后续 nested 照常判定。
+- 实现:
+  - starrating/preprocessing.ts: buildSliderData/SliderData/SliderNested/difficultyRange/
+    TAIL_LENIENCY/endTimeOf 改 export (纯导出)。
+  - osu/gameplay/judgement.ts (新建): hitWindows/judgeDelta/NUMERIC_SCORE/HEALTH_DELTA/
+    AFFECTS_COMBO/spinnerRequired/spinnerResult/TestScore (线性标准分 100万×已得/满分,
+    不做 lazer ScoreProcessor 0.7combo+0.3acc 加权 — 已知取舍)。
+  - osu/gameplay/testPlaySession.ts (新建): 会话状态机 — hit() 过早点击忽略/半径外忽略/最近
+    |delta| 判定; update() circle 超 meh 窗 miss; slider 球位置 cycle 折返同 renderer,
+    tracking = dist≤2.4r && 按住, nested 到点按 tracking 判 (tail -36ms 宽限), 头 miss 不阻止
+    后续跟踪; spinner 光标绕心转角解卷绕累计, 每圈 tick +10, 超要求圈 +50, 结束按 progress 判。
+  - renderer.ts: RenderCtx 加可选 gameplay 字段 (缺省路径零变化) — 单点/滑条头爆炸锚定实际
+    命中时刻, miss 不爆; tick 未跟踪到点即隐; 跟随圈仅 tracking 显示; 转盘转角由玩家驱动
+    (prehit 回退 autoplay)。
+  - components/TestPlayOverlay.tsx (新建): 全屏覆盖层, 进入 pause+seek(startTime)+play()
+    (hitsound/节拍器现成调度), rAF 渲染 renderPlayfield+gameplay + HUD (血条/分数/acc/combo/
+    判定弹出/光标), Z/X/鼠标左键击打, Esc 退出 → pause+seek 回 editorTime; 谱面结束+1.5s 自动退出。
+  - App.tsx: 页签栏「测试游玩」按钮 (快捷键左侧) + 挂载 + 全局热键门控 (showLibrary||showSkin||
+    testPlay) + 菜单命令门控 (testPlayRef); hotkeys.ts 注册 test-play 默认 F5 (可改键,
+    preventDefault 防浏览器刷新)。
+- 验证: verifier/v287 (esbuild 数值: 判定窗/judgeDelta/TestScore/转盘公式/会话五场景;
+  源码断言 25 条; cdp-v287.mjs electron 端到端: 进入/lead-back 起播/时钟前进/canvas 有内容/
+  Esc 退出回 editorTime); tsc -b / build 通过; v125/v147/v153/v178 旧断言同步 (gameplay 分支
+  形参变化), 全量回归回基线 (v28/v137/v138/v142)。
+
+## v288 游玩击打键 (Z/X) 加入快捷键设置界面
+- 需求: Z/X/鼠标左键是否可在快捷键界面改键 — Z/X 已注册, 鼠标左键为鼠标事件无法作为键盘
+  组合改键 (固定, 代码注释注明)。
+- 实现: hotkeys.ts 新增 test-hit-1/test-hit-2 (默认 Z/X, 「测试游玩」分类) + matchesHotkey
+  助手 (与 findHotkeyAction 同一匹配规则: 带修饰精确/无修饰忽略 Shift); TestPlayOverlay
+  击打判定改走注册表, 按住状态布尔改计数 (双击打键同按不互相清) + window blur 清零防卡住;
+  顶部提示动态显示当前绑定 (formatCombo+effectiveBindings)。
+- 验证: verifier/v288 (数值: 默认 Z/X/互不串/Shift 松弛/Ctrl 精确/改键生效与重置;
+  源码断言 7 条); v287 断言同步; tsc -b / build 通过。
+
+## v289 鼠标按键加入快捷键面板 + 全部按键纳入注册表规则
+- 需求: 本项目所有按键都需加入快捷键设置界面并立下规则; 鼠标按键也进快捷键面板 (新功能)。
+- 实现:
+  - hotkeys.ts: 鼠标组合体系 — MOUSE_BUTTON_TOKENS (0左/1中/2右/3/4侧) + comboFromMouseEvent
+    (规范组合如 "Ctrl+MouseRight", 未知按键 null) + isMouseCombo + matchesHotkeyMouse
+    (与键盘同一匹配规则: 带修饰精确/无修饰忽略 Shift); test-hit-1 默认绑定加 MouseLeft;
+    新增 test-exit (退出测试游玩, 默认 Escape, 「测试游玩」分类); pushMenuAccels 跳过鼠标
+    组合 (非法 Electron accelerator, 菜单保留默认显示); formatCombo 补鼠标中文名。
+  - HotkeyPanel.tsx: 捕获态重构统一 settle(combo), 新增 window mousedown 捕获 (录入鼠标
+    按键) + contextmenu 抑制 (右键改键不弹菜单); 提示改「按任意键/鼠标键… Esc取消」。
+  - TestPlayOverlay.tsx: 击打判定加 isHitButton (matchesHotkeyMouse), mouse 按住状态布尔
+    改计数 (多键同按不互清) + blur 清零; 退出键由硬编码 Escape 改走 test-exit 注册表
+    (preventDefault+stopPropagation); 顶部提示动态显示击打键/退出键当前绑定。
+  - AGENTS.md: 追加「快捷键注册规则 (v289)」节 — 新快捷键必须注册进 HOTKEY_ACTIONS
+    (组合格式含 MouseLeft/MouseMiddle/MouseRight/Mouse4/Mouse5), 豁免: 拖拽中修饰状态
+    跟踪、输入框/弹窗局部 Enter/Esc。
+- 说明: 鼠标绑定的消费方目前是测试游玩击打键; 全局鼠标按键派发暂无其他消费方。
+- 验证: verifier/v289 (数值: comboFromMouseEvent/isMouseCombo/matchesHotkeyMouse 松弛与
+  精确/改键覆盖鼠标绑定/重置/test-exit/formatCombo; 源码断言 17 条); v286/v288 断言同步
+  (捕获提示文案、test-hit-1 默认绑定); tsc -b / build 通过; 全量回归回基线
+  (v28/v137/v138/v142)。
+
+## v290 曲库搜索对齐 lazer: 元数据索引 + 查询语法 + 扁平难度列表
+- 需求: 曲库搜索对齐 lazer (键值对查询语法); 用户选定支持 star= 星级过滤 (后台渐进计算,
+  结果缓存 IndexedDB), 曲库改 lazer 风格扁平难度列表 (不再左目录/右难度两栏)。
+- 实现:
+  - librarySearch.ts (新): parseLibraryQuery/matchLibraryEntry 纯函数 — key op value
+    (op: = : != !: < <= <: > >= >:, 值支持 "..." 引号短语); 数值键 star/stars/sr (容差 0.005,
+    无星级不命中)、ar/cs/od/hp/dr (0.05)、bpm (0.5)、length (1:30/1h2m3s/纯秒, 容差=最小
+    单位一半)、keys (mania 键数=cs, 仅 mode=3 精确); 文本键 creator/author/mapper/artist/
+    title/diff/source/tag (仅 =/!=, tag 逐词 contains); mode 键 (std/taiko/catch/mania 或
+    0-3, 项目补充); 未知键不退化留作自由文本; [...] 段 → diff 过滤; "..." 词边界短语 /
+    "..."! 整字段相等; 纯数字 term 兜底 beatmapID/beatmapSetID; 多 term AND; 自由文本匹配
+    字段含 dirName (兼容旧目录名搜索)。不支持 status/played/lastplayed/ranked/created/
+    divisor/ln (无本地数据源)。
+  - libraryIndex.ts (新): LibraryIndexEntry (难度级元数据+size/lastModified+star);
+    parseIndexEntry 轻解析 (逐键提取 + 众数 beatLength 换算 BPM [lazer 口径] + 首/尾物件
+    时长 [spinner 取 end time, 滑条只算起点 → 长滑条谱偏短, 注释注明]); buildLibraryIndex
+    50 文件/批 yield 让出主线程, 传缓存即增量 reconcile (size+lastModified 比对, 未变更
+    复用含 star, 新增/变更重解析, 删除剔除); runStarQueue 后台星级队列 (仅 mode=0 无 star,
+    每 macrotask 1 张 parseOsu+computeStarRating, 每 20 张节流落库, isCancelled 中断)。
+  - library.ts: DB_VERSION 2→3, 新 store 'libraryIndex' (contains 守卫补建兼容旧库),
+    idbLibraryIndexGet/Put/Del (key=rootName)。countDifficulties 保留未删 (无其他引用,
+    仅 SongLibrary 徽标链路删除)。
+  - SongLibrary.tsx 重写: 单栏扁平难度列表 (虚拟化 ROW_H 34, artist - title + 粉色
+    [version] + mode 徽标 + 右侧 creator·BPM·星级 [lucide Star, 算好才显示]); 搜索框接
+    parseLibraryQuery/matchLibraryEntry (空串显示全部); 排序下拉 (目录/title/artist/
+    creator/bpm/star/length/难度数); 右栏详情/预览 (背景横幅+完整元数据+「打开」按钮);
+    单击选中双击打开; 启动读 IDB 索引缓存立即可搜 → 后台 reconcile; 头部状态行
+    N 难度 / M 目录 · 索引中… · 星级计算中 x/y。保留: 拖拽 Songs 导入、授权流程
+    (permNeeded)、服务器直读恢复、诊断日志、v128 会话缓存 (结构换为索引条目, 「扫描中途
+    关闭不写缓存」规则不变)、openDiff 的 v120 guardUnsaved 与 v67 来源记录。
+- 说明: 星级仅 osu!standard (calculator 限制), 其他 mode 不参与 star= 过滤; lengthMs 为
+  近似值 (非 lazer drain length)。
+- 验证: verifier/v290 (数值: 查询解析/匹配 35 断言 + parseIndexEntry 合成 .osu 14 断言;
+  源码断言 28 条); v128 断言同步 (缓存结构换索引条目); v20 断言同步 (DB_VERSION 3);
+  v181 ★ → lucide Star 顺带合规; tsc -b / build 通过; 全量回归回基线
+  (v28/v137/v138/v142)。
+
+## v291 曲库 UI 反馈修正 (加宽/固定右栏/占位先行显示/默认选中当前谱面/索引等待提示)
+- 需求: 曲库界面宽度 +50%; 右侧详情预览宽度固定不随谱面变化; 优先按旧方式显示所有谱面
+  (建索引太慢) 并默认选中当前打开的谱面; 索引后台建立, 仅搜索需要索引时提示等待。
+- 实现:
+  - libraryIndex.ts: 新增 placeholderFromDirName (目录名 → 占位条目, "setid Artist - Title"
+    解析, fileName='' 标记, 不入 IDB/会话缓存)。
+  - SongLibrary.tsx: startScan 无 IDB 缓存时先列全部目录占位 (不读文件, 秒出), 索引批次
+    渐进替换已覆盖目录占位, 完成后剔除剩余占位 (无 .osu 目录消失, 防占位入会话缓存);
+    selKey 初值/重扫回退取 store.mapSource (当前打开的谱面), scrollToSelRef 控制条目出现
+    后一次性滚动定位+补背景 (用户点击/缓存恢复不触发); queryHasConds (键值条件/[diff] 段)
+    时占位不参与条件过滤, 且索引建立中显示 needsIndexHint (纯文本搜索不受限, 占位可直接搜);
+    占位条目双击/「打开」经 listDifficulties 懒解析目录开第一个难度; 布局 w-[920px]→
+    w-[1380px], 左栏改弹性, 右栏 w-[380px] shrink-0 固定。
+- 验证: verifier/v291 (数值: placeholderFromDirName 五种目录命名; 源码断言 9 条);
+  v128 断言同步 (selKey 初值); tsc -b / build 通过; 全量回归回基线 (v28/v137/v138/v142)。
+
+## v292 快捷键设置面板字体调大
+- 需求: 快捷键设置里的字体太小。
+- 实现: HotkeyPanel.tsx 分类标题 10px→12px, 动作名 11px→13px (列宽 w-40→w-44),
+  键位按钮/捕获提示 10px→12px, 冲突提示与底部说明 9px→10px, 全部恢复默认按钮 10px→12px;
+  面板宽度 460→520 配套。
+- 验证: verifier/v292 (源码断言 7 条); tsc -b / build 通过; 全量回归回基线 (v28/v137/v138/v142)。
+
+## v293 快捷键面板字体再调大 + 曲库优先为选中谱面建索引
+- 需求: 快捷键设置面板字体还是太小; 优先为曲库界面中当前选中的谱面建立索引。
+- 实现:
+  - HotkeyPanel.tsx: 分类 12→13px, 动作名 13→14px (text-sm, 列宽 w-44→w-48, 行距 py-0.5→py-1),
+    键位按钮/捕获提示 12→13px, 冲突提示/底部说明 10→11px, 面板宽 520→560。
+  - libraryIndex.ts buildLibraryIndex: 目录枚举先缓冲成表, 新增 prio 回调参数 — 每处理一个
+    目录前取最新优先目录名插队 (索引途中改选立即生效), 已处理不重复; 无效目录回退原顺序。
+  - SongLibrary.tsx: prioDir = 当前选中项 (selKeyRef) 的目录名传入。
+- 验证: verifier/v293 (数值: 伪 FsDirLike 测枚举顺序/prio 最先/动态插队/无效回退 4 条;
+  源码断言 8 条); tsc -b / build 通过; 全量回归回基线 (v28/v137/v138/v142)。
+
+## v294 测试游玩 Mod (EZ/HR/HT/DT/RX/AP/AT)
+- 需求: 游玩测试支持选择各种 mod (relax/hardrock/easy/dt 等)。
+- 实现:
+  - gameplay/mods.ts (新建): TestModId 七种 + toggleMod 互斥 (EZ↔HR, HT↔DT, AT↔RX/AP,
+    AT=RX+AP 合体) + adjustDifficulty (lazer 本地源码核对比率: EZ 全项 ×0.5; HR hp/od/ar
+    ×1.4 封顶 10, cs ×1.3 封顶 10) + clockRate (DT 1.5/HT 0.75) + applyHardRockFlip
+    (hitObjects y 与 curvePoints → 384−y, 浅克隆不污染编辑器谱面) + localStorage 持久化
+    (osu-editor:testplay-mods)。
+  - testPlaySession.ts: update 第 4 参 relax — Relax 逐帧自动击打 (光标在半径内且进 meh
+    窗口, 按实际 delta 判 300/100/50, lazer 同款非全 300), 滑条免按键跟随; sliderBallAt
+    提取共用; autoCursorPos (AP: 滑条跟球/跳最近 pending 物件)。
+  - TestPlayOverlay.tsx: 左上角 mod 栏 (点击 toggleMod → 存 localStorage → effect deps
+    [mods] 重开会话, editorTime 用 ref 固定为初次进入值); effBm 克隆应用 difficulty/翻转
+    (renderer 的 AR 缩圈自动生效); DT/HT 走 store.setRate (现成不变调变速引擎), cleanup
+    恢复 prevRate; AP 时忽略 mousemove 每帧取 autoCursorPos; 点 mod 栏不触发击打
+    (data-mods-bar 守卫)。
+- 取舍: NF 不提供 (测试游玩本就永不失败); HD/FL 视觉 mod 暂不支持; DT/HT 不做 lazer
+  Frequency 变调 (用不变调引擎); 判定窗按地图时钟不变 (墙钟随 rate 自然收紧, 与 lazer
+  等效); 现代 lazer 标准化计分倍率全 1, 本项目线性标准分不做倍率; AP 光标无平滑动画。
+- 验证: verifier/v294 (数值: 互斥/比率/封顶/翻转/clockRate/EZ 判定窗放宽/RX 自动击打/
+  RX 免按键跟随/AP autoCursorPos/无 RX 不自动 16 条; 源码断言 16 条); tsc -b / build
+  通过; 全量回归回基线 (v28/v137/v138/v142)。
+
+## v295 — 变速变调/不变调双模式 (对齐 lazer 语义)
+- 背景: 用户反馈 DT/HT 与编辑器倍速"音质完全不一样/很差"。考证 lazer 本地源码
+  (D:/Projects/osuMapEditor/osu): DT/HT 走 ModRateAdjust.cs → AdjustableProperty.Frequency
+  (直接重采样, 变调变速, 零拉伸失真); 编辑器 PlaybackControl.cs:79 走
+  AdjustableProperty.Tempo (BASS 不变调拉伸)。本项目此前一切变速都走 signalsmith-stretch
+  不变调 (v60), 时间拉伸算法涂抹瞬态 → "糊"。
+- 实现:
+  - store.ts: 新增全局 rateAdjustPitch (默认 true=变调, localStorage
+    osu-editor:rate-pitch, '0'=不变调) + setRateAdjustPitch (持久化/同步降级 <audio>
+    preservesPitch/播放中且 rate≠1 时 pause+play 重锚定/emit)。play() 两处变速支路
+    条件加 !rateAdjustPitch — 变调时走 BufferSource.playbackRate 重采样 (Web Audio
+    原生, 与 lazer Frequency 同语义, 瞬态零失真); 不变调时才走 signalsmith-stretch。
+  - TestPlayOverlay.tsx: DT/HT 强制 rateAdjustPitch=true (与 lazer ModRateAdjust 完全
+    对齐), cleanup 先恢复 prevPitch 再恢复 prevRate。
+  - Timelines.tsx: 底栏倍速组新增「变调」切换按钮 (data-speed-pitch, 激活高亮,
+    tooltip 说明两模式语义)。
+- 取舍: 默认变调 (stable 风格、DT/HT 与 lazer 一致、瞬态清晰); 想要 lazer 编辑器那种
+  不变调可点底栏「变调」按钮切回 signalsmith。v294 笔记中"DT/HT 不做 Frequency 变调"
+  的取舍被本版推翻。
+- 验证: verifier/v295 (源码断言 11 条: 字段默认值/持久化/双支路条件/重采样/强制与
+  恢复/切换按钮); v60 三处断言同步更新为双模式语义; tsc -b / build 通过; 全量回归
+  回基线 (v28/v137/v138/v142)。
+
+## v296 — 编辑器倍速回归不变调 + 曲库屏蔽全局星数计算
+- 倍速: 用户试用 v295 后决定编辑器倍速固定用不变调 (signalsmith-stretch, lazer 编辑器
+  PlaybackControl Tempo 语义)。store.rateAdjustPitch 默认改 false 且不再持久化, 底栏
+  「变调」切换按钮移除; 变调 (Frequency 重采样) 仅测试游玩 DT/HT 内部强制使用
+  (与 lazer ModRateAdjust 对齐), TestPlayOverlay 退出恢复 prevPitch。v295/v60 断言同步。
+- 曲库: 屏蔽全局星数队列 (runStarQueue 调用/starProg 状态/头部进度全移除;
+  libraryIndex.ts 导出保留, 已缓存星数仍随索引 reconcile 显示)。原因: 全库
+  parseOsu+computeStarRating 太慢; 且星级就地写回经 starProg 依赖每张触发整表
+  重过滤/重排/重渲染。连带修两个索引途中的选中问题:
+  1) 选中占位条目 (key='dir/') 后该目录被索引 → 占位剔除 → 选中消失: 批次到达时
+     把占位选中迁移到该目录第一个真实难度。
+  2) 初始定位当前谱面后, 后续批次插入/剔除把选中行挤出屏幕: 索引途中定位 effect
+     不消费 scrollToSelRef (每批重新居中), 索引完成才停; 新增 programmaticScrollRef
+     区分程序/用户滚动, 用户手动滚动/点击立即脱离跟随。
+- 验证: verifier/v296 (7 条); v290 头部断言同步; tsc -b / build 通过; 全量回归回基线
+  (v28/v137/v138/v142)。
+
+## v297 — 曲库索引提速: Worker 化 + trustNames 快路径 + UI 节流 (方案 A+B)
+- 慢因分析: v290 全库索引对每个 .osu 都 getFile() stat (有缓存也一样, reconcile 靠
+  size+lastModified), 1 万难度仅 stat 就要数秒~数十秒; 无缓存首次还要逐文件读文本;
+  且每 50 文件一批就 setEntries(整表拷贝)+重过滤+重渲染, 索引期间主线程被渲染风暴
+  占满 → "索引期间用不了"。v290 前的旧版只枚举目录名 + 懒解析, 所以秒开。
+- 实现 (用户选定方案 A+B):
+  - libraryIndex.ts: IndexScanOpts.trustNames 快路径 — 目录内 .osu 文件名集合与缓存
+    一致即整目录复用 (纯 entries() 枚举, 零 getFile); 不一致才落慢路径逐文件 stat。
+    同名内容变更快路径检测不到 → 手动「重新扫描」传 thorough=true 做彻底校验。
+  - buildLibraryIndexAuto: FileSystemDirectoryHandle 结构化克隆交给
+    libraryIndex.worker.ts (新建), 枚举/读文件/解析全部移出主线程, 批回传;
+    prio 批粒度推送, isCancelled 即 terminate; 服务器直读模式 (无 native) 或
+    Worker 创建失败回退原主线程 generator (buildLibraryIndex 本体保留)。
+  - SongLibrary: startScan(h, native, thorough) 全调用点更新; 批次节流入
+    pendingEntriesRef, 至多 250ms flush 一次 setEntries, 终态立即刷新; 扫描开始/
+    卸载清定时器防过期 flush。
+- 验证: verifier/v297 (14 条); v128 一处断言前缀匹配同步; tsc -b / build 通过
+  (worker chunk 独立产出); 全量回归回基线 (v28/v137/v138/v142)。
+
+## v298 — 测试游玩 HUD 皮肤贴图 + mod 持久化回归断言
+- mod 记住: v294 已实现 (localStorage osu-editor:testplay-mods, useState(loadTestMods)
+  初始化 + 切换即 saveTestMods), 下次打开测试游玩与重启 exe 都会恢复勾选; 本版在
+  verifier 补回归断言, 代码无需改动。
+- HUD 皮肤化 (skin.ts):
+  - 新增字段 hit300/hit100/hit50/hit0 (判定弹出), scorebarBg/scorebarColour (血条),
+    scoreDigits[10] (score-0..9) + scoreX (score-x); 全部可选/可空, 缺失回退原程序化
+    文字/色条。
+  - 双通道加载: public/skin 默认皮肤 (pending +20) 与用户皮肤目录 (total +20),
+    @2x 优先走 fileVariants/skinScaleAdjust 既有约定。
+- TestPlayOverlay 渲染:
+  - 判定弹出: 有贴图按固有尺寸绘制 (@2x 减半, 上限圈径×1.2 防巨型皮肤图), 上浮渐隐
+    不变; 无贴图回退彩色文字。
+  - 血条: scorebar-bg 按固有宽高比绘制 + scorebar-colour 按 hp 裁剪填充; 缺失回退色条。
+  - 分数/combo: drawSkinNumber 逐字取 score-0..9 / score-x, 任一字形缺失整串回退
+    monospace 文字; acc 保持文字 (用户未要求)。
+- 验证: verifier/v298 (13 条); tsc -b / build 通过; 全量回归回基线 (v28/v137/v138/v142)。
+
+## v299 — 曲库索引期可用性: 文件名骨架列表 (取代占位条目)
+- 反馈: 索引期间还是用不了 / 不要自动滚动 / 不要显示「索引中」/ 索引前也要显示
+  难度名 / 索引前后左侧表现基本相同。
+- 根因补强: v291 占位条目是一目录一行 (key='dir/'), 索引后替换为多难度行
+  (key='dir/file') — key 变 → 选中丢、行数变 → 列表跳动; 且行上带「索引中…」标记。
+- 实现:
+  - libraryIndex.ts: difficultyFromFileName (osu 命名约定 "Artist - Title (Creator)
+    [Version].osu" 纯字符串解析, 各段可缺) + enumerateDifficultySkeletons (纯枚举
+    文件名, 零 getFile/读文本, prio 插队, 每目录 yield 让出主线程); LibraryIndexEntry
+    新增 partial 标记。
+  - SongLibrary startScan 无缓存分支改两阶段: Pass A 骨架先行 (行外观/key 与索引后
+    完全一致, 可直接选中/双击打开); Pass B 全解析同 key 就地升级 (idxByKey),
+    不换 key → 选中不丢/行不跳。落库剔除 partial (size=0 会触发下轮重解析)。
+  - 定位 effect 回归一次性 (v296 的索引期跟随移除 — 行位置不再漂移, 无需跟随;
+    用户手动滚动仍取消定位); 行渲染去掉「索引中…」占位样式, 骨架/真实条目统一外观
+    (骨架右侧只显示谱师, BPM 解析后补上); 条件搜索排除 partial; 详情面板 partial
+    分支显示文件名解析信息 + 「详细参数索引中」。
+- 验证: verifier/v299 (12 条); v291/v296/v297 断言同步; tsc -b / build 通过;
+  全量回归回基线 (v28/v137/v138/v142)。
+
+## v300 — 测试游玩游玩区与编辑器同尺寸 + acc 皮肤数字
+- 游玩区大小: TestPlayOverlay 原用 min(w/512,h/384)*0.95 居中公式, 与编辑器
+  (RESERVED 111/92 预留 + PAD_Y 40 + 1.2 系数) 不一致 → 圆圈大小/手感不同。现将
+  EditorCanvas.viewTransform 导出并在 overlay 的渲染与 toOsu 命中映射两处复用,
+  同一公式同一参数 → 游玩区大小与谱面编辑器完全一致 (横屏下高度为约束, 全屏 overlay
+  与编辑器主区算出同一 scale)。游玩区平移/缩放 (playfieldPan) 不套用 — 那是编辑
+  导航辅助, 测试游玩始终完整游玩区。
+- acc 皮肤数字: skin 新增 scorePercent/scoreDot (score-percent.png/score-dot.png,
+  默认皮肤与用户皮肤目录双通道, @2x 走 fileVariants 既有约定); drawSkinNumber
+  支持 '%'/'.' 字符, acc (如 97.50%) 整串皮肤数字右对齐, 任一字形缺失回退
+  monospace 文字。
+- 验证: verifier/v300 (8 条); tsc -b / build 通过; 全量回归回基线 (v28/v137/v138/v142)。

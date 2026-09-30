@@ -48,7 +48,7 @@ section('lifecycle.ts: 800ms 残留渐隐');
 section('renderer.ts: 关打击动画时不放大');
 {
   const src = readSrc('src/osu/renderer.ts');
-  assert(/const hitFade = o\.type === 'circle' && dt >= 0 && displaySettings\.hitAnimation \? dt \/ 240 : 0;/.test(src), 'hitFade 受 hitAnimation 门控 (关 = 不放大)');
+  assert(/let hitFade = o\.type === 'circle' && dt >= 0 && displaySettings\.hitAnimation \? dt \/ 240 : 0;/.test(src), 'hitFade 受 hitAnimation 门控 (关 = 不放大; v287: let 化供 gameplay 分支覆写)');
   assert(/const scale = 1 \+ hitFade \* 0\.4;/.test(src), '放大公式不变 (lazer 240ms 1.4x)');
 }
 

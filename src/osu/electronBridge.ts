@@ -61,6 +61,8 @@ export interface ElectronAPI {
   onMenuDefinition(cb: (def: ElectronMenuNode[]) => void): () => void;
   /** v280: 应用内菜单项点击 (id 由菜单定义携带, 主进程查表执行) */
   menuItemClick(id: string): void;
+  /** v286: 自定义改键 — 推送 accelerator 覆盖 (menuId → Electron accelerator 如 "CmdOrCtrl+S"), 主进程重建菜单 */
+  setAcceleratorOverrides(map: Record<string, string>): void;
 }
 
 /** v280: 序列化菜单节点 (主进程 buildMenu 模板 → 渲染端自绘菜单条) */

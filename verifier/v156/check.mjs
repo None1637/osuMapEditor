@@ -60,10 +60,10 @@ section('electron 三件套: bridge / preload / main 菜单');
   assert(main.includes('ipcMain.on("timing-menu-state"'), '主进程接收勾选状态');
   assert(/节拍类型/.test(main) && /type:\s*"radio"/.test(main), '节拍类型 radio 子菜单');
   assert(/label:\s*"节拍器",\s*type:\s*"checkbox"/.test(main), '节拍器 checkbox');
-  assert(/添加Timing区间.*accelerator:\s*"CmdOrCtrl\+P"/.test(main), '添加红线 Ctrl+P');
-  assert(/accelerator:\s*"CmdOrCtrl\+Shift\+P"/.test(main), '添加绿线 Ctrl+Shift+P');
-  assert(/accelerator:\s*"CmdOrCtrl\+I"/.test(main), '删除Timing区间 Ctrl+I');
-  assert(/Timing设置\.\.\..*accelerator:\s*"F6"/.test(main), 'Timing设置 F6');
+  assert(/添加Timing区间.*accelerator:\s*acc\("timing-add-red",\s*"CmdOrCtrl\+P"\)/.test(main), '添加红线 Ctrl+P (v286: acc() 支持改键)');
+  assert(/accelerator:\s*acc\("timing-add-green",\s*"CmdOrCtrl\+Shift\+P"\)/.test(main), '添加绿线 Ctrl+Shift+P');
+  assert(/accelerator:\s*acc\("timing-delete-current",\s*"CmdOrCtrl\+I"\)/.test(main), '删除Timing区间 Ctrl+I');
+  assert(/Timing设置\.\.\..*accelerator:\s*acc\("timing-open-settings",\s*"F6"\)/.test(main), 'Timing设置 F6');
   for (const label of ['重置当前区间', '重新对齐当前Timing区间', '全部重新对齐', '整体平移所有物件的时间', '重新计算滑条长度', '删除所有Timing区间', '把当前位置设为预览点']) {
     assert(main.includes(label), `菜单项「${label}」`);
   }

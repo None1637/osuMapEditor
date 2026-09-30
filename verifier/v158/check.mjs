@@ -38,12 +38,15 @@ section('Timelines.tsx: 白色播放头 + 粉点加亮');
 section('App.tsx: ↑/↓ 跳前/后书签');
 {
   const src = readSrc('src/App.tsx');
-  assert(/e\.key === 'ArrowUp' \|\| e\.key === 'ArrowDown'/.test(src), 'ArrowUp/Down 键绑定');
+  // v286 适配: 注册表派发 — bookmark-prev/next 动作 (无修饰 ↑/↓) 走 jumpBookmark 助手
+  assert(/case 'bookmark-prev': jumpBookmark\(-1\); return;/.test(src) && /case 'bookmark-next': jumpBookmark\(1\); return;/.test(src), 'ArrowUp/Down 键绑定');
   assert(/bm\.editor\.bookmarks/.test(src), '读取书签数组');
-  assert(/e\.key === 'ArrowUp'\s*\?\s*\[\.\.\.marks\]\.reverse\(\)\.find\(b => b < store\.currentTime - 1\)/.test(src), '↑ 找 currentTime 之前最近书签');
+  assert(/dir < 0 \? \[\.\.\.marks\]\.reverse\(\)\.find\(b => b < store\.currentTime - 1\)/.test(src), '↑ 找 currentTime 之前最近书签');
   assert(/marks\.find\(b => b > store\.currentTime \+ 1\)/.test(src), '↓ 找之后最近书签');
-  // 不得抢走 Ctrl+↑/↓ 的选区逐 px 移动 (v55 分支在前且带 ctrl 判断)
-  assert(src.indexOf("nudgeSelectedPosition") < src.indexOf("e.key === 'ArrowUp' || e.key === 'ArrowDown'"), 'Ctrl+方向键移动选区分支在书签跳转之前');
+  // 不得抢走 Ctrl+↑/↓ 的选区逐 px 移动 (v286: ctrl-* 为有修饰绑定, 与无修饰 bookmark-prev/next 精确区分, 无顺序依赖;
+  // 且 ctrl-up/down case 内有选区优先 nudge)
+  assert(/case 'ctrl-left': case 'ctrl-right': case 'ctrl-up': case 'ctrl-down':/.test(src)
+    && /if \(store\.selected\.size\) \{[\s\S]{0,200}store\.nudgeSelectedPosition/.test(src), 'Ctrl+方向键有选区优先移动选区');
   assert(/↑\/↓ 跳到前\/后一条书签/.test(src), '快捷键帮助已补条目');
 }
 

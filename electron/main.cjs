@@ -300,6 +300,11 @@ function serializeMenuItems(items) {
 // 渲染端挂载时主动拉取 (首次 buildMenu 早于页面加载, send 会丢); 此后每次 buildMenu 主动 push
 ipcMain.handle("get-menu-definition", () => lastMenuDef)
 ipcMain.on("menu-item-click", (_e, id) => { menuActions.get(id)?.() })
+// v286: 自定义改键 — 渲染端 hotkeys.ts 推送 menuId → accelerator 覆盖; 注册项 (save/timing 4 项)
+// 真改键 (accelerator 注册生效), 编辑/作图菜单项 registerAccelerator:false 仅显示文字同步
+let accelOverrides = {}
+ipcMain.on("menu-accelerator-overrides", (_e, map) => { accelOverrides = map || {}; buildMenu() })
+const acc = (id, def) => accelOverrides[id] ?? def
 
 function buildMenu() {
   const songsDir = readSettings().songsDir
@@ -311,7 +316,7 @@ function buildMenu() {
     {
       label: "文件",
       submenu: [
-        { label: "保存", accelerator: "CmdOrCtrl+S", enabled: !!menuState, click: () => send({ type: "save" }) },
+        { label: "保存", accelerator: acc("save", "CmdOrCtrl+S"), enabled: !!menuState, click: () => send({ type: "save" }) },
         { type: "separator" },
         {
           label: "打开一个难度",
@@ -356,7 +361,7 @@ function buildMenu() {
       submenu: (() => {
         const e = (type, label, accelerator, enabled) => ({
           label, enabled, click: () => send({ type }),
-          ...(accelerator ? { accelerator, registerAccelerator: false } : {}),
+          ...(accelerator ? { accelerator: acc(type, accelerator), registerAccelerator: false } : {}), // v286: acc() 改键后菜单文字同步
         })
         const map = editState.hasMap, sel = editState.hasSelection, clip = editState.hasClipboard
         return [
@@ -396,7 +401,7 @@ function buildMenu() {
       submenu: (() => {
         const e2 = (type, label, accelerator, enabled) => ({
           label, enabled, click: () => send({ type }),
-          ...(accelerator ? { accelerator, registerAccelerator: false } : {}),
+          ...(accelerator ? { accelerator: acc(type, accelerator), registerAccelerator: false } : {}), // v286: acc() 改键后菜单文字同步
         })
         return [
           e2("compose-polygon", "多边形生成...", "CmdOrCtrl+Shift+D", editState.hasMap),
@@ -422,12 +427,12 @@ function buildMenu() {
         },
         { label: "节拍器", type: "checkbox", checked: timingState.metronome, enabled: !!menuState, click: () => send({ type: "timing-toggle-metronome" }) },
         { type: "separator" },
-        { label: "添加Timing区间 (即红线)", accelerator: "CmdOrCtrl+P", enabled: !!menuState, click: () => send({ type: "timing-add-red" }) },
-        { label: "添加继承区间 (即绿线)", accelerator: "CmdOrCtrl+Shift+P", enabled: !!menuState, click: () => send({ type: "timing-add-green" }) },
+        { label: "添加Timing区间 (即红线)", accelerator: acc("timing-add-red", "CmdOrCtrl+P"), enabled: !!menuState, click: () => send({ type: "timing-add-red" }) },
+        { label: "添加继承区间 (即绿线)", accelerator: acc("timing-add-green", "CmdOrCtrl+Shift+P"), enabled: !!menuState, click: () => send({ type: "timing-add-green" }) },
         { label: "重置当前区间", enabled: !!menuState, click: () => send({ type: "timing-reset-current" }) },
-        { label: "删除Timing区间", accelerator: "CmdOrCtrl+I", enabled: !!menuState, click: () => send({ type: "timing-delete-current" }) },
+        { label: "删除Timing区间", accelerator: acc("timing-delete-current", "CmdOrCtrl+I"), enabled: !!menuState, click: () => send({ type: "timing-delete-current" }) },
         { label: "重新对齐当前Timing区间", enabled: !!menuState, click: () => send({ type: "timing-resnap-current" }) },
-        { label: "Timing设置...", accelerator: "F6", click: () => send({ type: "timing-open-settings" }) },
+        { label: "Timing设置...", accelerator: acc("timing-open-settings", "F6"), click: () => send({ type: "timing-open-settings" }) },
         { type: "separator" },
         { label: "全部重新对齐", enabled: !!menuState, click: () => send({ type: "timing-resnap-all" }) },
         { label: "整体平移所有物件的时间...", enabled: !!menuState, click: () => send({ type: "timing-shift-all" }) },

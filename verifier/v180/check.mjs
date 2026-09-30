@@ -50,8 +50,9 @@ assert(/spinnerPlacementEnd\(bm\.timingPoints, start, store\.currentTime, store\
 assert(/drawPendingSpinner\(/.test(ec), '渲染循环绘制放置预览');
 
 // 5. App: 工具切换 / Esc 取消放置
-const toolSwitches = app.match(/store\.tool = t\.id; store\.pendingSlider = \[\]; store\.pendingSpinner = null;/g) ?? [];
-assert(toolSwitches.length === 2, `两处工具切换 (快捷键+按钮) 均清 pendingSpinner (实际 ${toolSwitches.length})`);
+// v286 适配: 快捷键切换走注册表派发 (tool-* case), 按钮仍走原行
+assert(/store\.tool = id\.slice\(5\) as Tool; store\.pendingSlider = \[\]; store\.pendingSpinner = null; store\.emit\(\);/.test(app), '快捷键工具切换清 pendingSpinner (v286 注册表派发)');
+assert(/store\.tool = t\.id; store\.pendingSlider = \[\]; store\.pendingSpinner = null;/.test(app), '按钮工具切换清 pendingSpinner');
 assert(/store\.pendingSpinner = null; store\.clearSelection\(\)/.test(app), 'Esc 取消转盘放置');
 
 console.log(failures ? `\nV180 FAILED: ${failures}` : '\nV180 ALL PASSED');

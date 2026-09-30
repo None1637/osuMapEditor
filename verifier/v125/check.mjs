@@ -29,7 +29,7 @@ assert(/const spin = 0\.05 \* Math\.max\(0, Math\.min\(dtMs, durationMs\)\);/.te
 // 接线: drawSpinner 接收 preempt, 转盘用 drawSprite 带角度, 缩圈用 spinnerApproachRatio
 assert(/function drawSpinner\(rc: RenderCtx, o: HitObject, dt: number, preempt: number\)/.test(renderer), 'drawSpinner 接收 preempt 参数');
 assert(/else drawSpinner\(rc, o, dt, preempt\);/.test(renderer), '调用处传入 preempt');
-assert(/drawSprite\(g, skin\.spinnerCircle, cx, cy, size, spinnerAmbientRotation\(dt, preempt, Math\.max\(1, end - o\.time\)\)\)/.test(renderer), '转盘带旋转角绘制 (v177: 传入 duration)');
+assert(/drawSprite\(g, skin\.spinnerCircle, cx, cy, size, spinRot \?\? spinnerAmbientRotation\(dt, preempt, Math\.max\(1, end - o\.time\)\)\)/.test(renderer), '转盘带旋转角绘制 (v177: 传入 duration; v287: 测试游玩玩家转角优先)');
 assert(/drawSprite\(g, skin\.spinnerApproach, cx, cy, apSize\)/.test(renderer), '缩圈仍绘制');
 assert(/const apSize = size \* spinnerApproachRatio\(frac\);/.test(renderer), '缩圈尺寸走 spinnerApproachRatio');
 assert(!/360 \* \(1 - frac \* 0\.12\)/.test(renderer), '旧的转盘缩放 (360*(1-frac*0.12)) 已移除 (lazer 转盘恒定大小)');

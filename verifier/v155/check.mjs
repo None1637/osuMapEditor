@@ -43,8 +43,9 @@ section('store.ts: addBookmark / removeBookmarkNear');
 section('App.tsx: Ctrl+B / Ctrl+Shift+B 快捷键');
 {
   const src = readSrc('src/App.tsx');
-  assert(/e\.key\.toLowerCase\(\) === 'b'/.test(src), 'Ctrl+B 键绑定');
-  assert(/if \(e\.shiftKey\) store\.removeBookmarkNear\(store\.currentTime\); else store\.addBookmark\(store\.currentTime\);/.test(src), 'Shift 删除最近书签 / 否则添加');
+  // v286 适配: 注册表派发 — bookmark-add / bookmark-remove 两个动作 (默认 Ctrl+B / Ctrl+Shift+B)
+  assert(/case 'bookmark-add': e\.preventDefault\(\); store\.addBookmark\(store\.currentTime\)/.test(src)
+    && /case 'bookmark-remove': e\.preventDefault\(\); store\.removeBookmarkNear\(store\.currentTime\)/.test(src), 'Ctrl+B 添加 / Ctrl+Shift+B 删除最近书签 (v286 注册表派发)');
 }
 
 section('Timelines.tsx: 下时间轴 stable 样式各层');

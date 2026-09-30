@@ -1110,7 +1110,9 @@ export function BottomTimeline() {
           store.wheelSeek(e.deltaY, e.deltaMode);
         }} />
       <div className="flex items-center gap-1.5 shrink-0">
-        {/* 倍速 (lazer PlaybackControl.PlaybackTabControl: 底栏右侧, 25/50/75/100%, 激活加粗) */}
+        {/* 倍速 (lazer PlaybackControl.PlaybackTabControl: 底栏右侧, 25/50/75/100%, 激活加粗)
+            v296: 编辑器倍速固定不变调 (signalsmith-stretch, lazer PlaybackControl Tempo 语义), 变调按钮已移除;
+            变调 (Frequency 重采样) 仅测试游玩 DT/HT 内部强制使用 */}
         <div className="flex flex-col items-center gap-0.5 px-1" title="播放速度 (变速不变调 signalsmith-stretch, lazer Tempo)">
           <span className="text-[10px] text-white/40 leading-3">倍速</span>
           <div className="flex rounded overflow-hidden border border-white/10">

@@ -45,7 +45,7 @@ section('store.ts: mapSource + save()');
 section('App.tsx: Ctrl+S + 反馈 UI');
 {
   const src = readSrc('src/App.tsx');
-  assert(/e\.key\.toLowerCase\(\) === 's'\) \{ e\.preventDefault\(\); store\.save\(\)/.test(src), 'Ctrl+S 快捷键');
+  assert(/case 'save': e\.preventDefault\(\); store\.save\(\)/.test(src), 'Ctrl+S 快捷键 (v286 注册表派发)');
   assert(/data-save-message/.test(src) && /store\.saveMessage/.test(src), '保存反馈 (v81 起在右上角标题前缀)');
   assert(!/导出 \.osu<\/button>/.test(src), 'v81: 独立导出按钮已删除 (下载兜底仍在 store.save 内)');
   assert(/Ctrl\+S 保存谱面/.test(src), '快捷键帮助');

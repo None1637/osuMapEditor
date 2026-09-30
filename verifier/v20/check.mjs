@@ -16,10 +16,11 @@ function assert(cond, msg) { if (!cond) { failures++; console.error('  FAIL:', m
 function section(name) { console.log('== ' + name); }
 function readSrc(rel) { return fs.readFileSync(path.join(root, rel), 'utf8'); }
 
-section('library.ts: openDB v2 兼容升级 (含 contains 守卫)');
+section('library.ts: openDB 版本升级 (含 contains 守卫)');
 {
   const src = readSrc('src/osu/library.ts');
-  assert(src.includes('const DB_VERSION = 2'), 'DB 版本升到 2');
+  // v290: DB_VERSION 2→3 (新增 store 'libraryIndex'), contains 守卫补建规则不变
+  assert(src.includes('const DB_VERSION = 3'), 'DB 版本升到 3 (v290: libraryIndex store)');
   assert(src.includes('indexedDB.open(DB_NAME, DB_VERSION)'), 'open 使用 DB_VERSION');
   assert(src.includes('db.objectStoreNames.contains(DB_STORE)'), '升级时 contains 守卫 (存量正常库不重复建 store)');
   assert(!src.includes('indexedDB.open(DB_NAME, 1)'), '不再硬编码 v1');

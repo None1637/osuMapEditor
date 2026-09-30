@@ -25,10 +25,9 @@ console.log('== store.ts: 放置态字段 + toggle');
 console.log('== App.tsx: 快捷键按工具分流 + 放置态指示 (v244: 右栏顶部, 始终显示)');
 {
   const src = readSrc('src/App.tsx');
-  assert(/if \(store\.tool !== 'select'\) \{\s*if \(k === 'q'\) \{ store\.togglePlaceNewCombo\(\); return; \}/.test(src), '放置工具: Q → 放置态 NC');
-  assert(/if \(k === 'w'\) \{ store\.togglePlaceHitSound\(2\); return; \}/.test(src)
-    && /if \(k === 'e'\) \{ store\.togglePlaceHitSound\(4\); return; \}/.test(src)
-    && /if \(k === 'r'\) \{ store\.togglePlaceHitSound\(8\); return; \}/.test(src), '放置工具: W/E/R → 放置态音效位');
+  // v286 适配: 注册表派发 — hs-* 动作按 store.tool 分流 (语义不变)
+  assert(/if \(store\.tool !== 'select'\) \{\s*if \(bit === 0\) store\.togglePlaceNewCombo\(\); else store\.togglePlaceHitSound\(bit\);/.test(src), '放置工具: Q → 放置态 NC');
+  assert(/const bit = id === 'hs-newcombo' \? 0 : id === 'hs-whistle' \? 2 : id === 'hs-finish' \? 4 : 8;/.test(src), '放置工具: W/E/R → 放置态音效位');
   assert(/store\.toggleSelectedNewCombo\(\)/.test(src) && /store\.toggleEdgeHitSound/.test(src), 'select 工具原语义保留 (选中物件/节点)');
   assert(/store\.placeNewCombo \? 'text-pink-300/.test(src) && /NC\(Q\)/.test(src), '放置态指示 (v244 起在右栏顶部)');
 }

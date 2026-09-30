@@ -42,4 +42,6 @@ contextBridge.exposeInMainWorld("osuEditor", {
     return () => ipcRenderer.removeListener("menu-definition", listener)
   },
   menuItemClick: (id) => ipcRenderer.send("menu-item-click", id),
+  // v286: 自定义改键 — 渲染端推送 accelerator 覆盖 (menuId → Electron accelerator), 主进程重建菜单
+  setAcceleratorOverrides: (map) => ipcRenderer.send("menu-accelerator-overrides", map),
 })

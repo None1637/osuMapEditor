@@ -44,9 +44,10 @@ assert(/const pill = hitTestTimingPill\(e\);\s*if \(pill\) \{\s*if \(pill\.tp\.u
   'onContextMenu: 绿线药丸右键删除 (选中->整区/未选中->该线, v114 语义), 先于物件命中');
 
 // App: 快捷键路由不变 (Del -> deleteSelected, J/K -> nudgeSelectedBySnap, 两者内部已支持绿线)
-assert(/if \(e\.key === 'Delete' \|\| e\.key === 'Backspace'\) \{ store\.deleteSelected\(\); return; \}/.test(app), 'App: Del/Backspace 路由');
+// v286 适配: 注册表派发 (delete / nudge-time-prev|next 动作)
+assert(/case 'delete': store\.deleteSelected\(\); return;/.test(app), 'App: Del/Backspace 路由');
 // v209: 吸附步长公式下沉 store.nudgeSelectedBySnap (编辑菜单共用), App 只做路由; 公式本身在 store 断言
-assert(/store\.nudgeSelectedBySnap\(k === 'j' \? -1 : 1\)/.test(app), 'App: J/K 路由 (nudgeSelectedBySnap)');
+assert(/case 'nudge-time-prev': store\.nudgeSelectedBySnap\(-1\)/.test(app) && /case 'nudge-time-next': store\.nudgeSelectedBySnap\(1\)/.test(app), 'App: J/K 路由 (nudgeSelectedBySnap)');
 assert(/nudgeSelected\(Math\.round\(red\.beatLength \/ this\.beatSnap\) \* dir\)/.test(fs.readFileSync(path.join(root, 'src/osu/store.ts'), 'utf8')), 'store: 吸附步长公式不变');
 
 console.log(failures ? `\nV113_CHECK_FAILED: ${failures}` : '\nV113_CHECK_PASSED');

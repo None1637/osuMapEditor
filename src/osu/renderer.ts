@@ -8,6 +8,7 @@ import { followPointPairs, followPointsBetween, followPointFrameIndex, followPoi
 import { sliderTickPoints } from './clock/hitSounds';
 import { tintedSprite, skinScaleAdjust, skinSpriteWidth, hitcircleSpriteWidth, type Skin, type SkinImage } from './skin';
 import { displaySettings } from './displaySettings'; // v132: 显示设置 (皮肤颜色/轨迹线/缩圈/渐出/点击特效)
+import type { GameplayObjRender } from './gameplay/testPlaySession'; // v287: 测试游玩渲染数据
 
 // lazer Colour4.Lighten/Darken: amount 先乘 0.5, 再 c*(1+0.5a)+a (clamp 0..255); Darken(n) = Lighten(-n)
 // 当前轨道为纯黑实验样式, 渐变公式暂时不用, 整函数注释备查 (恢复渐变时取消注释即可)
@@ -105,6 +106,9 @@ export interface RenderCtx {
   comboInfo: Map<number, { combo: number; comboWithOffset: number; index: number }>;
   /** 物件堆叠偏移 (osu px): key=物件 id, 无条目表示不偏移; 由 stacking.ts 按谱面数据预算 */
   stackOffsets: Map<number, { dx: number; dy: number }>;
+  /** v287: 测试游玩判定状态 (TestPlayOverlay 传入) — 命中爆炸锚定实际命中时刻/miss 不爆/tick 未跟踪不爆/
+   *  跟随圈仅 tracking 时显示/转盘转角由玩家输入驱动; 缺省 = 编辑器 autoplay 行为 (全部路径不变) */
+  gameplay?: Map<number, GameplayObjRender>;
 }
 
 const ZERO_OFFSET = { dx: 0, dy: 0 };
@@ -198,7 +202,13 @@ export function renderPlayfield(rc: RenderCtx, pending?: { x: number; y: number;
     const sliderNodeLinger = o.type === 'slider' && displaySettings.hitExplosion && !displaySettings.hitAnimation;
     if (alpha <= 0 && !sliderNodeLinger) continue;
     // 单点命中后的爆炸放大系数; v147: 关「打击动画」时不放大 (原大小残留 800ms 渐隐由 lifecycle.alphaAt 负责)
-    const hitFade = o.type === 'circle' && dt >= 0 && displaySettings.hitAnimation ? dt / 240 : 0;
+    let hitFade = o.type === 'circle' && dt >= 0 && displaySettings.hitAnimation ? dt / 240 : 0;
+    // v287: 测试游玩 — 爆炸锚定实际命中时刻; miss 不放大 (无爆炸)
+    if (o.type === 'circle' && rc.gameplay) {
+      const gi = rc.gameplay.get(o.id);
+      if (gi?.state === 'hit') hitFade = displaySettings.hitAnimation ? Math.max(0, Math.min(1, (time - gi.hitAt) / 240)) : 0;
+      else if (gi?.state === 'miss') hitFade = 0;
+    }
 
     g.save();
     g.globalAlpha = Math.min(1, alpha);
@@ -722,7 +732,14 @@ function drawSlider(rc: RenderCtx, o: HitObject, r: number, color: string, num: 
   // 头: sliderstartcircle 着色 + overlay 原色 + 数字 (盒子 = 2r, 同 hitcircle)
   // v178: 被点击后 (dt>=0) 头圈按 sliderHeadHitState 淡出/放大, 不再常显
   // v150: sliderstart/endcircle 同按贴图固有尺寸显示 (见 drawCircle)
-  const hs = sliderHeadHitState(dt);
+  const hs = (() => { // v287: 测试游玩 — 头命中爆炸锚定实际命中时刻; 头 miss 直接隐去 (无爆炸)
+    if (rc.gameplay) {
+      const gi = rc.gameplay.get(o.id);
+      if (gi?.state === 'hit') return sliderHeadHitState(time - gi.hitAt);
+      if (gi?.state === 'miss') return { alpha: 0, scale: 1 };
+    }
+    return sliderHeadHitState(dt);
+  })();
   if (nodeLinger && dt >= 0) {
     // v215: 暂留模式命中后头圈独立残留 — 不随滑条身 alpha 归零 (短滑条身先没, 头圈继续渐隐);
     //       缩圈同单点贴边 (v183 pinAfterHit), 透明度继承头圈
@@ -775,6 +792,11 @@ function drawSlider(rc: RenderCtx, o: HitObject, r: number, color: string, num: 
   // 身体上的 slidertick 节拍点: v178 渐进显示 (150ms 淡入 + 600ms OutElasticHalf 0.5→1 弹入),
   // 球经过后 150ms 淡出 (既有语义); v204: 出现时刻对齐 lazer SliderTick 公式 (见 sliderTickPreempt)
   for (const t of sliderTickPoints(bm, o)) {
+    // v287: 测试游玩 — tick 未跟踪 (miss) 到点即隐去, 不做经过淡出; prehit/命中维持原经过淡出
+    if (rc.gameplay) {
+      const st = rc.gameplay.get(o.id)?.ticks.get(t.timeMs);
+      if (st === 'miss' && time > t.timeMs) continue;
+    }
     const ts = sliderTickState(time, t.timeMs, o.time + t.spanIndex * span, t.spanIndex, preempt);
     if (!ts) continue;
     const p = path.positionAt(t.progress * slideLen);
@@ -791,7 +813,8 @@ function drawSlider(rc: RenderCtx, o: HitObject, r: number, color: string, num: 
     if (cycle % 2 === 1) along = slideLen - along;
     const bp = path.positionAt(Math.min(along, slideLen));
     // lazer DrawableSliderBall: 球 = 2r, 跟随圈 = FOLLOW_AREA(2.4) x 2r
-    drawSprite(g, skin.sliderfollowcircle, bp.x, bp.y, size * 2.4);
+    // v287: 测试游玩 — 跟随圈仅 tracking (光标在圈内且按住击打键) 时显示
+    if (!rc.gameplay || rc.gameplay.get(o.id)?.tracking) drawSprite(g, skin.sliderfollowcircle, bp.x, bp.y, size * 2.4);
     // v131: 滑条球按贴图固有尺寸绘制 (lazer LegacySliderBall: AutoSize = 贴图尺寸);
     // v175: 保持固有宽高比 (v131 用 drawSprite 方形绘制, 宽幅贴图如 kongehund mapping 2.0 的
     //       1500x236 sliderb@2x 会被压成竖椭圆) + 沿路径切线旋转 (stable/lazer: 球随移动方向旋转,
@@ -850,7 +873,11 @@ function drawSpinner(rc: RenderCtx, o: HitObject, dt: number, preempt: number) {
   // 转盘主体: v125 恒定大小 (lazer 经典皮肤转盘不缩放), 按 v177 角度自转 (ambient + 477 SPM)
   const size = 360;
   g.globalAlpha *= 0.95;
-  drawSprite(g, skin.spinnerCircle, cx, cy, size, spinnerAmbientRotation(dt, preempt, Math.max(1, end - o.time)));
+  // v287: 测试游玩 — 转角由玩家光标绕心累计驱动 (TestPlaySession.accum), 不再 autoplay 模拟;
+  //       prehit (lead-back 期间已过的转盘) 回退 autoplay 角度
+  const giSpin = rc.gameplay?.get(o.id);
+  const spinRot = giSpin && giSpin.state !== 'prehit' ? giSpin.spinRotation : undefined;
+  drawSprite(g, skin.spinnerCircle, cx, cy, size, spinRot ?? spinnerAmbientRotation(dt, preempt, Math.max(1, end - o.time)));
   g.globalAlpha /= 0.95;
   // v125 缩圈: 开始前恒定 1.4x, 转盘期间线性缩到 0.08x (lazer LegacyOldStyleSpinner)
   const apSize = size * spinnerApproachRatio(frac);

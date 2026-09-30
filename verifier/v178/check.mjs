@@ -34,7 +34,7 @@ assert(/export function sliderHeadHitState\(dt: number\)/.test(renderer), 'slide
 assert(/export function sliderTickState\(time: number, tickTime: number, spanStart: number, spanIndex: number, preempt: number\)/.test(renderer), 'sliderTickState 导出 (v204: 加 spanStart/spanIndex)');
 
 // 2. 滑条头命中后消失: 头部三块绘制被 hs.alpha 门控, 数字盒子随 hs.scale
-assert(/const hs = sliderHeadHitState\(dt\);/.test(renderer), 'drawSlider 计算头部命中状态');
+assert(/return sliderHeadHitState\(dt\);/.test(renderer), 'drawSlider 计算头部命中状态 (v287: gameplay 分支命中锚定实际命中时刻, 缺省回退 sliderHeadHitState(dt))');
 assert(/if \(hs\.alpha > 0\) \{/.test(renderer), '头圈/overlay/数字被 alpha 门控 (点击后消失)');
 assert(/drawNumber\(g, skin, num, o\.x, o\.y, size \* hs\.scale\)/.test(renderer), '头部数字随命中爆炸缩放');
 assert(/!displaySettings\.hitExplosion/.test(renderer), '关「note点击特效」时头圈命中立即消失 (与单点一致)');

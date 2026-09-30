@@ -27,7 +27,7 @@ section('electron/main.cjs: "文件" 菜单 (最左侧)');
   const src = readSrc('electron/main.cjs');
   assert(/label: "文件",\s*submenu/.test(src), '"文件" 菜单存在');
   assert(src.indexOf('label: "文件"') < src.indexOf('label: "设置"'), '"文件" 在 "设置" 之前 (最左侧)');
-  assert(/label: "保存", accelerator: "CmdOrCtrl\+S"/.test(src) && /send\(\{ type: "save" \}\)/.test(src), '保存 (CmdOrCtrl+S) => menu-cmd save');
+  assert(/label: "保存", accelerator: acc\("save", "CmdOrCtrl\+S"\)/.test(src) && /send\(\{ type: "save" \}\)/.test(src), '保存 (CmdOrCtrl+S) => menu-cmd save (v286: acc() 支持改键覆盖)');
   assert(/label: "打开一个难度"/.test(src) && /menuState\.difficulties\.map/.test(src) && /type: "open", folderRel: menuState\.folderRel, file: d\.file/.test(src), '打开一个难度 => 当前谱面难度子菜单');
   assert(/label: "打开最近的难度"/.test(src) && /readSettings\(\)\.recents/.test(src) && /type: "open", folderRel: r\.folderRel, file: r\.file/.test(src), '打开最近的难度 => settings.recents 子菜单');
   assert(/ipcMain\.on\("menu-state"/.test(src) && /writeSettings\(s\)/.test(src) && /pushRecent\(s\.recents/.test(src), 'menu-state 上报 => 最近列表持久化 settings.json');

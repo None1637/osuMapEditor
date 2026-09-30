@@ -35,7 +35,8 @@ const GAP_TOP = 18, GAP_BOTTOM = 10; // 用户规格: 上 18px / 下 10px 间隔
 const RESERVED_TOP = PANEL_TOP_H + GAP_TOP;        // 111
 const RESERVED_BOTTOM = PANEL_BOTTOM_H + GAP_BOTTOM; // 92
 // v270 二轮: 用户反馈铺满方向错误, 还原 v129 固定预留 (纯黑底色另有根因, 见 v271)
-function viewTransform(r: { width: number; height: number }) {
+// v300: export — 测试游玩复用同一适配变换 (游玩区大小与编辑器一致)
+export function viewTransform(r: { width: number; height: number }) {
   const availH = Math.max(80, r.height - RESERVED_TOP - RESERVED_BOTTOM);
   const scale = Math.min(r.width / PW, (availH / (PH + PAD_Y * 2)) * 1.2); // v130: 1.1 → 1.2
   return { scale, ox: (r.width - PW * scale) / 2, oy: RESERVED_TOP + (availH - PH * scale) / 2 };

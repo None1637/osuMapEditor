@@ -48,7 +48,8 @@ section('Timelines.tsx: 时间轴框选 + 选区信息面板');
 section('App.tsx: 节拍 seek + 锁定间距控件 + 顶部布局');
 {
   const src = readSrc('src/App.tsx');
-  assert(/seekByBeats\(bm\.timingPoints, store\.beatSnap, store\.currentTime, dir, e\.shiftKey \? 4 : 1\)/.test(src),
+  // v286 适配: 注册表派发 — seek-left/right 动作 (e.shiftKey 仍传 4 拍)
+  assert(/store\.seek\(seekByBeats\(bm\.timingPoints, store\.beatSnap, store\.currentTime, id === 'seek-left' \? -1 : 1, e\.shiftKey \? 4 : 1\)\)/.test(src),
     '左右键 = seekByBeats (lazer EditorClock.seek, Shift=4 拍)');
   assert(!src.includes('dir * 250'), '移除旧的固定 250ms 步进');
   assert(/data-ds-input="range"/.test(src) && /data-ds-input="number"/.test(src), '锁定间距按钮旁滑条 + 数字输入');

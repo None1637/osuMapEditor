@@ -50,13 +50,16 @@ section('App.tsx: Q/W/E/R 快捷键注册');
 {
   const src = readSrc('src/App.tsx');
   assert(src.includes('store.toggleSelectedNewCombo()'), 'Q -> toggleSelectedNewCombo');
-  // v213 适配: W/E/R 经 hs() 路由 (选中滑条节点 → toggleEdgeHitSound, 否则物件级 toggleSelectedHitSound)
-  assert(src.includes('hs(2)') && src.includes('toggleSelectedHitSound(b)'), 'W -> whistle(2) (v213: 经 hs 路由)');
-  assert(src.includes('hs(4)'), 'E -> finish(4) (v213: 经 hs 路由)');
-  assert(src.includes('hs(8)'), 'R -> clap(8) (v213: 经 hs 路由)');
-  const block = src.match(/if \(!e\.ctrlKey && !e\.metaKey && !e\.altKey\)[\s\S]*?\n      \}/)?.[0] ?? '';
-  assert(block.includes("k === 'q'") && block.includes("k === 'w'") && block.includes("k === 'e'") && block.includes("k === 'r'"), 'Q/W/E/R 在无修饰键分支内 (不与 Ctrl 系冲突)');
-  assert(src.indexOf("tag === 'INPUT'") < src.indexOf("k === 'q'"), '输入框焦点 guard 在快捷键之前 (输入框聚焦时不触发)');
+  // v213 适配: W/E/R 经 hs 路由 (选中滑条节点 → toggleEdgeHitSound, 否则物件级 toggleSelectedHitSound)
+  // v286 适配: 注册表派发 — hs-* 动作按位映射 (whistle=2/finish=4/clap=8) 走同一路由
+  assert(src.includes("id === 'hs-whistle' ? 2") && src.includes('toggleSelectedHitSound(bit)'), 'W -> whistle(2) (v213: 经 hs 路由)');
+  assert(src.includes(": id === 'hs-finish' ? 4"), 'E -> finish(4) (v213: 经 hs 路由)');
+  assert(src.includes(': 8'), 'R -> clap(8) (v213: 经 hs 路由)');
+  // v286 适配: Q/W/E/R 绑定为无修饰单键 (注册表 defaults), 带修饰精确匹配 → 不与 Ctrl 系冲突
+  const hk = readSrc('src/osu/hotkeys.ts');
+  assert(/hs-newcombo[\s\S]*?defaults: \['Q'\]/.test(hk) && /hs-whistle[\s\S]*?defaults: \['W'\]/.test(hk)
+    && /hs-finish[\s\S]*?defaults: \['E'\]/.test(hk) && /hs-clap[\s\S]*?defaults: \['R'\]/.test(hk), 'Q/W/E/R 为无修饰单键绑定 (不与 Ctrl 系冲突)');
+  assert(src.indexOf("tag === 'INPUT'") < src.indexOf('findHotkeyAction(e)'), '输入框焦点 guard 在快捷键之前 (输入框聚焦时不触发)');
   assert(src.includes('Q/W/E/R'), '快捷键帮助面板列出 Q/W/E/R');
 }
 

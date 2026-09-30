@@ -64,10 +64,13 @@ section('store.ts: reverseSelected (一次 undo + invalidate + 重排序)');
 section('App.tsx: lazer 键位 (Ctrl+G 反转 / Ctrl+,. 旋转)');
 {
   const src = readSrc('src/App.tsx');
-  assert(/e\.key\.toLowerCase\(\) === 'g'\) \{ e\.preventDefault\(\); store\.reverseSelected\(\)/.test(src), 'Ctrl+G => reverseSelected (lazer)');
-  assert(/e\.key === ','\) \{ e\.preventDefault\(\); store\.rotateSelected\(-90, 'playfield'\)/.test(src), 'Ctrl+, => 逆时针 90° (lazer; v192 游玩区中心)');
-  assert(/e\.key === '\.'\) \{ e\.preventDefault\(\); store\.rotateSelected\(90, 'playfield'\)/.test(src), 'Ctrl+. => 顺时针 90° (lazer; v192 游玩区中心)');
-  assert(!/e\.key\.toLowerCase\(\) === 'g'\).*rotateSelected/.test(src), 'Ctrl+G 不再绑定旋转');
+  // v286 适配: 注册表派发 (动作 case; 默认键在 hotkeys.ts)
+  assert(/case 'reverse': e\.preventDefault\(\); store\.reverseSelected\(\)/.test(src), 'Ctrl+G => reverseSelected (lazer)');
+  assert(/case 'rot-ccw': e\.preventDefault\(\); store\.rotateSelected\(-90, 'playfield'\)/.test(src), 'Ctrl+, => 逆时针 90° (lazer; v192 游玩区中心)');
+  assert(/case 'rot-cw': e\.preventDefault\(\); store\.rotateSelected\(90, 'playfield'\)/.test(src), 'Ctrl+. => 顺时针 90° (lazer; v192 游玩区中心)');
+  assert(!/case 'reverse'.*rotateSelected/.test(src), 'Ctrl+G 不再绑定旋转');
+  const hk75 = readSrc('src/osu/hotkeys.ts');
+  assert(/id: 'reverse'[\s\S]*?defaults: \['Ctrl\+G'\]/.test(hk75) && /rot-ccw[\s\S]*?defaults: \['Ctrl\+,'\]/.test(hk75) && /rot-cw[\s\S]*?defaults: \['Ctrl\+\.'\]/.test(hk75), '默认键: Ctrl+G 反转 / Ctrl+,. 旋转');
 }
 
 section('Inspector.tsx: 快捷键提示文本同步');

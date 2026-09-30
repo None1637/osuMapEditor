@@ -13,3 +13,10 @@
 
 - 每个需求对应一个版本号 vNNN，代码注释带 `// vNNN:` 前缀。
 - 每个版本在 `verifier/vNNN/check.mjs` 写源码断言；全量回归跑 `verifier/v*/check.mjs`（跳过 v60）。
+
+## 快捷键注册规则 (v289)
+
+- **项目所有按键/鼠标按键快捷键必须注册进 `src/osu/hotkeys.ts` 的 `HOTKEY_ACTIONS`**，经快捷键设置面板可见、可改键；禁止在组件里硬编码按键判定（`e.key === ...` 形式的全局快捷键）。
+- 组合键格式：`Ctrl+Shift+S`（修饰序 Ctrl→Alt→Shift）/ 单键 `Q` / 鼠标 `MouseLeft` `MouseMiddle` `MouseRight` `Mouse4` `Mouse5`（可与修饰组合，如 `Ctrl+MouseLeft`）。
+- 派发用 `findHotkeyAction(e)`（键盘）/ `matchesHotkey(e, id)`（指定动作）/ `matchesHotkeyMouse(e, id)`（鼠标）。
+- 豁免（不算全局快捷键，可保留组件内处理）：输入框/弹窗局部的 Enter/Escape、拖拽中的 Shift/Alt 修饰状态跟踪、快捷键面板自身的改键捕获。

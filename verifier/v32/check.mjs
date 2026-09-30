@@ -30,7 +30,8 @@ section('App.tsx: J/K 快捷键');
 {
   const src = readSrc('src/App.tsx');
   // v209: 吸附步长公式下沉 store.nudgeSelectedBySnap (编辑菜单 前移/后移 共用), App 只做路由
-  assert(/k === 'j' \|\| k === 'k'[\s\S]*?nudgeSelectedBySnap\(k === 'j' \? -1 : 1\)/.test(src), 'J/K 路由到 store.nudgeSelectedBySnap');
+  // v286 适配: 注册表派发 — nudge-time-prev/next → nudgeSelectedBySnap(-1/1); J/K 默认键在 hotkeys.ts
+  assert(/case 'nudge-time-prev': store\.nudgeSelectedBySnap\(-1\)/.test(src) && /case 'nudge-time-next': store\.nudgeSelectedBySnap\(1\)/.test(src), 'J/K 路由到 store.nudgeSelectedBySnap');
   const store = readSrc('src/osu/store.ts');
   assert(/nudgeSelectedBySnap\(dir: -1 \| 1\)[\s\S]*?nudgeSelected\(Math\.round\(red\.beatLength \/ this\.beatSnap\) \* dir\)/.test(store), '吸附步长公式不变 (beatLength/beatSnap)');
 }

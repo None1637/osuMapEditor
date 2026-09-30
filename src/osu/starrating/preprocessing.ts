@@ -16,14 +16,16 @@ const MAXIMUM_SLIDER_RADIUS = NORMALISED_RADIUS * 2.4;
 const ASSUMED_SLIDER_RADIUS = NORMALISED_RADIUS * 1.8;
 
 // v167: 对应 lazer SliderEventGenerator.TAIL_LENIENCY (滑条尾部判定宽限 -36ms)
-const TAIL_LENIENCY = -36;
+// v287: 导出 (测试游玩滑条尾判定用同一宽限)
+export const TAIL_LENIENCY = -36;
 
 // v167: lazer OsuHitObject.Radius = 64 * Scale, Scale = (1 - 0.7*(cs-5)/5)/2 * 1.00041 (broken_gamefield_rounding_allowance)
 //   展开后 = (54.4 - 4.48*cs) * 1.00041 = 工程 csToRadius(cs) * 1.00041 (LegacyRulesetExtensions.CalculateScaleFromCircleSize)
 function osuRadius(cs: number): number { return csToRadius(cs) * 1.00041; }
 
 // v167: 对应 lazer IBeatmapDifficultyInfo.DifficultyRange(difficulty, min, mid, max) (两段线性)
-function difficultyRange(difficulty: number, min: number, mid: number, max: number): number {
+// v287: 导出 (测试游玩判定窗/转盘转速也用同一公式)
+export function difficultyRange(difficulty: number, min: number, mid: number, max: number): number {
   const r = (difficulty - 5) / 5;
   if (difficulty > 5) return mid + (max - mid) * r;
   if (difficulty < 5) return mid + (mid - min) * r;
@@ -80,7 +82,8 @@ export interface SliderData {
 //   (差异: lazer 把 SV 钳制到 [0.1,10] 且经 float 精度调整, 工程未钳制; 常规谱面无差异, 见 v167 README)
 //   TickDistance = Velocity * 红线beatLength / sliderTickRate (Generate 内再 clamp 到 [0, length])
 //   off = 滑条的堆叠偏移 (lazer StackOffset): nested 与滑条同一 StackHeight => 所有 nested 统一加该偏移
-function buildSliderData(bm: Beatmap, o: HitObject, off: { dx: number; dy: number }): SliderData {
+// v287: 导出 (测试游玩滑条 nested 判定用)
+export function buildSliderData(bm: Beatmap, o: HitObject, off: { dx: number; dy: number }): SliderData {
   const slides = o.slides ?? 1; // .osu slides = lazer SpanCount (= RepeatCount + 1)
   const length = o.length ?? 0;
   const velocity = sliderVelocityAt(bm.timingPoints, o.time, bm.difficulty.sliderMultiplier);
@@ -138,7 +141,8 @@ function buildSliderData(bm: Beatmap, o: HitObject, off: { dx: number; dy: numbe
 }
 
 /** 物件结束时间 (v167: 对应 lazer HitObject.GetEndTime; circle=time, slider=time+duration, spinner=endTime) */
-function endTimeOf(bm: Beatmap, o: HitObject): number {
+// v287: 导出 (测试游玩判定哪些物件在 editorTime 前结束)
+export function endTimeOf(bm: Beatmap, o: HitObject): number {
   if (o.type === 'slider') {
     const vel = sliderVelocityAt(bm.timingPoints, o.time, bm.difficulty.sliderMultiplier);
     return vel > 0 ? o.time + ((o.length ?? 0) / vel) * (o.slides ?? 1) : o.time;

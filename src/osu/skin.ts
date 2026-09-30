@@ -9,6 +9,21 @@ export interface Skin {
   approachcircle: SkinImage;
   /** v232: stable 编辑器选中框 (圆角方框); 可选 — 皮肤无此图时 renderer 跳过 (程序化回退总会生成, 基本必有图) */
   hitcircleselect?: SkinImage;
+  /** v298: 判定弹出贴图 (测试游玩 HUD; 缺失回退文字) */
+  hit300?: SkinImage;
+  hit100?: SkinImage;
+  hit50?: SkinImage;
+  hit0?: SkinImage;
+  /** v298: 血条 (scorebar-bg 底 + scorebar-colour 填充; 缺失回退程序化色条) */
+  scorebarBg?: SkinImage;
+  scorebarColour?: SkinImage;
+  /** v298: 分数/combo 数字贴图 (score-0..9; null = 该数字缺失 → 整串回退文字) */
+  scoreDigits: (SkinImage | null)[];
+  /** v298: combo 后缀 score-x (缺失则 combo 回退文字) */
+  scoreX?: SkinImage;
+  /** v300: acc 附加字形 score-percent / score-dot (缺失则 acc 回退文字) */
+  scorePercent?: SkinImage;
+  scoreDot?: SkinImage;
   reversearrow: SkinImage;
   sliderstartcircle: SkinImage;
   sliderstartcircleoverlay: SkinImage;
@@ -217,6 +232,16 @@ const SKIN_FILES: [keyof Skin, string][] = [
   ['spinnerCircle', 'spinner-circle.png'],
   ['spinnerApproach', 'spinner-approachcircle.png'],
   ['spinnerBackground', 'spinner-background.png'],
+  // v298: 游玩 HUD (判定弹出/血条/combo 后缀; 分数数字 score-N 走专用循环)
+  ['hit300', 'hit300.png'],
+  ['hit100', 'hit100.png'],
+  ['hit50', 'hit50.png'],
+  ['hit0', 'hit0.png'],
+  ['scorebarBg', 'scorebar-bg.png'],
+  ['scorebarColour', 'scorebar-colour.png'],
+  ['scoreX', 'score-x.png'],
+  ['scorePercent', 'score-percent.png'], // v300
+  ['scoreDot', 'score-dot.png'], // v300
 ];
 
 /** 1x1 全透明占位图 (lazer: sliderstart/endcircle 存在但对应 overlay 缺失时 = 无 overlay, 不回退 hitcircleoverlay) */
@@ -280,6 +305,7 @@ function makeProceduralBase(): Skin {
     spinnerApproach: drawApproach(512),
     spinnerBackground: drawSpinnerBackground(512),
     default0: Array.from({ length: 10 }, (_, i) => drawDigit(160, i)),
+    scoreDigits: Array.from({ length: 10 }, () => null), // v298: 无皮肤文件 → 分数/combo 回退文字
     comboColors: [], // v132: 程序化回退无皮肤颜色
     sliderBorder: null,
     sliderTrackOverride: null,
@@ -292,7 +318,7 @@ function makeProceduralBase(): Skin {
 function loadDefaultFilesInto(skin: Skin) {
   const base = import.meta.env.BASE_URL || '/';
   const loadedKeys = new Set<keyof Skin>();
-  let pending = SKIN_FILES.length + 10;
+  let pending = SKIN_FILES.length + 20; // v298: +10 score 数字 (score-0..9)
   const done = () => {
     if (--pending === 0) {
       resolveSliderCircleFallback(skin, k => loadedKeys.has(k)); // v100
@@ -310,6 +336,13 @@ function loadDefaultFilesInto(skin: Skin) {
     img.onload = () => { skin.default0[i] = img; done(); };
     img.onerror = done;
     img.src = `${base}skin/default-${i}.png`;
+  }
+  // v298: score-0..9 (分数/combo 数字; 默认皮肤通常没有 → 保留 null 回退文字)
+  for (let i = 0; i < 10; i++) {
+    const img = new Image();
+    img.onload = () => { skin.scoreDigits[i] = img; done(); };
+    img.onerror = done;
+    img.src = `${base}skin/score-${i}.png`;
   }
 }
 
@@ -392,7 +425,7 @@ function resetToProcedural() {
 export async function applySkinFromDir(dir: FsDirLike, sourceName: string): Promise<{ loaded: number; total: number }> {
   resetToProcedural();
   const skin = getSkin();
-  const total = SKIN_FILES.length + 10;
+  const total = SKIN_FILES.length + 20; // v298: +10 score 数字
   let loaded = 0;
   const loadName = async (name: string, assign: (img: SkinImage) => void): Promise<boolean> => {
     try {
@@ -447,6 +480,14 @@ export async function applySkinFromDir(dir: FsDirLike, sourceName: string): Prom
           if (await loadName(name, img => { skin.default0[i] = img; })) { got = true; break; }
         }
         if (got) { loaded++; return; }
+      }
+    })()));
+  })());
+  jobs.push((async () => {
+    // v298: score-0..9 分数/combo 数字 (@2x 优先, 缺失保留 null → 该串回退文字)
+    await Promise.all(Array.from({ length: 10 }, (_, i) => (async () => {
+      for (const name of fileVariants(`score-${i}.png`)) {
+        if (await loadName(name, img => { skin.scoreDigits[i] = img; })) { loaded++; return; }
       }
     })()));
   })());

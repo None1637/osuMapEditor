@@ -1,6 +1,6 @@
-import { useEffect, useState, type CSSProperties } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 // v181: 图标统一用 Lucide (规范: 界面禁用 emoji 图标, 见 AGENTS.md)
-import { Volume2, Eye, FolderOpen, Palette, Ruler, Lock, LockOpen, Crosshair, Box, Magnet, Settings2, Package, AudioWaveform, Star, Undo2, Redo2, Grid3x3, MousePointer2, Circle, Spline, Disc, Move, Target } from 'lucide-react';
+import { Volume2, Eye, Keyboard, Play, FolderOpen, Palette, Ruler, Lock, LockOpen, Crosshair, Box, Magnet, Settings2, Package, AudioWaveform, Star, Undo2, Redo2, Grid3x3, MousePointer2, Circle, Spline, Disc, Move, Target } from 'lucide-react';
 import { store, useEditor, type Tool } from '@/osu/store';
 import { seekByBeats } from '@/osu/seekSnapping';
 import { BEAT_SNAP_OPTIONS } from '@/osu/sliderPath'; // v218: 节拍细分配置项 (与滑条长度吸附同一来源)
@@ -14,6 +14,9 @@ import { Inspector } from '@/components/Inspector';
 import { StreamDialog } from '@/components/convert/StreamDialog';
 import { GeoSnapPanel } from '@/components/GeoSnapPanel';
 import { DisplayPanel } from '@/components/DisplayPanel'; // v132: 显示设置面板
+import { HotkeyPanel } from '@/components/HotkeyPanel'; // v286: 快捷键设置面板 (自定义改键)
+import { TestPlayOverlay } from '@/components/TestPlayOverlay'; // v287: 测试游玩覆盖层 (lazer EditorPlayer)
+import { findHotkeyAction, hotkeyCaptureActive } from '@/osu/hotkeys'; // v286: 快捷键注册表派发
 import { MenuBar } from '@/components/MenuBar'; // v280: 应用内菜单栏 (hideTitleBar 时)
 import { VolumePanel } from '@/components/VolumePanel'; // v144: 音量设置面板
 import { PatternPanel } from '@/components/PatternPanel';
@@ -138,6 +141,8 @@ export default function App() {
   const [showLibrary, setShowLibrary] = useState(() => isElectron());
   const [showSkin, setShowSkin] = useState(false);
   const [showWizard, setShowWizard] = useState(false);
+  const [testPlay, setTestPlay] = useState(false); // v287: 测试游玩覆盖层 (F5)
+  const testPlayRef = useRef(false); testPlayRef.current = testPlay; // v287: 菜单命令门控用 (effect 空依赖)
   const [showShiftAll, setShowShiftAll] = useState(false); // v156: Timing 菜单「整体平移所有物件的时间...」
   // 首跑向导完成后自增, 强制重挂载曲库面板 → 用刚保存的配置重新扫描
   // (面板在向导出现前已挂载, 仅靠 setShowLibrary(true) 不会重跑恢复逻辑)
@@ -225,120 +230,111 @@ export default function App() {
     return () => { cancelled = true; };
   }, []);
 
-  // 键盘快捷键
+  // 键盘快捷键 (v286: 注册表派发 — 动作定义/默认键/覆盖在 osu/hotkeys.ts, 快捷键设置面板可改键)
   useEffect(() => {
+    const jumpBookmark = (dir: -1 | 1) => {
+      const bm = store.beatmap; if (!bm) return;
+      const marks = [...bm.editor.bookmarks].sort((a, b) => a - b);
+      if (!marks.length) return;
+      const t = dir < 0 ? [...marks].reverse().find(b => b < store.currentTime - 1) : marks.find(b => b > store.currentTime + 1);
+      if (t !== undefined) store.seek(t);
+    };
     const onKey = (e: KeyboardEvent) => {
       const tag = (e.target as HTMLElement)?.tagName;
-      if (showLibrary || showSkin) return;
+      if (showLibrary || showSkin || testPlay) return;
       if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return;
-      if (e.code === 'Space') { e.preventDefault(); store.togglePlay(); return; }
-      // v209: 编辑菜单同款快捷键 — Ctrl+Shift+R/S 必须在 Ctrl+S 之前判定 (原 Ctrl+S 无 shift 守卫)
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'r') { e.preventDefault(); store.openTransformDialog('rotate'); return; }
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 's') { e.preventDefault(); store.openTransformDialog('scale'); return; }
-      // v209: Ctrl+Shift+D 多边形生成 (lazer 同款) 之前先判 Ctrl+D 仿制 → 批量复制窗口
-      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === 'd') { e.preventDefault(); if (store.selected.size) store.openConversion('duplicate'); return; }
-      // v67: Ctrl+S 保存谱面 (lazer Editor Save; 有来源写回原文件, 无来源下载 .osu)
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); store.save(); return; }
-      // v155: Ctrl+B 当前位置添加书签 (蓝线); Ctrl+Shift+B 删除离当前位置最近的书签 (500ms 阈值)
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') {
-        e.preventDefault();
-        if (e.shiftKey) store.removeBookmarkNear(store.currentTime); else store.addBookmark(store.currentTime);
-        return;
-      }
-      for (const t of TOOLS) if (e.key === t.key) { store.tool = t.id; store.pendingSlider = []; store.pendingSpinner = null; store.emit(); return; }
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && !e.shiftKey) { e.preventDefault(); store.undo(); return; }
-      if ((e.ctrlKey || e.metaKey) && (e.key.toLowerCase() === 'y' || (e.shiftKey && e.key.toLowerCase() === 'z'))) { e.preventDefault(); store.redo(); return; }
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'c') { store.copy(); return; }
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'v') { store.paste(store.currentTime); return; }
-      // v209: 编辑菜单同款 — Ctrl+X 剪切 / Ctrl+A 全选物件
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'x') { e.preventDefault(); store.cut(); return; }
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'a') { e.preventDefault(); store.selectAllObjects(); return; }
-      // 选区变换 (lazer 同款键位, SelectionBox.cs OnKeyDown): Ctrl+G 反转, Ctrl+,/. 旋转 90° (逆/顺), Ctrl+H 水平镜像, Ctrl+J 垂直镜像
-      // v192: 快捷键旋转/镜像始终围绕游玩区中心 (256,192) — 对齐 osu!stable; Inspector 面板按钮仍用界面选的原点
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'g') { e.preventDefault(); store.reverseSelected(); return; }
-      if ((e.ctrlKey || e.metaKey) && e.key === ',') { e.preventDefault(); store.rotateSelected(-90, 'playfield'); return; }
-      if ((e.ctrlKey || e.metaKey) && e.key === '.') { e.preventDefault(); store.rotateSelected(90, 'playfield'); return; }
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'h') { e.preventDefault(); store.flipSelected('h', 'playfield'); return; }
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'j') { e.preventDefault(); store.flipSelected('v', 'playfield'); return; }
-      // v64: Ctrl+Shift+D 多边形生成 (lazer 同款快捷键)
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'd') { e.preventDefault(); store.openConversion('polygon'); return; }
-      // hitsound / newCombo 切换 (lazer/stable 同款, 作用于全部选中物件): Q newCombo, W whistle, E finish, R clap
-      if (!e.ctrlKey && !e.metaKey && !e.altKey) {
-        const k = e.key.toLowerCase();
-        // v241: 放置工具 (circle/slider/spinner) 下 Q/W/E/R 预设下次放下物件的 NC/音效 (stable 放置态);
-        // select 工具维持原语义 (选中物件 / 时间轴选中节点 v213)
-        if (store.tool !== 'select') {
-          if (k === 'q') { store.togglePlaceNewCombo(); return; }
-          if (k === 'w') { store.togglePlaceHitSound(2); return; }
-          if (k === 'e') { store.togglePlaceHitSound(4); return; }
-          if (k === 'r') { store.togglePlaceHitSound(8); return; }
-        } else {
-        // v213: 时间轴选中了滑条节点 (折返点/尾) 时, W/E/R 只作用于选中节点 (stable per-edge 音效)
-        const hs = store.selectedEdges.size > 0 ? (b: number) => store.toggleEdgeHitSound(b) : (b: number) => store.toggleSelectedHitSound(b);
-        if (k === 'q') { store.toggleSelectedNewCombo(); return; }
-        if (k === 'w') { hs(2); return; }
-        if (k === 'e') { hs(4); return; }
-        if (k === 'r') { hs(8); return; }
-        }
-        // v32: J/K 选中物件前移/后移一个当前节拍吸附; v209: 逻辑下沉 store.nudgeSelectedBySnap (编辑菜单 前移/后移 共用)
-        if (k === 'j' || k === 'k') {
-          store.nudgeSelectedBySnap(k === 'j' ? -1 : 1);
+      if (hotkeyCaptureActive()) return; // v286: 改键捕获中不派发
+      const id = findHotkeyAction(e);
+      if (!id) return;
+      switch (id) {
+        case 'play-pause': e.preventDefault(); store.togglePlay(); return;
+        case 'test-play': e.preventDefault(); setTestPlay(true); return; // v287: F5 测试游玩 (lazer EditorPlayer)
+        case 'save': e.preventDefault(); store.save(); return; // Electron 下原生菜单 accelerator 先行, 浏览器走这里
+        case 'open-rotate': e.preventDefault(); store.openTransformDialog('rotate'); return;
+        case 'open-scale': e.preventDefault(); store.openTransformDialog('scale'); return;
+        case 'duplicate': e.preventDefault(); if (store.selected.size) store.openConversion('duplicate'); return;
+        case 'polygon': e.preventDefault(); store.openConversion('polygon'); return;
+        case 'bookmark-add': e.preventDefault(); store.addBookmark(store.currentTime); return;
+        case 'bookmark-remove': e.preventDefault(); store.removeBookmarkNear(store.currentTime); return;
+        case 'tool-select': case 'tool-circle': case 'tool-slider': case 'tool-spinner':
+          store.tool = id.slice(5) as Tool; store.pendingSlider = []; store.pendingSpinner = null; store.emit(); return;
+        case 'undo': e.preventDefault(); store.undo(); return;
+        case 'redo': e.preventDefault(); store.redo(); return;
+        case 'copy': store.copy(); return;
+        case 'paste': store.paste(store.currentTime); return;
+        case 'cut': e.preventDefault(); store.cut(); return;
+        case 'select-all': e.preventDefault(); store.selectAllObjects(); return;
+        // 选区变换快捷键始终围绕游玩区中心 (256,192) — 对齐 osu!stable (v192); Inspector 面板按钮仍用界面选的原点
+        case 'reverse': e.preventDefault(); store.reverseSelected(); return;
+        case 'rot-ccw': e.preventDefault(); store.rotateSelected(-90, 'playfield'); return;
+        case 'rot-cw': e.preventDefault(); store.rotateSelected(90, 'playfield'); return;
+        case 'flip-h': e.preventDefault(); store.flipSelected('h', 'playfield'); return;
+        case 'flip-v': e.preventDefault(); store.flipSelected('v', 'playfield'); return;
+        case 'hs-newcombo': case 'hs-whistle': case 'hs-finish': case 'hs-clap': {
+          // v241: 放置工具 (circle/slider/spinner) 下预设下次放下物件的 NC/音效 (stable 放置态);
+          // select 工具维持原语义 (选中物件 / 时间轴选中节点 v213)
+          const bit = id === 'hs-newcombo' ? 0 : id === 'hs-whistle' ? 2 : id === 'hs-finish' ? 4 : 8;
+          if (store.tool !== 'select') {
+            if (bit === 0) store.togglePlaceNewCombo(); else store.togglePlaceHitSound(bit);
+          } else if (bit === 0) store.toggleSelectedNewCombo();
+          else if (store.selectedEdges.size > 0) store.toggleEdgeHitSound(bit);
+          else store.toggleSelectedHitSound(bit);
           return;
         }
-        // v153: V 跳转到最后一个物件的时间位置 (取最大 time, 不假定 hitObjects 有序)
-        if (k === 'v') {
+        case 'nudge-time-prev': store.nudgeSelectedBySnap(-1); return;
+        case 'nudge-time-next': store.nudgeSelectedBySnap(1); return;
+        case 'jump-last': {
           const bm = store.beatmap; if (!bm || bm.hitObjects.length === 0) return;
-          store.seek(Math.max(...bm.hitObjects.map(o => o.time)));
+          store.seek(Math.max(...bm.hitObjects.map(o => o.time))); return;
+        }
+        case 'delete': store.deleteSelected(); return;
+        case 'cancel':
+          // v117: 节点选区优先退出 (Esc 退出节点层, 再按才清物件选区)
+          if (store.selectedNodes.size) { store.clearNodeSelection(); return; }
+          store.pendingSlider = []; store.pendingSpinner = null; store.clearSelection(); store.emit(); return;
+        case 'ctrl-left': case 'ctrl-right': case 'ctrl-up': case 'ctrl-down': {
+          const bm = store.beatmap; if (!bm) return;
+          if (store.selected.size) { // v55: 有选区 = 逐 px 移动选中物件 (stable 同款)
+            const v = ({ 'ctrl-left': [-1, 0], 'ctrl-right': [1, 0], 'ctrl-up': [0, -1], 'ctrl-down': [0, 1] } as const)[id];
+            e.preventDefault(); store.nudgeSelectedPosition(v[0], v[1]); return;
+          }
+          if (id === 'ctrl-left' || id === 'ctrl-right') { // 无选区 Ctrl+←/→ = 跳到前/后一个物件
+            store.pause();
+            const dir = id === 'ctrl-left' ? -1 : 1;
+            const times = bm.hitObjects.map(o => o.time).sort((a, b) => a - b);
+            const t = dir < 0 ? [...times].reverse().find(x => x < store.currentTime - 1) : times.find(x => x > store.currentTime + 1);
+            if (t !== undefined) store.seek(t);
+            return;
+          }
+          jumpBookmark(id === 'ctrl-up' ? -1 : 1); return; // 无选区 Ctrl+↑/↓ = 书签跳转 (旧行为)
+        }
+        case 'seek-left': case 'seek-right': {
+          const bm = store.beatmap; if (!bm) return;
+          store.pause();
+          // v45: 对齐 lazer EditorClock.seek — 按当前节拍吸附步进并落回节拍网格 (Shift = 4 拍)
+          store.seek(seekByBeats(bm.timingPoints, store.beatSnap, store.currentTime, id === 'seek-left' ? -1 : 1, e.shiftKey ? 4 : 1));
           return;
         }
-      }
-      if (e.key === 'Delete' || e.key === 'Backspace') { store.deleteSelected(); return; }
-      if (e.key === 'Escape') {
-        // v117: 节点选区优先退出 (Esc 退出节点层, 再按才清物件选区)
-        if (store.selectedNodes.size) { store.clearNodeSelection(); return; }
-        store.pendingSlider = []; store.pendingSpinner = null; store.clearSelection(); store.emit(); return; // v180: 一并取消转盘放置
-      }
-      // v55: Ctrl+方向键 逐 px 移动选中物件 (stable 同款; 有选区时优先, 无选区时 Ctrl+左右仍是跳前/后物件)
-      if ((e.ctrlKey || e.metaKey) && store.selected.size) {
-        const v = ({ ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] } as Record<string, [number, number]>)[e.key];
-        if (v) { e.preventDefault(); store.nudgeSelectedPosition(v[0], v[1]); return; }
-      }
-      if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
-        const bm = store.beatmap; if (!bm) return;
-        store.pause();
-        const dir = e.key === 'ArrowLeft' ? -1 : 1;
-        if (e.ctrlKey) { // 跳到前/后一个物件
-          const times = bm.hitObjects.map(o => o.time).sort((a, b) => a - b);
-          const t = dir < 0 ? [...times].reverse().find(x => x < store.currentTime - 1) : times.find(x => x > store.currentTime + 1);
-          if (t !== undefined) store.seek(t);
-        } else {
-          // v45: 对齐 lazer EditorClock.seek — 按当前节拍吸附步进并落回节拍网格 (Shift = 4 拍)
-          store.seek(seekByBeats(bm.timingPoints, store.beatSnap, store.currentTime, dir, e.shiftKey ? 4 : 1));
-        }
-        return;
-      }
-      // v158: ↑/↓ 跳到前/后一条书签 (蓝线, [Editor] Bookmarks)
-      if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
-        const bm = store.beatmap; if (!bm) return;
-        const marks = [...bm.editor.bookmarks].sort((a, b) => a - b);
-        if (!marks.length) return;
-        e.preventDefault();
-        const t = e.key === 'ArrowUp'
-          ? [...marks].reverse().find(b => b < store.currentTime - 1)
-          : marks.find(b => b > store.currentTime + 1);
-        if (t !== undefined) store.seek(t);
-        return;
+        case 'bookmark-prev': jumpBookmark(-1); return; // v158: ↑/↓ 跳到前/后一条书签 (蓝线)
+        case 'bookmark-next': jumpBookmark(1); return;
+        // Timing (Electron 下原生菜单注册 accelerator 先行; 浏览器走这里)
+        case 'timing-add-red': store.timingAddPoint(true); return;
+        case 'timing-add-green': store.timingAddPoint(false); return;
+        case 'timing-delete-current': store.timingDeleteCurrent(); return;
+        case 'timing-open-settings': setTab('timing'); return;
+        default: return;
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [showLibrary, showSkin]);
+  }, [showLibrary, showSkin, testPlay]);
 
   // v77: Electron 原生 "文件" 菜单命令 (保存/打开难度); 非 Electron 无操作
   useEffect(() => {
     const ed = getElectronAPI();
     if (!ed) return;
     return ed.onMenuCommand(async (cmd) => {
+      if (testPlayRef.current) return; // v287: 测试游玩期间屏蔽菜单命令 (F6 等 accelerator 不切页签)
       // v156: Timing 菜单 — 页签跳转/平移弹窗在 App 层处理, 其余命令走 handleMenuCommand
       if (cmd.type === 'timing-open-settings') { setTab('timing'); return; }
       if (cmd.type === 'timing-shift-all') { setShowShiftAll(true); return; }
@@ -467,6 +463,22 @@ export default function App() {
           className={`self-center px-3 py-1 rounded text-sm transition-colors ${store.volumePanelOpen ? 'bg-red-500/40 border border-red-400/50' : 'bg-white/10 hover:bg-white/20'}`}
           title="音量设置: 主音量 / 歌曲音量 / 音效音量">
           <Volume2 className="inline-block w-4 h-4 mr-1 -mt-0.5" />音量
+        </button>
+        {/* v287: 测试游玩 — 快捷键左侧按钮 (F5, lazer EditorPlayer) */}
+        <button onClick={() => setTestPlay(true)}
+          data-testplay-btn
+          style={{ WebkitAppRegion: 'no-drag' } as CSSProperties}
+          className="self-center px-3 py-1 rounded text-sm transition-colors bg-white/10 hover:bg-white/20"
+          title="测试游玩 (F5): 从当前时间前3秒开始游玩谱面, Esc 返回编辑器">
+          <Play className="inline-block w-4 h-4 mr-1 -mt-0.5" />测试游玩
+        </button>
+        {/* v286: 快捷键设置 — 显示设置左侧按钮 (自定义改键) */}
+        <button onClick={() => store.setHotkeyPanelOpen(!store.hotkeyPanelOpen)}
+          data-hotkey-panel-btn
+          style={{ WebkitAppRegion: 'no-drag' } as CSSProperties}
+          className={`self-center px-3 py-1 rounded text-sm transition-colors ${store.hotkeyPanelOpen ? 'bg-red-500/40 border border-red-400/50' : 'bg-white/10 hover:bg-white/20'}`}
+          title="快捷键设置: 查看/自定义全部快捷键">
+          <Keyboard className="inline-block w-4 h-4 mr-1 -mt-0.5" />快捷键
         </button>
         <button onClick={() => store.setDisplayPanelOpen(!store.displayPanelOpen)}
           data-display-panel-btn
@@ -711,6 +723,7 @@ export default function App() {
               <Inspector />
               <div className="p-3 text-xs text-white/40 space-y-1 border-t border-white/10">
                 <div className="font-bold text-white/60">快捷键</div>
+                <div>右上角「快捷键」按钮可自定义改键</div>
                 <div>空格 播放/暂停</div>
                 <div>1-4 切换工具</div>
                 <div>Ctrl+C/V 复制/粘贴</div>
@@ -758,6 +771,8 @@ export default function App() {
       {store.geoPanelOpen && <GeoSnapPanel />}
       {store.displayPanelOpen && <DisplayPanel />}
       {store.volumePanelOpen && <VolumePanel />}{/* v144: 音量设置面板 */}
+      {store.hotkeyPanelOpen && <HotkeyPanel />}{/* v286: 快捷键设置面板 */}
+      {testPlay && <TestPlayOverlay onClose={() => setTestPlay(false)} />}{/* v287: 测试游玩覆盖层 */}
       {store.patternPanelOpen && <PatternPanel />}
       {store.conversionDialog === 'split' && <SplitDialog />}
       {store.conversionDialog === 'polygon' && <PolygonDialog />}

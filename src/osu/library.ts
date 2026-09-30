@@ -14,7 +14,10 @@ const DB_NAME = 'osu-map-editor';
 const DB_STORE = 'settings';
 // v2: 兼容早期版本遗留的同名 v1 库 (可能不带 settings store) — 升级时按 contains 守卫补建,
 // 否则 open 成功但 transaction('settings') 抛 NotFoundError, 表现为"每次都存不上/无记录"
-const DB_VERSION = 2;
+// v290: DB_VERSION 2→3, 新增 store 'libraryIndex' (曲库难度级元数据索引, key=rootName),
+// 同样按 contains 守卫补建以兼容旧库
+const DB_VERSION = 3;
+const DB_STORE_LIBRARY_INDEX = 'libraryIndex';
 const KEY_SONGS_DIR = 'songsDirHandle';
 const KEY_SKIN_DIR = 'skinDirHandle';
 
@@ -24,6 +27,7 @@ function openDB(): Promise<IDBDatabase> {
     req.onupgradeneeded = () => {
       const db = req.result;
       if (!db.objectStoreNames.contains(DB_STORE)) db.createObjectStore(DB_STORE);
+      if (!db.objectStoreNames.contains(DB_STORE_LIBRARY_INDEX)) db.createObjectStore(DB_STORE_LIBRARY_INDEX);
     };
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);
@@ -199,6 +203,38 @@ async function idbDel(key: string): Promise<void> {
   return new Promise((resolve, reject) => {
     const tx = db.transaction(DB_STORE, 'readwrite');
     tx.objectStore(DB_STORE).delete(key);
+    tx.oncomplete = () => { db.close(); resolve(); };
+    tx.onerror = () => { db.close(); reject(tx.error); };
+  });
+}
+
+// ---------- v290: 曲库索引持久化 (store 'libraryIndex', key = rootName, value = 条目数组, 不含句柄) ----------
+export async function idbLibraryIndexGet<T>(rootName: string): Promise<T[] | null> {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(DB_STORE_LIBRARY_INDEX, 'readonly');
+    const req = tx.objectStore(DB_STORE_LIBRARY_INDEX).get(rootName);
+    req.onsuccess = () => { db.close(); resolve((req.result as T[]) ?? null); };
+    req.onerror = () => { db.close(); reject(req.error); };
+  });
+}
+
+export async function idbLibraryIndexPut<T>(rootName: string, entries: T[]): Promise<void> {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(DB_STORE_LIBRARY_INDEX, 'readwrite');
+    tx.objectStore(DB_STORE_LIBRARY_INDEX).put(entries, rootName);
+    tx.oncomplete = () => { db.close(); resolve(); };
+    tx.onerror = () => { db.close(); reject(tx.error); };
+  });
+}
+
+/** v290: 删除某 Songs 根的索引缓存 (更换目录时由 UI 视情况调用) */
+export async function idbLibraryIndexDel(rootName: string): Promise<void> {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(DB_STORE_LIBRARY_INDEX, 'readwrite');
+    tx.objectStore(DB_STORE_LIBRARY_INDEX).delete(rootName);
     tx.oncomplete = () => { db.close(); resolve(); };
     tx.onerror = () => { db.close(); reject(tx.error); };
   });
