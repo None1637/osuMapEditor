@@ -30,7 +30,7 @@ assert(/scaleSelected\(factor, factorY, origin\)/.test(insp), 'Inspector 应用�
 
 const dlg = fs.readFileSync(path.join(root, 'src/components/TransformDialog.tsx'), 'utf8');
 assert(/testid="factor-y"/.test(dlg), '缩放窗口含 y 倍率输入框');
-assert(/scaleSelected\(factor, factorY, origin\)/.test(dlg), '缩放窗口应用倍率传双轴');
+assert(/commit\(\(objs, c\) => scaleObjects\(objs, c, factor, factorY\)\)/.test(dlg), '缩放窗口应用倍率传双轴 (v301 起预览提交)');
 
 if (failures) { console.error(`\nV282_FAILED: ${failures} 处失败`); process.exit(1); }
 console.log('\nV282_ALL_PASSED');

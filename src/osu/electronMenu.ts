@@ -80,10 +80,11 @@ export async function handleMenuCommand(cmd: ElectronMenuCommand): Promise<void>
     case 'edit-select-all': store.selectAllObjects(); return;
     case 'edit-duplicate': if (store.selected.size) store.openConversion('duplicate'); return; // 仿制 → 批量复制窗口
     case 'edit-reverse': store.reverseSelected(); return;
-    case 'edit-flip-h': store.flipSelected('h', 'playfield'); return;
-    case 'edit-flip-v': store.flipSelected('v', 'playfield'); return;
-    case 'edit-rot-cw': store.rotateSelected(90, 'playfield'); return;
-    case 'edit-rot-ccw': store.rotateSelected(-90, 'playfield'); return;
+    // v304: F08 — 有滑条锚点选区时变换作用于锚点 (原点 = 锚点包围盒中心), 否则物件选区 (游玩区中心)
+    case 'edit-flip-h': store.nodeSelectionCount ? store.flipSelectedNodes('h') : store.flipSelected('h', 'playfield'); return;
+    case 'edit-flip-v': store.nodeSelectionCount ? store.flipSelectedNodes('v') : store.flipSelected('v', 'playfield'); return;
+    case 'edit-rot-cw': store.nodeSelectionCount ? store.rotateSelectedNodes(90) : store.rotateSelected(90, 'playfield'); return;
+    case 'edit-rot-ccw': store.nodeSelectionCount ? store.rotateSelectedNodes(-90) : store.rotateSelected(-90, 'playfield'); return;
     case 'edit-open-rotate': store.openTransformDialog('rotate'); return;
     case 'edit-open-scale': store.openTransformDialog('scale'); return;
     case 'edit-open-symmetry': store.openTransformDialog('symmetry'); return; // v210

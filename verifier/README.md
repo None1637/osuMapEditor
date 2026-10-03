@@ -2660,3 +2660,85 @@
   支持 '%'/'.' 字符, acc (如 97.50%) 整串皮肤数字右对齐, 任一字形缺失回退
   monospace 文字。
 - 验证: verifier/v300 (8 条); tsc -b / build 通过; 全量回归回基线 (v28/v137/v138/v142)。
+
+## v301 — F07 超长滑条冻结白屏+失色修复 + F05 旋转/缩放窗口实时预览
+- F07 (P0): 拉超长滑条画面冻结白屏、恢复后物件失色。根因: sliderBodySprite 离屏位图
+  尺寸无上限 — 放置预览可拖出游玩区数千 px, 包围盒 × 超采样 (最高 4) 分配数万 px 边长
+  位图打爆 GPU 进程 (白屏), 恢复后各缓存贴图失效 (失色)。修复: MAX_DIM=8192 /
+  MAX_AREA=8192×4096 上限, 超上限降超采样倍数 q (保底 0.05, 极端滑条变糊但永不冻结);
+  退化路径 (w/h 非正) 保底 1×1 防 NaN; EditorCanvas 渲染主循环加 try/catch —
+  单帧异常只跳过本帧, 不再杀死 RAF 循环 (此前一帧崩溃 = 永久白屏)。
+- F05a: 旋转/缩放窗口实时预览 — store 新增预览会话 API (beginTransformPreview 备份选中
+  物件几何 / previewTransform 回滚后按当前参数变换, 不入 undo / commitTransformPreview
+  以预览前状态推一次 undo 并应用, 随后以提交态为新基准 / endTransformPreview 关窗回滚到
+  最后提交)。TransformDialog 改值即时预览 (相对上次提交, 不叠加; 原点按基准态选区解析),
+  应用按钮走 commit, 直接关窗 = 回滚。
+- F05b (旋转点了无法应用): store 层回归测试证明旋转链路正常; 统一走预览提交后改值即见
+  效果, 感知问题消解; 若仍复现需用户给重现步骤。
+- 验证: verifier/v301 (单测 6 节 + 源码断言); v19/v209/v282 断言同步 (q 下限 0.05 /
+  key 精度 3 位 / 对话框走 commitTransformPreview); tsc -b 通过。
+
+## v302 — F02 选中滑条锚点被层裁剪 / F04 滑条尾限制 / F09 缩放卡死 / F11 框选拖出中断
+- F02: 选中滑条后锚点/连线在矩形区域外被裁。根因: v246 选中装饰离屏层 (selLayer) 内容
+  包围盒只含采样路径点, 贝塞尔控制点可远在路径包围盒外 (牵拉曲线但曲线不到达) → 画进层
+  时被裁 (hover 预览画主画布不裁, 故 hover 能看全)。修复: 包围盒并入头 + 全部控制点。
+- F04: 拖动滑条时尾端不受「限制物件在游玩区域内」约束。修复: 物件拖拽的共享 delta 按
+  全部被拖点 (头 + 控制点 + 滑条尾路径终点) 钳到界内, 不再只钳头部; 已在界外的点不纳入
+  (防 Begin 即越界的物件被强制拉回/卡死)。
+- F09: 包围框缩放手柄拖动时, 单滑条任一锚点出游玩区就整组卡死 (applyScaleDrag 单滑条
+  分支出界整体回滚)。修复: 改为钳制倍率让界内点留界内 (拖动继续, 到边界停住; 每点变换
+  = origin + (p − origin)·s 逐点求允许倍率上限), 越界点不压回; 仅零长路径仍回滚;
+  applyScaleDrag 加第 9 参 limitToPlayfield (默认 true), 关闭限制时不钳制不移回。
+- F11: 框选 (物件/节点 marquee) 拖到 UI 区域中断。根因: v228 的 window 接管只接了
+  物件/节点拖拽, 漏了 marquee; 且 onMouseLeave 排除列表也没有 marquee → 离开画布即
+  收尾。修复: window mousemove/mouseup 与 onMouseLeave 排除列表三处补上 marqueeRef/
+  nodeMarqueeRef。
+- 验证: verifier/v302 (13 条源码断言); v49/v50 断言与单测同步 (出界回滚 → 钳制倍率,
+  新增 Begin 越界可缩放/关闭限制不钳制用例); tsc -b 通过。
+
+## v303 — F01 曲库基础字号增大
+- 用户 1920x1080 仍嫌曲库字体小 (排除缩放因素, 直接上调基础字号): ROW_H 34→44;
+  列表行主文本 text-xs→text-sm, 次级文本 10px→text-xs; 搜索框/排序/按钮/详情面板
+  全文上调一档 (text-xs→text-sm, 详情标题 text-sm→text-base); 全文不再有 10px 文本。
+- 验证: verifier/v303 (6 条); tsc -b 通过。
+
+## v304 — F06 数值框滚轮调值 / F08 锚点快捷键变换 / F10 框选 Alt 配色
+- F06: DraftNum 悬停滚轮直接调值 (勿需聚焦, 上滚 +step 下滚 −step, Shift ×10 / Alt ×0.1
+  与拖动调值同款); React onWheel 是 passive 无法 preventDefault, 改挂原生非 passive
+  监听, 每渲染重挂保持闭包新鲜; 聚焦态滚轮同步刷新 draft 显示。
+- F08: 多选滑条锚点支持快捷键变换 — store 新增 rotateSelectedNodes/flipSelectedNodes
+  (原点 = 锚点包围盒中心, 走 snapshotNodes+withRedPartners 快照, 红锚点成对不拆,
+  resnapSliderLength 实时吸附, 一次操作一次 undo); App 快捷键与 Electron 菜单的
+  rot-cw/rot-ccw/flip-h/flip-v 在有节点选区时作用于锚点, 否则维持物件选区 (游玩区中心)。
+- F10: 框选配色随 Alt 实时切换 — altHeldRef 由 keydown/keyup/mousedown 同步 (blur 复位),
+  渲染循环每帧读取; 普通 = 蓝虚线+半透明蓝填充 (77,243,255), 按住 Alt = 橙黄 (242,181,68),
+  松开即恢复; 物件框选与节点框选同规则 (节点框选原固定黄色改为随 Alt)。
+- 验证: verifier/v304 (单测 4 节 + 源码断言); tsc -b 通过。
+
+## v305 — F03 stable 选中效果对齐实机 (圆环/边框高亮, 取代皮肤方框)
+- 用户对比截图确认: stable 圆圈选中 = 橙黄圆环 (hover 另有蓝色圆环), 滑条选中 =
+  sliderborder 蓝色高亮描边; v232 的 hitcircleselect 圆角方框与实机不符。
+- renderer: 新增导出 drawSelectionRing (橙黄 #f5a623, 半径 1.06r, 线宽 0.14r 保底 2);
+  drawSliderBodyOutline 加颜色参数并导出 (默认青 #4df3ff); drawSelectionDecor 的 stable
+  分支改为 — 圆圈/转盘橙黄圆环, 滑条蓝色 (#4a90e2) 边框描边 + 头尾橙黄圆环;
+  drawSelectionBox (皮肤方框) 移除 (皮肤 hitcircleselect 加载/程序化回退保留)。
+- EditorCanvas: hoverObjRef 跟踪悬停未选中物件 (与 hoverSliderRef 同门控), stable 模式下
+  画蓝色 hover 环 (滑条 = 蓝色边框描边, 与控制点预览叠加); 光标出游玩区清理。
+- DisplayPanel「物件选中效果」选项文案 stable 选框 → stable 圆环, 描述同步。
+- 验证: verifier/v305 (9 条); v232 断言同步重写; tsc -b 通过。
+
+## v306 — F07 复查修复: 近共线三点圆弧 (头夹在两锚点间) 几何爆炸冻结白屏
+- 用户补充复现路径: 不需拉长锚点 — 三点圆弧滑条让三点近共线且头夹在另外两锚点之间即可
+  (thetaRange≈2π, 半径可达数万 px, 弧长逼近整个巨圆, v283 的 subPoints>=1000 兜底在
+  r≲2 万时不触发)。几何全长爆炸 -> 放置/拖拽重吸附 (resnapSliderLength) 把 o.length 毒化到
+  ~12.7 万 px -> 采样点 ~25 万 + 滑条身离屏位图数万 px (v301 上限内仍达 33.5M px ≈ 132MB)
+  -> GPU 打崩冻结白屏, 恢复后贴图失效物件失色。
+- 修复: 移植 lazer PathControlPointVisualiser.EnsureValidPathTypes — 3 点圆弧包围盒
+  (circularArcBBox = CircularArcBoundingBox 移植: 起/终点 + 扫掠范围内四个基准角极值)
+  宽 >=640 或高 >=480 时 perfectArcPath 运行时回退二次贝塞尔 (lazer 编辑器直接把该段转
+  BEZIER, 同款形状取舍); v283 subPoints>=1000 兜底保留作双保险。放置预览/几何全长/重吸附
+  全部收敛 (病态弧 geo 21795px -> 465px)。
+- renderer sliderBodySprite: q 下限 0.05 顶破 MAX_AREA 的漏洞修复 — 改
+  min(4, max(1,ss,0.005), 上限项), 上限永远优先 (v148 末端延长 length≫几何时包围盒可达
+  数十万 px, 原下限会产生 50M px ≈ 200MB 位图)。
+- 验证: verifier/v306 (tests.ts 8 条单测 + 源码断言); v301/v19 q 表达式断言同步; 全量回归回基线。

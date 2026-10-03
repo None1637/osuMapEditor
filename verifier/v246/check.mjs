@@ -59,7 +59,7 @@ section('renderer.ts: 选中装饰层裁剪到内容包围盒');
 {
   const src = readSrc('src/osu/renderer.ts');
   assert(/const pad = radius \* 2 \+ 16;/.test(src), '包围盒边距 = 2r+16 osu px');
-  assert(/o\.type === 'slider' \? getSliderPath\(bm, o\)\.points/.test(src), '滑条取路径点 (含弧鼓出) 求包围盒');
+  assert(/o\.type === 'slider'\s*\n?\s*\? \[?\.\.\.?getSliderPath\(bm, o\)\.points/.test(src), '滑条取路径点 (含弧鼓出) 求包围盒 (v302 起并入头+控制点, F02)');
   assert(/selLayer\.empty = rw <= 0 \|\| rh <= 0/.test(src) && /if \(selLayer\.empty\) return;/.test(src),
     '选区完全在画布外 → 空层不贴图');
   assert(/lg\.setTransform\(m\.a, m\.b, m\.c, m\.d, m\.e - rx, m\.f - ry\)/.test(src), '层内变换平移减掉层原点');

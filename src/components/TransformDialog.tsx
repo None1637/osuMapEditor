@@ -3,9 +3,10 @@
 // 同一 rotateSelected/scaleSelected 变换入口 (一次应用一次 undo)。窗口间角度/倍率各自独立记忆。
 // v210: 新增对称模式 (编辑菜单「对称...」, 无快捷键) — 对称轴: 选区/中心(竖直或水平线)/自定义(两点决定直线,
 // 画布上可拖拽两端点, 两点最小间距 4px 无法重合); 应用 = store.reflectSelected (一次 undo)。
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { RotateCcw, RotateCw } from 'lucide-react';
 import { store, useEditor, type TransformOrigin } from '@/osu/store';
+import { rotateObjects, scaleObjects } from '@/osu/transform';
 import { DraggableDialog, DraftNum } from './DraggableDialog';
 
 export function TransformDialog({ mode }: { mode: 'rotate' | 'scale' | 'symmetry' }) {
@@ -17,6 +18,29 @@ export function TransformDialog({ mode }: { mode: 'rotate' | 'scale' | 'symmetry
   const origin: TransformOrigin = store.currentOrigin();
   const selCount = store.selected.size;
   const title = mode === 'rotate' ? '旋转' : mode === 'scale' ? '缩放' : '对称';
+  // v301: 实时预览 (F05a) — 首次改值后画布实时预览变换结果; 提交后回到已提交态, 关窗回滚到最后提交
+  const previewOn = useRef(false);
+
+  useEffect(() => {
+    if (mode === 'symmetry') return;
+    store.beginTransformPreview();
+    return () => store.endTransformPreview();
+  }, [mode]);
+
+  // 值/原点变化时刷新预览 (仅用户已改过值后; 开窗不自动变换)
+  useEffect(() => {
+    if (!previewOn.current || mode === 'symmetry') return;
+    if (mode === 'rotate') store.previewTransform((objs, c) => rotateObjects(objs, c, angle), origin);
+    else store.previewTransform((objs, c) => scaleObjects(objs, c, factor, factorY), origin);
+  }, [angle, factor, factorY, originMode, mode, store.customOrigin.x, store.customOrigin.y]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const changeAngle = (v: number) => { previewOn.current = true; setAngle(v); };
+  const changeFactor = (v: number) => { previewOn.current = true; setFactor(v); };
+  const changeFactorY = (v: number) => { previewOn.current = true; setFactorY(v); };
+  const commit = (fn: Parameters<typeof store.commitTransformPreview>[0]) => {
+    store.commitTransformPreview(fn, origin);
+    previewOn.current = false; // 提交后显示已提交态, 下次改值重新预览
+  };
 
   return (
     <DraggableDialog title={`${title} (${selCount} 个选中)`}
@@ -43,12 +67,12 @@ export function TransformDialog({ mode }: { mode: 'rotate' | 'scale' | 'symmetry
       {mode === 'rotate' && (
         <div className="flex items-center gap-1 flex-wrap">
           <span className="text-white/50">角度</span>
-          <DraftNum value={angle} set={setAngle} testid="angle" />
-          <button onClick={() => store.rotateSelected(-Math.abs(angle), origin)} title="按输入角度逆时针旋转"
+          <DraftNum value={angle} set={changeAngle} testid="angle" />
+          <button onClick={() => commit((objs, c) => rotateObjects(objs, c, -Math.abs(angle)))} title="按输入角度逆时针旋转"
             className="px-1.5 py-1 rounded bg-white/10 hover:bg-white/20 border border-white/15 text-[11px]">
             <RotateCcw className="inline-block w-3.5 h-3.5 mr-0.5 -mt-0.5" />逆时针
           </button>
-          <button onClick={() => store.rotateSelected(Math.abs(angle), origin)} title="按输入角度顺时针旋转"
+          <button onClick={() => commit((objs, c) => rotateObjects(objs, c, Math.abs(angle)))} title="按输入角度顺时针旋转"
             className="px-1.5 py-1 rounded bg-white/10 hover:bg-white/20 border border-white/15 text-[11px]">
             <RotateCw className="inline-block w-3.5 h-3.5 mr-0.5 -mt-0.5" />顺时针
           </button>
@@ -58,10 +82,10 @@ export function TransformDialog({ mode }: { mode: 'rotate' | 'scale' | 'symmetry
         <div className="flex items-center gap-1 flex-wrap">
           <span className="text-white/50">倍率</span>
           <span className="text-white/40">x</span>
-          <DraftNum value={factor} set={setFactor} testid="factor" min={0.01} step={0.05} />
+          <DraftNum value={factor} set={changeFactor} testid="factor" min={0.01} step={0.05} />
           <span className="text-white/40">y</span>
-          <DraftNum value={factorY} set={setFactorY} testid="factor-y" min={0.01} step={0.05} />
-          <button onClick={() => store.scaleSelected(factor, factorY, origin)} title="按输入倍率缩放 (仅X: y 填 1; 仅Y: x 填 1; 滑条长度同步)"
+          <DraftNum value={factorY} set={changeFactorY} testid="factor-y" min={0.01} step={0.05} />
+          <button onClick={() => commit((objs, c) => scaleObjects(objs, c, factor, factorY))} title="按输入倍率缩放 (仅X: y 填 1; 仅Y: x 填 1; 滑条长度同步)"
             className="px-1.5 py-1 rounded bg-white/10 hover:bg-white/20 border border-white/15 text-[11px]">
             应用倍率
           </button>
@@ -113,7 +137,7 @@ export function TransformDialog({ mode }: { mode: 'rotate' | 'scale' | 'symmetry
           </div>
         </>
       )}
-      <div className="text-white/35">{mode === 'symmetry' ? '画布虚线 = 当前对称轴预览; 每次应用一次撤销, 窗口保持打开可连续应用' : '与左侧栏变换面板同源 (共用原点设置), 每次应用一次撤销; 窗口保持打开可连续应用'}</div>
+      <div className="text-white/35">{mode === 'symmetry' ? '画布虚线 = 当前对称轴预览; 每次应用一次撤销, 窗口保持打开可连续应用' : '改数值即时预览 (相对上次提交); 应用后窗口保持打开可连续应用, 每次应用一次撤销; 直接关窗回滚到最后提交'}</div>
     </DraggableDialog>
   );
 }

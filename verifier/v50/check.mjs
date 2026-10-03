@@ -45,7 +45,7 @@ section('EditorCanvas.tsx: 旋转手柄 / 光标 / 可见性接线');
   assert(/angleDeltaDeg\(rd\.origin, rd\.lastP, p\)/.test(src), '累积角度增量 (lazer rawCumulativeRotation)');
   assert(/snapRotation\(rd\.rawAngle, shift\)/.test(src), 'Shift 吸附 15°');
   assert(/origin: rotationOrigin\(objs\)/.test(src), '旋转原点 = 头部 MEC 圆心');
-  assert(/applyScaleDrag\(bm, selectedMovable\(bm\), sd\.states, raw, origin, anchorAxis\(sd\.anchor\), store\.beatSnap, sd\.quad\)/.test(src), '缩放钳制传入 Begin 盒 sd.quad');
+  assert(/applyScaleDrag\(bm, selectedMovable\(bm\), sd\.states, raw, origin, anchorAxis\(sd\.anchor\), store\.beatSnap, sd\.quad, store\.limitToPlayfield\)/.test(src), '缩放钳制传入 Begin 盒 sd.quad (v302 起加传限制开关)');
   assert(/selectionBoxVisible\(objs\)/.test(src), '框可见性走 selectionBoxVisible');
   assert(/ew-resize/.test(src) && /ns-resize/.test(src) && /nwse-resize/.test(src) && /nesw-resize/.test(src), '缩放手柄光标形状');
   assert(/'grabbing'/.test(src) && /'grab'/.test(src), '旋转手柄 grab 光标');

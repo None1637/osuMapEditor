@@ -62,17 +62,25 @@ let scratchBody: HTMLCanvasElement | null = null; // 放置预览用 (路径每�
 
 // ss = 超采样倍数 (取主画布 dpr*scale): 离屏按高分绘制再 drawImage 缩回, 否则低分辨率位图放大后边缘锯齿
 function sliderBodySprite(points: { x: number; y: number }[], r: number, border: string, track: string, cacheId?: number, ss = 1): SliderBodySprite {
-  const q = Math.min(4, Math.max(1, ss));
-  const key = `${r.toFixed(2)}|${q.toFixed(2)}|${border}|${track}`;
-  const hit = cacheId !== undefined ? bodyCache.get(cacheId) : undefined;
-  if (hit && hit.key === key) return hit.sprite;
   const pad = r + 3;
   let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
   for (const p of points) {
     if (p.x < minX) minX = p.x; if (p.x > maxX) maxX = p.x;
     if (p.y < minY) minY = p.y; if (p.y > maxY) maxY = p.y;
   }
-  const w = maxX - minX + pad * 2, h = maxY - minY + pad * 2;
+  let w = maxX - minX + pad * 2, h = maxY - minY + pad * 2;
+  if (!(w > 0) || !(h > 0)) { minX = minY = 0; w = h = 1; } // 退化路径保底 (防 NaN 画布尺寸)
+  // v301: 离屏位图尺寸上限 — 放置预览可拖出游玩区数千 px, 包围盒 × 超采样 (最高 4) 会分配
+  // 数万 px 边长的位图, 直接把 GPU 进程打崩 (画面冻结白屏; 恢复后各缓存贴图失效 → 物件失色)。
+  // 超上限时降低离屏分辨率 (极端滑条视觉变糊, 但永不冻结)
+  // v306: 下限 0.05 → 0.005 — v148 末端延长 (length ≫ 几何全长, 如手改 pixelLength=20 万) 包围盒
+  //   可达数十万 px, 0.05 下限会顶破 MAX_AREA (143130px × 0.05 = 7157px 边长 = 50M px ≈ 200MB 位图)
+  const MAX_DIM = 8192, MAX_AREA = 8192 * 4096;
+  // 目标分辨率 (至少 1x, 跟随超采样, 下限 0.005 防除零) 与尺寸上限取 min — 上限永远优先
+  const q = Math.min(4, Math.max(1, ss, 0.005), MAX_DIM / w, MAX_DIM / h, Math.sqrt(MAX_AREA / (w * h)));
+  const key = `${r.toFixed(2)}|${q.toFixed(3)}|${border}|${track}`;
+  const hit = cacheId !== undefined ? bodyCache.get(cacheId) : undefined;
+  if (hit && hit.key === key) return hit.sprite;
   const c = cacheId !== undefined ? document.createElement('canvas') : (scratchBody ??= document.createElement('canvas'));
   c.width = Math.ceil(w * q);
   c.height = Math.ceil(h * q);
@@ -249,11 +257,15 @@ function drawSelectionLayer(rc: RenderCtx, radius: number) {
     displaySettings.selectionStyle, displaySettings.sliderPointStyle, sid].join('|');
   if (!selLayer || selLayer.key !== key) {
     // v246: 内容包围盒 (osu px) — 物件位置/滑条路径点 ± (2r+16) (描边环/头尾选框/控制点柄/堆叠偏移均在内)
+    // v302: F02 — 滑条锚点 (贝塞尔控制点) 可远在采样路径包围盒之外 (控制点牵拉曲线但曲线不到达),
+    //   只按路径点建层会把锚点/连线裁掉 (hover 预览画在主画布不裁, 选中态画在层上被裁); 包围盒并入控制点
     const pad = radius * 2 + 16;
     let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
     for (const o of bm.hitObjects) {
       if (!rc.selected.has(o.id)) continue;
-      const pts = o.type === 'slider' ? getSliderPath(bm, o).points : [{ x: o.x, y: o.y }];
+      const pts = o.type === 'slider'
+        ? [...getSliderPath(bm, o).points, o, ...(o.curvePoints ?? [])]
+        : [{ x: o.x, y: o.y }];
       for (const p of pts) {
         if (p.x < x0) x0 = p.x; if (p.y < y0) y0 = p.y;
         if (p.x > x1) x1 = p.x; if (p.y > y1) y1 = p.y;
@@ -354,11 +366,16 @@ function drawControlPointHandle(g: CanvasRenderingContext2D, x: number, y: numbe
 // v232: stable 选中框 (皮肤 hitcircleselect.png) — 与 hitcircle 族同公式 (stable 同款):
 // 128-box 基准, 贴图固有宽度 ÷128 × 圈直径 2r, 默认/128px 贴图恰与圆圈一样大;
 // 大贴图按固有尺寸放大 (上限 256 在 hitcircleSpriteWidth 内), @2x 折半在 skinSpriteWidth 登记处已计入; 无图时跳过
-function drawSelectionBox(g: CanvasRenderingContext2D, skin: Skin, x: number, y: number, r: number) {
-  const img = skin.hitcircleselect;
-  if (!img) return;
-  const s = r * 2 * hitcircleSpriteWidth(img) / 128;
-  g.drawImage(img, x - s / 2, y - s / 2, s, s);
+// v305: F03 — stable 选中/hover 圆环 (皮肤无关): 选中 = 橙黄环, hover = 蓝环;
+// 取代 v232 的 hitcircleselect 方框 (用户对比 stable 截图确认 stable 是圆环不是方框)
+export function drawSelectionRing(g: CanvasRenderingContext2D, x: number, y: number, r: number, color = '#f5a623') {
+  g.save();
+  g.strokeStyle = color;
+  g.lineWidth = Math.max(2, r * 0.14);
+  g.beginPath();
+  g.arc(x, y, r * 1.06, 0, Math.PI * 2);
+  g.stroke();
+  g.restore();
 }
 
 // v259: 控制点连线 + 手柄绘制抽为共用 — 选中装饰 (drawSelectionDecor) 与 hover 预览 (EditorCanvas) 复用
@@ -390,10 +407,11 @@ export function drawSliderControlPoints(g: CanvasRenderingContext2D, o: HitObjec
 }
 
 // 选中装饰: 滑条 = 身体高亮环 + 控制多边形 + 控制点手柄; 其他 = 青色虚线环
-// v232: selectionStyle=stable 时改 osu!stable 样式 — 不画高亮环/虚线环, 改画皮肤 hitcircleselect 选框
-// (滑条头/尾各一张, 其他物件在 (x,y) 一张); 滑条控制点连线/手柄两种模式都画 (手柄样式由 v231 开关控制)
+// v232: selectionStyle=stable 时改 osu!stable 样式; v305: F03 修正 — stable 实为圆环/边框高亮:
+//   圆圈类 = 橙黄圆环 (不再用皮肤 hitcircleselect 方框); 滑条 = sliderborder 蓝色高亮描边 + 头尾橙黄圆环
+// (滑条控制点连线/手柄两种模式都画, 手柄样式由 v231 开关控制)
 function drawSelectionDecor(rc: RenderCtx, o: HitObject, radius: number) {
-  const { g, bm, skin } = rc;
+  const { g, bm } = rc;
   const so = stackOffset(rc, o.id);
   const stableSel = displaySettings.selectionStyle === 'stable'; // v232: 物件选中效果开关
   g.save();
@@ -401,18 +419,17 @@ function drawSelectionDecor(rc: RenderCtx, o: HitObject, radius: number) {
   if (o.type === 'slider') {
     const p = getSliderPath(bm, o);
     // 选中描边: 沿滑条身外形画一圈高亮环 (离屏粗描边 -> destination-out 镂空出环)
-    // v232: stable 模式不画描边环 (stable 编辑器无滑条身高亮, 只有头尾选框 + 控制点)
-    if (!stableSel) drawSliderBodyOutline(g, p.points, radius);
-    // v232: stable — 滑条头 (x,y) 与滑条尾 (路径终点) 各画一张 hitcircleselect (衬在控制点下层)
+    // v305: stable = 蓝色边框高亮 (sliderborder 选中变色), lazer 默认 = 青色环
+    drawSliderBodyOutline(g, p.points, radius, stableSel ? '#4a90e2' : '#4df3ff');
     if (stableSel) {
-      drawSelectionBox(g, skin, o.x, o.y, radius);
+      // v305: F03 — 滑条头/尾各画橙黄圆环 (stable 选中效果, 见用户对比截图)
+      drawSelectionRing(g, o.x, o.y, radius);
       const tail = p.points[p.points.length - 1];
-      if (tail) drawSelectionBox(g, skin, tail.x, tail.y, radius);
+      if (tail) drawSelectionRing(g, tail.x, tail.y, radius);
     }
     drawSliderControlPoints(g, o); // v259: 抽出共用 (hover 预览同用)
   } else if (stableSel) {
-    // v232: stable — 单点/spinner 在 (x,y) 画一张 hitcircleselect
-    drawSelectionBox(g, skin, o.x, o.y, radius);
+    drawSelectionRing(g, o.x, o.y, radius); // v305: F03 — 单点/spinner 橙黄圆环
   } else {
     g.strokeStyle = '#4df3ff'; g.lineWidth = 2.5;
     g.setLineDash([6, 4]);
@@ -480,7 +497,7 @@ function drawPendingSlider(rc: RenderCtx, pend: { x: number; y: number; redAncho
 // 选中滑条的外形描边: 在离屏画布上按当前变换粗描边 (滑条身宽 + 5px), 再 destination-out
 // 镂空滑条身区域, 剩下紧贴白边外侧的一圈高亮环, 最后按设备像素贴回主画布
 let outlineCanvas: HTMLCanvasElement | null = null;
-function drawSliderBodyOutline(g: CanvasRenderingContext2D, points: { x: number; y: number }[], r: number) {
+export function drawSliderBodyOutline(g: CanvasRenderingContext2D, points: { x: number; y: number }[], r: number, color = '#4df3ff') { // v305: 颜色参数 + 导出 (stable 选中/hover 蓝描边)
   if (points.length < 2) return;
   const w = g.canvas.width, h = g.canvas.height;
   if (!outlineCanvas) outlineCanvas = document.createElement('canvas');
@@ -495,7 +512,7 @@ function drawSliderBodyOutline(g: CanvasRenderingContext2D, points: { x: number;
     points.forEach((p, i) => (i === 0 ? og.moveTo(p.x, p.y) : og.lineTo(p.x, p.y)));
     og.stroke();
   };
-  og.strokeStyle = '#4df3ff';
+  og.strokeStyle = color; // v305: 颜色由调用方给 (默认青 #4df3ff; stable 滑条选中 #4a90e2)
   og.lineWidth = r * 2 + 5;
   trace();
   og.globalCompositeOperation = 'destination-out';

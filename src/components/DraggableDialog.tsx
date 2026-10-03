@@ -97,12 +97,29 @@ export function DraftNum({ value, set, testid, min, max, step = 1 }: {
 }) {
   const [draft, setDraft] = useState<string | null>(null);
   const dragRef = useRef<{ x0: number; v0: number; active: boolean } | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const clamp = (v: number) => Math.min(max ?? Infinity, Math.max(min ?? -Infinity, v));
   // 按 step 的小数位取整, 避免 0.1 步进累出 0.30000000004
   const decimals = Math.max(0, -Math.floor(Math.log10(step) + 1e-9));
   const round = (v: number) => { const p = 10 ** decimals; return Math.round(v * p) / p; };
+  // v304: F06 — 悬停滚轮直接调值 (勿需聚焦; 上滚 +step 下滚 -step, Shift ×10 / Alt ×0.1 与拖动调值同款);
+  // React onWheel 是 passive 无法 preventDefault (页面会跟着滚), 故挂原生非 passive 监听; 每帧重挂保持闭包新鲜
+  useEffect(() => {
+    const el = inputRef.current;
+    if (!el) return;
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const mult = e.shiftKey ? 10 : e.altKey ? 0.1 : 1;
+      const base = draft !== null ? parseFloat(draft) : value;
+      const v = clamp(round((isNaN(base) ? value : base) + (e.deltaY < 0 ? 1 : -1) * step * mult));
+      setDraft(String(v)); // 聚焦态显示走 draft, 滚轮同步刷新
+      set(v);
+    };
+    el.addEventListener('wheel', onWheel, { passive: false });
+    return () => el.removeEventListener('wheel', onWheel);
+  });
   return (
-    <input type="number" value={draft ?? value} min={min} max={max} step={step} data-conv={testid}
+    <input ref={inputRef} type="number" value={draft ?? value} min={min} max={max} step={step} data-conv={testid}
       onFocus={() => setDraft(String(value))}
       onChange={e => {
         setDraft(e.target.value);

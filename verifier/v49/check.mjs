@@ -32,7 +32,9 @@ section('selectionBox.ts: 纯函数模块 (lazer SelectionBoxScaleHandle / OsuSe
   assert(/anchor\.includes\('l'\)\) sx = -sx/.test(src) && /anchor\[0\] === 't'\) sy = -sy/.test(src), '上/左边手柄方向取反 (lazer adjustScaleFromAnchor)');
   assert(/shiftLock && isCorner/.test(src), '角手柄 Shift 锁长宽比');
   assert(/resnapSliderLength\(bm, o, beatSnap\)/.test(src), '单滑条缩放后 SnapTo 节拍吸附');
-  assert(/inBounds && validLen/.test(src), '单滑条出界/非法 -> 回滚 (lazer isQuadInBounds + HasValidLengthForPlacement)');
+  // v302: F09 — 出界改钳制倍率不再整体回滚; 仅零长路径非法回滚
+  assert(/路径长度非法 \(零长\) 仍回滚/.test(src) && /if \(validLen\) return \{ changed: true, sliders \};/.test(src), '单滑条仅路径非法 -> 回滚 (v302 起出界走钳制)');
+  assert(/已出界的点不纳入钳制/.test(src), 'F09: 界内点钳制倍率, 已出界点不压回 (v302)');
   assert(/Math\.max\(rawScale\.x, 1e-6\)/.test(src), '单滑条不允许镜像 (ComponentMax FLOAT_EPSILON)');
 }
 

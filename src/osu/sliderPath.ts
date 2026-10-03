@@ -130,9 +130,17 @@ function perfectArcPath(pts: Vec2[]): Vec2[] {
   // v283: 退化 (近共线, lazer CircularArcProperties.IsValid = false) 回退贝塞尔过 a,b,c (原回退折线)
   if (!arc) return bezierPath(pts);
   const { cx, cy, r, thetaStart, thetaRange, dir } = arc;
+  // v306: lazer PathControlPointVisualiser.EnsureValidPathTypes 移植 — 3 点圆弧的包围盒
+  //   宽 >=640 或高 >=480 (4:3 屏幕尺寸) 时 lazer 编辑器直接把该段转成贝塞尔。F07: 头夹在两锚点之间
+  //   的近共线三点 (thetaRange≈2π, r 可达数万 px) 弧长逼近整个巨圆 — 几何全长爆炸 -> 放置/重吸附长度
+  //   爆表 -> 滑条身离屏位图数万 px 直接打崩 GPU (冻结白屏, 恢复后贴图失效物件失色)。运行时回退
+  //   贝塞尔与 lazer 编辑后的形状一致 (二次贝塞尔, 不保圆弧形状 — lazer 同款取舍)
+  const bb = circularArcBBox(arc, a, c);
+  if (bb.w >= 640 || bb.h >= 480) return bezierPath(pts);
   // v283: 采样数按径向误差 <=0.1px (lazer CircularArcToPiecewiseLinear):
   //   amountPoints = ceil(θ / (2·acos(1−0.1/r))); 2r <= 0.1 的病态小弧取 2;
-  //   subPoints >= 1000 回退贝塞尔 (lazer SliderPath.calculateSubPath: 需 ~12 万 px 弧长才触发)
+  //   subPoints >= 1000 回退贝塞尔 (lazer SliderPath.calculateSubPath: 需 ~12 万 px 弧长才触发;
+  //   实际已被上方包围盒规则先行拦截, 保留作双保险)
   const subPoints = 2 * r <= 0.1 ? 2 : Math.max(2, Math.ceil(thetaRange / (2 * Math.acos(1 - 0.1 / r))));
   if (subPoints >= 1000) return bezierPath(pts);
   const out: Vec2[] = [];
@@ -161,6 +169,26 @@ function circumArc(a: Vec2, b: Vec2, c: Vec2): { cx: number; cy: number; r: numb
   const acx = c.x - a.x, acy = c.y - a.y;
   if (acy * (b.x - a.x) - acx * (b.y - a.y) < 0) { dir = -1; thetaRange = 2 * Math.PI - thetaRange; }
   return { cx, cy, r, thetaStart, thetaRange, dir };
+}
+
+// v306: lazer PathApproximator.CircularArcBoundingBox 移植 — 弧包围盒 = 起/终点 + 扫掠范围内
+//   四个基准角 (0/90/180/270°, 即圆的左右下上极值点) 的外接矩形
+function circularArcBBox(arc: { cx: number; cy: number; r: number; thetaStart: number; thetaRange: number; dir: number }, a: Vec2, c: Vec2): { w: number; h: number } {
+  let minX = Math.min(a.x, c.x), maxX = Math.max(a.x, c.x);
+  let minY = Math.min(a.y, c.y), maxY = Math.max(a.y, c.y);
+  // 扫掠区间: dir=+1 => [thetaStart, thetaStart+thetaRange]; dir=-1 => [thetaStart-thetaRange, thetaStart]
+  const lo = arc.dir > 0 ? arc.thetaStart : arc.thetaStart - arc.thetaRange;
+  const hi = arc.dir > 0 ? arc.thetaStart + arc.thetaRange : arc.thetaStart;
+  for (let i = 0; i < 4; i++) {
+    const q = i * Math.PI / 2;
+    const k = Math.ceil((lo - q) / (2 * Math.PI) - 1e-9);
+    if (q + 2 * Math.PI * k <= hi + 1e-9) {
+      const x = arc.cx + arc.r * Math.cos(q), y = arc.cy + arc.r * Math.sin(q);
+      if (x < minX) minX = x; if (x > maxX) maxX = x;
+      if (y < minY) minY = y; if (y > maxY) maxY = y;
+    }
+  }
+  return { w: maxX - minX, h: maxY - minY };
 }
 
 function bezierPath(pts: Vec2[]): Vec2[] {

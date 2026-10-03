@@ -58,7 +58,7 @@ assert(/export async function idbLibraryIndexGet/.test(lib) && /export async fun
 // SongLibrary.tsx: 扁平难度列表 + 查询搜索 + 保留既有行为
 const sl = readSrc('src/components/SongLibrary.tsx');
 assert(/parseLibraryQuery\(filter\)/.test(sl) && /matchLibraryEntry\(query, e\)/.test(sl), '搜索框接 parseLibraryQuery + matchLibraryEntry');
-assert(/const ROW_H = 34;/.test(sl) && /filtered\.length \* ROW_H/.test(sl), '扁平难度列表虚拟化 (ROW_H 34)');
+assert(/const ROW_H = 44;/.test(sl) && /filtered\.length \* ROW_H/.test(sl), '扁平难度列表虚拟化 (ROW_H 44; v303 F01 字号增大 34→44)');
 assert(!/countDifficulties/.test(sl), 'countDifficulties 徽标懒加载链路删除');
 assert(/onDoubleClick=\{\(\) => \{ selectEntry\(e\); void openDiff\(e\.fileName\); \}\}/.test(sl), '双击行打开难度');
 assert(/if \(!store\.guardUnsaved\(\(\) => \{ void openDiff\(fileName\); \}\)\) return;/.test(sl), 'openDiff: v120 guardUnsaved 保留');

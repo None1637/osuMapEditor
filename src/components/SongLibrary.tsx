@@ -14,7 +14,7 @@ import { matchLibraryEntry, parseLibraryQuery } from '../osu/librarySearch'; // 
 
 type DirEntry = { name: string; handle: FsDirLike };
 
-const ROW_H = 34; // v290: 扁平难度行高(px, 两行), 虚拟化渲染用
+const ROW_H = 44; // v290: 扁平难度行高(px, 两行), 虚拟化渲染用; v303: F01 基础字号增大 (34→44 容纳 text-sm+text-sm 两行)
 const entryKey = (e: LibraryIndexEntry) => `${e.dirName}/${e.fileName}`;
 
 // v290: 排序选项 (目录=默认, 难度数=目录内难度计数)
@@ -462,26 +462,26 @@ export function SongLibrary({ onClose }: { onClose: () => void }) {
         <div className="flex items-center gap-3 px-4 py-2.5 border-b border-[#2c2c38] shrink-0">
           <span className="text-sm font-semibold flex items-center gap-1.5"><FolderOpen className="w-4 h-4" />歌曲库</span>
           {root && (
-            <span className="text-xs text-slate-500 truncate">
+            <span className="text-sm text-slate-500 truncate">
               {root.name} · {entries.length} 难度 / {dirCount} 目录{indexing && ' · 索引中…'}
               {!rootNative && ' · 拖拽导入'}
             </span>
           )}
           <div className="flex-1" />
-          <button className="text-xs px-2 py-1 rounded bg-[#2c2c38] hover:bg-[#3c3c4c]" onClick={chooseDir}>
+          <button className="text-sm px-2 py-1 rounded bg-[#2c2c38] hover:bg-[#3c3c4c]" onClick={chooseDir}>
             {root ? '更换目录' : '选择 Songs 目录'}
           </button>
           {root && (
-            <button className="text-xs px-2 py-1 rounded bg-[#2c2c38] hover:bg-[#3c3c4c] disabled:opacity-40"
+            <button className="text-sm px-2 py-1 rounded bg-[#2c2c38] hover:bg-[#3c3c4c] disabled:opacity-40"
                     disabled={indexing} onClick={() => startScan(root, rootNative, true)}> {/* v297: 手动重扫 = 逐文件 stat 彻底校验 */}
               重新扫描
             </button>
           )}
-          <button className="text-xs px-2 py-1 rounded bg-[#2c2c38] hover:bg-[#3c3c4c] flex items-center" onClick={onClose}><X className="w-3.5 h-3.5" /></button>
+          <button className="text-sm px-2 py-1 rounded bg-[#2c2c38] hover:bg-[#3c3c4c] flex items-center" onClick={onClose}><X className="w-3.5 h-3.5" /></button>
         </div>
 
         {uiError && (
-          <div className="px-4 py-1.5 text-xs text-red-400 border-b border-[#2c2c38] shrink-0">{uiError}</div>
+          <div className="px-4 py-1.5 text-sm text-red-400 border-b border-[#2c2c38] shrink-0">{uiError}</div>
         )}
 
         <div className="flex-1 flex flex-col min-h-0 relative">
@@ -502,7 +502,7 @@ export function SongLibrary({ onClose }: { onClose: () => void }) {
             <button className="px-4 py-2 rounded bg-[#e6437d] hover:bg-[#f0558e] text-sm font-medium" onClick={chooseDir}>
               选择 Songs 目录…
             </button>
-            <div className="text-xs text-slate-600 text-center">
+            <div className="text-sm text-slate-600 text-center">
               通常位于 osu! 安装目录下的 Songs 文件夹；选择后会记住，下次自动恢复
               <br />如果点了没反应，也可以<strong className="text-pink-300">直接把 Songs 文件夹拖进这个窗口</strong>
             </div>
@@ -519,9 +519,9 @@ export function SongLibrary({ onClose }: { onClose: () => void }) {
               <div className="p-2 border-b border-[#2c2c38] shrink-0 flex items-center gap-2">
                 <input value={filter} onChange={e => { setFilter(e.target.value); listRef.current?.scrollTo({ top: 0 }); setView(v => ({ ...v, top: 0 })); }}
                        placeholder='搜索 (支持 ar>8 bpm<180 creator="短语")…'
-                       className="flex-1 bg-[#0d0d12] border border-[#333] rounded px-2 py-1.5 text-xs outline-none focus:border-[#e6437d]" />
+                       className="flex-1 bg-[#0d0d12] border border-[#333] rounded px-2 py-1.5 text-sm outline-none focus:border-[#e6437d]" />
                 <select value={sortBy} onChange={e => setSortBy(e.target.value as SortBy)}
-                        className="bg-[#0d0d12] border border-[#333] rounded px-1 py-1.5 text-xs outline-none shrink-0">
+                        className="bg-[#0d0d12] border border-[#333] rounded px-1 py-1.5 text-sm outline-none shrink-0">
                   <option value="dir">目录</option>
                   <option value="title">标题</option>
                   <option value="artist">艺术家</option>
@@ -531,17 +531,17 @@ export function SongLibrary({ onClose }: { onClose: () => void }) {
                   <option value="length">时长</option>
                   <option value="diffs">难度数</option>
                 </select>
-                {indexing && <span className="text-[10px] text-slate-500 shrink-0 animate-pulse">索引中 {entries.length}</span>}
+                {indexing && <span className="text-xs text-slate-500 shrink-0 animate-pulse">索引中 {entries.length}</span>}
               </div>
               {needsIndexHint && ( // v291: 含条件的搜索依赖索引 — 建立中提示等待
-                <div className="px-3 py-1 text-[10px] text-amber-300/90 border-b border-[#2c2c38] shrink-0">
+                <div className="px-3 py-1 text-xs text-amber-300/90 border-b border-[#2c2c38] shrink-0">
                   索引建立中：含条件的搜索暂只覆盖已索引部分，完整结果请等索引完成…
                 </div>
               )}
               {scanError ? (
                 <div className="flex-1 flex flex-col items-center justify-center gap-3 p-6 text-center">
-                  <div className="text-xs text-red-400">扫描失败: {scanError}</div>
-                  <button className="text-xs px-3 py-1.5 rounded bg-[#2c2c38] hover:bg-[#3c3c4c]" onClick={() => startScan(root, rootNative, true)}>重试</button>
+                  <div className="text-sm text-red-400">扫描失败: {scanError}</div>
+                  <button className="text-sm px-3 py-1.5 rounded bg-[#2c2c38] hover:bg-[#3c3c4c]" onClick={() => startScan(root, rootNative, true)}>重试</button>
                 </div>
               ) : (
                 <div ref={listRef} className="flex-1 min-h-0 overflow-y-auto"
@@ -558,7 +558,7 @@ export function SongLibrary({ onClose }: { onClose: () => void }) {
                       return (
                         <div key={k}
                              style={{ position: 'absolute', top: (winStart + i) * ROW_H, height: ROW_H, left: 0, right: 0 }}
-                             className={`px-3 flex items-center gap-2 text-xs cursor-pointer ${selKey === k ? 'bg-[#e6437d]/25 text-white' : 'text-slate-300 hover:bg-[#22222c]'} ${loadingBeatmap ? 'pointer-events-none' : ''}`}
+                             className={`px-3 flex items-center gap-2 text-sm cursor-pointer ${selKey === k ? 'bg-[#e6437d]/25 text-white' : 'text-slate-300 hover:bg-[#22222c]'} ${loadingBeatmap ? 'pointer-events-none' : ''}`}
                              title={k}
                              onClick={() => selectEntry(e)}
                              onDoubleClick={() => { selectEntry(e); void openDiff(e.fileName); }}>
@@ -566,11 +566,11 @@ export function SongLibrary({ onClose }: { onClose: () => void }) {
                             <div className="truncate">
                               {e.artistUnicode || e.artist || '?'} - {e.titleUnicode || e.title || e.fileName}
                               <span className="text-[#e6437d] ml-1.5">[{e.version || '?'}]</span>
-                              {modeBadge(e.mode) && <span className="ml-1.5 text-[10px] px-1 rounded bg-[#2c2c38] text-slate-400">{modeBadge(e.mode)}</span>}
+                              {modeBadge(e.mode) && <span className="ml-1.5 text-xs px-1 rounded bg-[#2c2c38] text-slate-400">{modeBadge(e.mode)}</span>}
                             </div>
-                            <div className="text-[10px] text-slate-500 truncate">{e.dirName}</div>
+                            <div className="text-xs text-slate-500 truncate">{e.dirName}</div>
                           </div>
-                          <div className="text-[10px] text-slate-500 shrink-0 text-right leading-tight">
+                          <div className="text-xs text-slate-500 shrink-0 text-right leading-tight">
                             <div>{e.creator || '?'}{e.bpm > 0 ? ` · ${Math.round(e.bpm)} BPM` : ''}</div>
                             {e.star != null && <div className="text-amber-300/80"><Star className="inline w-3 h-3 -mt-0.5 fill-current" />{e.star.toFixed(2)}</div>}
                           </div>
@@ -579,9 +579,9 @@ export function SongLibrary({ onClose }: { onClose: () => void }) {
                     })}
                   </div>
                   {!indexing && filtered.length === 0 && entries.length > 0 &&
-                    <div className="px-3 py-2 text-xs text-slate-500">无匹配难度</div>}
+                    <div className="px-3 py-2 text-sm text-slate-500">无匹配难度</div>}
                   {!indexing && entries.length === 0 &&
-                    <div className="px-3 py-2 text-xs text-slate-500">未发现歌曲目录（Songs 下每个子文件夹对应一首歌）</div>}
+                    <div className="px-3 py-2 text-sm text-slate-500">未发现歌曲目录（Songs 下每个子文件夹对应一首歌）</div>}
                 </div>
               )}
             </div>
@@ -590,34 +590,34 @@ export function SongLibrary({ onClose }: { onClose: () => void }) {
               {selBg && selEntry && (
                 <div className="shrink-0 h-24 border-b border-[#2c2c38] bg-cover bg-center" style={{ backgroundImage: `url(${selBg})` }}>
                   <div className="h-full w-full bg-gradient-to-t from-[#16161d] via-transparent to-transparent flex items-end px-3 pb-1">
-                    <span className="text-[10px] text-white/80 drop-shadow truncate">{selEntry.dirName}</span>
+                    <span className="text-xs text-white/80 drop-shadow truncate">{selEntry.dirName}</span>
                   </div>
                 </div>
               )}
-              <div className="px-3 py-2 border-b border-[#2c2c38] text-xs text-slate-500 shrink-0 truncate">
+              <div className="px-3 py-2 border-b border-[#2c2c38] text-sm text-slate-500 shrink-0 truncate">
                 {selEntry ? selEntry.dirName : '选择左侧难度查看详情 (双击直接打开)'}
               </div>
               {selEntry ? (
                 <div className="flex-1 min-h-0 overflow-y-auto px-3 py-2">
                   {selEntry.partial ? ( // v299: 骨架条目 — 文件名已解析出标题/艺术家/难度名, 详细参数待索引
                     <>
-                      <div className="text-sm text-slate-100">{selEntry.title || selEntry.fileName}</div>
-                      {selEntry.artist && <div className="text-xs text-slate-300 mt-0.5">{selEntry.artist}</div>}
-                      <div className="text-xs mt-2 text-slate-400">难度: <span className="text-[#e6437d]">[{selEntry.version || '?'}]</span></div>
-                      <div className="text-xs mt-1 text-slate-400">谱师: {selEntry.creator || '?'}</div>
-                      <div className="text-xs mt-2 text-slate-500">详细参数 (BPM/CS/AR/时长…) 索引中，双击行或点「打开」可直接载入</div>
+                      <div className="text-base text-slate-100">{selEntry.title || selEntry.fileName}</div>
+                      {selEntry.artist && <div className="text-sm text-slate-300 mt-0.5">{selEntry.artist}</div>}
+                      <div className="text-sm mt-2 text-slate-400">难度: <span className="text-[#e6437d]">[{selEntry.version || '?'}]</span></div>
+                      <div className="text-sm mt-1 text-slate-400">谱师: {selEntry.creator || '?'}</div>
+                      <div className="text-sm mt-2 text-slate-500">详细参数 (BPM/CS/AR/时长…) 索引中，双击行或点「打开」可直接载入</div>
                     </>
                   ) : (
                     <>
-                      <div className="text-sm text-slate-100">{selEntry.titleUnicode || selEntry.title || selEntry.fileName}</div>
+                      <div className="text-base text-slate-100">{selEntry.titleUnicode || selEntry.title || selEntry.fileName}</div>
                       {selEntry.titleUnicode && selEntry.title && selEntry.title !== selEntry.titleUnicode &&
-                        <div className="text-xs text-slate-400">{selEntry.title}</div>}
-                      <div className="text-xs text-slate-300 mt-0.5">{selEntry.artistUnicode || selEntry.artist || '?'}</div>
+                        <div className="text-sm text-slate-400">{selEntry.title}</div>}
+                      <div className="text-sm text-slate-300 mt-0.5">{selEntry.artistUnicode || selEntry.artist || '?'}</div>
                       {selEntry.artistUnicode && selEntry.artist && selEntry.artist !== selEntry.artistUnicode &&
-                        <div className="text-xs text-slate-500">{selEntry.artist}</div>}
-                      <div className="text-xs mt-2 space-y-1 text-slate-400">
+                        <div className="text-sm text-slate-500">{selEntry.artist}</div>}
+                      <div className="text-sm mt-2 space-y-1 text-slate-400">
                         <div>难度: <span className="text-[#e6437d]">[{selEntry.version || '?'}]</span>
-                          {modeBadge(selEntry.mode) && <span className="ml-1.5 text-[10px] px-1 rounded bg-[#2c2c38]">{modeBadge(selEntry.mode)}</span>}
+                          {modeBadge(selEntry.mode) && <span className="ml-1.5 text-xs px-1 rounded bg-[#2c2c38]">{modeBadge(selEntry.mode)}</span>}
                         </div>
                         <div>谱师: {selEntry.creator || '?'}</div>
                         <div>BPM: {Math.round(selEntry.bpm * 100) / 100 || '?'} · 时长: {fmtLen(selEntry.lengthMs)}
@@ -630,14 +630,14 @@ export function SongLibrary({ onClose }: { onClose: () => void }) {
                       </div>
                     </>
                   )}
-                  <button className="mt-3 px-4 py-1.5 rounded bg-[#e6437d] hover:bg-[#f0558e] text-xs font-medium disabled:opacity-40"
+                  <button className="mt-3 px-4 py-1.5 rounded bg-[#e6437d] hover:bg-[#f0558e] text-sm font-medium disabled:opacity-40"
                           disabled={loadingBeatmap}
                           onClick={() => void openDiff(selEntry.fileName)}>
                     {loadingBeatmap ? '加载中…' : '打开'}
                   </button>
                 </div>
               ) : (
-                <div className="px-3 py-2 text-xs text-slate-500">单击行选中，双击行或点「打开」载入编辑器</div>
+                <div className="px-3 py-2 text-sm text-slate-500">单击行选中，双击行或点「打开」载入编辑器</div>
               )}
             </div>
           </div>
@@ -647,8 +647,8 @@ export function SongLibrary({ onClose }: { onClose: () => void }) {
         {/* 诊断日志: 帮助定位不同环境下的问题 */}
         <div className="shrink-0 border-t border-[#2c2c38] px-3 py-1 bg-[#101016]">
           {log.length === 0
-            ? <div className="text-[10px] text-slate-600">诊断日志</div>
-            : log.map((l, i) => <div key={i} className="text-[10px] text-slate-500 font-mono truncate">{l}</div>)}
+            ? <div className="text-xs text-slate-600">诊断日志</div>
+            : log.map((l, i) => <div key={i} className="text-xs text-slate-500 font-mono truncate">{l}</div>)}
         </div>
       </div>
     </div>

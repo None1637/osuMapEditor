@@ -142,7 +142,7 @@ section('applyScaleDrag 多物件: 游玩区钳制 + 越界移回');
   assert(c1.x === 200 && c1.x >= 0, '左缘不出界');
 }
 
-section('applyScaleDrag 单滑条: 控制点绕头缩放 + 节拍吸附; 出界整体回滚 (lazer scaleSlider)');
+section('applyScaleDrag 单滑条: 控制点绕头缩放 + 节拍吸附; 出界钳制倍率不回滚 (v302 F09)');
 {
   const bm = bmBase(); // beatLength=500, mult=1 -> vel=0.2px/ms, beatSnap=1 -> tickPx=100
   const sl = slider(1, 100, 100, [{ x: 200, y: 100 }], 100);
@@ -152,11 +152,24 @@ section('applyScaleDrag 单滑条: 控制点绕头缩放 + 节拍吸附; 出界�
   assert(r.changed && sl.x === 100 && sl.y === 100, '原点=头: 头不动');
   assert(sl.curvePoints![0].x === 300 && sl.curvePoints![0].y === 100, `控制点绕头 2x (${sl.curvePoints![0].x})`);
   assert(sl.length === 200, `长度吸附节拍: 几何 200 = 2 tick (${sl.length})`);
-  // 出界回滚
+  // v302 F09: 出界不再整体回滚 — 倍率钳制到界内点贴边界 (cp.x 300 -> 最大 (512-100)/200 = 2.06x)
   const states2 = snapshotScaleStates([sl]);
   const r2 = applyScaleDrag(bm, [sl], states2, { x: 10, y: 10 }, { x: 100, y: 100 }, 'both', 1, selectionScaleQuad([sl])!);
-  assert(!r2.changed, '缩放后出游玩区 -> 回滚');
-  assert(sl.x === 100 && sl.curvePoints![0].x === 300 && sl.length === 200, '回滚到 Begin 快照状态');
+  assert(r2.changed, '缩放即便将出界也生效 (钳制而非回滚)');
+  assert(sl.curvePoints![0].x === 512, `控制点钳制在右缘 (${sl.curvePoints![0].x})`);
+  assert(sl.length === 400, `长度吸附节拍: 几何 412 -> 4 tick (${sl.length})`);
+  // F09 核心场景: Begin 即越界的滑条不再卡死 — 越界点不纳入钳制, 缩放照常生效
+  const sl2 = slider(2, 100, 100, [{ x: 600, y: 100 }], 500); // 控制点已在界外
+  bm.hitObjects = [sl2];
+  const states3 = snapshotScaleStates([sl2]);
+  const r3 = applyScaleDrag(bm, [sl2], states3, { x: 1.5, y: 1.5 }, { x: 100, y: 100 }, 'both', 1, selectionScaleQuad([sl2])!);
+  assert(r3.changed && sl2.curvePoints![0].x === 850, `Begin 越界仍可缩放 (${sl2.curvePoints![0].x})`);
+  // 关闭「限制物件在游玩区域内」: 不钳制
+  const sl3 = slider(3, 100, 100, [{ x: 200, y: 100 }], 100);
+  bm.hitObjects = [sl3];
+  const states4 = snapshotScaleStates([sl3]);
+  const r4 = applyScaleDrag(bm, [sl3], states4, { x: 10, y: 10 }, { x: 100, y: 100 }, 'both', 1, selectionScaleQuad([sl3])!, false);
+  assert(r4.changed && sl3.curvePoints![0].x === 1100, `关闭限制后不钳制 (${sl3.curvePoints![0].x})`);
 }
 
 if (failures) { console.error(`\nTESTS_V49_FAILED: ${failures} 处失败`); process.exit(1); }

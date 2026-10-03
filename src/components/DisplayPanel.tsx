@@ -24,7 +24,7 @@ const SELECT_ROWS: { key: StrDisplayKey; name: string; desc: string; options: ['
   // v231
   { key: 'sliderPointStyle', name: '滑条控制点样式 (Slider Point Style)', desc: '滑条选中/放置预览的控制点手柄外观: stable = 红/白实心小方格 (osu!stable 编辑器同款)', options: [['stable', 'stable 方格'], ['lazer', 'lazer 圆点']] },
   // v232
-  { key: 'selectionStyle', name: '物件选中效果 (Selection Style)', desc: 'stable = 皮肤 hitcircleselect 圆角选框 (滑条头/尾各一张); lazer = 滑条高亮描边环 + 青色虚线环', options: [['stable', 'stable 选框'], ['lazer', 'lazer 描边']] },
+  { key: 'selectionStyle', name: '物件选中效果 (Selection Style)', desc: 'stable = 橙黄圆环 (滑条头/尾各一环 + 蓝色边框高亮; hover 蓝环, v305 起对齐 stable 实机); lazer = 滑条高亮描边环 + 青色虚线环', options: [['stable', 'stable 圆环'], ['lazer', 'lazer 描边']] },
 ];
 
 export function DisplayPanel() {

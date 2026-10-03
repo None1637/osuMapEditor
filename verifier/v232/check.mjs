@@ -1,10 +1,9 @@
-// 验证器 v232: 物件选中效果默认 stable (皮肤 hitcircleselect.png 圆角方框选框)。
-// skin.ts: Skin 接口加 hitcircleselect (可选), SKIN_FILES 加载 hitcircleselect.png (@2x 走 fileVariants/skinScaleAdjust 既有通道),
-//          无图时程序化生成浅蓝圆角方框回退 (drawHitcircleSelect, 256px/线宽~12/圆角~40);
+// 验证器 v232: 物件选中效果默认 stable。
+// v305 修正 (F03): 用户对比 stable 实机截图确认 — stable 选中是橙黄圆环 + 滑条蓝色边框高亮,
+//   不是 hitcircleselect 方框; drawSelectionBox 移除, 改 drawSelectionRing (renderer.ts);
+//   hover 未选中物件画蓝环 (EditorCanvas hoverObjRef)。皮肤 hitcircleselect 加载/回退保留 (本验证器前段仍覆盖)。
 // displaySettings 新增 selectionStyle ('stable'|'lazer', 默认 'stable', 白名单解析);
-// renderer drawSelectionDecor: lazer = 旧行为 (滑条描边环/虚线环), stable = 滑条不画描边环,
-//          改在滑条头 (x,y) 与尾 (路径终点) 各画一张 hitcircleselect, 其他物件在 (x,y) 画一张 (边长随圈半径, hiDpi 折半换算);
-// DisplayPanel 增加「物件选中效果」下拉行 (stable 选框 / lazer 描边)。
+// DisplayPanel 增加「物件选中效果」下拉行 (stable 圆环 / lazer 描边)。
 // 运行: node verifier/v232/check.mjs
 import { fileURLToPath } from 'url';
 import path from 'path';
@@ -38,24 +37,27 @@ section('renderer.ts: drawSelectionDecor 按 selectionStyle 分支');
 {
   const src = readSrc('src/osu/renderer.ts');
   assert(/const stableSel = displaySettings\.selectionStyle === 'stable';/.test(src), 'stable 分支判断');
-  assert(/if \(!stableSel\) drawSliderBodyOutline\(g, p\.points, radius\);/.test(src), 'stable 下滑条不画身体描边高亮环 (lazer 保留)');
-  assert(/const img = skin\.hitcircleselect;\s*if \(!img\) return;/.test(src), 'drawSelectionBox 读皮肤图, 无图跳过');
-  // v232 尺寸修正: 选中框与 hitcircle 族同公式 (stable 同款) — 与圆圈一样大, 取代初版 r*2.2 盒子
-  assert(/const s = r \* 2 \* hitcircleSpriteWidth\(img\) \/ 128;/.test(src), '边长 = 圈直径 2r × 贴图固有宽/128 (与圆圈一样大)');
-  {
-    const skinSrc = readSrc('src/osu/skin.ts');
-    assert(/INTRINSIC_SIZE_KEYS = new Set<keyof Skin>\(\[[\s\S]*?'hitcircleselect',/.test(skinSrc), 'hitcircleselect 登记固有宽度 (@2x 折半走既有通道)');
-  }
-  assert(/drawSelectionBox\(g, skin, o\.x, o\.y, radius\);\s*const tail = p\.points\[p\.points\.length - 1\];\s*if \(tail\) drawSelectionBox\(g, skin, tail\.x, tail\.y, radius\);/.test(src), 'stable 滑条: 头 (x,y) 与尾 (路径终点) 各画一张');
-  assert(/else if \(stableSel\) \{[\s\S]*?drawSelectionBox\(g, skin, o\.x, o\.y, radius\);[\s\S]*?\} else \{[\s\S]*?#4df3ff/.test(src), 'stable 其他物件在 (x,y) 画一张; lazer 保留青色虚线环');
+  // v305: F03 — 用户对比 stable 截图确认选中是圆环/边框高亮而非 hitcircleselect 方框, drawSelectionBox 已移除
+  assert(/export function drawSelectionRing\(g: CanvasRenderingContext2D, x: number, y: number, r: number, color = '#f5a623'\)/.test(src),
+    'stable 选中 = 橙黄圆环 drawSelectionRing (v305, 取代 v232 皮肤方框)');
+  assert(/drawSliderBodyOutline\(g, p\.points, radius, stableSel \? '#4a90e2' : '#4df3ff'\)/.test(src),
+    'stable 滑条选中 = sliderborder 蓝色高亮描边 (v305)');
+  assert(/drawSelectionRing\(g, o\.x, o\.y, radius\);\s*const tail = p\.points\[p\.points\.length - 1\];\s*if \(tail\) drawSelectionRing\(g, tail\.x, tail\.y, radius\);/.test(src),
+    'stable 滑条: 头 (x,y) 与尾 (路径终点) 各画橙黄圆环 (v305)');
+  assert(/else if \(stableSel\) \{[\s\S]*?drawSelectionRing\(g, o\.x, o\.y, radius\);/.test(src), 'stable 其他物件在 (x,y) 画橙黄圆环 (v305)');
   assert(/drawSliderBodyOutline/.test(src) && /setLineDash\(\[6, 4\]\)/.test(src), 'lazer 描边环/虚线环旧行为未删');
+  {
+    const ec = readSrc('src/components/EditorCanvas.tsx');
+    assert(/drawSelectionRing\(g, ho2\.x, ho2\.y, r, '#4a90e2'\)/.test(ec), 'stable hover 未选中物件画蓝环 (v305)');
+    assert(/drawSliderBodyOutline\(g, getSliderPath\(bm, ho2\)\.points, r, '#4a90e2'\)/.test(ec), 'stable hover 滑条蓝色描边 (v305)');
+  }
 }
 
 section('DisplayPanel.tsx: 「物件选中效果」下拉行');
 {
   const src = readSrc('src/components/DisplayPanel.tsx');
   assert(/key: 'selectionStyle', name: '物件选中效果/.test(src), 'SELECT_ROWS 含物件选中效果行');
-  assert(/\['stable', 'stable 选框'\], \['lazer', 'lazer 描边'\]/.test(src), '选项 stable 选框 / lazer 描边');
+  assert(/\['stable', 'stable 圆环'\], \['lazer', 'lazer 描边'\]/.test(src), '选项 stable 圆环 / lazer 描边 (v305 改名)');
 }
 
 if (failures) { console.error(`V232 FAILED: ${failures}`); process.exit(1); }

@@ -9,7 +9,8 @@
 //  - 拖拽倍率 = 1 + 鼠标位移/包围盒对应边长; 边手柄另一轴清零; 上/左边手柄方向取反;
 //    角手柄按住 Shift 锁长宽比 (取 X/Y 均值); 缩放原点 = 手柄对角锚点, 按住 Alt 改用默认原点 (凸包最小包围圆圆心);
 //  - 多物件: 只缩放物件位置 (滑条整体移动不缩路径), 倍率先钳制使选区不出游玩区, 再整体移回界内;
-//  - 单个滑条: 控制点绕滑条头缩放 + 长度吸附节拍, 头/尾出界或路径非法则整体回滚 (不允许镜像)。
+//  - 单个滑条: 控制点绕滑条头缩放 + 长度吸附节拍 (不允许镜像);
+//    v302: F09 — 出界不再整体回滚 (整组拖不动), 改为钳制倍率让界内点留界内; 仅零长路径仍回滚。
 import type { Beatmap, HitObject } from './parser';
 import { SliderPath, getSliderPath, sliderGeometryLength, resnapSliderLength } from './sliderPath';
 
@@ -274,14 +275,33 @@ export function snapshotScaleStates(objs: HitObject[]): Map<number, ScaleObjectS
 export function applyScaleDrag(
   bm: Beatmap, objs: HitObject[], states: Map<number, ScaleObjectState>,
   rawScale: Pt, origin: Pt, axis: Axis, beatSnap: number, originalQuad: Quad,
+  limitToPlayfield = true, // v302: F09 — 关闭「限制物件在游玩区域内」时不再钳制/回滚
 ): { changed: boolean; sliders: number[] } {
   const movable = objs.filter(o => o.type !== 'spinner' && states.has(o.id));
   const sliders: number[] = [];
-  // 单个滑条: 特殊分支 (lazer scaleSlider) — 控制点绕头缩放 + 节拍吸附, 出界/非法则回滚
+  // 单个滑条: 特殊分支 (lazer scaleSlider) — 控制点绕头缩放 + 节拍吸附, 路径非法则回滚
   if (movable.length === 1 && movable[0].type === 'slider') {
     const o = movable[0];
     const st = states.get(o.id)!;
-    const s = { x: Math.max(rawScale.x, 1e-6), y: Math.max(rawScale.y, 1e-6) }; // lazer: 滑条不允许镜像
+    let s = { x: Math.max(rawScale.x, 1e-6), y: Math.max(rawScale.y, 1e-6) }; // lazer: 滑条不允许镜像
+    // v302: F09 — 出界不再整体回滚 (任一锚点出界就整组拖不动): 改为钳制倍率让界内点留在界内
+    // (拖动继续, 只是到边界停住)。每点变换 = origin + (p - origin)·s (头绕原点、控制点绕头同倍率, 合并同式);
+    // 已出界的点不纳入钳制 — 否则 Begin 即越界的滑条会被强制拉回/任何倍率都压回 1 (即 F09 的卡死)
+    if (limitToPlayfield) {
+      let hiX = Infinity, hiY = Infinity;
+      for (const p of [{ x: st.x, y: st.y }, ...st.curve]) {
+        const dX = p.x - origin.x, dY = p.y - origin.y;
+        if (p.x >= 0 && p.x <= PW) { // 仅当前界内的点约束 (防越界点把倍率压回)
+          if (dX > 1e-9) hiX = Math.min(hiX, (PW - origin.x) / dX);
+          else if (dX < -1e-9) hiX = Math.min(hiX, (0 - origin.x) / dX);
+        }
+        if (p.y >= 0 && p.y <= PH) {
+          if (dY > 1e-9) hiY = Math.min(hiY, (PH - origin.y) / dY);
+          else if (dY < -1e-9) hiY = Math.min(hiY, (0 - origin.y) / dY);
+        }
+      }
+      s = { x: clamp(s.x, 1e-6, Math.max(1e-6, hiX)), y: clamp(s.y, 1e-6, Math.max(1e-6, hiY)) };
+    }
     const head = scaledPosition(s, origin, { x: st.x, y: st.y });
     o.x = Math.round(head.x); o.y = Math.round(head.y);
     // 绝对坐标: 控制点 = 新头 + (原控制点 - 原头) * s (lazer: 相对控制点绕零缩放, 头绕原点缩放)
@@ -291,11 +311,10 @@ export function applyScaleDrag(
     }));
     resnapSliderLength(bm, o, beatSnap); // lazer SnapTo: 长度按新几何吸附节拍
     sliders.push(o.id);
-    // 头/控制点出游玩区或路径长度非法 -> 整体回滚 (lazer isQuadInBounds + HasValidLengthForPlacement)
+    // 路径长度非法 (零长) 仍回滚 (lazer HasValidLengthForPlacement); 出界由上方钳制处理不再回滚
     const pts = [{ x: o.x, y: o.y }, ...(o.curvePoints ?? [])];
-    const inBounds = pts.every(p => p.x >= 0 && p.x <= PW && p.y >= 0 && p.y <= PH);
     const validLen = sliderGeometryLength(o.curveType ?? 'L', pts) > 0;
-    if (inBounds && validLen) return { changed: true, sliders };
+    if (validLen) return { changed: true, sliders };
     o.x = st.x; o.y = st.y;
     o.curvePoints = st.curve.map(p => ({ ...p }));
     o.length = st.length;
@@ -303,7 +322,8 @@ export function applyScaleDrag(
     return { changed: false, sliders };
   }
   // 多物件: 钳制到游玩区 -> 缩放位置 (滑条整体移动, 不缩路径) -> 越界整体移回
-  const s = clampScaleToPlayfield(rawScale, origin, originalQuad, axis); // lazer: 钳制用 Begin 时的 OriginalSurroundingQuad
+  const s = limitToPlayfield ? clampScaleToPlayfield(rawScale, origin, originalQuad, axis) : // lazer: 钳制用 Begin 时的 OriginalSurroundingQuad
+    { x: axis === 'y' ? 1 : rawScale.x, y: axis === 'x' ? 1 : rawScale.y }; // v302: 关闭限制时不钳制
   let changed = false;
   for (const o of movable) {
     const st = states.get(o.id)!;
@@ -318,18 +338,20 @@ export function applyScaleDrag(
     }
   }
   // moveSelectionInBounds: 新包围盒越界则整体平移回界内 (lazer: startAndEndOnly — 只算头 + 滑条尾, v51)
-  const nq = selectionStartEndQuad(movable);
-  if (nq) {
-    let dx = 0, dy = 0;
-    if (nq.x < 0) dx -= nq.x;
-    if (nq.y < 0) dy -= nq.y;
-    if (nq.x + nq.w > PW) dx -= nq.x + nq.w - PW;
-    if (nq.y + nq.h > PH) dy -= nq.y + nq.h - PH;
-    if (dx || dy) {
-      changed = true;
-      for (const o of movable) {
-        o.x += dx; o.y += dy;
-        o.curvePoints?.forEach(p => { p.x += dx; p.y += dy; });
+  if (limitToPlayfield) {
+    const nq = selectionStartEndQuad(movable);
+    if (nq) {
+      let dx = 0, dy = 0;
+      if (nq.x < 0) dx -= nq.x;
+      if (nq.y < 0) dy -= nq.y;
+      if (nq.x + nq.w > PW) dx -= nq.x + nq.w - PW;
+      if (nq.y + nq.h > PH) dy -= nq.y + nq.h - PH;
+      if (dx || dy) {
+        changed = true;
+        for (const o of movable) {
+          o.x += dx; o.y += dy;
+          o.curvePoints?.forEach(p => { p.x += dx; p.y += dy; });
+        }
       }
     }
   }

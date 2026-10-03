@@ -76,7 +76,7 @@ section('electronMenu.ts: 编辑命令分发');
   assert(/case 'edit-open-rotate': store\.openTransformDialog\('rotate'\)/.test(src), '旋转... → 旋转窗口');
   assert(/case 'edit-open-scale': store\.openTransformDialog\('scale'\)/.test(src), '缩放... → 缩放窗口');
   assert(/case 'edit-paste': store\.paste\(store\.currentTime\)/.test(src), '粘贴到当前时间');
-  assert(/case 'edit-rot-cw': store\.rotateSelected\(90, 'playfield'\)/.test(src), '旋转90° 围绕游玩区中心 (与快捷键一致)');
+  assert(/case 'edit-rot-cw': store\.nodeSelectionCount \? store\.rotateSelectedNodes\(90\) : store\.rotateSelected\(90, 'playfield'\)/.test(src), '旋转90° 围绕游玩区中心 (与快捷键一致; v304 起节点选区优先)');
 }
 
 section('App.tsx: 快捷键 + 状态上报 + 窗口挂载');
@@ -101,8 +101,9 @@ section('TransformDialog.tsx: 旋转/缩放窗口 (复制左侧栏变换功能)'
   const src = readSrc('src/components/TransformDialog.tsx');
   assert(/DraggableDialog/.test(src), '可拖动窗口');
   assert(/store\.setOriginMode\(m\)/.test(src) && /originMode === 'custom'/.test(src), '原点选择 (选区/中心/自定义) 复制');
-  assert(/store\.rotateSelected\(-Math\.abs\(angle\), origin\)/.test(src) && /store\.rotateSelected\(Math\.abs\(angle\), origin\)/.test(src), '逆/顺时针旋转按钮');
-  assert(/store\.scaleSelected\(factor, factorY, origin\)/.test(src), '缩放应用按钮 (v282 起双轴)');
+  // v301: 按钮改走预览提交 (commitTransformPreview), 语义不变 (±|angle| / 双轴倍率)
+  assert(/commit\(\(objs, c\) => rotateObjects\(objs, c, -Math\.abs\(angle\)\)\)/.test(src) && /commit\(\(objs, c\) => rotateObjects\(objs, c, Math\.abs\(angle\)\)\)/.test(src), '逆/顺时针旋转按钮 (v301 起预览提交)');
+  assert(/commit\(\(objs, c\) => scaleObjects\(objs, c, factor, factorY\)\)/.test(src), '缩放应用按钮 (v282 起双轴; v301 起预览提交)');
 }
 
 if (failures) { console.error(`V209 FAILED: ${failures}`); process.exit(1); }

@@ -63,8 +63,10 @@ section('renderer.ts: 离屏超采样抗锯齿 (按主画布 dpr*scale 高分绘
   const src = readSrc('src/osu/renderer.ts');
   assert(src.includes('g.getTransform().a'), '超采样倍数取主画布当前变换 (dpr*scale)');
   assert(src.includes('g.scale(q, q)'), '离屏按 q 倍放大坐标系绘制');
-  assert(src.includes('Math.min(4, Math.max(1, ss))'), '超采样倍数钳制 [1,4]');
-  assert(src.includes('${q.toFixed(2)}'), '缓存 key 含超采样倍数 (缩放变化重新合成)');
+  // v301: q 按 MAX_DIM/MAX_AREA 收紧 (F07 超长滑条位图防爆); v306: 改 min(4, max(1,ss,0.005), 上限项)
+  //   上限永远优先 (v148 末端延长数十万 px 时原 0.05 下限会顶破 MAX_AREA); 上限仍为 4
+  assert(src.includes('Math.min(4, Math.max(1, ss, 0.005), MAX_DIM / w, MAX_DIM / h'), '超采样倍数上限 4, 并按位图尺寸上限收紧 (v301/v306)');
+  assert(src.includes('${q.toFixed(3)}'), '缓存 key 含超采样倍数 (缩放变化重新合成; v301 精度 3 位)');
   assert(src.includes('g.drawImage(body.c, body.dx, body.dy, body.w, body.h)'), 'drawImage 缩回 osu 坐标矩形');
 }
 

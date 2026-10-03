@@ -19,7 +19,7 @@ assert((r.match(/v259/g) ?? []).length >= 2, 'renderer v259 注释在');
 
 const ec = fs.readFileSync(path.join(root, 'src/components/EditorCanvas.tsx'), 'utf8');
 assert(/hoverSliderRef = useRef<number \| null>\(null\)/.test(ec), 'hoverSliderRef 存在');
-assert(/drawSliderControlPoints } from '@\/osu\/renderer'/.test(ec) || /drawPendingSpinner, drawSliderControlPoints\}/.test(ec), 'EditorCanvas 引入 drawSliderControlPoints');
+assert(/drawPendingSpinner, drawSliderControlPoints, drawSelectionRing, drawSliderBodyOutline \}/.test(ec), 'EditorCanvas 引入 drawSliderControlPoints (v305 起同引入 drawSelectionRing/drawSliderBodyOutline)');
 assert(/hit\.type === 'slider' && !store\.selected\.has\(hit\.id\) \? hit\.id : null/.test(ec), 'hover 仅记录未选中滑条');
 assert(/store\.tool === 'select' && bm && !store\.canvasDragging/.test(ec), 'hover 仅选择工具非拖拽时更新');
 assert(/hoverSliderRef\.current = null; \/\/ v259/.test(ec), '出画布清 hover');

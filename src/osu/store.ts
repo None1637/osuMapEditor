@@ -17,6 +17,7 @@ import { reportMenuState, reportDirtyState } from './electronMenu';
 import { getElectronAPI } from './electronBridge'; // v185: 谱面备份 IPC
 import { defaultNewPoint, effectivePointAt, activePointAt, snapTimeToRedBeat, metronomeBeats } from './timingEdit'; // v156
 import { resnapSliderLength } from './sliderPath'; // v156: 重新计算滑条长度
+import { snapshotNodes, withRedPartners, transformNodesFromSnapshot } from './nodeSelection'; // v304: F08 节点选区快捷键变换
 import { setDisplayFlag as applyDisplayFlag, setDisplayNumber as applyDisplayNumber, setDisplayString as applyDisplayString, type BoolDisplayKey, type DisplaySettings, type StrDisplayKey } from './displaySettings'; // v132: 显示设置
 import { setVolume as applyVolume, musicGain, effectsGain, type VolumeSettings } from './volumeSettings'; // v144: 音量设置
 import { dirtyFingerprint } from './dirtyFingerprint'; // v140: 脏标记内容指纹
@@ -1502,6 +1503,97 @@ class EditorStore {
     // v282: 支持 scaleSelected(sx, sy, origin) 非等比; 兼容旧调用 scaleSelected(s, origin)
     if (typeof sy !== 'number') { origin = sy; sy = sx; }
     if (sx > 0 && sy > 0) this.applyTransform((objs, c) => scaleObjects(objs, c, sx, sy as number), origin);
+  }
+
+  // ---- v301: 旋转/缩放窗口实时预览 (F05a) ----
+  // 预览会话: begin 备份选中物件几何 → 改值时 previewTransform 先回滚备份再按当前参数变换
+  //   (预览相对基准不叠加, 原点也从备份态解析) → commit 回滚+pushUndo(预览前)+正式应用并重置基准
+  //   → end(false) 回滚到最后提交态。预览全程不碰 undo 栈。
+  private tfBackup: Map<number, { x: number; y: number; length?: number; curvePoints?: HitObject['curvePoints'] }> | null = null;
+
+  beginTransformPreview() {
+    this.tfBackup = new Map(this.selectedObjects().map(o => [o.id,
+      { x: o.x, y: o.y, length: o.length, curvePoints: deepCopy(o.curvePoints) }]));
+  }
+
+  private restoreTransformBackup() {
+    if (!this.tfBackup || !this.beatmap) return;
+    for (const o of this.beatmap.hitObjects) {
+      const b = this.tfBackup.get(o.id);
+      if (!b) continue;
+      o.x = b.x; o.y = b.y; o.length = b.length;
+      if (o.type === 'slider') { o.curvePoints = deepCopy(b.curvePoints); invalidatePath(o.id); }
+    }
+  }
+
+  /** 实时预览: 回滚到基准后按当前参数变换 (不入 undo); 需在 beginTransformPreview 之后调用 */
+  previewTransform(fn: (objs: HitObject[], c: Pt) => HitObject[], origin: TransformOrigin = 'selection') {
+    if (this.lockNotes || !this.tfBackup) return;
+    this.restoreTransformBackup();
+    const objs = this.selectedObjects();
+    const c = this.resolveOrigin(origin, objs); // 原点按基准态选区解析 (旋转后包围盒会变)
+    if (!c) return;
+    for (const s of fn(objs, c)) invalidatePath(s.id);
+    this.emit();
+  }
+
+  /** 提交预览: undo 快照取预览前状态 (一次应用一次 undo), 随后以已提交态为新基准继续预览 */
+  commitTransformPreview(fn: (objs: HitObject[], c: Pt) => HitObject[], origin: TransformOrigin = 'selection') {
+    if (this.lockNotes || !this.tfBackup) { this.applyTransform(fn, origin); return; }
+    this.restoreTransformBackup();
+    this.pushUndo(); // 快照 = 预览前
+    const objs = this.selectedObjects();
+    const c = this.resolveOrigin(origin, objs);
+    if (c) for (const s of fn(objs, c)) invalidatePath(s.id);
+    this.emit();
+    this.beginTransformPreview();
+  }
+
+  /** 结束预览会话: 回滚到最后一次提交 (或开窗时) 的状态并清空备份 */
+  endTransformPreview() {
+    if (!this.tfBackup) return;
+    this.restoreTransformBackup();
+    this.tfBackup = null;
+    this.emit();
+  }
+
+  // ---- v304: F08 节点选区快捷键变换 (多选滑条锚点; 原点 = 选中锚点包围盒中心; 一次操作一次 undo) ----
+  private applyNodeTransform(fn: (p: Pt, c: Pt) => Pt) {
+    if (this.lockNotes || !this.beatmap || !this.selectedNodes.size) return;
+    const bm = this.beatmap;
+    const snap = snapshotNodes(bm, withRedPartners(bm, this.selectedNodes));
+    const pts: Pt[] = [];
+    for (const m of snap.values()) pts.push(...m.values());
+    if (!pts.length) return;
+    // 原点 = 锚点包围盒中心 (F08 指定)
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    for (const p of pts) {
+      if (p.x < x0) x0 = p.x; if (p.y < y0) y0 = p.y;
+      if (p.x > x1) x1 = p.x; if (p.y > y1) y1 = p.y;
+    }
+    const c = { x: (x0 + x1) / 2, y: (y0 + y1) / 2 };
+    this.pushUndo();
+    const ids = transformNodesFromSnapshot(bm, snap, p => fn(p, c));
+    for (const id of ids) {
+      const o = bm.hitObjects.find(x => x.id === id);
+      if (o) resnapSliderLength(bm, o, this.beatSnap);
+      invalidatePath(id);
+    }
+    this.emit();
+  }
+
+  /** 旋转选中锚点 (角度制, 顺时针为正; 原点 = 锚点包围盒中心) */
+  rotateSelectedNodes(deg: number) {
+    const r = (deg * Math.PI) / 180, cos = Math.cos(r), sin = Math.sin(r);
+    this.applyNodeTransform((p, c) => ({
+      x: c.x + (p.x - c.x) * cos - (p.y - c.y) * sin,
+      y: c.y + (p.x - c.x) * sin + (p.y - c.y) * cos,
+    }));
+  }
+
+  /** 镜像选中锚点: 'h' 水平 (左右) / 'v' 垂直 (上下); 原点 = 锚点包围盒中心 */
+  flipSelectedNodes(axis: 'h' | 'v') {
+    this.applyNodeTransform((p, c) => axis === 'h' ? { x: 2 * c.x - p.x, y: p.y } : { x: p.x, y: 2 * c.y - p.y });
   }
 
   /** v75: 反转选区 (lazer Ctrl+G): 多选时间镜像 + 滑条路径反向 + newCombo 时序保持; 单选非滑条无操作; 一次 undo */

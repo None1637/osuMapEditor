@@ -20,20 +20,20 @@ const src = readSrc('src/components/EditorCanvas.tsx');
 
 section('window mousemove: 画布外继续拖拽');
 {
-  assert(/else if \(\(dragRef\.current \|\| nodeDragRef\.current \|\| nodesMoveDragRef\.current\) && e\.target !== canvasRef\.current\)/.test(src), '拖拽激活 + 事件目标不在画布时接管');
+  assert(/else if \(\(dragRef\.current \|\| nodeDragRef\.current \|\| nodesMoveDragRef\.current \|\| marqueeRef\.current \|\| nodeMarqueeRef\.current\) && e\.target !== canvasRef\.current\)/.test(src), '拖拽/框选激活 + 事件目标不在画布时接管 (v302 补框选)');
   assert(/onMouseMove\(e as unknown as React\.MouseEvent\)/.test(src), '复用 onMouseMove 拖拽分支 (快照重算, 幂等)');
 }
 
 section('window mouseup: 画布外松开收尾');
 {
   const upBody = src.slice(src.indexOf('const up = (e: MouseEvent)'), src.indexOf('const move = (e: MouseEvent)'));
-  assert(/if \(dragRef\.current \|\| nodeDragRef\.current \|\| nodesMoveDragRef\.current\) onMouseUp\(\);/.test(upBody), '走 onMouseUp 同一收尾逻辑');
+  assert(/if \(dragRef\.current \|\| nodeDragRef\.current \|\| nodesMoveDragRef\.current \|\| marqueeRef\.current \|\| nodeMarqueeRef\.current\) onMouseUp\(\);/.test(upBody), '走 onMouseUp 同一收尾逻辑 (v302 补框选)');
 }
 
 section('onMouseLeave: 拖拽豁免');
 {
   const leaveBody = src.slice(src.indexOf('onMouseLeave={() => {'), src.indexOf('onDoubleClick={() => {', src.indexOf('onMouseLeave={() => {')));
-  assert(/!dragRef\.current && !nodeDragRef\.current && !nodesMoveDragRef\.current\) onMouseUp\(\)/.test(leaveBody), '物件/节点拖拽中离开画布不再终止');
+  assert(/!dragRef\.current && !nodeDragRef\.current && !nodesMoveDragRef\.current\s*\n?\s*&& !marqueeRef\.current && !nodeMarqueeRef\.current\) onMouseUp\(\)/.test(leaveBody), '物件/节点拖拽/框选中离开画布不再终止 (v302 补框选)');
   assert(/!scaleDragRef\.current && !rotateDragRef\.current && !freehandRef\.current && !drawCandRef\.current/.test(leaveBody), 'v50/v74 既有豁免保留');
 }
 
