@@ -16,10 +16,10 @@ const cv = read('src/components/EditorCanvas.tsx');
 assert(/nodeDragRef = useRef<\{[^}]*toggleRed: boolean/.test(cv), 'nodeDragRef: 新增 toggleRed 字段');
 assert(/toggleRed: e\.ctrlKey \|\| e\.metaKey/.test(cv), 'mousedown: toggleRed = 按下时 Ctrl/Meta');
 
-// mousedown: 线段插点包在 Ctrl 判定内
-assert(/v118: 按住 Ctrl 点击线段才在该线段最近点插入新白色节点[\s\S]{0,80}if \(e\.ctrlKey \|\| e\.metaKey\) \{[\s\S]{0,700}insertSliderPoint\(ctrl, best, bestT\)/.test(cv),
-  '线段插点: 仅 Ctrl+点击生效');
-assert(/if \(e\.ctrlKey \|\| e\.metaKey\) \{\s*let best = -1, bestT = 0, bestD = 6;/.test(cv), '线段命中循环整体在 Ctrl 块内 (不按 Ctrl 落到物件命中)');
+// mousedown: 插点包在 Ctrl 判定内 (v319: 对齐 lazer — 命中滑条身即插, 无线段距离上限, 原位置插入)
+assert(/v118\/v319: 按住 Ctrl 点击选中滑条 = 新增白色节点[\s\S]{0,700}if \(e\.ctrlKey \|\| e\.metaKey\) \{[\s\S]{0,1100}applySliderPoints\(so, newPts\)/.test(cv),
+  '插点: 仅 Ctrl+点击生效 (v319: lazer 原位置插入)');
+assert(/if \(e\.ctrlKey \|\| e\.metaKey\) \{\s*const onBody = hitTest\(p\.x, p\.y\)\?\.id === so\.id;/.test(cv), '命中滑条身才插点 (不按 Ctrl/点身外 落到物件命中)');
 
 // onMouseUp: 白点切红要求按下时带 Ctrl
 assert(/const next = ctrl && nd\.toggleRed && !isRedPairPoint\(ctrl, nd\.pointIndex\) \? toggleSliderPointRed/.test(cv),

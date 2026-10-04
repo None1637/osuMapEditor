@@ -236,6 +236,12 @@ export function formatCombo(combo: string): string {
   return combo.slice(0, combo.length - key.length) + k;
 }
 
+/** v321 (F21): UI 提示用 — 动作当前生效主键的展示名 (改键后界面提示同步更新) */
+export function hotkeyLabel(id: string): string {
+  const b = effectiveBindings(id)[0];
+  return b ? formatCombo(b) : '';
+}
+
 // ---- 捕获模式 (快捷键面板改键时, App.tsx 全局 keydown 不派发) ----
 let capturing = false;
 export function hotkeyCaptureActive(): boolean { return capturing; }

@@ -35,9 +35,9 @@ section('EditorCanvas.tsx: 两个落盘点都传 store.beatSnap');
 {
   const src = readSrc('src/components/EditorCanvas.tsx');
   const n = (src.match(/placementLength\(bm\.timingPoints/g) ?? []).length;
-  assert(n === 2, `finishSlider + finishFreehandSlider 两处 (实际 ${n})`);
+  assert(n === 3, `finishSlider + finishFreehandSlider + v318 幽灵滑条同公式 (实际 ${n})`);
   const m = (src.match(/bm\.editor\.distanceSpacing, store\.beatSnap\)/g) ?? []).length;
-  assert(m === 2, `两处都传 store.beatSnap (实际 ${m})`);
+  assert(m === 3, `三处都传 store.beatSnap (实际 ${m})`);
 }
 
 if (failures) { console.error(`\nVERIFIER_V95_FAILED: ${failures} 处失败`); process.exit(1); }

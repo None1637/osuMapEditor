@@ -41,9 +41,9 @@ section('PatternPanel.tsx: 收藏到当前选中分类');
 section('App.tsx: 快捷键提示更新');
 {
   const app = readSrc('src/App.tsx');
-  assert(/Ctrl\+G 反转选区/.test(app), '提示含 Ctrl+G 反转选区');
+  assert(/hotkeyLabel\('reverse'\)\} 反转选区/.test(app), '提示含反转选区 (v321: hotkeyLabel 动态)');
   assert(!/Ctrl\+G 旋转/.test(app), '旧提示 Ctrl+G 旋转 已移除');
-  assert(/Ctrl\+,\/\. 旋转90°/.test(app), '提示含 Ctrl+,/. 旋转90°');
+  assert(/hotkeyLabel\('rot-ccw'\)\}\/\{hotkeyLabel\('rot-cw'\)\} 旋转90°/.test(app), '提示含旋转90° (v321: hotkeyLabel 动态)');
 }
 
 if (failures) { console.error(`\nVERIFIER_V92_FAILED: ${failures} 处失败`); process.exit(1); }

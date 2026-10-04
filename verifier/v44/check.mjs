@@ -35,7 +35,7 @@ section('EditorCanvas.tsx: 单趟渲染 (无二次 renderPlayfield)');
   assert(/bmView = mergedWithPreview\(bm, convPrev\)/.test(src), '渲染用合并视图 bmView');
   assert(/computeCombos\(bmView\)/.test(src), 'combo 按合并视图计算');
   assert(!src.includes('pbm = { ...bm'), '无第二趟预览 renderPlayfield');
-  assert(/renderPlayfield\(\{[\s\S]{0,200}bm: bmView/.test(src), 'renderPlayfield 接收 bmView');
+  assert(/renderPlayfield\(\{[\s\S]{0,200}bm: bmRender/.test(src), 'renderPlayfield 接收 bmRender (v318: = bmView 或并入放置幽灵的合并视图)');
   assert(/__osuComboAt = \(id\)[\s\S]{0,200}computeCombos\(mergedWithPreview/.test(src), 'CDP 钩子 __osuComboAt 同管线');
 }
 

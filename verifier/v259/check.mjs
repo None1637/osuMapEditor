@@ -19,9 +19,9 @@ assert((r.match(/v259/g) ?? []).length >= 2, 'renderer v259 注释在');
 
 const ec = fs.readFileSync(path.join(root, 'src/components/EditorCanvas.tsx'), 'utf8');
 assert(/hoverSliderRef = useRef<number \| null>\(null\)/.test(ec), 'hoverSliderRef 存在');
-assert(/drawPendingSpinner, drawSliderControlPoints, drawSelectionRing, drawSliderBodyOutline \}/.test(ec), 'EditorCanvas 引入 drawSliderControlPoints (v305 起同引入 drawSelectionRing/drawSliderBodyOutline)');
+assert(/drawPendingSpinner, drawSliderControlPoints \}/.test(ec), 'EditorCanvas 引入 drawSliderControlPoints (v308 起不再引入 drawSelectionRing/drawSliderBodyOutline — hover 选中环移除)');
 assert(/hit\.type === 'slider' && !store\.selected\.has\(hit\.id\) \? hit\.id : null/.test(ec), 'hover 仅记录未选中滑条');
-assert(/store\.tool === 'select' && bm && !store\.canvasDragging/.test(ec), 'hover 仅选择工具非拖拽时更新');
+assert(/store\.tool !== 'select' \|\| !bm \|\| store\.canvasDragging/.test(ec), 'hover 仅选择工具非拖拽时更新 (v316: 收敛进 refreshHover, mousemove 与 Alt 键切换共用)');
 assert(/hoverSliderRef\.current = null; \/\/ v259/.test(ec), '出画布清 hover');
 assert(/g\.globalAlpha = 0\.75;\s*\n\s*drawSliderControlPoints\(g, ho\)/.test(ec), '渲染循环叠加 hover 控制点 (alpha 0.75)');
 

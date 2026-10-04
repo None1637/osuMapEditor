@@ -35,8 +35,8 @@ section('sliderPath.ts: 节点编辑纯函数');
 section('EditorCanvas.tsx: 三种操作接线');
 {
   const src = readSrc('src/components/EditorCanvas.tsx');
-  assert(src.includes('insertSliderPoint') && src.includes('nearestOnSegment'), '连接线段点击插入节点接线');
-  assert(/store\.pushUndo\(\); \/\/ 一次操作一次 undo[\s\S]*?insertSliderPoint|insertSliderPoint\(ctrl, best, bestT\)/.test(src), '插入节点一次 undo + 写回');
+  assert(src.includes('nearestOnSegment') && /const raw = \{ x: p\.x - odx, y: p\.y - ody \}/.test(src), '连接线段点击插入节点接线 (v319: lazer 光标原位置插入, 旧投影插点函数弃用)');
+  assert(/store\.pushUndo\(\); \/\/ 一次操作一次 undo[\s\S]{0,300}?applySliderPoints\(so, newPts\)/.test(src), '插入节点一次 undo + 写回');
   assert(src.includes('deleteSliderPoint'), '右键删除节点接线');
   assert(/onContextMenu[\s\S]*?deleteSliderPoint/.test(src), 'contextmenu 删除节点 + preventDefault');
   assert(src.includes('toggleSliderPointRed'), '点击手柄切换白/红接线');

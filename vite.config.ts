@@ -39,8 +39,8 @@ function localFsPlugin(): Plugin {
         // 收集请求体 (write 端点需要; GET 立即 end)
         const chunks: Buffer[] = []
         req.on("data", (c: Buffer) => chunks.push(c))
-        req.on("end", () => {
-          const r = handleLocalFs(req.method ?? "GET", url.pathname, url.searchParams, chunks.length ? Buffer.concat(chunks) : undefined)
+        req.on("end", async () => {
+          const r = await handleLocalFs(req.method ?? "GET", url.pathname, url.searchParams, chunks.length ? Buffer.concat(chunks) : undefined) // v323: 异步 handler
           if (!r) return next()
           res.statusCode = r.status
           res.setHeader("Content-Type", r.contentType)

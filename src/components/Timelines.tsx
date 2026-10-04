@@ -1,7 +1,7 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Pause, Play, Square, X } from 'lucide-react'; // v181: ▶/⏸/⏹/✕ → lucide (v221: 删 ⏮/⏭)
 import { store, useEditor, usePlaybackFrame } from '@/osu/store';
-import { timingAt, sliderVelocityAt, snapAcrossRedLine, type TimingPoint, type Beatmap, type HitObject } from '@/osu/parser';
+import { timingAt, sliderVelocityAt, snapAcrossRedLine, stableTimestamp, type TimingPoint, type Beatmap, type HitObject } from '@/osu/parser'; // v322: stableTimestamp (F27 跳转时间)
 import { computeCombos, comboColor, invalidatePath, mergedWithPreview, objectEndAt } from '@/osu/renderer';
 import { beatTicks, TICK_COLORS, type TickLevel } from '@/osu/beatTicks';
 import { defaultNewPoint } from '@/osu/timingEdit';
@@ -25,6 +25,15 @@ import {
 function fmt(ms: number) {
   const m = Math.floor(ms / 60000), s = Math.floor((ms % 60000) / 1000), mm = Math.floor(ms % 1000);
   return `${m}:${String(s).padStart(2, '0')}.${String(mm).padStart(3, '0')}`;
+}
+
+/** v322 (F27): stable Jump to time 解析 — "mm:ss:ms" (分钟可省 = ss:ms; ms 分隔符 : 或 . 均可); 非法返回 null */
+function parseJumpTime(s: string): number | null {
+  const m = /^\s*(?:(\d+):)?(\d{1,2})[:.](\d{1,3})\s*$/.exec(s);
+  if (!m) return null;
+  const min = m[1] ? parseInt(m[1]) : 0, sec = parseInt(m[2]), ms = parseInt(m[3]);
+  if (sec >= 60 || ms >= 1000) return null;
+  return min * 60000 + sec * 1000 + ms;
 }
 
 // v245: 药丸文本测宽缓存 — measureText 每帧每药丸一次是 CDP 实测热点; 同 font+text 宽度恒定
@@ -178,6 +187,8 @@ export function TopTimeline() {
   } | null>(null);
   // v35: 拖滑条尾端改折返次数 (stable/lazer: 时间轴拉长按整 repeat 伸缩, 单次时长不变)
   const tailResizeRef = useRef<{ objId: number; dur: number; moved: boolean } | null>(null);
+  // v320: F22 — 拖转盘右缘改 endTime (stable 同款; 吸附节拍, 最短 1 tick 与放置同源)
+  const spinnerResizeRef = useRef<{ objId: number; moved: boolean } | null>(null);
   // v45: 物件行框选 (css px 坐标; base = 按下时已有选区, Shift 追加)
   // v102: 锚定时间 (lazer TimelineDragBox: 锚边钉在 tAnchor 上, 滚动不丢); 全高度可起手;
   //       scrollAccum = 边缘滚动 ramp 累计 (lazer handleScrollViaDrag); selKey = 选区变更去抖
@@ -230,6 +241,15 @@ export function TopTimeline() {
       return;
     }
     // v35: 拖尾改折返收尾 (v79: 未拖动 = 单击尾端只弹出空快照, 不再 seek 到尾时间)
+    // v320: F22 — 转盘右缘拖拽收尾 (同 tailResize 模式: moved = 一次 undo, 未移动弹空快照)
+    const srz = spinnerResizeRef.current;
+    if (srz) {
+      spinnerResizeRef.current = null;
+      store.canvasDragging = false;
+      if (srz.moved) { store.commitDrag(); return; }
+      store.undo();
+      return;
+    }
     const tr = tailResizeRef.current;
     if (tr) {
       tailResizeRef.current = null;
@@ -678,7 +698,8 @@ export function TopTimeline() {
     return null;
   };
 
-  // v35: 滑条尾端命中 (css px 阈值, 仅滑条): 拖尾 = 改折返次数, 必须优先于 hitTestMarker (尾时间在物件时长范围内)
+  // v35: 滑条尾端命中 (css px 阈值): 拖尾 = 改折返次数, 必须优先于 hitTestMarker (尾时间在物件时长范围内)
+  // v320: F22 — 命中范围扩到转盘 (拖右缘改 endTime); 悬停 ew-resize 光标提示随之自动生效
   const hitTestTail = (e: React.MouseEvent): number | null => {
     const bm = store.beatmap;
     if (!bm) return null;
@@ -691,7 +712,7 @@ export function TopTimeline() {
     const stacks = stackInfo(bm.hitObjects); // v162
     let best: number | null = null, bestD = 8;
     for (const o of bm.hitObjects) {
-      if (o.type !== 'slider') continue;
+      if (o.type !== 'slider' && o.type !== 'spinner') continue;
       const end = objEnd(o);
       if (end < t0 || o.time > t0 + win) continue;
       const dx = ((end - t0) / win) * r.width - px;
@@ -716,6 +737,14 @@ export function TopTimeline() {
           if (tailId !== null) {
             const bm = store.beatmap!;
             const o = bm.hitObjects.find(x => x.id === tailId)!;
+            // v320: F22 — 转盘右缘 = 拖 endTime (stable 同款; 滑条仍走下方折返次数分支)
+            if (o.type === 'spinner') {
+              if (!store.selected.has(tailId)) store.select([tailId]);
+              spinnerResizeRef.current = { objId: tailId, moved: false };
+              store.beginDrag();
+              store.canvasDragging = true;
+              return;
+            }
             const vel = sliderVelocityAt(bm.timingPoints, o.time, bm.difficulty.sliderMultiplier);
             const dur = (o.length ?? 0) / vel; // 单次折返时长 (ms)
             if (dur > 0) {
@@ -813,6 +842,20 @@ export function TopTimeline() {
         onMouseMove={(e) => {
           // v102: 框选/绿线拖拽走共享移动逻辑 (选区更新在帧循环, 边缘滚动时指针不动也累积)
           if (marqueeRef.current || greenDragRef.current) { handleDragMove(zoomClientX(e.clientX), zoomClientY(e.clientY)); return; }
+          // v320: F22 — 拖转盘右缘改 endTime (吸附节拍; 最短 1 tick, 与放置 v320 同源)
+          const sr = spinnerResizeRef.current;
+          if (sr) {
+            const bm = store.beatmap;
+            const o = bm?.hitObjects.find(x => x.id === sr.objId);
+            if (!bm || !o) return;
+            const r = zoomRect(ref.current!); // v217: 布局空间
+            const win = 6000 / (bm.editor.timelineZoom || 1);
+            const ms = store.currentTime - win / 2 + ((zoomClientX(e.clientX) - r.left) / r.width) * win;
+            const { red } = timingAt(bm.timingPoints, o.time);
+            const end = Math.round(Math.max(o.time + red.beatLength / store.beatSnap, snapMs(ms)));
+            if (end !== (o.endTime ?? 0)) { o.endTime = end; sr.moved = true; store.emit(); }
+            return;
+          }
           // v35: 拖尾改折返次数 (整 repeat 伸缩, 单次时长 dur 不变)
           const tr = tailResizeRef.current;
           if (tr) {
@@ -923,7 +966,12 @@ export function TopTimeline() {
         onWheel={(e) => {
           const bm = store.beatmap;
           if (!bm) return;
-          if (e.ctrlKey) {
+          if (e.altKey) {
+            // v321 (F26): Alt+滚轮 = 调锁定间距倍率 (仅上方时间轴; 游玩区等其他位置 Alt+滚轮仍是缩放游玩区)
+            const d = e.deltaY > 0 ? -0.1 : 0.1;
+            bm.editor.distanceSpacing = Math.max(0.1, Math.min(10, Math.round(((bm.editor.distanceSpacing || 1) + d) * 100) / 100));
+            store.emit();
+          } else if (e.ctrlKey) {
             // Ctrl+滚轮: 缩放时间轴 (TimelineZoom)
             const f = e.deltaY > 0 ? 1 / 1.25 : 1.25;
             bm.editor.timelineZoom = Math.max(0.25, Math.min(8, (bm.editor.timelineZoom || 1) * f));
@@ -970,6 +1018,8 @@ export function BottomTimeline() {
   useEditor();
   usePlaybackFrame(); // v252: 播放中逐帧刷新左下角时间/百分比 (播放帧只 bump playbackFrameVersion, 不走 useEditor 的主 version, 原实现播放中时间静止不动)
   const ref = useRef<HTMLCanvasElement>(null);
+  // v322 (F27): 左下角时间点击 → 输入框 (stable Jump to time); 非 null = 打开 (值为编辑中文本)
+  const [jump, setJump] = useState<string | null>(null);
 
   useEffect(() => {
     const c = ref.current; if (!c) return;
@@ -1099,7 +1149,23 @@ export function BottomTimeline() {
     <div className="flex items-stretch gap-2 h-20 px-2 py-1.5" style={{ background: 'rgba(21,21,32,0.1)' }}>{/* v129: 背景半透明; v271: 0.4→0.25; v272: →0.1 (仍遮挡物件); v284: 固定 (开关移除) */}
       {/* v155: 左侧当前时间 + 进度百分比 (stable 底部时间轴样式; 原右侧时间显示移到此处) */}
       <div className="flex flex-col justify-center shrink-0 font-mono text-xs leading-4 select-none w-24" data-bottom-time>
-        <span className="text-white/85">{fmt(store.currentTime)}</span>
+        {/* v322 (F27): 点击时间 → stable Jump to time 输入框 (Enter 跳转 / Esc·失焦关闭; 打开即全选, 可直接 Ctrl+C 复制 "mm:ss:ms") */}
+        {jump === null ? (
+          <span className="text-white/85 cursor-pointer hover:text-cyan-300" data-jump-open
+            title="点击输入时间跳转 (mm:ss:ms); 打开后文本全选, 可直接复制"
+            onClick={() => setJump(stableTimestamp(store.currentTime))}>{fmt(store.currentTime)}</span>
+        ) : (
+          <input autoFocus data-jump-input value={jump}
+            className="w-24 -ml-1 bg-black/60 border border-cyan-400/50 rounded px-1 text-cyan-200 font-mono text-xs outline-none"
+            onChange={e => setJump(e.target.value)}
+            onFocus={e => e.target.select()}
+            onBlur={() => setJump(null)}
+            onKeyDown={e => {
+              e.stopPropagation(); // 输入框内按键不触发全局快捷键
+              if (e.key === 'Enter') { const t = parseJumpTime(jump); if (t !== null) store.seek(t); setJump(null); }
+              else if (e.key === 'Escape') setJump(null);
+            }} />
+        )}
         <span className="text-white/45">{store.songLength() > 0 ? (store.currentTime / store.songLength() * 100).toFixed(1) : '0.0'}%</span>
       </div>
       <canvas ref={ref} className="flex-1 cursor-pointer rounded border border-white/10"

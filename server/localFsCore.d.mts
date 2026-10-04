@@ -5,4 +5,4 @@ export declare function createLocalFsHandler(
   pathname: string,
   searchParams: URLSearchParams,
   body?: Buffer
-) => null | { status: number; contentType: string; body: Buffer | string };
+) => Promise<null | { status: number; contentType: string; body: Buffer | string }>;

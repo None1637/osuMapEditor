@@ -31,16 +31,20 @@ export interface WavePeaks {
   buckets: number;
 }
 
-/** 每 msPerBucket 毫秒一桶, 取所有声道采样极值 (Audition 单轨对称波形) */
+/** 每 msPerBucket 毫秒一桶, 取所有声道采样极值 (Audition 单轨对称波形)
+ *  v312: 桶边界精确换算 — 旧实现 spb = round(sr×msPerBucket/1000) 在非整除采样率下系统性漂移:
+ *        44100Hz 时 44.1→44, 每桶少算 0.1 采样, 波形相对时间轴线性拉伸 +0.227% (3:43 处 ≈508ms,
+ *        用户反馈"越往后偏越多"; 48000Hz 设备 spb=48 整数无误差, 故开发机无法复现);
+ *        改为逐采样 floor(i×k) 精确分桶 (k = msPerBucket×1000/sr), 任何采样率下零漂移 */
 export function computePeaks(buf: AudioBufferLike, msPerBucket = 1): WavePeaks {
-  const spb = Math.max(1, Math.round((buf.sampleRate * msPerBucket) / 1000)); // 每桶采样数
-  const buckets = Math.ceil(buf.length / spb);
+  const k = 1000 / (buf.sampleRate * msPerBucket); // 采样下标 → 桶号: b = floor(i*k) = floor(时间ms/msPerBucket)
+  const buckets = Math.max(1, Math.ceil(buf.length * k));
   const min = new Float32Array(buckets).fill(Infinity);
   const max = new Float32Array(buckets).fill(-Infinity);
   for (let ch = 0; ch < buf.numberOfChannels; ch++) {
     const d = buf.getChannelData(ch);
     for (let i = 0; i < d.length; i++) {
-      const b = (i / spb) | 0;
+      const b = (i * k) | 0;
       const v = d[i];
       if (v < min[b]) min[b] = v;
       if (v > max[b]) max[b] = v;

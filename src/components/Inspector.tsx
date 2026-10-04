@@ -6,6 +6,7 @@ import { parseHitSample, hitSampleFilename } from '@/osu/clock/hitSounds';
 import { computeMerge } from '@/osu/convert/merge';
 import { sliderToBezierSegments, segmentsToPoints } from '@/osu/convert/bezierPath';
 import { genId, type HitObject } from '@/osu/parser';
+import { hotkeyLabel } from '@/osu/hotkeys'; // v321 (F21): 快捷键提示随改键同步
 
 // 选中物件属性编辑
 
@@ -96,10 +97,10 @@ export function Inspector() {
       </div>
       <div className="flex items-center gap-1 flex-wrap">
         <span className="text-white/50">镜像</span>
-        <Btn label={<><FlipHorizontal2 className="inline-block w-3.5 h-3.5 mr-0.5 -mt-0.5" />水平 (Ctrl+H)</>} title="水平镜像" onClick={() => store.flipSelected('h', origin)} />
-        <Btn label={<><FlipVertical2 className="inline-block w-3.5 h-3.5 mr-0.5 -mt-0.5" />垂直 (Ctrl+J)</>} title="垂直镜像" onClick={() => store.flipSelected('v', origin)} />
+        <Btn label={<><FlipHorizontal2 className="inline-block w-3.5 h-3.5 mr-0.5 -mt-0.5" />水平 ({hotkeyLabel('flip-h')})</>} title="水平镜像" onClick={() => store.flipSelected('h', origin)} />
+        <Btn label={<><FlipVertical2 className="inline-block w-3.5 h-3.5 mr-0.5 -mt-0.5" />垂直 ({hotkeyLabel('flip-v')})</>} title="垂直镜像" onClick={() => store.flipSelected('v', origin)} />
       </div>
-      <div className="text-white/35">快捷键 Ctrl+,/. 旋转90°, Ctrl+H/J 镜像, 围绕游玩区中心 (stable 同款); 上方按钮用所选原点; Ctrl+G 反转 (lazer 同款)</div>
+      <div className="text-white/35">快捷键 {hotkeyLabel('rot-ccw')}/{hotkeyLabel('rot-cw')} 旋转90°, {hotkeyLabel('flip-h')}/{hotkeyLabel('flip-v')} 镜像, 围绕游玩区中心 (stable 同款); 上方按钮用所选原点; {hotkeyLabel('reverse')} 反转 (lazer 同款)</div>
     </div>
   );
 
@@ -226,7 +227,7 @@ export function Inspector() {
           <div className="flex gap-1.5 flex-wrap">
             <button data-conv-open="polygon" onClick={() => store.openConversion('polygon')}
               className="px-2 py-1 rounded bg-white/10 hover:bg-white/20 border border-white/15">
-              多边形生成 (Ctrl+Shift+D)
+              多边形生成 ({hotkeyLabel('polygon')})
             </button>
             <button data-conv-open="duplicate" onClick={() => store.openConversion('duplicate')}
               disabled={!sel.length}
@@ -314,7 +315,7 @@ export function Inspector() {
         <div className="flex gap-1.5 flex-wrap">
           <button data-conv-open="polygon" onClick={() => store.openConversion('polygon')}
             className="px-2 py-1 rounded bg-white/10 hover:bg-white/20 border border-white/15">
-            多边形生成 (Ctrl+Shift+D)
+            多边形生成 ({hotkeyLabel('polygon')})
           </button>
           <button data-conv-open="duplicate" onClick={() => store.openConversion('duplicate')}
             className="px-2 py-1 rounded bg-white/10 hover:bg-white/20 border border-white/15">

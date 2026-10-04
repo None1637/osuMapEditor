@@ -14,15 +14,17 @@ let failures = 0;
 function assert(cond, msg) { if (!cond) { failures++; console.error('  FAIL:', msg); } else console.log('  ok:', msg); }
 
 const ec = fs.readFileSync(path.join(root, 'src/components/EditorCanvas.tsx'), 'utf8');
-const altLayer = ec.match(/if \(e\.altKey && !store\.lockNotes\) \{[\s\S]{0,1100}?\n      \}/)?.[0] ?? '';
-assert(/store\.toggleSelectedNode\(hitNode\.objId, hitNode\.idx\); \/\/ v266: 加选\/取消单个节点/.test(altLayer), 'Alt+点击 = 纯切换节点选中');
+const altLayer = ec.match(/if \(e\.altKey && !store\.lockNotes\) \{[\s\S]{0,2600}?\n      \}/)?.[0] ?? ''; // v309: 窗口 1100→1800; v316: F18b 候选修正 (选中/已选节点滑条), 窗口 1800→2600
+// v309: 单击切换升级为红锚点重复对整对切换 (原只切 nearestNode 返回的单个下标, 框选选中的红锚点永远取消不掉)
+assert(/v309: 红锚点重复对视为整体切换/.test(altLayer) && /store\.toggleSelectedNode\(hitNode\.objId, hitNode\.idx\)/.test(altLayer), 'Alt+点击 = 切换节点选中 (v309: 红锚点整对)');
 assert(!/beginDrag/.test(altLayer), 'Alt 层不再开始拖动 (无 beginDrag)');
 assert(!/setSelectedNodes\(\[\[hitNode/.test(altLayer), 'Alt+点击不再重置选区');
 assert(/nodeMarqueeRef\.current = \{/.test(altLayer), 'Alt+空白节点框选保留');
 
-const grp = ec.match(/v266: 普通拖拽已选滑条点[\s\S]{0,1300}?\n      \}/)?.[0] ?? ''; // v273 适配: 中间插入一行注释, 窗口 900→1300
+const grp = ec.match(/v266: 普通拖拽已选滑条点[\s\S]{0,2600}?\n      \}/)?.[0] ?? ''; // v309: 黄框内按下整组拖代码变长, 窗口 1300→2600
 assert(/store\.nodeSelectionCount && !e\.shiftKey && !e\.ctrlKey && !e\.metaKey/.test(grp), '普通 (无修饰键) 拖拽才拦截');
-assert(/store\.selectedNodes\.get\(hitNode\.objId\)\?\.has\(hitNode\.idx\)/.test(grp), '仅命中已选节点才整组拖');
+// v309: 命中已选节点 或 按下点在节点黄框 dq 内 → 整组拖 (原: 仅锚点命中; 框内按下会清节点选区转物件拖拽)
+assert(/insideNode \|\| insideBox/.test(grp) && /nbox\.dq\.x/.test(grp), '命中已选节点或黄框内按下即整组拖 (v309)');
 assert(/nodesMoveDragRef\.current = \{/.test(grp) && /beginDrag/.test(grp), '整组移动走 nodesMoveDragRef + beginDrag');
 
 if (failures) { console.error(`\nV266_FAILED: ${failures} 处失败`); process.exit(1); }

@@ -48,7 +48,7 @@ section('App.tsx: Ctrl+S + 反馈 UI');
   assert(/case 'save': e\.preventDefault\(\); store\.save\(\)/.test(src), 'Ctrl+S 快捷键 (v286 注册表派发)');
   assert(/data-save-message/.test(src) && /store\.saveMessage/.test(src), '保存反馈 (v81 起在右上角标题前缀)');
   assert(!/导出 \.osu<\/button>/.test(src), 'v81: 独立导出按钮已删除 (下载兜底仍在 store.save 内)');
-  assert(/Ctrl\+S 保存谱面/.test(src), '快捷键帮助');
+  assert(/\{hotkeyLabel\('save'\)\} 保存谱面/.test(src), '快捷键帮助 (v321: 经 hotkeyLabel 动态)');
 }
 
 section('SongLibrary.tsx: 载入记录来源');
@@ -60,7 +60,7 @@ section('SongLibrary.tsx: 载入记录来源');
 section('服务器 write 端点: core + vite + electron + 类型声明');
 {
   const core = readSrc('server/localFsCore.mjs');
-  assert(/\/api\/local-fs\/write/.test(core) && /fs\.writeFileSync\(abs, body\)/.test(core), 'write 端点写文件');
+  assert(/\/api\/local-fs\/write/.test(core) && /await fs\.promises\.writeFile\(abs, body\)/.test(core), 'write 端点写文件 (v323: 异步化)');
   assert(core.indexOf('!abs.startsWith(rootAbs + path.sep)') < core.indexOf('/api/local-fs/write'), '越界防护在 write 之前生效');
   const vite = readSrc('vite.config.ts');
   assert(/req\.on\("data"/.test(vite) && /Buffer\.concat\(chunks\)/.test(vite), 'vite 中间件收集请求体');

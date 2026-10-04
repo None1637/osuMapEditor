@@ -16,7 +16,7 @@ import { GeoSnapPanel } from '@/components/GeoSnapPanel';
 import { DisplayPanel } from '@/components/DisplayPanel'; // v132: 显示设置面板
 import { HotkeyPanel } from '@/components/HotkeyPanel'; // v286: 快捷键设置面板 (自定义改键)
 import { TestPlayOverlay } from '@/components/TestPlayOverlay'; // v287: 测试游玩覆盖层 (lazer EditorPlayer)
-import { findHotkeyAction, hotkeyCaptureActive } from '@/osu/hotkeys'; // v286: 快捷键注册表派发
+import { findHotkeyAction, hotkeyCaptureActive, hotkeyLabel } from '@/osu/hotkeys'; // v286: 快捷键注册表派发; v321: hotkeyLabel (F21 提示动态化)
 import { MenuBar } from '@/components/MenuBar'; // v280: 应用内菜单栏 (hideTitleBar 时)
 import { VolumePanel } from '@/components/VolumePanel'; // v144: 音量设置面板
 import { PatternPanel } from '@/components/PatternPanel';
@@ -41,12 +41,12 @@ import { TransformDialog } from '@/components/TransformDialog'; // v209: 旋转/
 import { FpsCounter } from '@/components/FpsCounter'; // v220: 右下角帧数显示
 import { displaySettings } from '@/osu/displaySettings'; // v253: 帧数显示开关
 
-// v191: 工具按钮文本前加 Lucide 图标
-const TOOLS: { id: Tool; label: string; key: string; icon: typeof MousePointer2 }[] = [
-  { id: 'select', label: '选择', key: '1', icon: MousePointer2 },
-  { id: 'circle', label: '单点', key: '2', icon: Circle },
-  { id: 'slider', label: '滑条', key: '3', icon: Spline },
-  { id: 'spinner', label: '转盘', key: '4', icon: Disc },
+// v191: 工具按钮文本前加 Lucide 图标; v321 (F21): key 改为动作 id, 展示名经 hotkeyLabel 动态取 (改键同步)
+const TOOLS: { id: Tool; label: string; action: string; icon: typeof MousePointer2 }[] = [
+  { id: 'select', label: '选择', action: 'tool-select', icon: MousePointer2 },
+  { id: 'circle', label: '单点', action: 'tool-circle', icon: Circle },
+  { id: 'slider', label: '滑条', action: 'tool-slider', icon: Spline },
+  { id: 'spinner', label: '转盘', action: 'tool-spinner', icon: Disc },
 ];
 
 // v223: 游玩区平移/缩放数值输入 — 局部文本态 (同 GridSpacingInput): 未聚焦显示 store 值 (中键拖动时实时刷新),
@@ -244,6 +244,14 @@ export default function App() {
       if (showLibrary || showSkin || testPlay) return;
       if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return;
       if (hotkeyCaptureActive()) return; // v286: 改键捕获中不派发
+      // v321 (F26): Shift+数字 1..8 = 直接设节拍细分 (stable 同款; 用 e.code 防 Shift 变换键符如 '!';
+      // 必须先于 findHotkeyAction — 其 Shift 松弛匹配会把 Shift+1 误判成 tool-select)
+      if (e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && /^Digit[1-8]$/.test(e.code)) {
+        const n = BEAT_SNAP_OPTIONS[parseInt(e.code.slice(5)) - 1];
+        if (n !== undefined && store.beatSnap !== n) { store.beatSnap = n; store.emit(); }
+        e.preventDefault();
+        return;
+      }
       const id = findHotkeyAction(e);
       if (!id) return;
       switch (id) {
@@ -527,7 +535,7 @@ export default function App() {
               <button key={t.id}
                 onClick={() => { store.tool = t.id; store.pendingSlider = []; store.pendingSpinner = null; store.emit(); }}
                 className={`w-full text-left px-3 py-1.5 rounded ${store.tool === t.id ? 'bg-pink-500 font-bold' : 'bg-white/10 hover:bg-white/20'}`}>
-                <t.icon className="inline-block w-4 h-4 mr-1.5 -mt-0.5" />{t.label} <span className="opacity-50 text-xs">{t.key}</span>
+                <t.icon className="inline-block w-4 h-4 mr-1.5 -mt-0.5" />{t.label} <span className="opacity-50 text-xs">{hotkeyLabel(t.action)}</span>
               </button>
             ))}
           </div>
@@ -601,7 +609,7 @@ export default function App() {
             </button>
             <select value={store.gridType} data-grid-input="type"
               onChange={e => {
-                store.gridType = e.target.value as 'square' | 'triangle' | 'circle' | 'none'; // v119: none = 无网格
+                store.setGridType(e.target.value as 'square' | 'triangle' | 'circle' | 'none'); // v119: none = 无网格; v321 (F25): setter 内持久化
                 const period = rotationPeriod(store.gridType); // lazer: 切换类型按周期归一旋转 (正方形 ±45, 三角形 ±30)
                 if (period !== null) store.setGridRotation(normalizeRotation(store.gridRotation, period)); // v278: 走 setter 持久化
                 store.emit();
@@ -693,8 +701,8 @@ export default function App() {
           <div className="h-px bg-white/15 mx-1 my-0.5" />
           {/* 历史 */}
           <div className="flex gap-1.5">
-            <button onClick={() => store.undo()} disabled={!store.canUndo} className="flex-1 px-2 py-1.5 rounded bg-white/10 hover:bg-white/20 disabled:opacity-30" title="Ctrl+Z"><Undo2 className="inline-block w-4 h-4 mr-1 -mt-0.5" />撤销</button>
-            <button onClick={() => store.redo()} disabled={!store.canRedo} className="flex-1 px-2 py-1.5 rounded bg-white/10 hover:bg-white/20 disabled:opacity-30" title="Ctrl+Y"><Redo2 className="inline-block w-4 h-4 mr-1 -mt-0.5" />重做</button>
+            <button onClick={() => store.undo()} disabled={!store.canUndo} className="flex-1 px-2 py-1.5 rounded bg-white/10 hover:bg-white/20 disabled:opacity-30" title={hotkeyLabel('undo')}><Undo2 className="inline-block w-4 h-4 mr-1 -mt-0.5" />撤销</button>
+            <button onClick={() => store.redo()} disabled={!store.canRedo} className="flex-1 px-2 py-1.5 rounded bg-white/10 hover:bg-white/20 disabled:opacity-30" title={hotkeyLabel('redo')}><Redo2 className="inline-block w-4 h-4 mr-1 -mt-0.5" />重做</button>
           </div>
         </div>
 
@@ -716,34 +724,35 @@ export default function App() {
                   放置工具下按 Q/W/E/R 预设下次放下物件的 NC (仅一次, 放置后复位) 与音效 (保持) */}
               <div className="px-3 py-2 text-[11px] text-white/45 flex gap-x-2 flex-wrap border-b border-white/10" title="放置态: 放置工具下按 Q/W/E/R 预设下次放下物件的 New Combo (仅一次, 放置后复位) 与音效 (保持)">
                 放置
-                <span className={store.placeNewCombo ? 'text-pink-300 font-bold' : ''}>NC(Q)</span>
-                <span className={(store.placeHitSound & 2) ? 'text-pink-300 font-bold' : ''}>口哨(W)</span>
-                <span className={(store.placeHitSound & 4) ? 'text-pink-300 font-bold' : ''}>Finish(E)</span>
-                <span className={(store.placeHitSound & 8) ? 'text-pink-300 font-bold' : ''}>拍手(R)</span>
+                <span className={store.placeNewCombo ? 'text-pink-300 font-bold' : ''}>NC({hotkeyLabel('hs-newcombo')})</span>
+                <span className={(store.placeHitSound & 2) ? 'text-pink-300 font-bold' : ''}>口哨({hotkeyLabel('hs-whistle')})</span>
+                <span className={(store.placeHitSound & 4) ? 'text-pink-300 font-bold' : ''}>Finish({hotkeyLabel('hs-finish')})</span>
+                <span className={(store.placeHitSound & 8) ? 'text-pink-300 font-bold' : ''}>拍手({hotkeyLabel('hs-clap')})</span>
               </div>
               <Inspector />
               <div className="p-3 text-xs text-white/40 space-y-1 border-t border-white/10">
                 <div className="font-bold text-white/60">快捷键</div>
                 <div>右上角「快捷键」按钮可自定义改键</div>
-                <div>空格 播放/暂停</div>
-                <div>1-4 切换工具</div>
-                <div>Ctrl+C/V 复制/粘贴</div>
-                <div>Ctrl+Z/Y 撤销/重做</div>
-                <div>Ctrl+S 保存谱面</div>
-                <div>Ctrl+B 添加书签 · Ctrl+Shift+B 删除书签</div>
-                <div>↑/↓ 跳到前/后一条书签</div>
-                <div>Del 删除所选</div>
+                {/* v321 (F21): 提示全部经 hotkeyLabel 取当前生效绑定, 改键后同步 */}
+                <div>{hotkeyLabel('play-pause')} 播放/暂停</div>
+                <div>{TOOLS.map(t => hotkeyLabel(t.action)).join('/')} 切换工具</div>
+                <div>{hotkeyLabel('copy')}/{hotkeyLabel('paste')} 复制/粘贴</div>
+                <div>{hotkeyLabel('undo')}/{hotkeyLabel('redo')} 撤销/重做</div>
+                <div>{hotkeyLabel('save')} 保存谱面</div>
+                <div>{hotkeyLabel('bookmark-add')} 添加书签 · {hotkeyLabel('bookmark-remove')} 删除书签</div>
+                <div>{hotkeyLabel('bookmark-prev')}/{hotkeyLabel('bookmark-next')} 跳到前/后一条书签</div>
+                <div>{hotkeyLabel('delete')} 删除所选</div>
                 <div>空白处拖拽 框选 (Shift 追加)</div>
                 <div>Ctrl+点击物件 添加/移除选中</div>
-                <div>Ctrl+G 反转选区 (时间镜像+路径反向)</div>
-                <div>Ctrl+,/. 旋转90° (逆/顺时针, 游玩区中心)</div>
-                <div>Ctrl+H/J 水平/垂直镜像 (游玩区中心)</div>
-                <div>Q/W/E/R 新Combo/Whistle/Finish/Clap</div>
-                <div>J/K 选中物件前移/后移一个吸附</div>
-                <div>V 跳到最后一个物件</div>
+                <div>{hotkeyLabel('reverse')} 反转选区 (时间镜像+路径反向)</div>
+                <div>{hotkeyLabel('rot-ccw')}/{hotkeyLabel('rot-cw')} 旋转90° (逆/顺时针, 游玩区中心)</div>
+                <div>{hotkeyLabel('flip-h')}/{hotkeyLabel('flip-v')} 水平/垂直镜像 (游玩区中心)</div>
+                <div>{hotkeyLabel('hs-newcombo')}/{hotkeyLabel('hs-whistle')}/{hotkeyLabel('hs-finish')}/{hotkeyLabel('hs-clap')} 新Combo/Whistle/Finish/Clap</div>
+                <div>{hotkeyLabel('nudge-time-prev')}/{hotkeyLabel('nudge-time-next')} 选中物件前移/后移一个吸附</div>
+                <div>{hotkeyLabel('jump-last')} 跳到最后一个物件</div>
                 <div>滚轮 按节拍移动时间</div>
-                <div>←/→ 按节拍移动时间 (Shift 4拍)</div>
-                <div>Ctrl+←/→ 跳到上/下个物件</div>
+                <div>{hotkeyLabel('seek-left')}/{hotkeyLabel('seek-right')} 按节拍移动时间 (Shift 4拍)</div>
+                <div>{hotkeyLabel('ctrl-left')}/{hotkeyLabel('ctrl-right')} 跳到上/下个物件</div>
                 <div>选中滑条后可拖拽白色节点编辑形状</div>
               </div>
             </div>

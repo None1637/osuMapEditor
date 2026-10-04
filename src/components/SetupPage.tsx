@@ -9,7 +9,7 @@ export function SetupPage() {
   const upd = (fn: () => void) => { store.pushUndo(); fn(); store.emit(); };
 
   const Text = ({ label, value, onChange, hint }: { label: string; value: string; onChange: (v: string) => void; hint?: string }) => (
-    <label className="flex items-center gap-2 text-xs text-white/70">
+    <label className="flex items-center gap-2 text-sm text-white/70"> {/* v321 (F23): 基础字号 xs→sm */}
       <span className="w-44 shrink-0">{label}</span>
       <input type="text" value={value} onChange={e => onChange(e.target.value)}
         className="flex-1 bg-black/40 border border-white/15 rounded px-2 py-1 text-white" />
@@ -17,7 +17,7 @@ export function SetupPage() {
     </label>
   );
   const Num = ({ label, value, onChange, step = 1, hint }: { label: string; value: number; onChange: (v: number) => void; step?: number; hint?: string }) => (
-    <label className="flex items-center gap-2 text-xs text-white/70">
+    <label className="flex items-center gap-2 text-sm text-white/70"> {/* v321 (F23): 基础字号 xs→sm */}
       <span className="w-44 shrink-0">{label}</span>
       <input type="number" step={step} value={value} onChange={e => onChange(parseFloat(e.target.value) || 0)}
         className="w-32 bg-black/40 border border-white/15 rounded px-2 py-1 text-white" />
@@ -25,7 +25,7 @@ export function SetupPage() {
     </label>
   );
   const Check = ({ label, value, onChange, hint }: { label: string; value: boolean; onChange: (v: boolean) => void; hint?: string }) => (
-    <label className="flex items-center gap-2 text-xs text-white/70">
+    <label className="flex items-center gap-2 text-sm text-white/70"> {/* v321 (F23): 基础字号 xs→sm */}
       <span className="w-44 shrink-0">{label}</span>
       <input type="checkbox" checked={value} onChange={e => onChange(e.target.checked)} />
       {hint && <span className="text-white/35">{hint}</span>}
@@ -34,7 +34,7 @@ export function SetupPage() {
 
   const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
     <div className="bg-[#16161d] rounded border border-white/10 p-4 space-y-2">
-      <div className="font-bold text-pink-300 text-sm mb-1">{title}</div>
+      <div className="font-bold text-pink-300 text-base mb-1">{title}</div> {/* v321 (F23): sm→base */}
       {children}
     </div>
   );

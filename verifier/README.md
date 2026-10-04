@@ -2742,3 +2742,157 @@
   min(4, max(1,ss,0.005), 上限项), 上限永远优先 (v148 末端延长 length≫几何时包围盒可达
   数十万 px, 原下限会产生 50M px ≈ 200MB 位图)。
 - 验证: verifier/v306 (tests.ts 8 条单测 + 源码断言); v301/v19 q 表达式断言同步; 全量回归回基线。
+
+## v307 — 缩放窗口 x:y 比例固定
+- TransformDialog 缩放模式新增「x:y 固定」复选框 (默认关): 锁定后改任一轴, 另一轴按当前
+  factor:factorY 比例联动 (x=y 时即等比缩放); 联动走 changeFactor/changeFactorY, DraftNum
+  拖动/滚轮 (F06) 调值同样生效; 联动值保留 4 位小数。实时预览 (v301) 自动跟随联动后的双轴值。
+- 验证: verifier/v307 (6 条); tsc -b 通过。
+
+## v308 — 选中效果修正: hover 不显示选中样式 + stable 选中覆盖原边框
+- 用户反馈 (附 stable/本编辑器对比截图): (1) 悬停滑条/单点不该出现选中样式 (蓝边/黄环) —
+  stable 悬停无效果; (2) stable 选中是橙黄环/蓝边「覆盖」原有 hitcircle 边框与滑条白边,
+  v305 实现是在外面多加一圈描边 (原白边仍可见, 不对)。
+- EditorCanvas: hoverObjRef 及渲染循环 hover 蓝环块移除 (v259 滑条控制点 hover 预览保留)。
+- renderer drawSelectionRing: 弧半径 r*1.06 (圈外) → r - 0.3lw (外缘 ≈ r, 环压在 hitcircle
+  白边上), 附 lw*0.6 外发光 (stable 光晕)。
+- renderer drawSliderBodyOutline 加 cover 参数: stable 选中走 cover — 描边 0.96r 镂空 0.79r,
+  环带 0.79..0.96r 恰好覆盖白边带 (paintSliderBody 白边 = 0.8125..0.922r) 不外凸, 外缘
+  shadowBlur 10 蓝辉光; lazer 分支保持原外凸环 (r*2+5 / 镂空 r*2-1.5) 不变。
+- 验证: verifier/v308 (11 条); v305/v232/v259 断言同步; 全量回归回基线。
+
+## v309 — 框选/节点选区三 bug (CDP 实机验证)
+- bug1: 按住 Alt 开始框选后中途松开 Alt, 框色变蓝 (v304) 但逻辑仍按节点框选 (选中滑条锚点)。
+  新增 syncMarqueeMode: mousemove/mouseup 入口按当前 Alt 态迁移 marqueeRef <-> nodeMarqueeRef
+  (转物件框选清节点选区; 转节点框选清物件选区 v265), 框选逻辑与框色始终一致。
+- bug2: Alt 框选选中的红锚点无法单击取消 — 红锚点 = 重复点对, 框选同时选中两个下标, 而
+  Alt+单击 nearestNode 只切序号在前的下标, 另一个仍选中。Alt+单击改整对切换 (已选整对取消/
+  未选整对加入, v29 重复对不拆散语义)。
+- bug3: 多选锚点的黄框拖拽无法拉到 UI 下 — CDP 复现: 按下点在黄框内但不在锚点 10px 内时,
+  落到 hitTest 选中滑条并清掉节点选区, 转成物件拖拽 (物件钳制在游玩区内, y 到底边 384 即停)。
+  修复: 按下点在节点黄框 dq 内也整组拖 (吸附锚 = 最近已选节点); 节点拖拽不钳制, 可拖出 UI。
+- 验证: verifier/v309 (14 条) + probe-verify.mjs CDP 实机三场景全过; v266 断言同步; 全量回归回基线。
+
+## v310 — 选中效果线宽微调 (用户嫌 v308 仍过粗)
+- 圆圈橙黄环 (drawSelectionRing): 线宽 0.14r → 0.105r (75%), 保底 2 → 1.5;
+  弧半径 r-0.3lw → r-lw (v310b, 用户截图确认 r-0.5lw 仍偏外) — 整环落在圆圈边缘内侧;
+  外发光 lw*0.6 随线宽缩小。
+- stable 滑条描边 (drawSliderBodyOutline cover): v308 的 0.79r..0.96r 粗环带 →
+  0.81r..0.925r 精确覆盖原白边带 (paintSliderBody 白边 = 0.8125..0.922r, ±1% 余量防毛刺),
+  即只是让滑条原有描边变蓝; 外缘 shadowBlur 10 蓝辉光保留。
+- 验证: verifier/v310 (11 条); v305/v308 断言同步到新数值; 全量回归回基线 (v28/v137/v138/v142)。
+
+## v311 — 圆圈橙黄环与滑条选中描边同宽并完全覆盖
+- v310 的环 (lw=0.105r, 弧 r-lw → 环带 0.8425..0.9475r) 在滑条头内侧露出一段蓝色圆弧:
+  蓝边带 0.81..0.925r 的下段 0.81..0.8425 未被环盖住。用户要求环宽 = 滑条边缘宽且全覆盖。
+- drawSelectionRing: lw → 0.115r (= 蓝边带宽 0.925-0.81), 弧半径 r-0.5lw →
+  环带 0.81r..0.925r, 与 drawSliderBodyOutline cover 的蓝边带逐点重合 — 滑条头/尾环恰好替换蓝边。
+- 验证: verifier/v311 (5 条); v305/v308/v310 断言同步; 全量回归回基线。
+
+## v312 — 波形漂移修复 (44100Hz 设备 +0.227% 线性漂移, 用户反馈"越往后越偏")
+- 根因: computePeaks 的 `spb = Math.round(sr×msPerBucket/1000)` — 44100Hz 设备 44.1→44,
+  每桶少算 0.1 采样, 波形相对时间轴线性拉伸 +0.227% (3:43 处 ≈508ms ≈ 148BPM 的 5/4 拍, 与用户反馈吻合);
+  48000Hz 设备 spb=48 整数零误差 → 开发机 (48k) 无法复现。播放不经过分桶故不受影响 ("播放同步只有波形偏")。
+- 定位过程: audio-probe.html 探针 (verifier/tools/) 在用户机器测得 AudioContext=44100Hz,
+  文件 SHA-256/解码时长/首个非静音采样与本地完全一致 → 排除文件/解码差异, 锁定分桶取整。
+- 修复: 分桶改逐采样 `b = floor(i×k)`, k = 1000/(sr×msPerBucket), 桶数 ceil(length×k), 任何采样率零漂移。
+- 验证: verifier/v312 (44100Hz 50s 冲激落桶 50000 / 旧漂移位 50113 为空 / 60s 恰 60000 桶 /
+  48000Hz 回归 / 22050Hz); v103/v112 兼容 (v103 T3 顺带发现 k 公式须含 msPerBucket 分母);
+  全量回归回基线 (v28/v137/v138/v142)。
+
+## v313 — 所有游玩区交互可拖到四侧 UI 下方 (节点包围框拉伸等)
+- 用户反馈: 滑条点包围框拉伸拖拽仍无法拖到 UI 下方, 要求所有游玩区交互都支持。
+- CDP 复现 (verifier/v313/probe-nodescale.mjs): 拖 bc 手柄到画布底+120px, 只应用了画布内 3 步
+  (尾点 290→366), 出画布瞬间拖拽被结算。事件本身到达 window (capture 探针确认),
+  真凶 = onMouseLeave 守卫列表漏了 nodeScaleDragRef/nodeRotateDragRef (onMouseUp 直接 commit/undo)
+  与 panDragRef; 标记类拖拽 (自定义原点/网格中心/批量复制向量/对称锚点与轴点) 同样不在守卫内,
+  且 window mousemove 转发也没接它们 (出 UI 即冻结)。
+- 修复: 守卫补齐全部 18 个拖拽状态 ref; window mousemove 的 onMouseMove 转发条件补齐
+  标记类拖拽 + 中键平移 (节点手柄拖拽 v117 已有独立转发分支)。
+- 验证: CDP 探针通过 (尾点 290→481, 与全程位移换算精确一致); verifier/v313 (29 条);
+  全量回归回基线。
+
+## v314 — 修正 v311 选中环弧半径算术错误 (用户: "藍色的框對了 黃色還是太大")
+- v311 以为弧半径 r-0.5lw 时环带落在 0.81r..0.925r, 但 r-0.5lw 是环带**中心线**,
+  实际环带 = [r-lw, r] = 0.885r..1.0r — 整体偏外, 滑条蓝边下段 0.81..0.885r 仍露出。
+- 修正: 蓝边带中心 = (0.81+0.925)/2 = 0.8675r, drawSelectionRing 弧半径改 r*0.8675
+  (lw 保持 0.115r) → 环带 = 0.8675r±0.0575r = 0.81r..0.925r, 与蓝边带逐点重合。
+- 验证: verifier/v314 (7 条, 含算术自洽断言); v311 断言同步修正 (注明当时的弧半径写错);
+  v305/v308/v310 早已断言 0.8675r; 全量回归回基线。
+
+## v315 — F16+F17: 变换对话框修正 (倍率默认1/角度默认0/xy固定持久化/旋转应用按钮)
+- F16: 缩放窗口倍率输入默认 1 (原为空/上残值); xy 固定勾选 localStorage('tf-scale') 持久化。
+- F17: 旋转窗口角度默认 0; 加「应用旋转」按钮 (带符号角度, 正=顺时针);
+  选区切换时 endTransformPreview+beginTransformPreview 重开会话 (原预览残留)。
+- 验证: verifier/v315; v307 断言同步。
+
+## v316 — F18a/b+F20: Alt 层锚点高亮与 hover 预览守卫
+- F18a/b: 新增 hoverNodeRef + refreshHover() (Alt keydown/keyup/blur 与 onMouseMove 共用);
+  Alt 层画锚点高亮环 (未选橙黄 #f5a623 / 已选红 #ff6666, 半径 9);
+  Alt+点击候选在清选区之前取, 且含 selected/selectedNodes 例外 (原点击即清选区无法加选锚点)。
+- F20: hover 预览加 isVisibleAt 守卫 — 滚轮改时间使滑条离开视线后预览消失 (选中滑条保留)。
+- 验证: verifier/v316; v259/v266 断言同步。
+
+## v317 — F19: Alt+Shift 框选减选
+- nodeMarqueeRef 加 subtract 标志 (仅 Shift 无 Ctrl/Meta 时 true); mousemove 减选分支剔除框内锚点。
+- 验证: verifier/v317; v117/v277 断言同步。
+
+## v318 — F24a/b: 放置幽灵注入渲染管线 + 右键完成保留滑条
+- F24a: 放置预览不再画光秃幽灵, 改为构建 ghost 物件 (circle id:-1 / slider id:-2, 与落盘同公式),
+  mergedWithPreview 合并视图按签名缓存 (ghostViewRef) — 预览外观与放下完全一致
+  (完整 note 外观/follow point/连击数字联动); 幽灵滑条接管身/头时 drawPendingSlider 只画骨架;
+  spinner 中心预览保留。
+- F24b: 放置滑条右键 = 先落幻影点 (snapSliderCtrlPoint, 距末点≥8px) 再 finishSlider (对齐 stable;
+  原为直接取消退出)。
+- 验证: verifier/v318 + CDP 冒烟 probe-ghost.mjs (画面哈希变化/渲染循环存活/无异常);
+  v44/v219/v241 断言同步 (v241 计数 4→6)。
+
+## v319 — F28: Ctrl+点击插点对齐 lazer SliderSelectionBlueprint
+- 门槛改为 hitTest(p)?.id === so.id (命中滑条身即插, 去掉 6px 上限 — 原离滑条稍远即取消选中);
+  插入点为光标原位置 (raw = 未吸附坐标), 下标 = 最近控制点线段 (零长红锚点对跳过, 默认末尾段)。
+- 验证: verifier/v319; v118/v240 断言同步 (insertSliderPoint 导入移除)。
+
+## v320 — F22: 转盘最短 1 tick + 时间轴拖右缘改时长
+- spinnerPlacementEnd 最短时长 1 拍 → 1 个吸附 tick (beatLength/beatSnap);
+  上方时间轴拖转盘右缘改 endTime (stable 同款): hitTestTail 扩到 spinner,
+  spinnerResizeRef 拖拽骨架 (beginDrag/commitDrag/undo), snapMs 吸附, 最短 1 tick。
+- 验证: verifier/v320; v180 tests/check 同步 (新期望 2125/2250 等)。
+
+## v321 — F18c/F21/F23/F25/F26: 固定键位分区/提示动态化/字体/网格保持/吸附快捷键
+- F25: gridType 并入 grid-settings 持久化 (loadGridSettings 读/saveGridSettings 写),
+  App.tsx 下拉改走 setGridType (原直接字段赋值不保存)。
+- F26: Shift+数字1-8 直接设节拍细分 (e.code 防 Shift 变换键符; 先于 findHotkeyAction 拦截,
+  防 Shift 松弛匹配误判 tool-select); 游玩区 Ctrl+滚轮循环 BEAT_SNAP_OPTIONS;
+  上方时间轴 Alt+滚轮调锁定间距倍率 ±0.1 钳 0.1..10 (仅上时间轴 — 其他位置 Alt+滚轮仍是游玩区缩放)。
+- F18c: 快捷键面板新增「固定键位 (不可修改)」静态分区 (Alt+点击/拖动/减选/Ctrl+插点/中键平移/
+  滚轮组合/右键 等 10 条)。
+- F21: hotkeys.ts 新增 hotkeyLabel(id) (当前生效主键展示名); 左栏工具/撤销重做 title/放置态指示/
+  右栏提示块/Inspector 镜像·多边形按钮/TimingPanel 说明全部动态化;
+  HotkeyPanel 改键/重置后 store.emit() 触发订阅组件重渲染。
+- F23: MenuBar 菜单文本 13→15px (快捷键列 11→13px); SetupPage 标签 xs→sm/节标题 sm→base;
+  TimingPanel 表格容器与说明栏 xs→sm/标题 sm→base。
+- 验证: verifier/v321 (36 条); v119/v241 断言同步。
+
+## v322 — F27: 左下角时间点击输入/复制 (stable Jump to time) + Ctrl+C 系统剪贴板带时间
+- parser.ts: serializeHitObjectLine 单行序列化抽出 (serializeOsu 复用, 行为不变) +
+  stableTimestamp "mm:ss:ms" 补零。
+- store.copy(): 内部剪贴板不变, 另向系统剪贴板写 stable 文本 "mm:ss:ms (hitobject行)"
+  每物件一行按时间排序 (可直接粘到 stable); 权限拒绝/非安全上下文静默忽略。
+- BottomTimeline: 左下角时间点击 → 输入框 (初值 stableTimestamp 且全选可复制);
+  parseJumpTime 支持 mm:ss:ms / ss:ms / 点分隔, Enter 跳转, Esc/失焦关闭, 按键 stopPropagation。
+- 验证: verifier/v322 (24 条)。
+
+## v323 — 曲库卡死修复 (用户反馈: 曲库改搜索后经常卡死, 无操作也卡死, 关不掉/杀不掉)
+- 根因 1 (未响应+关不掉): /api/local-fs/* 处理器用 readdirSync/readFileSync/writeFileSync 同步磁盘 I/O。
+  exe 索引曲库期间渲染端连发数千个 list/file 请求, Electron 主进程事件循环被占满 →
+  OS 判窗口"未响应"且无法处理关闭/结束进程。修复: server/localFsCore.mjs 全改 fs.promises 异步,
+  electron/main.cjs 与 vite.config.ts 两个挂载点 await; localFsCore.d.mts 类型同步。
+- 根因 2 (无操作也卡死): 关闭曲库面板只清 flush 定时器, 不取消扫描 — 扫描生成器继续跑完
+  (exe 服务器直读无 native 句柄 → 主线程回退路径), 用户回编辑器"什么都没做"时后台仍在
+  连发请求+逐文件解析。修复: SongLibrary 卸载 cleanup 里 bump scanGenRef (批内取消, 先于写会话缓存)。
+- 根因 3 (扫描过程本身卡死): parseIndexEntry 对 [HitObjects] 全量 split('\n').map(trim).filter
+  三遍遍历 — 故事板谱 .osu 可达数十 MB/数百万行, 渲染主线程单文件数秒, 触发 Windows 未响应判定。
+  修复: 首/末行改逐行扫描助手 (firstSignificantLine/lastSignificantLine, 碰线即返),
+  20MB 故事板谱解析实测 ~6ms。
+- 验证: verifier/v323 (静态断言 + 临时目录功能回归 config/list/file/write/404/403/并发 50
+  + esbuild 现打包 parseIndexEntry 巨型/常规功能与耗时); v67 断言同步 (writeFileSync → fs.promises.writeFile)。

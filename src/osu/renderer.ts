@@ -191,7 +191,7 @@ function sliderBodyColors(bm: Beatmap, skin: Skin, color: string): { border: str
   return { border: bm.colors.sliderBorder || '#ffffff', track: bm.colors.sliderTrackOverride || color };
 }
 
-export function renderPlayfield(rc: RenderCtx, pending?: { x: number; y: number; redAnchor: boolean }[], cursor?: { x: number; y: number } | null, pendingDistanceLock = false) {
+export function renderPlayfield(rc: RenderCtx, pending?: { x: number; y: number; redAnchor: boolean }[], cursor?: { x: number; y: number } | null, pendingDistanceLock = false, pendingSkeleton = false) {
   const { g, bm, time } = rc;
   const cs = bm.difficulty.cs;
   const ar = bm.difficulty.ar;
@@ -235,7 +235,7 @@ export function renderPlayfield(rc: RenderCtx, pending?: { x: number; y: number;
   //   视觉差异: 装饰整体盖在全部物件上层 (原为逐物件穿插); v40 "不可见选中物件也画装饰" 语义保留。
   if (rc.selected.size) drawSelectionLayer(rc, radius);
 
-  if (pending && pending.length) drawPendingSlider(rc, pending, cursor ?? null, pendingDistanceLock);
+  if (pending && pending.length) drawPendingSlider(rc, pending, cursor ?? null, pendingDistanceLock, pendingSkeleton);
 }
 
 // v245: 选中装饰离屏层 — 装饰内容与当前时间无关 (位置/堆叠/选区/样式/皮肤/变换决定),
@@ -366,14 +366,22 @@ function drawControlPointHandle(g: CanvasRenderingContext2D, x: number, y: numbe
 // v232: stable 选中框 (皮肤 hitcircleselect.png) — 与 hitcircle 族同公式 (stable 同款):
 // 128-box 基准, 贴图固有宽度 ÷128 × 圈直径 2r, 默认/128px 贴图恰与圆圈一样大;
 // 大贴图按固有尺寸放大 (上限 256 在 hitcircleSpriteWidth 内), @2x 折半在 skinSpriteWidth 登记处已计入; 无图时跳过
-// v305: F03 — stable 选中/hover 圆环 (皮肤无关): 选中 = 橙黄环, hover = 蓝环;
-// 取代 v232 的 hitcircleselect 方框 (用户对比 stable 截图确认 stable 是圆环不是方框)
+// v305: F03 — stable 选中圆环 (皮肤无关) 橙黄环; 取代 v232 的 hitcircleselect 方框
+// v308: 改为覆盖圆圈白边 (stable 选中环压在 hitcircle 边框上, 不是在圈外多加一圈)
+// v310: 用户指定数值 — 线宽减为 0.14r 的 75% = 0.105r
+// v311: 环宽度 = 滑条选中描边带宽 (= 0.925-0.81 = 0.115r)
+// v314: 弧半径修正 — v311 误用 r-0.5lw (=0.9425r, 环带实际 0.885r..1.0r 整体偏外, 遮不住蓝边带);
+//       蓝边带 = 0.81r..0.925r (见 drawSliderBodyOutline cover), 弧半径应为其中心 0.8675r,
+//       环带恰 0.81r..0.925r 与蓝边带逐点重合 (用户反馈: 环过大, 没遮住滑条蓝色选中边框)
 export function drawSelectionRing(g: CanvasRenderingContext2D, x: number, y: number, r: number, color = '#f5a623') {
+  const lw = Math.max(1.5, r * 0.115);
   g.save();
   g.strokeStyle = color;
-  g.lineWidth = Math.max(2, r * 0.14);
+  g.lineWidth = lw;
+  g.shadowColor = color;
+  g.shadowBlur = lw * 0.6;
   g.beginPath();
-  g.arc(x, y, r * 1.06, 0, Math.PI * 2);
+  g.arc(x, y, r * 0.8675, 0, Math.PI * 2);
   g.stroke();
   g.restore();
 }
@@ -420,7 +428,8 @@ function drawSelectionDecor(rc: RenderCtx, o: HitObject, radius: number) {
     const p = getSliderPath(bm, o);
     // 选中描边: 沿滑条身外形画一圈高亮环 (离屏粗描边 -> destination-out 镂空出环)
     // v305: stable = 蓝色边框高亮 (sliderborder 选中变色), lazer 默认 = 青色环
-    drawSliderBodyOutline(g, p.points, radius, stableSel ? '#4a90e2' : '#4df3ff');
+    // v308: stable 改 cover 模式 — 蓝色环带覆盖原白边 (不再外凸一圈), 附外缘辉光
+    drawSliderBodyOutline(g, p.points, radius, stableSel ? '#4a90e2' : '#4df3ff', stableSel);
     if (stableSel) {
       // v305: F03 — 滑条头/尾各画橙黄圆环 (stable 选中效果, 见用户对比截图)
       drawSelectionRing(g, o.x, o.y, radius);
@@ -443,7 +452,8 @@ function drawSelectionDecor(rc: RenderCtx, o: HitObject, radius: number) {
 
 // 放置中的滑条预览: 按 lazer SliderPlacementBlueprint 显示真实计算路径的滑条身 (含幻影 cursor 点)
 // v219: 滑条身截断到节拍吸附后的预期长度 (lazer: body = ExpectedDistance; 与 finishSlider 落盘/时间轴预览同一 placementLength)
-function drawPendingSlider(rc: RenderCtx, pend: { x: number; y: number; redAnchor: boolean }[], cursor: { x: number; y: number } | null, distanceLock: boolean) {
+// v318: F24a — skeleton 模式: 滑条身/头部已由注入渲染管线的幽灵滑条完整绘制 (F24a), 这里只画控制骨架 (连线+手柄+幻影点)
+function drawPendingSlider(rc: RenderCtx, pend: { x: number; y: number; redAnchor: boolean }[], cursor: { x: number; y: number } | null, distanceLock: boolean, skeleton = false) {
   const { g, bm, skin, time } = rc;
   const r = csToRadius(bm.difficulty.cs);
   const computed = computePendingPath(pend, cursor);
@@ -458,21 +468,23 @@ function drawPendingSlider(rc: RenderCtx, pend: { x: number; y: number; redAncho
   const bodyCols = sliderBodyColors(bm, skin, color); // v132
   g.save();
   g.globalAlpha = 0.65;
-  if (raw.length > 1) {
+  if (!skeleton && raw.length > 1) {
     // v219: 预览滑条身按吸附后长度截断 (v218 起 = 当前节拍细分的 1/2); 控制点/连线不截断, 仍随光标实时走
     const expected = placementLength(bm.timingPoints, time, bm.difficulty.sliderMultiplier,
       computed.length, distanceLock, bm.editor.distanceSpacing, bm.editor.beatDivisor);
     const body = sliderBodySprite(truncatePathAtLength(raw, expected), r, bodyCols.border, bodyCols.track, undefined, g.getTransform().a);
     g.drawImage(body.c, body.dx, body.dy, body.w, body.h);
   }
-  // 头部 (盒子 = 2r, 与已放置物件一致)
+  // 头部 (盒子 = 2r, 与已放置物件一致); v318: skeleton 模式跳过 (幽灵滑条已画头部+数字)
   const head = pend[0];
   const size = r * 2;
-  // v150: 同 drawCircle — sliderstartcircle 族按贴图固有尺寸显示
-  const scw = (img: SkinImage) => size * hitcircleSpriteWidth(img) / 128;
-  const sc1 = scw(skin.sliderstartcircle), sc2 = scw(skin.sliderstartcircleoverlay);
-  g.drawImage(tintedSprite(skin.sliderstartcircle, color), head.x - sc1 / 2, head.y - sc1 / 2, sc1, sc1);
-  g.drawImage(skin.sliderstartcircleoverlay, head.x - sc2 / 2, head.y - sc2 / 2, sc2, sc2);
+  if (!skeleton) {
+    // v150: 同 drawCircle — sliderstartcircle 族按贴图固有尺寸显示
+    const scw = (img: SkinImage) => size * hitcircleSpriteWidth(img) / 128;
+    const sc1 = scw(skin.sliderstartcircle), sc2 = scw(skin.sliderstartcircleoverlay);
+    g.drawImage(tintedSprite(skin.sliderstartcircle, color), head.x - sc1 / 2, head.y - sc1 / 2, sc1, sc1);
+    g.drawImage(skin.sliderstartcircleoverlay, head.x - sc2 / 2, head.y - sc2 / 2, sc2, sc2);
+  }
   // v74: 控制点连线 (与选中滑条一致: lazer PathControlPointConnection 2px 白线)
   // v76: 幻影尾点 (光标处控制点) 也画手柄并接入连线 (lazer 放置预览: 光标即当前滑条尾的控制点)
   const phantom = pendingPhantomPoint(pend, cursor);
@@ -494,10 +506,14 @@ function drawPendingSlider(rc: RenderCtx, pend: { x: number; y: number; redAncho
   g.restore();
 }
 
-// 选中滑条的外形描边: 在离屏画布上按当前变换粗描边 (滑条身宽 + 5px), 再 destination-out
-// 镂空滑条身区域, 剩下紧贴白边外侧的一圈高亮环, 最后按设备像素贴回主画布
+// 选中滑条的外形描边: 在离屏画布上按当前变换粗描边, 再 destination-out 镂空, 最后按设备像素贴回主画布
+// 默认 (cover=false): 粗描边 (滑条身宽 + 5px) 镂空滑条身区域, 剩下紧贴白边外侧的一圈高亮环 (lazer 风格)
+// v308: cover=true (stable) — 环带改为覆盖原白边 (白边带 = 0.8125r..0.922r, 见 paintSliderBody);
+//   外缘加 shadowBlur 蓝辉光 (stable 同款)
+// v310: 用户嫌 v308 的 0.79r..0.96r 环带仍过粗 — 缩到精确覆盖白边带 (±1% 余量防白边毛刺):
+//   描边 0.925r 镂空 0.81r, 剩下 0.81r..0.925r 只是让滑条原有描边变蓝
 let outlineCanvas: HTMLCanvasElement | null = null;
-export function drawSliderBodyOutline(g: CanvasRenderingContext2D, points: { x: number; y: number }[], r: number, color = '#4df3ff') { // v305: 颜色参数 + 导出 (stable 选中/hover 蓝描边)
+export function drawSliderBodyOutline(g: CanvasRenderingContext2D, points: { x: number; y: number }[], r: number, color = '#4df3ff', cover = false) { // v305: 颜色参数 + 导出; v308: cover 参数
   if (points.length < 2) return;
   const w = g.canvas.width, h = g.canvas.height;
   if (!outlineCanvas) outlineCanvas = document.createElement('canvas');
@@ -513,12 +529,23 @@ export function drawSliderBodyOutline(g: CanvasRenderingContext2D, points: { x: 
     og.stroke();
   };
   og.strokeStyle = color; // v305: 颜色由调用方给 (默认青 #4df3ff; stable 滑条选中 #4a90e2)
-  og.lineWidth = r * 2 + 5;
-  trace();
-  og.globalCompositeOperation = 'destination-out';
-  og.lineWidth = r * 2 - 1.5; // 比滑条身略窄, 避免白边外缘留毛刺
-  trace();
-  og.globalCompositeOperation = 'source-over';
+  if (cover) {
+    og.lineWidth = r * 2 * 0.925; // v310: 覆盖原白边带 (0.8125r..0.922r) + 微小余量, 不再加粗
+    og.shadowColor = color; og.shadowBlur = 10; // 设备 px, 不随 CTM 缩放 — 外缘辉光
+    trace();
+    og.shadowBlur = 0;
+    og.globalCompositeOperation = 'destination-out';
+    og.lineWidth = r * 2 * 0.81;
+    trace();
+    og.globalCompositeOperation = 'source-over';
+  } else {
+    og.lineWidth = r * 2 + 5;
+    trace();
+    og.globalCompositeOperation = 'destination-out';
+    og.lineWidth = r * 2 - 1.5; // 比滑条身略窄, 避免白边外缘留毛刺
+    trace();
+    og.globalCompositeOperation = 'source-over';
+  }
   g.save();
   g.setTransform(1, 0, 0, 1, 0, 0);
   g.drawImage(outlineCanvas, 0, 0);

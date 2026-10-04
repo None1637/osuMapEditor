@@ -19,7 +19,7 @@ console.log('== 右栏顶部放置态指示 (始终显示)');
   const inspIdx = src.indexOf('<Inspector />');
   assert(blockIdx > -1 && inspIdx > -1 && blockIdx < inspIdx, '放置态指示块位于 <Inspector /> 之前 (右栏顶部)');
   assert(/v244: 放置态指示移到右侧栏顶部且始终显示/.test(src), 'v244 注释');
-  assert(/NC\(Q\)/.test(src) && /口哨\(W\)/.test(src) && /Finish\(E\)/.test(src) && /拍手\(R\)/.test(src), '四个状态项齐全');
+  assert(/NC\(\{hotkeyLabel\('hs-newcombo'\)\}\)/.test(src) && /口哨\(\{hotkeyLabel\('hs-whistle'\)\}\)/.test(src) && /Finish\(\{hotkeyLabel\('hs-finish'\)\}\)/.test(src) && /拍手\(\{hotkeyLabel\('hs-clap'\)\}\)/.test(src), '四个状态项齐全 (v321: 键位经 hotkeyLabel 动态)');
   assert(/store\.placeNewCombo \? 'text-pink-300/.test(src)
     && /store\.placeHitSound & 2/.test(src) && /store\.placeHitSound & 4/.test(src) && /store\.placeHitSound & 8/.test(src),
     '高亮逻辑不变 (NC + 三个音效位)');
@@ -27,10 +27,10 @@ console.log('== 右栏顶部放置态指示 (始终显示)');
 
 console.log('== 左栏旧指示已移除 (不再按工具条件渲染)');
 {
-  assert(!/store\.tool !== 'select' && \([\s\S]{0,600}NC\(Q\)/.test(src), '左栏 v241 条件块 (store.tool !== select 包裹 NC(Q)) 已移除');
+  assert(!/store\.tool !== 'select' && \([\s\S]{0,600}NC\(\{hotkeyLabel/.test(src), '左栏 v241 条件块 (store.tool !== select 包裹 NC 指示) 已移除');
   // 指示块仅剩一处 (右栏)
-  const n = (src.match(/NC\(Q\)/g) || []).length;
-  assert(n === 1, `NC(Q) 指示仅剩 1 处 (实际 ${n})`);
+  const n = (src.match(/NC\(\{hotkeyLabel\('hs-newcombo'\)\}\)/g) || []).length;
+  assert(n === 1, `NC 指示仅剩 1 处 (实际 ${n})`);
 }
 
 if (failures) { console.error(`\nV244_FAILED: ${failures} 处失败`); process.exit(1); }

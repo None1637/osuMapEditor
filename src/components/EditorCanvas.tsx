@@ -1,8 +1,8 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { store, useEditor } from '@/osu/store';
-import { getSkin, hitcircleSpriteWidth, type Skin } from '@/osu/skin';
-import { renderPlayfield, computeCombos, getSliderPath, invalidatePath, mergedWithPreview, drawDistanceGuideRing, drawPendingSpinner, drawSliderControlPoints, drawSelectionRing, drawSliderBodyOutline } from '@/osu/renderer'; // v259: hover 预览滑条点复用控制点绘制; v305: F03 stable hover/选中环
-import { computePendingPath, insertSliderPoint, deleteSliderPoint, toggleSliderPointRed, resolveSliderCurveType, nearestOnSegment, sliderGeometryLength, snapSliderLength, resnapSliderLength, redPairPartner, isRedPairPoint, SliderPath, preserveArcsForBezier, placementLength, snapPlacementTime, spinnerPlacementEnd } from '@/osu/sliderPath';
+import { getSkin, type Skin } from '@/osu/skin'; // v318: hitcircleSpriteWidth 随光秃幽灵移除 (renderer 内部自用)
+import { renderPlayfield, computeCombos, getSliderPath, invalidatePath, mergedWithPreview, drawDistanceGuideRing, drawPendingSpinner, drawSliderControlPoints } from '@/osu/renderer'; // v259: hover 预览滑条点复用控制点绘制; v308: hover 选中环移除
+import { computePendingPath, deleteSliderPoint, toggleSliderPointRed, resolveSliderCurveType, nearestOnSegment, sliderGeometryLength, snapSliderLength, resnapSliderLength, redPairPartner, isRedPairPoint, SliderPath, preserveArcsForBezier, placementLength, snapPlacementTime, spinnerPlacementEnd, BEAT_SNAP_OPTIONS } from '@/osu/sliderPath'; // v319: 插点改 lazer 原位置插入 (旧投影插点函数弃用); v321: BEAT_SNAP_OPTIONS (Ctrl+滚轮循环细分)
 import { objectSnapPoints, snapToNearby, snapDragDelta, type Pt } from '@/osu/objectSnap';
 import { sliderHelperCircle, sliderHelperLines, clipLineToBox, geoHelperSnap, geoHelperSources, geoDistSources, distGuideSnap, geoDragCorrection, GEO_CLIP_BOX, type GeoLine, type GeoCircle } from '@/osu/geometryHelpers';
 import { instantiatePattern } from '@/osu/patternLibrary';
@@ -90,12 +90,14 @@ export function EditorCanvas() {
   const hoverHandleRef = useRef<{ type: 'scale' | 'rotate'; anchor: string } | null>(null);
   // v259: hover 滑条预览 — 选择工具下光标悬停在未选中滑条上时显示其控制点 (stable 同款); 渲染循环直接读 ref
   const hoverSliderRef = useRef<number | null>(null);
-  const hoverObjRef = useRef<number | null>(null); // v305: F03 — stable 模式 hover 任意未选中物件画蓝环 (含滑条)
+  // v316: F18a — Alt 层 hover 目标 (Alt+点击将切换的滑条锚点); 与 hoverSliderRef 同源由 refreshHover 维护,
+  // Alt 按下/松开即时刷新, 不等光标移动
+  const hoverNodeRef = useRef<{ objId: number; idx: number } | null>(null);
   // v117: 节点多选拖拽 (Alt 层) — 整体移动 (anchor = 按下节点, orig = Begin 快照)
   // v264: pending = rAF 节流 (mousemove 只记最新光标, 帧循环每次最多应用一次)
   const nodesMoveDragRef = useRef<{ anchor: { objId: number; idx: number }; startX: number; startY: number; orig: Map<number, Map<number, Pt>>; moved: boolean; pending: Pt | null } | null>(null);
-  // v117: 节点框选 (Alt+空白拖动; base = 修饰键追加的已有节点)
-  const nodeMarqueeRef = useRef<{ x0: number; y0: number; x1: number; y1: number; base: [number, number][] } | null>(null);
+  // v117: 节点框选 (Alt+空白拖动; base = 修饰键追加的已有节点); v317: subtract = Alt+Shift 减选 (F19)
+  const nodeMarqueeRef = useRef<{ x0: number; y0: number; x1: number; y1: number; base: [number, number][]; subtract?: boolean } | null>(null);
   // v117: 节点选区缩放/旋转手柄拖拽 (复用物件手柄几何, 变换写回节点而非整物件)
   const nodeScaleDragRef = useRef<{
     anchor: ScaleAnchor; quad: Quad; startP: { x: number; y: number }; lastP: { x: number; y: number };
@@ -176,6 +178,8 @@ export function EditorCanvas() {
     }
     return comboRef.current.map;
   };
+  // v318: F24a — 放置幽灵合并视图缓存 (签名 = 版本+幽灵几何/时间/音效; 光标不动不重建, combo/followpoint 缓存随之命中)
+  const ghostViewRef = useRef<{ key: string; src: Beatmap; bmV: Beatmap } | null>(null);
 
   // v56: 网格吸附 (lazer: 对象吸附 > 距离吸附 > 位置网格, 网格最后应用并覆盖; 间距 = gridSpacing ?? 谱面 GridSize)
   // v78: 原点 = currentGridOrigin (自定义网格中心或默认游玩区中心)
@@ -502,10 +506,14 @@ export function EditorCanvas() {
         applyNodeScaleUpdate(p, e.shiftKey, e.altKey);
       } else if (nodeRotateDragRef.current) {
         applyNodeRotateUpdate(toOsu(e), e.shiftKey);
-      } else if ((dragRef.current || nodeDragRef.current || nodesMoveDragRef.current || marqueeRef.current || nodeMarqueeRef.current) && e.target !== canvasRef.current) {
+      } else if ((dragRef.current || nodeDragRef.current || nodesMoveDragRef.current || marqueeRef.current || nodeMarqueeRef.current
+        || originDragRef.current || gridOriginDragRef.current || dupVectorDragRef.current || symAnchorDragRef.current
+        || symPointDragRef.current || symAxisPointDragRef.current || panDragRef.current) && e.target !== canvasRef.current) {
         // v228: 物件/节点拖拽移出画布 (经过 UI 区域) 不中断, 继续跟随光标 — onMouseLeave 不再终止,
         // 这里复用 onMouseMove 的拖拽分支 (位移按 mousedown 快照重算, 幂等); 画布内由 React onMouseMove 喂, 避免重复
         // v302: F11 — 物件/节点框选 (marquee) 同款接入 (原漏接, 拖到 UI 区域框选中断)
+        // v313: 标记类拖拽 (自定义原点/网格中心/批量复制向量/对称锚点与轴点) 与中键平移同款接入 —
+        //       用户要求"所有游玩区域的交互都能拖到四侧 UI 下方"
         onMouseMove(e as unknown as React.MouseEvent);
       } else if (freehandRef.current && e.target !== canvasRef.current) {
         // v74: 手绘拖出画布 (如经过时间轴) 继续采样笔画, 不中断 (画布内由 onMouseMove 喂点, 避免重复)
@@ -528,6 +536,7 @@ export function EditorCanvas() {
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
       altHeldRef.current = e.altKey; // v304: F10 框选 Alt 配色实时跟随 (keydown/keyup 都带最新修饰态)
+      refreshHover(); // v316: F18a — Alt 切换选取模式立即重算 hover 目标 (不等光标移动)
       // v86: Esc 取消 pattern 拖拽
       if (e.type === 'keydown' && e.key === 'Escape' && store.patternDrag) { store.cancelPatternDrag(); return; }
       const sd = scaleDragRef.current;
@@ -552,7 +561,7 @@ export function EditorCanvas() {
       const nrd = nodeRotateDragRef.current;
       if (nrd && e.shiftKey !== nrd.snap) applyNodeRotateUpdate(nrd.lastP, e.shiftKey);
     };
-    const blur = () => { altHeldRef.current = false; }; // v304: 焦点丢失时复位 (防 Alt 卡住)
+    const blur = () => { altHeldRef.current = false; refreshHover(); }; // v304: 焦点丢失时复位 (防 Alt 卡住); v316: 同步刷新 hover
     window.addEventListener('keydown', key);
     window.addEventListener('keyup', key);
     window.addEventListener('blur', blur);
@@ -698,16 +707,49 @@ export function EditorCanvas() {
         const selView = convPrev && convPrev.objects.length
           ? new Set([...store.selected, ...convPrev.objects.map(o => o.id)])
           : store.selected;
+        // v318: F24a — 放置幽灵注入正常渲染管线 (mergedWithPreview 合并视图): 完整 note 外观 (皮肤贴图
+        // +combo 数字) / follow point / 后续物件连击数字实时重排, 与落盘后完全一致 (用户: 预览不应"光秃")
+        let bmRender = bmView;
+        let pendingSkeleton = false;
+        if (!store.playing && !store.canvasDragging && !store.patternDrag && store.tool !== 'select'
+          && (cur.inside || !store.limitToPlayfield)) { // v163: 关「限制物件在游玩区域内」后区外同样预览
+          const ghosts: HitObject[] = [];
+          if (store.tool === 'circle' || (store.tool === 'slider' && store.pendingSlider.length === 0)) {
+            const sp = snapPlacement({ x: cur.x, y: cur.y });
+            ghosts.push({ id: -1, type: 'circle', x: Math.round(sp.x), y: Math.round(sp.y),
+              time: Math.round(snapTime(store.currentTime)), newCombo: store.placeNewCombo, comboSkip: 0, hitSound: store.placeHitSound }); // v241: 放置态 (与落盘同源)
+          } else if (store.tool === 'slider') {
+            // 与 finishSlider 同源: 路径/长度/起点时间同一公式 (预览=落盘); 幻影点只在光标在画布内时并入
+            const computed = computePendingPath(store.pendingSlider, cur.inside ? store.pendingCursor : null);
+            const finalCtrl = preserveArcsForBezier(computed.curveType, computed.controlPoints);
+            ghosts.push({ id: -2, type: 'slider', x: finalCtrl[0].x, y: finalCtrl[0].y,
+              time: Math.round(snapPlacementTime(bm.timingPoints, store.currentTime, store.beatSnap)),
+              curveType: computed.curveType, curvePoints: finalCtrl.slice(1), slides: 1,
+              length: placementLength(bm.timingPoints, store.currentTime, bm.difficulty.sliderMultiplier,
+                computed.length, store.distanceLock, bm.editor.distanceSpacing, store.beatSnap),
+              newCombo: store.placeNewCombo, comboSkip: 0, hitSound: store.placeHitSound });
+            pendingSkeleton = true; // 滑条身/头部由幽灵完整绘制, drawPendingSlider 只补控制骨架 (连线+手柄)
+          }
+          if (ghosts.length) {
+            const gkey = [store.getVersion(), ...ghosts.map(gh => [gh.type, gh.x, gh.y, gh.time, gh.length ?? 0, gh.newCombo ? 1 : 0, gh.hitSound ?? 0, gh.curveType ?? '', (gh.curvePoints ?? []).map(p => p.x + ':' + p.y).join(',')].join('.'))].join('|');
+            if (!ghostViewRef.current || ghostViewRef.current.key !== gkey || ghostViewRef.current.src !== bmView) {
+              for (const gh of ghosts) if (gh.type === 'slider') invalidatePath(gh.id);
+              ghostViewRef.current = { key: gkey, src: bmView, bmV: mergedWithPreview(bmView, { hideIds: [], objects: ghosts }) };
+            }
+            bmRender = ghostViewRef.current.bmV;
+          }
+        }
         const __pt0 = performance.now(); // v99: 渲染性能采样 (CDP 读 window.__perfRender)
         renderPlayfield({
-          g, bm: bmView, skin, time: store.currentTime,
+          g, bm: bmRender, skin, time: store.currentTime,
           selected: selView, cacheKey: String(store.getVersion()), // v245: 帧级缓存键 (选中装饰层/followPoint); v250: 改用 getVersion — 拖拽中原地改坐标只 bump version (emitSelection), dataVersion 不变会导致装饰层停在原位
-          comboInfo: getCombos(bmView), stackOffsets: getStackOffsets(bm),
+          comboInfo: getCombos(bmRender), stackOffsets: getStackOffsets(bm),
         }, store.pendingSlider,
           // v207: 已有控制点时预览幻影用吸附后的 pendingCursor (onMouseMove 里与落点同公式), 否则原始光标 (头部幽灵)
           cur.inside && store.tool === 'slider' && !store.playing
             ? (store.pendingSlider.length > 0 ? store.pendingCursor : { x: cur.x, y: cur.y })
-            : null, store.distanceLock); // v219: 预览滑条身按吸附长度截断需要锁定间距开关
+            : null, store.distanceLock, // v219: 预览滑条身按吸附长度截断需要锁定间距开关
+          pendingSkeleton); // v318: F24a — 幽灵滑条接管身/头绘制时, pending 只画控制骨架
         // v180: 转盘放置预览 (lazer SpinnerPiece alpha 0.5) — 终点实时跟随当前时间 (滚轮/播放均可拉长)
         if (store.pendingSpinner !== null) {
           drawPendingSpinner({ g, bm, skin, time: store.currentTime, selected: selView, comboInfo: new Map(), stackOffsets: getStackOffsets(bm) },
@@ -725,7 +767,8 @@ export function EditorCanvas() {
         {
           const hid = hoverSliderRef.current;
           const ho = hid !== null ? bm.hitObjects.find(o => o.id === hid) : null;
-          if (ho && ho.type === 'slider' && !store.selected.has(ho.id)) {
+          // v316: F20 — 滚轮改时间后滑条离开可见窗, hover 预览同步消失 (选中滑条的装饰不受影响, 始终保留)
+          if (ho && ho.type === 'slider' && !store.selected.has(ho.id) && isVisibleAt(bm, ho, store.currentTime)) {
             const hoff = getStackOffsets(bm).get(ho.id);
             g.save();
             g.translate(hoff?.dx ?? 0, hoff?.dy ?? 0);
@@ -734,20 +777,27 @@ export function EditorCanvas() {
             g.restore();
           }
         }
-        // v305: F03 stable hover 效果 — 悬停未选中物件画蓝色圆环 (滑条 = 蓝色边框描边, 与控制点预览叠加)
-        if (displaySettings.selectionStyle === 'stable') {
-          const hid2 = hoverObjRef.current;
-          const ho2 = hid2 !== null ? bm.hitObjects.find(o => o.id === hid2) : null;
-          if (ho2 && !store.selected.has(ho2.id)) {
-            const hoff = getStackOffsets(bm).get(ho2.id);
-            const r = csToRadius(bm.difficulty.cs);
-            g.save();
-            g.translate(hoff?.dx ?? 0, hoff?.dy ?? 0);
-            if (ho2.type === 'slider') drawSliderBodyOutline(g, getSliderPath(bm, ho2).points, r, '#4a90e2');
-            else drawSelectionRing(g, ho2.x, ho2.y, r, '#4a90e2');
-            g.restore();
+        // v316: F18a — Alt 层 hover 锚点高亮环 (即 Alt+点击将切换的锚点): 未选=橙黄(将选中), 已选=红(将取消)
+        {
+          const hn = hoverNodeRef.current;
+          const ho = hn ? bm.hitObjects.find(o => o.id === hn.objId) : null;
+          if (hn && ho && ho.type === 'slider' && (isVisibleAt(bm, ho, store.currentTime) || store.selected.has(ho.id) || store.selectedNodes.has(ho.id))) {
+            const hoff = getStackOffsets(bm).get(ho.id);
+            const hctrl = [{ x: ho.x, y: ho.y }, ...(ho.curvePoints ?? [])];
+            const pt = hctrl[hn.idx];
+            if (pt) {
+              g.save();
+              g.translate(hoff?.dx ?? 0, hoff?.dy ?? 0);
+              g.strokeStyle = store.selectedNodes.get(ho.id)?.has(hn.idx) ? '#ff6666' : '#f5a623';
+              g.lineWidth = 2;
+              g.beginPath();
+              g.arc(pt.x, pt.y, 9, 0, Math.PI * 2);
+              g.stroke();
+              g.restore();
+            }
           }
         }
+        // v308: hover 不再画任何选中样式圆环/描边 (用户反馈: stable 悬停无效果, 仅选中才显示)
         // 框选矩形
         // v304: F10 — 配色随 Alt 实时切换: 普通 = 蓝虚线+半透明蓝填充; 按住 Alt = 橙黄 (松开即恢复)
         const mq = marqueeRef.current;
@@ -1048,24 +1098,13 @@ export function EditorCanvas() {
           g.restore();
         }
         if (cur.inside && store.tool !== 'select' && !store.playing) {
-          const r0 = csToRadius(bm.difficulty.cs);
           const sp = snapPlacement(cur);
           g.save();
           g.globalAlpha = 0.45;
-          if (store.tool === 'circle') {
-            // v150: 放置预览同按贴图固有尺寸 (与 drawCircle 一致)
-            const s1 = r0 * 2 * hitcircleSpriteWidth(skin.hitcircle) / 128;
-            const s2 = r0 * 2 * hitcircleSpriteWidth(skin.hitcircleoverlay) / 128;
-            g.drawImage(skin.hitcircle, sp.x - s1 / 2, sp.y - s1 / 2, s1, s1);
-            g.drawImage(skin.hitcircleoverlay, sp.x - s2 / 2, sp.y - s2 / 2, s2, s2);
-          } else if (store.tool === 'spinner') {
+          // v318: F24a — 单点/滑条头的光秃幽灵已移除, 改由注入渲染管线的幽灵物件完整绘制 (上方 bmRender);
+          // 转盘中心预览保留 (drawPendingSpinner 负责起点后的完整预览)
+          if (store.tool === 'spinner') {
             g.drawImage(skin.spinnerCircle, 256 - 170, 192 - 170, 340, 340);
-          } else if (store.tool === 'slider' && store.pendingSlider.length === 0) {
-            // 无锚点时预览起点 (有锚点后的路径预览由 drawPendingSlider 负责)
-            const s1 = r0 * 2 * hitcircleSpriteWidth(skin.hitcircle) / 128;
-            const s2 = r0 * 2 * hitcircleSpriteWidth(skin.hitcircleoverlay) / 128;
-            g.drawImage(skin.hitcircle, sp.x - s1 / 2, sp.y - s1 / 2, s1, s1);
-            g.drawImage(skin.hitcircleoverlay, sp.x - s2 / 2, sp.y - s2 / 2, s2, s2);
           }
           // 锁定间距指示: 画到上一个物件的距离圈
           if (store.distanceLock && bm.editor.distanceSpacing > 0 && store.tool !== 'spinner') {
@@ -1272,18 +1311,35 @@ export function EditorCanvas() {
       // v266: Alt+点击 = 纯切换单个节点选中 (加选/取消, 不再拖动 — 移动改由普通拖拽已选节点, 见下);
       //       Alt+空白 = 节点框选 (Shift/Ctrl 在现有节点选区上追加)
       if (e.altKey && !store.lockNotes) { // v115: 锁定物件 — 节点选/拖禁用
-        if (store.selected.size) { store.selected.clear(); store.emitSelection(); } // v265: 忽略 hit circle/slider
         const offs = getStackOffsets(bm);
-        const sliders = bm.hitObjects.filter(o => o.type === 'slider' && isVisibleAt(bm, o, store.currentTime));
+        // v316: F18b — 候选在清选区之前取, 且含选中/有已选节点的滑条 (v273 例外): 时间滚走后
+        // 这些滑条仍在渲染, Alt+点击应能直接点选其锚点而非落成空白框选
+        const sliders = bm.hitObjects.filter(o => o.type === 'slider' && (isVisibleAt(bm, o, store.currentTime) || store.selected.has(o.id) || store.selectedNodes.has(o.id)));
         const hitNode = nearestNode(sliders, offs, p); // 跨滑条最近优先, 并列取序号在前
+        if (store.selected.size) { store.selected.clear(); store.emitSelection(); } // v265: 忽略 hit circle/slider
         if (hitNode) {
-          store.toggleSelectedNode(hitNode.objId, hitNode.idx); // v266: 加选/取消单个节点
+          // v309: 红锚点重复对视为整体切换 — Alt 框选会同时选中重复对的两个下标, 而 nearestNode
+          // 只返回序号在前的那个, 单击只切一个下标 => 另一个仍选中, 红锚点永远取消不掉 (用户反馈)
+          const ho = bm.hitObjects.find(x => x.id === hitNode.objId);
+          const hctrl = ho ? [{ x: ho.x, y: ho.y }, ...(ho.curvePoints ?? [])] : [];
+          const partner = redPairPartner(hctrl, hitNode.idx);
+          const selN = store.selectedNodes.get(hitNode.objId);
+          const hasI = !!selN?.has(hitNode.idx);
+          const hasP = partner !== null && !!selN?.has(partner);
+          if (hasI || hasP) { // 已选 → 整对取消
+            if (hasI) store.toggleSelectedNode(hitNode.objId, hitNode.idx);
+            if (hasP) store.toggleSelectedNode(hitNode.objId, partner!);
+          } else { // 未选 → 整对加入 (v29 语义: 重复对不拆散)
+            store.toggleSelectedNode(hitNode.objId, hitNode.idx);
+            if (partner !== null) store.toggleSelectedNode(hitNode.objId, partner);
+          }
           return;
         }
-        // Alt+空白: 节点框选 (Shift/Ctrl 在现有节点选区上追加)
+        // Alt+空白: 节点框选 (Shift/Ctrl 在现有节点选区上追加; v317: F19 — Shift 单独 = 减选, 框到已选锚点取消)
         nodeMarqueeRef.current = {
           x0: p.x, y0: p.y, x1: p.x, y1: p.y,
           base: (e.shiftKey || e.ctrlKey || e.metaKey) ? nodeEntries(store.selectedNodes) : [],
+          subtract: e.shiftKey && !e.ctrlKey && !e.metaKey,
         };
         store.canvasDragging = true;
         return;
@@ -1295,14 +1351,38 @@ export function EditorCanvas() {
         // v273: 已选节点所在滑条即使当前时间不可见也可整组拖 (与物件命中同一例外)
         const sliders = bm.hitObjects.filter(o => o.type === 'slider' && (isVisibleAt(bm, o, store.currentTime) || store.selected.has(o.id) || store.selectedNodes.has(o.id)));
         const hitNode = nearestNode(sliders, offs, p);
-        if (hitNode && store.selectedNodes.get(hitNode.objId)?.has(hitNode.idx)) { // 仅命中已选节点才整组拖
-          store.beginDrag();
-          store.canvasDragging = true;
-          nodesMoveDragRef.current = {
-            anchor: hitNode, startX: p.x, startY: p.y,
-            orig: snapshotNodes(bm, withRedPartners(bm, store.selectedNodes)), moved: false, pending: null,
-          };
-          return;
+        const insideNode = !!(hitNode && store.selectedNodes.get(hitNode.objId)?.has(hitNode.idx)); // 命中已选节点
+        // v309: 按下点在节点黄框 (dq) 内同样整组拖 — 原实现只认锚点命中: 框内按下 (如两锚点之间的
+        // 滑条身) 会落到 hitTest 选中滑条并清掉节点选区、转成物件拖拽 (物件钳制在游玩区内, 用户
+        // 视角 = 黄框无法拖到 UI 下方; CDP 复现确认)
+        const nbox = !insideNode ? currentQuads(bm) : null;
+        const insideBox = !!(nbox && p.x >= nbox.dq.x && p.x <= nbox.dq.x + nbox.dq.w && p.y >= nbox.dq.y && p.y <= nbox.dq.y + nbox.dq.h);
+        if (insideNode || insideBox) {
+          // 吸附锚: 命中的已选节点, 否则距按下点最近的已选节点 (applyNodesMoveDrag 以其吃吸附)
+          let anchor = insideNode ? hitNode : null;
+          if (!anchor) {
+            let bestD = Infinity;
+            for (const [objId, idxs] of store.selectedNodes) {
+              const o = bm.hitObjects.find(x => x.id === objId);
+              if (!o) continue;
+              const nctrl = ctrlPoints(o, offs.get(objId));
+              for (const idx of idxs) {
+                const pt = nctrl[idx];
+                if (!pt) continue;
+                const d = Math.hypot(pt.x - p.x, pt.y - p.y);
+                if (d < bestD) { bestD = d; anchor = { objId, idx }; }
+              }
+            }
+          }
+          if (anchor) {
+            store.beginDrag();
+            store.canvasDragging = true;
+            nodesMoveDragRef.current = {
+              anchor, startX: p.x, startY: p.y,
+              orig: snapshotNodes(bm, withRedPartners(bm, store.selectedNodes)), moved: false, pending: null,
+            };
+            return;
+          }
         }
       }
       // 优先检测选中滑条的控制点手柄(节点编辑); v115: 锁定物件 — 节点拖拽/插点禁用
@@ -1321,19 +1401,25 @@ export function EditorCanvas() {
           nodeDragRef.current = { objId: so.id, pointIndex: hitIdx, pairWith: redPairPartner(ctrl, hitIdx), startX: p.x, startY: p.y, moved: false, toggleRed: e.ctrlKey || e.metaKey, pending: null };
           return;
         }
-        // v118: 按住 Ctrl 点击线段才在该线段最近点插入新白色节点 (stable 行为; 红锚点零长线段跳过; 不按 Ctrl 落到物件命中)
+        // v118/v319: 按住 Ctrl 点击选中滑条 = 新增白色节点。对齐 lazer SliderSelectionBlueprint.OnMouseDown:
+        // 命中蓝图 (滑条身/头尾圈) 即插入, 无线段距离上限 (v118 的 6px 上限 = 用户反馈"点稍微远就取消选中":
+        // 旧逻辑落空后掉到 hitTest, Ctrl+点击自己滑条 toggleSelect 直接丢选区);
+        // 插入位置 = 光标原位置 (非投影到控制多边形, lazer addControlPoint 同款 — 圆弧腹部的点落在光标处),
+        // 插入下标 = 距光标最近的控制点线段 (零长红锚点重复对跳过)
         if (e.ctrlKey || e.metaKey) {
-          let best = -1, bestT = 0, bestD = 6;
-          for (let i = 0; i < ctrl.length - 1; i++) {
-            if (ctrl[i].x === ctrl[i + 1].x && ctrl[i].y === ctrl[i + 1].y) continue;
-            const a = { x: ctrl[i].x + odx, y: ctrl[i].y + ody }, b = { x: ctrl[i + 1].x + odx, y: ctrl[i + 1].y + ody };
-            const n = nearestOnSegment(a, b, p);
-            if (n.dist < bestD) { bestD = n.dist; best = i; bestT = n.t; }
-          }
-          if (best >= 0) {
+          const onBody = hitTest(p.x, p.y)?.id === so.id;
+          if (onBody && ctrl.length >= 2) {
+            let best = ctrl.length - 2, bestD = Infinity; // 默认末尾段 (极端: 全部零长段)
+            for (let i = 0; i < ctrl.length - 1; i++) {
+              if (ctrl[i].x === ctrl[i + 1].x && ctrl[i].y === ctrl[i + 1].y) continue;
+              const a = { x: ctrl[i].x + odx, y: ctrl[i].y + ody }, b = { x: ctrl[i + 1].x + odx, y: ctrl[i + 1].y + ody };
+              const n = nearestOnSegment(a, b, p);
+              if (n.dist < bestD) { bestD = n.dist; best = i; }
+            }
             store.pushUndo(); // 一次操作一次 undo; emit 顺带 bump dataVersion (长度可能变, tick 事件重建)
             const wasLinear = so.curveType === 'L'; // v240
-            const newPts = insertSliderPoint(ctrl, best, bestT);
+            const raw = { x: p.x - odx, y: p.y - ody }; // lazer: 插入光标原位置 (撤堆叠偏移)
+            const newPts = [...ctrl.slice(0, best + 1), raw, ...ctrl.slice(best + 1)];
             applySliderPoints(so, newPts);
             // v240: 直线滑条新增白点 → 恰 3 点 (头+新点+尾) 时切换为圆弧 (stable 同款);
             // 仅插入路径升级, 拖动/删除已有折线节点不变形
@@ -1576,6 +1662,47 @@ export function EditorCanvas() {
     }
   };
 
+  // v309: 框选模式随 Alt 实时切换 — v304 让配色实时跟 Alt, 但逻辑死在起手模式:
+  // 按住 Alt 开始框选 (橙黄=节点框选) 后松开 Alt, 框已变蓝却仍按节点框选 (选中滑条锚点)。
+  // 这里在 mousemove/mouseup 入口同步: 模式跟着当前 Alt 态走, 迁移时按目标层语义清理另一层选区
+  const syncMarqueeMode = () => {
+    if (nodeMarqueeRef.current && !altHeldRef.current) {
+      const nmq = nodeMarqueeRef.current;
+      nodeMarqueeRef.current = null;
+      marqueeRef.current = { x0: nmq.x0, y0: nmq.y0, x1: nmq.x1, y1: nmq.y1, base: [] };
+      store.setSelectedNodes([]); // 蓝框 = 物件框选: 清节点选区 (物件选区由后续 mousemove 按框重算)
+    } else if (marqueeRef.current && altHeldRef.current && !store.lockNotes) {
+      const mq = marqueeRef.current;
+      marqueeRef.current = null;
+      nodeMarqueeRef.current = { x0: mq.x0, y0: mq.y0, x1: mq.x1, y1: mq.y1, base: [] };
+      if (store.selected.size) { store.selected.clear(); store.emitSelection(); } // v265: Alt 层忽略物件
+    }
+  };
+
+  // v316: F18a — hover 目标集中重算: onMouseMove 与 Alt keydown/keyup/blur 共用。
+  // 普通层: 未选中滑条的控制点预览 (v259); Alt 层: 跨滑条最近锚点 (与 mousedown Alt 点选同候选,
+  // 含 v273 例外: 选中/有已选节点的滑条即使当前时间不可见也参与) + 该锚点高亮环
+  const refreshHover = () => {
+    const bm = store.beatmap;
+    const cp = cursorRef.current;
+    if (store.tool !== 'select' || !bm || store.canvasDragging || store.conversionDialog || !cp.inside) {
+      hoverSliderRef.current = null; hoverNodeRef.current = null; return;
+    }
+    if (altHeldRef.current && !store.lockNotes) {
+      const offs = getStackOffsets(bm);
+      const sliders = bm.hitObjects.filter(o => o.type === 'slider' && (isVisibleAt(bm, o, store.currentTime) || store.selected.has(o.id) || store.selectedNodes.has(o.id)));
+      const hn = nearestNode(sliders, offs, cp);
+      hoverNodeRef.current = hn ? { objId: hn.objId, idx: hn.idx } : null;
+      const hit = hitTest(cp.x, cp.y);
+      const hid = hit && hit.type === 'slider' ? hit.id : hn?.objId ?? null;
+      hoverSliderRef.current = hid !== null && !store.selected.has(hid) ? hid : null;
+    } else {
+      hoverNodeRef.current = null;
+      const hit = hitTest(cp.x, cp.y);
+      hoverSliderRef.current = hit && hit.type === 'slider' && !store.selected.has(hit.id) ? hit.id : null;
+    }
+  };
+
   const onMouseMove = (e: React.MouseEvent) => {
     // v223: 中键拖动游玩区 — 视觉位移 / uiZoom -> 布局 px, 再 / 基础适配 scale -> osu px 偏移
     // (用户缩放倍率 s 在偏移之后生效, 此处不除 s: 内容始终 1:1 跟随光标)
@@ -1596,13 +1723,9 @@ export function EditorCanvas() {
     // v207: 控制点预览走落点同款吸附 (snapSliderCtrlPoint) — 幻影节点与点击落点一致, 所见即所放
     store.pendingCursor = store.tool === 'slider' && store.pendingSlider.length > 0 ? snapSliderCtrlPoint({ x: cp.x, y: cp.y }) : null;
     const bm = store.beatmap;
-    // v259: hover 滑条点预览 (stable 同款) — 选择工具 + 非拖拽 + 无对话框时, 光标悬停未选中滑条记录其 id,
-    // 渲染循环叠加画控制点连线/手柄 (与选中装饰同源 drawSliderControlPoints)
-    if (store.tool === 'select' && bm && !store.canvasDragging && !store.conversionDialog) {
-      const hit = hitTest(cp.x, cp.y);
-      hoverSliderRef.current = hit && hit.type === 'slider' && !store.selected.has(hit.id) ? hit.id : null;
-      hoverObjRef.current = hit && !store.selected.has(hit.id) ? hit.id : null; // v305: F03 hover 蓝环
-    } else { hoverSliderRef.current = null; hoverObjRef.current = null; }
+    // v259: hover 滑条点预览 (stable 同款); v316: 收敛到 refreshHover (Alt 层 hover 锚点同源,
+    // keydown/keyup 也调它 — 切换选取模式不等光标移动即刷新)
+    refreshHover();
     // v145: 放置预览幽灵位置 -> store (间距面板实时预览间距; 与画布幻影同走 snapPlacement, 所见即所得。
     // 仅 圆圈工具 / 滑条无锚点 且 非拖拽非播放 且 光标在游玩区内 时有效, 否则置空)
     {
@@ -1712,6 +1835,7 @@ export function EditorCanvas() {
     // v50: 无拖拽时更新手柄悬停与光标形状
     updateHandleHover(bm && store.tool === 'select' ? cp : null);
     // v117: 节点框选拖拽: 实时更新节点选区 (只框当前可见滑条, 与物件框选同一可见窗口)
+    syncMarqueeMode(); // v309: Alt 中途松开/按下 — 框选逻辑随当前 Alt 态切换
     const nmq = nodeMarqueeRef.current;
     if (nmq && bm) {
       nmq.x1 = cp.x; nmq.y1 = cp.y;
@@ -1725,7 +1849,13 @@ export function EditorCanvas() {
         const o = bm.hitObjects.find(x => x.id === objId);
         return !!o && !isVisibleAt(bm, o, store.currentTime);
       });
-      store.setSelectedNodes([...nmq.base, ...keepNodes, ...nodesInRect(sliders, getStackOffsets(bm), r)]);
+      const inRect = nodesInRect(sliders, getStackOffsets(bm), r);
+      if (nmq.subtract) { // v317: F19 — 减选: 框内锚点从 (已有选区 ∪ 保留) 中剔除
+        const rm = new Set(inRect.map(([a, b]) => a + ':' + b));
+        store.setSelectedNodes([...nmq.base, ...keepNodes].filter(([a, b]) => !rm.has(a + ':' + b)));
+      } else {
+        store.setSelectedNodes([...nmq.base, ...keepNodes, ...inRect]);
+      }
       return;
     }
     // v117: 节点整体拖动 — v264: rAF 节流, 只记 pending (应用在帧循环 applyNodesMoveDrag)
@@ -1922,6 +2052,7 @@ export function EditorCanvas() {
       return;
     }
     // v117: 节点框选收尾 (选区已在 mousemove 实时更新, 仅清 ref)
+    syncMarqueeMode(); // v309: Alt 中途松开后直接松鼠标 (无 mousemove) 也按当前 Alt 态收尾
     if (nodeMarqueeRef.current) {
       nodeMarqueeRef.current = null;
       return;
@@ -2012,6 +2143,14 @@ export function EditorCanvas() {
       }
       // 选中滑条时右键滑条非控制点部位 -> 落到下方通用删除 (删整个滑条)
     } else if (store.tool === 'slider' && store.pendingSlider.length) {
+      // v318: F24b — 右键 = 先落下当前幻影点再完成并保留滑条 (对齐 stable; 原仅头部时右键 pend<2 直接丢弃
+      // = 用户反馈"右键不会放置点而是直接退出"); 光标在末点 8px 内不重复落点, 直接完成
+      const pR = toOsu(e);
+      const lastR = store.pendingSlider[store.pendingSlider.length - 1];
+      if (lastR && Math.hypot(pR.x - lastR.x, pR.y - lastR.y) >= 8) {
+        const spR = snapSliderCtrlPoint(pR); // 与左键落点同一吸附公式
+        store.pendingSlider.push({ x: Math.round(spR.x), y: Math.round(spR.y), redAnchor: false });
+      }
       finishSlider();
       return;
     } else if (store.tool === 'spinner' && store.pendingSpinner !== null) {
@@ -2050,7 +2189,6 @@ export function EditorCanvas() {
       onMouseLeave={() => {
         cursorRef.current.inside = false;
         hoverSliderRef.current = null; // v259: 光标出游玩区, 清 hover 滑条点预览
-        hoverObjRef.current = null; // v305: F03 同清 hover 蓝环
         store.setPlacementPreview(null); // v145: 光标出游玩区, 清放置预览
         if (canvasRef.current) canvasRef.current.style.cursor = '';
         // v50: 缩放/旋转拖拽不因离开画布而终止 (window mousemove/mouseup 接管)
@@ -2058,9 +2196,15 @@ export function EditorCanvas() {
         // 否则拖过时间轴时手绘被提前 finish 且 canvasDragging 被清 => 时间轴误 seek)
         // v228: 物件/节点拖拽同样不因离开画布终止 (用户反馈: 拖物件经过 UI 区域回游玩区应继续拖着)
         // v302: F11 — 物件/节点框选 (marquee) 同样不因离开画布终止 (window mousemove/mouseup 接管)
+        // v313: 补齐遗漏 — 节点旋转/缩放手柄 (onMouseUp 会 commit/undo 误杀, CDP 复现: 拖 bc 手柄
+        //       出画布瞬间被结算, 只剩画布内 3 步) / 中键平移 / 标记类拖拽 (自定义原点/网格中心/
+        //       批量复制向量/对称锚点与轴点) 全部不因离开画布终止
         if (!scaleDragRef.current && !rotateDragRef.current && !freehandRef.current && !drawCandRef.current
           && !dragRef.current && !nodeDragRef.current && !nodesMoveDragRef.current
-          && !marqueeRef.current && !nodeMarqueeRef.current) onMouseUp();
+          && !marqueeRef.current && !nodeMarqueeRef.current
+          && !nodeScaleDragRef.current && !nodeRotateDragRef.current && !panDragRef.current
+          && !originDragRef.current && !gridOriginDragRef.current && !dupVectorDragRef.current
+          && !symAnchorDragRef.current && !symPointDragRef.current && !symAxisPointDragRef.current) onMouseUp();
       }}
       onDoubleClick={() => {
         if (store.tool !== 'slider') return;
@@ -2069,6 +2213,13 @@ export function EditorCanvas() {
       }}
       onContextMenu={onContextMenu}
       onWheel={(e) => {
+        // v321 (F26): Ctrl+滚轮 = 循环节拍吸附细分 (stable 同款; 上滚更密/下滚更疏)
+        if (e.ctrlKey) {
+          const i = Math.max(0, BEAT_SNAP_OPTIONS.indexOf(store.beatSnap));
+          const j = Math.max(0, Math.min(BEAT_SNAP_OPTIONS.length - 1, i + (e.deltaY < 0 ? 1 : -1)));
+          if (BEAT_SNAP_OPTIONS[j] !== store.beatSnap) { store.beatSnap = BEAT_SNAP_OPTIONS[j]; store.emit(); }
+          return;
+        }
         // v229: 平移功能开启时 Alt+滚轮 = 缩放游玩区 (以光标为焦点, 同步平移量保持光标下内容不动;
         // 对齐 lazer 时间轴 Alt+滚轮缩放的习惯用法; deltaMode 归一化与 wheelSteps 同款)
         if (e.altKey && store.playfieldPanEnabled) {

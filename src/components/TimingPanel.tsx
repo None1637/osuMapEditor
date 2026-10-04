@@ -3,6 +3,7 @@ import { X } from 'lucide-react'; // v181: ✕ → lucide
 import { store, useEditor, usePlaybackFrame } from '@/osu/store';
 import type { TimingPoint } from '@/osu/parser';
 import { defaultNewPoint, setEffectBit, EFFECT_KIAI, EFFECT_OMIT_BARLINE, formatMsTime, activeGreenAt, scrollTargetIndex } from '@/osu/timingEdit';
+import { hotkeyLabel } from '@/osu/hotkeys'; // v321 (F21): 快捷键提示随改键同步
 
 // Timing 面板: 增删改红线(BPM)/绿线(SV), 以及难度参数 CS/AR/OD/HP
 // v70: full 模式改为紧凑独立窗口 (w-fit 居中, 行高紧凑, 属性连续排版并居中);
@@ -79,7 +80,7 @@ export function TimingPanel({ full = false }: { full?: boolean }) {
   const td = 'px-2 py-1 text-center whitespace-nowrap';
 
   return (
-    <div className={`bg-[#16161d] text-xs text-white/80 ${full
+    <div className={`bg-[#16161d] text-sm text-white/80 ${full
       ? 'w-fit max-w-[96%] mx-auto my-4 border border-white/15 rounded-lg shadow-xl overflow-hidden'
       : 'border-t border-white/10'}`}>
       {!full && <div className="px-3 py-1.5 font-bold text-white/90">Timing 设置 (BPM / SV / 难度参数)</div>}
@@ -256,15 +257,15 @@ export function TimingPage() {
       <div className="flex-1 min-w-0">
         <TimingPanel full />
       </div>
-      <div className="w-72 shrink-0 border-l border-white/10 p-4 text-xs text-white/50 space-y-2">
-        <div className="font-bold text-white/70 text-sm">说明</div>
+      <div className="w-72 shrink-0 border-l border-white/10 p-4 text-sm text-white/50 space-y-2"> {/* v321 (F23): xs→sm */}
+        <div className="font-bold text-white/70 text-base">说明</div> {/* v321 (F23): sm→base */}
         <div><span className="text-red-400">红线</span>: 继承时间点 (uninherited), 定义 BPM 与拍号。BPM = 60000 / beatLength。</div>
         <div><span className="text-green-400">绿线</span>: 非继承时间点, 定义滑条速度倍率 (SV)。1.0x = 基础速度。绿行同时携带音效集 (Normal/Soft/Drum) / 自定义序号 / 音量 / kiai (.osu 绿行全字段)。</div>
         <div>新增红线/绿线时克隆当前生效同类点的全部字段 (lazer ControlPointList.addNew)。</div>
         <div>鼠标悬停上方时间轴的红/绿线时, 对应行高亮; 当前时间生效的绿线行实时绿色高亮。切换到本页签时自动滚动到生效绿线行。</div>
         <div>All/红线/绿线页签可按类型过滤; 勾选绿线行首复选框可多选, 批量修改 SV/音效集/序号/音量/kiai 或批量删除 (Del 键同样生效)。</div>
         <div>难度参数 CS(圆圈大小) / AR(缩圈速度) 修改后立即反映到游玩区渲染。</div>
-        <div>所有修改支持 Ctrl+Z 撤销, 并通过 Ctrl+S 保存。</div>
+        <div>所有修改支持 {hotkeyLabel('undo')} 撤销, 并通过 {hotkeyLabel('save')} 保存。</div>
       </div>
     </div>
   );

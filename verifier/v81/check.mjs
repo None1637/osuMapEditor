@@ -33,7 +33,7 @@ section('App.tsx: 谱面名称加宽 + 保存反馈前缀');
 section('TimingPanel.tsx: 帮助文本同步');
 {
   const src = readSrc('src/components/TimingPanel.tsx');
-  assert(/并通过 Ctrl\+S 保存/.test(src), '帮助文本改为 Ctrl+S (导出按钮已删)');
+  assert(/并通过 \{hotkeyLabel\('save'\)\} 保存/.test(src), '帮助文本为保存热键 (导出按钮已删; v321: hotkeyLabel 动态)');
   assert(!/「导出 \.osu」/.test(src), '旧「导出 .osu」文本已移除');
 }
 

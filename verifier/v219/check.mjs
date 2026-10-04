@@ -41,8 +41,8 @@ section('renderer.ts: 放置预览滑条身按吸附长度截断');
 {
   const src = readSrc('src/osu/renderer.ts');
   assert(/import \{[^}]*placementLength[^}]*truncatePathAtLength[^}]*\} from '\.\/sliderPath';/.test(src), '导入 placementLength + truncatePathAtLength');
-  assert(/renderPlayfield\(rc: RenderCtx, pending\?[^)]*cursor\?[^)]*pendingDistanceLock = false\)/.test(src), 'renderPlayfield 第 4 参 pendingDistanceLock');
-  assert(/drawPendingSlider\(rc, pending, cursor \?\? null, pendingDistanceLock\)/.test(src), 'drawPendingSlider 透传 distanceLock');
+  assert(/renderPlayfield\(rc: RenderCtx, pending\?[^)]*cursor\?[^)]*pendingDistanceLock = false, pendingSkeleton = false\)/.test(src), 'renderPlayfield 第 4 参 pendingDistanceLock (v318: 第 5 参 pendingSkeleton)');
+  assert(/drawPendingSlider\(rc, pending, cursor \?\? null, pendingDistanceLock, pendingSkeleton\)/.test(src), 'drawPendingSlider 透传 distanceLock/skeleton');
   assert(/const expected = placementLength\(bm\.timingPoints, time, bm\.difficulty\.sliderMultiplier,\s*\n?\s*computed\.length, distanceLock, bm\.editor\.distanceSpacing, bm\.editor\.beatDivisor\)/.test(src), '预览预期长度 = placementLength (与落盘同规则)');
   assert(/sliderBodySprite\(truncatePathAtLength\(raw, expected\)/.test(src), '滑条身按吸附长度截断');
 }
@@ -50,7 +50,7 @@ section('renderer.ts: 放置预览滑条身按吸附长度截断');
 section('EditorCanvas.tsx: 调用点传 distanceLock');
 {
   const src = readSrc('src/components/EditorCanvas.tsx');
-  assert(/: null, store\.distanceLock\);/.test(src), 'renderPlayfield 调用传 store.distanceLock');
+  assert(/: null, store\.distanceLock, \/\/ v219/.test(src) && /pendingSkeleton\); \/\/ v318/.test(src), 'renderPlayfield 调用传 store.distanceLock (v318: +pendingSkeleton)');
 }
 
 if (failures) { console.error(`V219 FAILED: ${failures}`); process.exit(1); }

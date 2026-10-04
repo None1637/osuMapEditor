@@ -76,7 +76,7 @@ section('App.tsx: lazer 键位 (Ctrl+G 反转 / Ctrl+,. 旋转)');
 section('Inspector.tsx: 快捷键提示文本同步');
 {
   const src = readSrc('src/components/Inspector.tsx');
-  assert(/Ctrl\+G 反转/.test(src) && /Ctrl\+,\/\./.test(src), '提示文本: Ctrl+G 反转 + Ctrl+,/. 旋转');
+  assert(/hotkeyLabel\('reverse'\)\} 反转/.test(src) && /hotkeyLabel\('rot-ccw'\)\}\/\{hotkeyLabel\('rot-cw'\)\} 旋转90°/.test(src), '提示文本: 反转 + 旋转 (v321: hotkeyLabel 动态)');
 }
 
 if (failures) { console.error(`\nVERIFIER_V75_FAILED: ${failures} 处失败`); process.exit(1); }

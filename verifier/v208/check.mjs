@@ -38,8 +38,8 @@ section('EditorCanvas.tsx: onDoubleClick 吞掉');
 section('右键结束放置仍在');
 {
   const src = readSrc('src/components/EditorCanvas.tsx');
-  assert(/store\.tool === 'slider' && store\.pendingSlider\.length\) \{?\s*\n?\s*finishSlider\(\)/.test(src),
-    'onContextMenu 右键 finishSlider 保留 (结束放置的入口)');
+  assert(/store\.tool === 'slider' && store\.pendingSlider\.length[\s\S]{0,700}?finishSlider\(\)/.test(src),
+    'onContextMenu 右键 finishSlider 保留 (v318: 先落幻影点再完成, 结束放置的入口)');
 }
 
 if (failures) { console.error(`V208 FAILED: ${failures}`); process.exit(1); }

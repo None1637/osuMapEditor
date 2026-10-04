@@ -38,6 +38,7 @@ export function HotkeyPanel() {
       setConflict(null);
       setCapture(null);
       setTick((t) => t + 1);
+      store.emit(); // v321 (F21): 改键后通知订阅组件重渲染 (界面快捷键提示同步)
     };
     const onKey = (e: KeyboardEvent) => {
       e.preventDefault();
@@ -89,6 +90,7 @@ export function HotkeyPanel() {
                         onClick={() => {
                           setHotkeyOverride(a.id, null);
                           setTick((t) => t + 1);
+                          store.emit(); // v321 (F21)
                         }}
                       >
                         ⟲
@@ -132,6 +134,22 @@ export function HotkeyPanel() {
             })}
           </div>
         ))}
+      </div>
+      {/* v321 (F18c): 固定键位分区 (不可改键的鼠标/系统组合, 仅展示) */}
+      <div className="mt-2 border-t border-osu-border pt-2" data-testid="hotkey-fixed-section">
+        <div className="mb-1 text-[13px] font-bold uppercase tracking-wider text-osu-textdim">固定键位 (不可修改)</div>
+        <div className="grid grid-cols-2 gap-x-4 gap-y-0.5 text-[12px] text-osu-textdim">
+          <span>Alt+点击 — 选中/取消滑条锚点</span>
+          <span>Alt+拖动 — 框选滑条锚点</span>
+          <span>Alt+Shift+拖动 — 锚点框选减选</span>
+          <span>Ctrl+点击 (选中滑条) — 插入锚点</span>
+          <span>中键拖动 — 平移游玩区</span>
+          <span>Alt+滚轮 — 缩放游玩区 / 时间轴上调锁定间距</span>
+          <span>Ctrl+滚轮 — 游玩区循环节拍细分 / 时间轴上缩放</span>
+          <span>Shift+数字1-8 — 设节拍细分</span>
+          <span>滚轮 — 移动时间</span>
+          <span>右键 — 完成滑条 / 删除物件</span>
+        </div>
       </div>
       <div className="mt-2 flex items-center justify-between">
         <span className="text-[11px] text-osu-textdim">点击键位后按下新组合即可改键,关闭编辑器后保留</span> {/* v293: 10→11px */}

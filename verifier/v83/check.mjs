@@ -38,7 +38,7 @@ section('EditorCanvas.tsx: 两个 finish 函数收敛 (规则不再各抄一份)
   const n = (src.match(/const len = placementLength\(bm\.timingPoints/g) ?? []).length;
   assert(n === 2, `finishSlider + finishFreehandSlider 都走 placementLength (实际 ${n} 处)`);
   const t = (src.match(/snapPlacementTime\(bm\.timingPoints, store\.currentTime, store\.beatSnap\)/g) ?? []).length;
-  assert(t === 2, `两处落盘时间都走 snapPlacementTime (实际 ${t} 处)`);
+  assert(t === 3, `两处落盘时间 + v318 幽灵预览同源 snapPlacementTime (实际 ${t} 处)`);
   assert(!/beatPx = vel \* red\.beatLength/.test(src), 'EditorCanvas 内不再有第三份长度规则拷贝');
 }
 

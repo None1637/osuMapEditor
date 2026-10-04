@@ -29,14 +29,14 @@ console.log('== App.tsx: 快捷键按工具分流 + 放置态指示 (v244: 右�
   assert(/if \(store\.tool !== 'select'\) \{\s*if \(bit === 0\) store\.togglePlaceNewCombo\(\); else store\.togglePlaceHitSound\(bit\);/.test(src), '放置工具: Q → 放置态 NC');
   assert(/const bit = id === 'hs-newcombo' \? 0 : id === 'hs-whistle' \? 2 : id === 'hs-finish' \? 4 : 8;/.test(src), '放置工具: W/E/R → 放置态音效位');
   assert(/store\.toggleSelectedNewCombo\(\)/.test(src) && /store\.toggleEdgeHitSound/.test(src), 'select 工具原语义保留 (选中物件/节点)');
-  assert(/store\.placeNewCombo \? 'text-pink-300/.test(src) && /NC\(Q\)/.test(src), '放置态指示 (v244 起在右栏顶部)');
+  assert(/store\.placeNewCombo \? 'text-pink-300/.test(src) && /NC\(\{hotkeyLabel\('hs-newcombo'\)\}\)/.test(src), '放置态指示 (v244 起在右栏顶部; v321: 键位经 hotkeyLabel 动态)');
 }
 
 console.log('== EditorCanvas.tsx: 四处放置点读放置态 + NC 消费复位');
 {
   const src = readSrc('src/components/EditorCanvas.tsx');
   const n = (src.match(/newCombo: store\.placeNewCombo, comboSkip: 0, hitSound: store\.placeHitSound/g) || []).length;
-  assert(n === 4, `circle/finishSlider/finishFreehandSlider/finishSpinner 四处 (实际 ${n})`);
+  assert(n === 6, `circle/finishSlider/finishFreehandSlider/finishSpinner 四处 + v318 放置幽灵两处 (实际 ${n})`);
   const c = (src.match(/store\.placeNewCombo = false; \/\/ v241: NC 仅一次/g) || []).length;
   assert(c === 4, `NC 仅一次: 四处放置后复位 (实际 ${c}); W/E/R 音效位无复位代码`);
   assert(!/newCombo: true, comboSkip: 0, hitSound: 0,/.test(src), 'slider/spinner 硬编码 NC=true 已移除');

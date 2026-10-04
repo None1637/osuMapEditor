@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<!-- 音频解码诊断探针 (波形漂移排查用) — 单文件, 双击用浏览器打开即可。
+     把谱面的 mp3 拖进来 (或点选择文件), 输出:
+       1. 文件 SHA-256 / 大小 — 与官方下载对比, 直接证明"是不是同一个文件"
+       2. decodeAudioData 解码结果: 采样率/声道/采样数/时长 — 编辑器波形的数据源
+       3. <audio> 元素时长 — 与解码时长互验 (差异 = 解码器缩放嫌疑)
+       4. 首个非静音采样时间 — 片头静音/编码器延迟
+     也可 ?src=audio.mp3 同源自动加载 (本地 http 测试用) -->
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>音频解码诊断探针</title>
+<style>
+  body { font: 14px/1.6 monospace; background: #16161c; color: #ddd; padding: 24px; }
+  #drop { border: 2px dashed #555; border-radius: 8px; padding: 40px; text-align: center; color: #888; margin-bottom: 16px; }
+  #drop.over { border-color: #4a90e2; color: #4a90e2; }
+  table { border-collapse: collapse; }
+  td { padding: 3px 14px 3px 0; vertical-align: top; }
+  td:first-child { color: #888; white-space: nowrap; }
+  .val { color: #7fe07f; user-select: all; }
+  .warn { color: #f5a623; }
+  h3 { color: #4a90e2; margin: 18px 0 6px; }
+</style>
+</head>
+<body>
+<h2>音频解码诊断探针</h2>
+<div id="drop">把音频文件拖到这里 (或点击选择文件)<input type="file" id="pick" style="display:none"></div>
+<div id="out">等待文件…</div>
+<script>
+const out = document.getElementById('out');
+const drop = document.getElementById('drop');
+drop.onclick = () => document.getElementById('pick').click();
+drop.ondragover = e => { e.preventDefault(); drop.classList.add('over'); };
+drop.ondragleave = () => drop.classList.remove('over');
+drop.ondrop = e => { e.preventDefault(); drop.classList.remove('over'); if (e.dataTransfer.files[0]) run(e.dataTransfer.files[0]); };
+document.getElementById('pick').onchange = e => { if (e.target.files[0]) run(e.target.files[0]); };
+
+function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
+function row(k, v, warn) { return `<tr><td>${k}</td><td class="${warn ? 'warn' : 'val'}">${esc(v)}</td></tr>`; }
+
+async function sha256Hex(buf) {
+  const h = await crypto.subtle.digest('SHA-256', buf);
+  return [...new Uint8Array(h)].map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+function firstNonSilent(buf, thresh = 1e-4) {
+  for (let ch = 0; ch < buf.numberOfChannels; ch++) {
+    const d = buf.getChannelData(ch);
+    for (let i = 0; i < d.length; i++) {
+      if (Math.abs(d[i]) > thresh) return i; // 任一声道
+    }
+  }
+  return -1;
+}
+
+async function run(file) {
+  out.innerHTML = '分析中… (大文件哈希需几秒)';
+  try {
+    const bytes = await file.arrayBuffer();
+    const hash = await sha256Hex(bytes);
+    // 解码 (与编辑器同一路径: AudioContext + decodeAudioData)
+    const actx = new AudioContext();
+    let dec = null, decErr = '';
+    try { dec = await actx.decodeAudioData(bytes.slice(0)); } catch (e) { decErr = String(e); }
+    // <audio> 元素时长互验
+    const url = URL.createObjectURL(file);
+    const elDur = await new Promise(res => {
+      const a = new Audio();
+      a.preload = 'metadata';
+      a.onloadedmetadata = () => res(a.duration);
+      a.onerror = () => res(NaN);
+      a.src = url;
+    });
+    let html = '<h3>文件</h3><table>';
+    html += row('文件名', file.name);
+    html += row('大小 (字节)', file.size);
+    html += row('SHA-256', hash);
+    html += '</table><h3>环境</h3><table>';
+    html += row('AudioContext 采样率', actx.sampleRate + ' Hz');
+    html += row('outputLatency', (actx.outputLatency ?? '(未上报)') + (actx.outputLatency != null ? ' s' : ''));
+    html += row('baseLatency', (actx.baseLatency ?? '(未上报)') + (actx.baseLatency != null ? ' s' : ''));
+    html += row('User-Agent', navigator.userAgent);
+    html += '</table><h3>decodeAudioData 解码结果 (编辑器波形数据源)</h3><table>';
+    if (dec) {
+      const durMs = dec.duration * 1000;
+      const fns = firstNonSilent(dec);
+      html += row('采样率', dec.sampleRate + ' Hz');
+      html += row('声道数', dec.numberOfChannels);
+      html += row('总采样数', dec.length);
+      html += row('时长', durMs.toFixed(3) + ' ms  (' + dec.duration.toFixed(6) + ' s)');
+      html += row('首个非静音采样', fns < 0 ? '(全静音?)' : fns + '  =  ' + (fns / dec.sampleRate * 1000).toFixed(3) + ' ms');
+      if (!isNaN(elDur)) {
+        const diff = dec.duration - elDur;
+        html += row('&lt;audio&gt; 元素时长', (elDur * 1000).toFixed(3) + ' ms');
+        html += row('解码时长 − 元素时长', (diff * 1000).toFixed(3) + ' ms', Math.abs(diff) > 0.05);
+      }
+    } else {
+      html += row('解码失败', decErr, true);
+    }
+    html += '</table>';
+    html += '<p style="color:#888">请整页截图发回 (SHA-256 可与官方下载的文件对比; 时长/采样率可与开发者本地对比)</p>';
+    out.innerHTML = html;
+  } catch (e) {
+    out.innerHTML = '<span class="warn">出错: ' + esc(e) + '</span>';
+  }
+}
+
+// 本地 http 测试: ?src=xxx.mp3 自动加载
+const q = new URLSearchParams(location.search).get('src');
+if (q) fetch(q).then(r => r.blob()).then(b => run(new File([b], q.split('/').pop())));
+</script>
+</body>
+</html>

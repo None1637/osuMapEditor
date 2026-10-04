@@ -561,10 +561,11 @@ export function snapPlacementTime(points: TimingPoint[], currentTime: number, be
 }
 
 /** v180: 转盘放置终点 — lazer SpinnerPlacementBlueprint.updateEndTimeFromCurrent:
- *  EndTime = max(StartTime + 起点处一拍, 当前时间按 beatSnap 吸附); 即放置中终点实时跟随编辑器时间, 至少一拍长 */
+ *  EndTime = max(StartTime + 最短时长, 当前时间按 beatSnap 吸附); 即放置中终点实时跟随编辑器时间。
+ *  v320: F22 — 最短时长 1 拍 → 1 个吸附 tick (beatLength/beatSnap; 用户反馈"放置时有最短时长限制") */
 export function spinnerPlacementEnd(points: TimingPoint[], startTime: number, currentTime: number, beatSnap: number): number {
   const { red } = timingAt(points, startTime);
-  return Math.max(startTime + red.beatLength, snapPlacementTime(points, currentTime, beatSnap));
+  return Math.max(startTime + red.beatLength / beatSnap, snapPlacementTime(points, currentTime, beatSnap));
 }
 
 /**

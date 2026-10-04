@@ -306,6 +306,41 @@ function defaultEdgeSets(slides: number): string {
 
 const DEFAULT_SECTION_ORDER = ['General', 'Editor', 'Metadata', 'Difficulty', 'Events', 'TimingPoints', 'Colours', 'HitObjects'];
 
+/** v322 (F27): 单物件 .osu 行序列化 (serializeOsu 与 stable 格式系统剪贴板共用) */
+export function serializeHitObjectLine(o: HitObject): string {
+  let flags = o.type === 'circle' ? 1 : o.type === 'slider' ? 2 : 8;
+  if (o.newCombo) flags |= 4;
+  flags |= (o.comboSkip ?? 0) << 4;
+  const pos = `${fmtNum(o.x)},${fmtNum(o.y)},${fmtNum(o.time)},${flags},${o.hitSound ?? 0}`;
+  if (o.type === 'circle') {
+    // 可选尾字段缺失时省略, 保持与原文件字段数一致
+    return o.hitSampleRaw !== undefined ? `${pos},${o.hitSampleRaw}` : pos;
+  } else if (o.type === 'slider') {
+    const curve = [o.curveType ?? 'L', ...(o.curvePoints ?? []).map(p => `${fmtNum(p.x)}:${fmtNum(p.y)}`)].join('|');
+    const slides = o.slides ?? 1;
+    const parts = [`${pos},${curve},${slides},${fmtNum(o.length ?? 100)}`];
+    // edgeSounds/edgeSets/hitSample 逐级可选: 写到最后一个已定义的字段为止
+    if (o.edgeSoundsRaw !== undefined || o.edgeSetsRaw !== undefined || o.hitSampleRaw !== undefined) {
+      parts.push(o.edgeSoundsRaw ?? defaultEdgeSounds(slides));
+      if (o.edgeSetsRaw !== undefined || o.hitSampleRaw !== undefined) {
+        parts.push(o.edgeSetsRaw ?? defaultEdgeSets(slides));
+        if (o.hitSampleRaw !== undefined) parts.push(o.hitSampleRaw);
+      }
+    }
+    return parts.join(',');
+  } else {
+    const end = `${pos},${fmtNum(o.endTime ?? o.time + 1000)}`;
+    return o.hitSampleRaw !== undefined ? `${end},${o.hitSampleRaw}` : end;
+  }
+}
+
+/** v322 (F27): stable 时间戳 "mm:ss:ms" (系统剪贴板物件时间 / 跳转时间输入框初值) */
+export function stableTimestamp(ms: number): string {
+  const t = Math.max(0, Math.round(ms));
+  const m = Math.floor(t / 60000), s = Math.floor((t % 60000) / 1000), r = t % 1000;
+  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}:${String(r).padStart(3, '0')}`;
+}
+
 export function serializeOsu(bm: Beatmap): string {
   const extra = bm.extraLines ?? {};
   const raw = bm.rawSections ?? {};
@@ -337,32 +372,7 @@ export function serializeOsu(bm: Beatmap): string {
   ];
   sections['TimingPoints'] = bm.timingPoints.map(t =>
     `${fmtNum(t.time)},${t.beatLength},${t.meter},${t.sampleSet},${t.sampleIndex},${t.volume},${t.uninherited ? 1 : 0},${t.effects}`);
-  sections['HitObjects'] = bm.hitObjects.map(o => {
-    let flags = o.type === 'circle' ? 1 : o.type === 'slider' ? 2 : 8;
-    if (o.newCombo) flags |= 4;
-    flags |= (o.comboSkip ?? 0) << 4;
-    const pos = `${fmtNum(o.x)},${fmtNum(o.y)},${fmtNum(o.time)},${flags},${o.hitSound ?? 0}`;
-    if (o.type === 'circle') {
-      // 可选尾字段缺失时省略, 保持与原文件字段数一致
-      return o.hitSampleRaw !== undefined ? `${pos},${o.hitSampleRaw}` : pos;
-    } else if (o.type === 'slider') {
-      const curve = [o.curveType ?? 'L', ...(o.curvePoints ?? []).map(p => `${fmtNum(p.x)}:${fmtNum(p.y)}`)].join('|');
-      const slides = o.slides ?? 1;
-      const parts = [`${pos},${curve},${slides},${fmtNum(o.length ?? 100)}`];
-      // edgeSounds/edgeSets/hitSample 逐级可选: 写到最后一个已定义的字段为止
-      if (o.edgeSoundsRaw !== undefined || o.edgeSetsRaw !== undefined || o.hitSampleRaw !== undefined) {
-        parts.push(o.edgeSoundsRaw ?? defaultEdgeSounds(slides));
-        if (o.edgeSetsRaw !== undefined || o.hitSampleRaw !== undefined) {
-          parts.push(o.edgeSetsRaw ?? defaultEdgeSets(slides));
-          if (o.hitSampleRaw !== undefined) parts.push(o.hitSampleRaw);
-        }
-      }
-      return parts.join(',');
-    } else {
-      const end = `${pos},${fmtNum(o.endTime ?? o.time + 1000)}`;
-      return o.hitSampleRaw !== undefined ? `${end},${o.hitSampleRaw}` : end;
-    }
-  });
+  sections['HitObjects'] = bm.hitObjects.map(o => serializeHitObjectLine(o)); // v322: 单行逻辑抽出 (剪贴板共用)
 
   // 建模 section 追加未知键/注释行; 未建模 section 用原文
   const order = (bm.sectionOrder?.length ? [...bm.sectionOrder] : DEFAULT_SECTION_ORDER);

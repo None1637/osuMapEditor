@@ -63,8 +63,9 @@ function createServer() {
       // 收集请求体 (write 端点需要; GET 立即 end)
       const chunks = []
       req.on("data", (c) => chunks.push(c))
-      req.on("end", () => {
-        const r = handleLocalFs(req.method ?? "GET", url.pathname, url.searchParams, chunks.length ? Buffer.concat(chunks) : undefined)
+      req.on("end", async () => {
+        // v323: handler 已异步化 (fs.promises) — 主进程不再被同步磁盘 I/O 占满 (曲库索引风暴期间窗口仍响应)
+        const r = await handleLocalFs(req.method ?? "GET", url.pathname, url.searchParams, chunks.length ? Buffer.concat(chunks) : undefined)
         if (!r) { res.writeHead(404); res.end("not found"); return }
         res.writeHead(r.status, { "Content-Type": r.contentType })
         res.end(r.body)

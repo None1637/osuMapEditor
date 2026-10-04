@@ -17,7 +17,7 @@ const cv = readSrc('src/components/EditorCanvas.tsx');
 
 console.log('== EditorCanvas.tsx: 插入白点升级 L→P');
 assert(/const wasLinear = so\.curveType === 'L';/.test(cv), '插入前记录直线类型');
-assert(/const newPts = insertSliderPoint\(ctrl, best, bestT\);/.test(cv), '插入点列');
+assert(/const newPts = \[\.\.\.ctrl\.slice\(0, best \+ 1\), raw, \.\.\.ctrl\.slice\(best \+ 1\)\];/.test(cv), '插入点列 (v319: lazer 原位置 raw 插入, 取代 insertSliderPoint 投影)');
 assert(/if \(wasLinear && so\.curveType === 'L' && newPts\.length === 3\) so\.curveType = 'P';/.test(cv),
   '恰 3 点时升级圆弧 (仅插入路径)');
 assert(/resnapSliderLength\(bm, so, store\.beatSnap\)/.test(cv), '升级后仍 SnapTo 长度吸附');

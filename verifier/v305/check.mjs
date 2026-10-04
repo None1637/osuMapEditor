@@ -18,19 +18,19 @@ section('renderer.ts: stable 选中圆环/描边');
   const src = readSrc('src/osu/renderer.ts');
   assert(!/function drawSelectionBox/.test(src), 'v232 方框绘制已移除');
   assert(/export function drawSelectionRing[\s\S]{0,120}color = '#f5a623'/.test(src), '选中环默认橙黄 #f5a623');
-  assert(/g\.arc\(x, y, r \* 1\.06, 0, Math\.PI \* 2\)/.test(src), '圆环半径 1.06r (贴圆圈外缘)');
-  assert(/export function drawSliderBodyOutline\(g: CanvasRenderingContext2D, points: \{ x: number; y: number \}\[\], r: number, color = '#4df3ff'\)/.test(src),
-    '滑条描边环支持颜色参数并导出');
+  // v308: 环改为覆盖圆圈白边, 不再是圈外 1.06r; v314: 环带 = 滑条选中蓝边带 0.81..0.925r (lw=0.115r, 弧 0.8675r = 带中心)
+  assert(/g\.arc\(x, y, r \* 0\.8675, 0, Math\.PI \* 2\)/.test(src), 'v314: 圆环精确覆盖滑条选中描边带 (弧半径 0.8675r)');
+  assert(/export function drawSliderBodyOutline\(g: CanvasRenderingContext2D, points: \{ x: number; y: number \}\[\], r: number, color = '#4df3ff', cover = false\)/.test(src),
+    '滑条描边环支持颜色参数并导出 (v308: +cover 参数)');
   assert(/og\.strokeStyle = color;/.test(src), '描边环用传入颜色');
 }
 
-section('EditorCanvas.tsx: stable hover 蓝环');
+section('EditorCanvas.tsx: v308 hover 选中环已移除');
 {
   const src = readSrc('src/components/EditorCanvas.tsx');
-  assert(/const hoverObjRef = useRef<number \| null>\(null\);/.test(src), 'hoverObjRef 存在');
-  assert(/hoverObjRef\.current = hit && !store\.selected\.has\(hit\.id\) \? hit\.id : null;/.test(src), '悬停未选中物件记录 id');
-  assert(/if \(displaySettings\.selectionStyle === 'stable'\) \{[\s\S]{0,200}?hoverObjRef\.current/.test(src), '仅 stable 模式画 hover 蓝环');
-  assert(/hoverObjRef\.current = null; \/\/ v305/.test(src), '光标出游玩区清 hover 环');
+  // v308: 用户反馈 stable 悬停无任何效果 (单点黄环/滑条蓝边都不该有), v305 hoverObjRef 移除
+  assert(!/hoverObjRef/.test(src), 'v308: hoverObjRef 已移除 (hover 不画选中样式)');
+  assert(/hoverSliderRef/.test(src), 'hoverSliderRef 保留 (滑条控制点 hover 预览不受影响)');
 }
 
 section('编译');

@@ -50,7 +50,7 @@ assert((cv.match(/if \(store\.nodeSelectionCount\) \{\s*const orig = snapshotNod
 // EditorCanvas: mousemove 三分支
 assert(/applyNodeRotateUpdate\(cp, e\.shiftKey\)/.test(cv), 'mousemove: 节点旋转拖拽');
 assert(/applyNodeScaleUpdate\(cp, e\.shiftKey, e\.altKey\)/.test(cv), 'mousemove: 节点缩放拖拽');
-assert(/store\.setSelectedNodes\(\[\.\.\.nmq\.base, \.\.\.keepNodes, \.\.\.nodesInRect/.test(cv), 'mousemove: 节点框选实时更新 (v277 适配: 保留不可见滑条的已选节点)');
+assert(/store\.setSelectedNodes\(\[\.\.\.nmq\.base, \.\.\.keepNodes, \.\.\.inRect\]\)/.test(cv), 'mousemove: 节点框选实时更新 (v277 适配: 保留不可见滑条的已选节点; v317: 加选分支, 减选走 subtract)');
 assert(/transformNodesFromSnapshot\(bm, nmd\.orig, pt => \(\{ x: pt\.x \+ dx, y: pt\.y \+ dy \}\)\)/.test(cv), 'mousemove: 节点整体平移');
 
 // EditorCanvas: 收尾 (canvas mouseup + window mouseup)

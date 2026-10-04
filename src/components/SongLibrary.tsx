@@ -282,6 +282,10 @@ export function SongLibrary({ onClose }: { onClose: () => void }) {
     snapRef.current = { rootName: root?.name ?? null, entries, filter, selKey, scrollTop: view.top };
   });
   useEffect(() => () => {
+    // v323: 关闭面板即取消进行中的扫描 — 原实现只清 flush 定时器, 扫描生成器继续跑到完:
+    // exe (服务器直读) 走主线程回退路径, 关闭曲库后仍在后台连发数千个文件请求 + 逐文件解析,
+    // 用户在编辑器里"什么都没做"时界面被拖到未响应 (F: 曲库改搜索后经常卡死)
+    scanGenRef.current++;
     if (flushTimerRef.current) { clearTimeout(flushTimerRef.current); flushTimerRef.current = null; } // v297
     const s = snapRef.current;
     if (!s.rootName || !scanDoneRef.current) return;

@@ -49,6 +49,32 @@ function getKey(section: string, k: string): string {
   return section.match(new RegExp(`^${k}:(.*)$`, 'm'))?.[1]?.trim() ?? '';
 }
 
+/** v323: 首个非空非注释行 (逐行扫描, 碰线即返 — 不 split 全文, 巨型故事板谱友好) */
+function firstSignificantLine(s: string): string {
+  let i = 0;
+  while (i < s.length) {
+    let nl = s.indexOf('\n', i);
+    if (nl < 0) nl = s.length;
+    const line = s.slice(i, nl).trim();
+    if (line && !line.startsWith('//')) return line;
+    i = nl + 1;
+  }
+  return '';
+}
+
+/** v323: 末个非空非注释行 (从尾向前扫描, 通常 1-2 行即中) */
+function lastSignificantLine(s: string): string {
+  let end = s.length;
+  while (end > 0) {
+    const nl = s.lastIndexOf('\n', end - 1);
+    const line = s.slice(nl + 1, end).trim();
+    if (line && !line.startsWith('//')) return line;
+    if (nl < 0) return '';
+    end = nl;
+  }
+  return '';
+}
+
 /** v290: 轻量解析单个 .osu → 索引条目 (损坏文件抛错由调用方跳过) */
 export function parseIndexEntry(text: string, dirName: string, fileName: string, size = 0, lastModified = 0): LibraryIndexEntry {
   const meta = sectionOf(text, 'Metadata');
@@ -75,12 +101,14 @@ export function parseIndexEntry(text: string, dirName: string, fileName: string,
 
   // lengthMs: 首/尾物件时间差 (spinner 取第 6 字段 end time; 滑条只算起点 → 长滑条谱偏短,
   // 与 lazer drain length 有差异, 近似值够用; 如需精确可后续用完整 parse 补)
+  // v323: 首/末行改逐行扫描, 不 split 全文 — 故事板谱 .osu 可达数十 MB/数百万行,
+  // split('\n').map(trim).filter 三遍全量遍历在渲染主线程单文件要数秒 (扫描卡死主因之一)
   let lengthMs = 0;
   const ho = sectionOf(text, 'HitObjects');
-  const lines = ho.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('//'));
-  if (lines.length) {
-    const t0 = parseInt(lines[0]!.split(',')[2] ?? '0') || 0;
-    const lastFields = lines[lines.length - 1]!.split(',');
+  const first = firstSignificantLine(ho);
+  if (first) {
+    const t0 = parseInt(first.split(',')[2] ?? '0') || 0;
+    const lastFields = lastSignificantLine(ho).split(',');
     let t1 = parseInt(lastFields[2] ?? '0') || 0;
     const end = parseInt(lastFields[5] ?? ''); // spinner end time (非 spinner 该字段不是时间, 仅 >t1 时采纳)
     if (Number.isFinite(end) && end > t1 && lastFields.length <= 7) t1 = end;

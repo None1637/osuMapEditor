@@ -29,7 +29,7 @@ section('App.tsx: V 键跳转最后物件');
 
 section('快捷键帮助列表');
 {
-  assert(/<div>V 跳到最后一个物件<\/div>/.test(src), '帮助列表含 V 条目 (紧跟 J/K 条目)');
+  assert(/<div>\{hotkeyLabel\('jump-last'\)\} 跳到最后一个物件<\/div>/.test(src), '帮助列表含跳到最后物件条目 (v321: hotkeyLabel 动态)');
 }
 
 if (failures) { console.error(`\nV153_FAILED: ${failures} 处失败`); process.exit(1); }

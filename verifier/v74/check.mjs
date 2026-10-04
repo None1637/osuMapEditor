@@ -41,7 +41,7 @@ section('EditorCanvas.tsx: B4 落盘 + 一键手绘 + 候选期 canvasDragging')
   assert(/store\.canvasDragging = true;[\s\S]{0,60}store\.emit\(\);[\s\S]{0,20}return;/.test(src), '候选期 canvasDragging=true (拖过时间轴不 seek)');
   assert(/!c\.isHead/.test(src), '头部候选松开不加点不切红');
   assert(/freehandRef\.current && e\.target !== canvasRef\.current/.test(src), '手绘拖出画布 (时间轴上方) 继续采样');
-  assert(/!freehandRef\.current && !drawCandRef\.current[\s\S]{0,200}&& !marqueeRef\.current && !nodeMarqueeRef\.current\) onMouseUp\(\)/.test(src), 'onMouseLeave 不提前终止手绘/候选 (v228 同条件追加物件/节点拖拽豁免; v302 追加框选豁免 F11)');
+  assert(/!freehandRef\.current && !drawCandRef\.current[\s\S]{0,600}?&& !marqueeRef\.current && !nodeMarqueeRef\.current[\s\S]{0,600}?\) onMouseUp\(\)/.test(src), 'onMouseLeave 不提前终止手绘/候选 (v228 同条件追加物件/节点拖拽豁免; v302 追加框选豁免 F11; v313 追加节点手柄/中键/标记类拖拽)');
 }
 
 section('renderer.ts: 放置预览控制点连线');

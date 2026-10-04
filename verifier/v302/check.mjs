@@ -47,10 +47,10 @@ section('EditorCanvas.tsx: F11 框选拖出画布不中断 (window 接管 + onMo
   const src = readSrc('src/components/EditorCanvas.tsx');
   assert(/nodesMoveDragRef\.current \|\| marqueeRef\.current \|\| nodeMarqueeRef\.current\) onMouseUp\(\)/.test(src),
     'window mouseup 收尾覆盖框选');
-  assert(/nodesMoveDragRef\.current \|\| marqueeRef\.current \|\| nodeMarqueeRef\.current\) && e\.target !== canvasRef\.current\)/.test(src),
-    'window mousemove 继续喂框选');
-  assert(/!nodesMoveDragRef\.current\s*\n\s*&& !marqueeRef\.current && !nodeMarqueeRef\.current\) onMouseUp\(\)/.test(src),
-    'onMouseLeave 不再终止框选');
+  assert(/nodesMoveDragRef\.current \|\| marqueeRef\.current \|\| nodeMarqueeRef\.current[\s\S]{0,500}?&& e\.target !== canvasRef\.current\)/.test(src),
+    'window mousemove 继续喂框选 (v313: 同分支追加标记类拖拽+中键平移)');
+  assert(/!nodesMoveDragRef\.current\s*\n\s*&& !marqueeRef\.current && !nodeMarqueeRef\.current[\s\S]{0,500}?\) onMouseUp\(\)/.test(src),
+    'onMouseLeave 不再终止框选 (v313: 同守卫追加节点手柄/中键/标记类拖拽)');
 }
 
 section('编译');

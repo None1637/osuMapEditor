@@ -1,7 +1,7 @@
 // 编辑器核心状态: 谱面数据 + 撤销/重做 + 剪贴板 + 选择 + 音频时钟
 import { useSyncExternalStore } from 'react';
 import type { Beatmap, HitObject, TimingPoint } from './parser';
-import { genId, timingAt, serializeOsu, snapAcrossRedLine } from './parser';
+import { genId, timingAt, serializeOsu, snapAcrossRedLine, serializeHitObjectLine, stableTimestamp } from './parser'; // v322: serializeHitObjectLine/stableTimestamp (F27 系统剪贴板)
 import { invalidatePath } from './renderer';
 import { selectionCenter, rotateObjects, flipObjects, scaleObjects, reflectObjectsAcrossLine, type Pt } from './transform';
 import { reverseSelection } from './reverse';
@@ -61,7 +61,7 @@ function loadWavePanelOpen(): boolean {
 }
 
 // v278: 网格吸附设置持久化 (旋转角度 + 自定义网格中心) — 关闭 exe 后下次打开恢复上次设置
-interface GridSettingsPersist { rotation: number; origin: Pt; custom: boolean }
+interface GridSettingsPersist { rotation: number; origin: Pt; custom: boolean; type?: 'square' | 'triangle' | 'circle' | 'none' } // v321: type 一并持久化 (F25)
 const LS_GRID_SETTINGS = 'osu-editor:grid-settings';
 function loadGridSettings(): GridSettingsPersist {
   const def: GridSettingsPersist = { rotation: 0, origin: { x: 256, y: 192 }, custom: false };
@@ -74,6 +74,7 @@ function loadGridSettings(): GridSettingsPersist {
       origin: p.origin && isFinite(p.origin.x) && isFinite(p.origin.y)
         ? { x: Math.max(0, Math.min(512, Math.round(p.origin.x))), y: Math.max(0, Math.min(384, Math.round(p.origin.y))) } : def.origin,
       custom: !!p.custom,
+      type: p.type === 'triangle' || p.type === 'circle' || p.type === 'none' ? p.type : 'square', // v321 (F25)
     };
   } catch { return def; }
 }
@@ -81,7 +82,7 @@ const persistedGrid = loadGridSettings();
 /** 在 setGridRotation/setGridOrigin/setGridOriginCustom 内调用 (运行时 store 已初始化, TDZ 无碍) */
 function saveGridSettings() {
   try {
-    localStorage.setItem(LS_GRID_SETTINGS, JSON.stringify({ rotation: store.gridRotation, origin: store.gridOrigin, custom: store.gridOriginCustom }));
+    localStorage.setItem(LS_GRID_SETTINGS, JSON.stringify({ rotation: store.gridRotation, origin: store.gridOrigin, custom: store.gridOriginCustom, type: store.gridType })); // v321: type 一并保存 (F25)
   } catch { /* 隐私模式等忽略 */ }
 }
 
@@ -125,7 +126,7 @@ class EditorStore {
   togglePlaceHitSound(bit: number) { this.placeHitSound ^= bit; this.emitSelection(); }
   // v56: 位置网格 (lazer OsuGridToolboxGroup + rectangularGridSnapToggle)
   gridSnap = false; // Grid Snap 开关 (lazer 默认 False); 网格线始终显示 (lazer LayerBelowRuleset)
-  gridType: 'square' | 'triangle' | 'circle' | 'none' = 'square'; // v119: none = 无网格 (渲染与吸附同时停)
+  gridType: 'square' | 'triangle' | 'circle' | 'none' = persistedGrid.type ?? 'square'; // v119: none = 无网格 (渲染与吸附同时停); v321: 持久化恢复 (F25)
   gridSpacing: number | null = null; // null = 跟随谱面 [Editor] GridSize (lazer 初始值); 修改时写回 editor.gridSize
   gridRotation = persistedGrid.rotation; // 度; 圆形禁用 (lazer GridLinesRotation.Disabled); v278: 持久化恢复
   // v78: 自定义网格中心 (lazer OsuGridToolboxGroup 的 StartPositionX/Y 可配; 默认 = 游玩区中心 GRID_ORIGIN)
@@ -136,6 +137,8 @@ class EditorStore {
   setGridOriginCustom(b: boolean) { this.gridOriginCustom = b; saveGridSettings(); this.emitSelection(); } // v278
   /** v278: 网格旋转角度设置入口 (原 App.tsx 直接字段赋值) — 统一在此持久化 */
   setGridRotation(deg: number) { this.gridRotation = deg; saveGridSettings(); this.emit(); }
+  /** v321 (F25): 网格类型设置入口 — 与旋转/原点同款持久化 (原 App.tsx 直接字段赋值) */
+  setGridType(t: 'square' | 'triangle' | 'circle' | 'none') { this.gridType = t; saveGridSettings(); this.emit(); }
   // v163: 限制物件在游玩区域内 (默认开 = 既有行为); 关闭后放置/拖动/网格吸附均不钳制到 0..512/0..384
   limitToPlayfield = true;
   setLimitToPlayfield(b: boolean) { this.limitToPlayfield = b; this.emitSelection(); }
@@ -1290,6 +1293,13 @@ class EditorStore {
       return c;
     });
     this.clipboardGreens = deepCopy(greens).map(tp => ({ ...tp, time: tp.time - t0 }));
+    // v322 (F27): 系统剪贴板写 stable 文本格式 — "mm:ss:ms (hitobject行)" 每物件一行 (可直接粘到 stable);
+    // 内部剪贴板逻辑不变 (跨窗口/文本编辑器可见时间)
+    try {
+      const text = objs.slice().sort((a, b) => a.time - b.time)
+        .map(o => `${stableTimestamp(o.time)} (${serializeHitObjectLine(o)})`).join('\n');
+      if (text) void navigator.clipboard?.writeText(text).catch(() => { /* 剪贴板权限拒绝时忽略, 内部剪贴板仍可用 */ });
+    } catch { /* 非安全上下文等忽略 */ }
     this.emitSelection(); // v209: 编辑菜单「粘贴」置灰依赖 hasClipboard, 复制后刷新订阅者
   }
 

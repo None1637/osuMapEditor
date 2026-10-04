@@ -33,7 +33,7 @@ const app = readSrc('src/App.tsx');
 
 // 1. 纯函数: spinnerPlacementEnd (lazer updateEndTimeFromCurrent)
 assert(/export function spinnerPlacementEnd\(points: TimingPoint\[\], startTime: number, currentTime: number, beatSnap: number\)/.test(sp), 'spinnerPlacementEnd 导出');
-assert(/Math\.max\(startTime \+ red\.beatLength, snapPlacementTime\(points, currentTime, beatSnap\)\)/.test(sp), '终点 = max(起点+一拍, 当前时间吸附) (lazer 语义)');
+assert(/Math\.max\(startTime \+ red\.beatLength \/ beatSnap, snapPlacementTime\(points, currentTime, beatSnap\)\)/.test(sp), '终点 = max(起点+1 tick, 当前时间吸附) (v320: F22 — 最短 1 拍 → 1 个吸附 tick)');
 
 // 2. store: pendingSpinner 放置中状态
 assert(/pendingSpinner: number \| null = null/.test(store), 'store.pendingSpinner 字段 (lazer isPlacingEnd)');
