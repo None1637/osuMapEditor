@@ -31,7 +31,7 @@ section('Alt preventDefault (阻止原生菜单抢焦点)');
 section('Alt 即时刷新链路保留 (v304/v316)');
 {
   assert(/altHeldRef\.current = e\.altKey;[^\n]*\n\s*refreshHover\(\);/.test(ec), 'Alt 态更新 + refreshHover 即时重算');
-  assert(/const blur = \(\) => \{ altHeldRef\.current = false; refreshHover\(\); \}/.test(ec), 'blur 复位保留 (真正失焦时兜底)');
+  assert(/const blur = \(\) => \{ altHeldRef\.current = false; refreshHover\(\);/.test(ec), 'blur 复位保留 (真正失焦时兜底; v333: 追加框选同步)');
 }
 
 section('编译');

@@ -48,7 +48,7 @@ section('F26: 吸附快捷键');
   assert(/BEAT_SNAP_OPTIONS\[parseInt\(e\.code\.slice\(5\)\) - 1\]/.test(app), 'Shift+Digit1-8 映射 BEAT_SNAP_OPTIONS');
   const wheel = canvas.match(/onWheel=\{\(e\) => \{[\s\S]{0,2000}?\n      \}\}/);
   assert(!!wheel, 'EditorCanvas onWheel 存在');
-  assert(!!wheel && /if \(e\.ctrlKey\) \{[\s\S]{0,400}?BEAT_SNAP_OPTIONS\.indexOf\(store\.beatSnap\)/.test(wheel[0]), '游玩区 Ctrl+滚轮循环节拍细分');
+  assert(!!wheel && /if \(e\.ctrlKey\) \{[\s\S]{0,400}?cur \* 2 : cur \/ 2/.test(wheel[0]), '游玩区 Ctrl+滚轮节拍细分 ×2/÷2 (v334 stable 语义)');
   // v330: Alt 分支改绑定匹配 (matchesHotkeyWheel), Ctrl 分支仍最先
   assert(!!wheel && wheel[0].indexOf('e.ctrlKey') > 0 && wheel[0].indexOf('e.ctrlKey') < wheel[0].indexOf('matchesHotkeyWheel'), 'Ctrl 分支先于滚轮绑定分支');
   const topWheel = timelines.match(/onWheel=\{\(e\) => \{\s*const bm = store\.beatmap;[\s\S]{0,1500}?\}\} \/>/);

@@ -21,17 +21,17 @@ section('sliderPath.ts: 共享配置项与 1/2 细分换算');
   const m = src.match(/export const BEAT_SNAP_OPTIONS = \[([\d,\s]+)\]/);
   assert(!!m, '导出 BEAT_SNAP_OPTIONS 配置项常量');
   const opts = m ? m[1].split(',').map(s => parseInt(s.trim(), 10)) : [];
-  assert(JSON.stringify(opts) === JSON.stringify([1, 2, 3, 4, 6, 8, 12, 16]), '配置项 = [1,2,3,4,6,8,12,16] (与原下拉框一致)');
+  assert(JSON.stringify(opts) === JSON.stringify([1, 2, 3, 4, 5, 6, 7, 8, 9, 12, 16]), '配置项 = [1,2,3,4,5,6,7,8,9,12,16] (v334 对齐 stable 全集, 补 5/7/9)');
   assert(/export function sliderLengthSnapDivisor\(beatSnap: number\): number/.test(src), '导出 sliderLengthSnapDivisor');
   assert(/const half = beatSnap \* 2;/.test(src), '目标细分 = 当前细分 ×2 (即当前细分的 1/2)');
   assert(/BEAT_SNAP_OPTIONS\.includes\(half\) \? half : beatSnap/.test(src), '×2 不在配置中则退回当前细分');
 
   // 数值验证: 按源码规则重算映射
   const map = snap => opts.includes(snap * 2) ? snap * 2 : snap;
-  const expect = { 1: 2, 2: 4, 3: 6, 4: 8, 6: 12, 8: 16, 12: 12, 16: 16 };
+  const expect = { 1: 2, 2: 4, 3: 6, 4: 8, 5: 5, 6: 12, 7: 7, 8: 16, 9: 9, 12: 12, 16: 16 };
   const bad = Object.entries(expect).filter(([k, v]) => map(+k) !== v);
-  assert(bad.length === 0, '映射正确: 1→2, 2→4, 3→6, 4→8, 6→12, 8→16, 12→12(无1/24), 16→16(无1/32)');
-  assert(map(5) === 5, '配置外细分 (如 SetupPage 手填 5): 5→5 (10 不在配置中)');
+  assert(bad.length === 0, '映射正确: 1→2, 2→4, 3→6, 4→8, 5→5(无1/10), 6→12, 7→7(无1/14), 8→16, 9→9(无1/18), 12→12, 16→16');
+  assert(map(10) === 10, '配置外细分 (如 SetupPage 手填 10): 10→10 (20 不在配置中)');
 }
 
 section('sliderPath.ts: snapSliderLength 走 1/2 细分, 其余入口共用');

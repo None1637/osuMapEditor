@@ -539,8 +539,9 @@ export function preserveArcsForBezier(curveType: string, controlPoints: Vec2[]):
 
 // ---------- 长度节拍吸附 (lazer SliderPathExtensions.SnapTo + FindSnappedDistance 对齐) ----------
 
-/** v218: 节拍细分配置项 (节拍吸附下拉框可选值; App.tsx 下拉框与本模块共用同一常量, 即「配置中有的节拍细分」) */
-export const BEAT_SNAP_OPTIONS = [1, 2, 3, 4, 6, 8, 12, 16];
+/** v218/v334: 节拍细分配置项 (节拍吸附下拉框可选值; App.tsx 下拉框与本模块共用同一常量, 即「配置中有的节拍细分」)。
+ *  v334: 对齐 stable 全集 1,2,3,4,5,6,7,8,9,12,16 (补 5/7/9)。 */
+export const BEAT_SNAP_OPTIONS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 12, 16];
 
 /**
  * v218: 滑条长度吸附细分 = 当前节拍细分的 1/2 (分母 ×2, 如 1/4 -> 1/8);

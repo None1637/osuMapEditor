@@ -63,6 +63,8 @@ export interface ElectronAPI {
   menuItemClick(id: string): void;
   /** v286: 自定义改键 — 推送 accelerator 覆盖 (menuId → Electron accelerator 如 "CmdOrCtrl+S"), 主进程重建菜单 */
   setAcceleratorOverrides(map: Record<string, string>): void;
+  /** v336: 订阅主进程转发的 Alt 按下/松开态 (Alt 被 before-input-event 拦截, DOM 收不到); 返回退订函数 */
+  onAltKey(cb: (down: boolean) => void): () => void;
 }
 
 /** v280: 序列化菜单节点 (主进程 buildMenu 模板 → 渲染端自绘菜单条) */

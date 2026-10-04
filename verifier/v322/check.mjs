@@ -34,11 +34,11 @@ section('b) store.copy() 系统剪贴板带时间');
   const copy = store.match(/copy\(\) \{[\s\S]{0,1600}?\n  \}/);
   assert(!!copy, 'copy() 存在');
   assert(!!copy && /navigator\.clipboard\?\.writeText\(text\)/.test(copy[0]), '写系统剪贴板');
-  assert(!!copy && /\$\{stableTimestamp\(o\.time\)\} \(\$\{serializeHitObjectLine\(o\)\}\)/.test(copy[0]), 'stable 格式 "mm:ss:ms (行)"');
+  assert(!!copy && /\$\{stableTimestamp\(sorted\[0\]\.time\)\} \(\$\{nums\.join\(','\)\}\) - /.test(copy[0]), 'v335b: lazer 格式 "mm:ss:fff (combo号,...) - "');
   assert(!!copy && /sort\(\(a, b\) => a\.time - b\.time\)/.test(copy[0]), '按时间排序');
-  assert(!!copy && /join\('\\n'\)/.test(copy[0]), '每物件一行');
+  assert(!!copy && /computeCombos\(this\.beatmap\)/.test(copy[0]) && /combos\.get\(o\.id\)\?\.index/.test(copy[0]), 'combo 序号 = computeCombos index (lazer IndexInCurrentCombo+1)');
   assert(!!copy && /\.catch\(\(\) => \{/.test(copy[0]) && /try \{/.test(copy[0]), '权限拒绝/非安全上下文静默忽略');
-  assert(/serializeHitObjectLine, stableTimestamp/.test(store), 'store 引入两函数');
+  assert(/stableTimestamp/.test(store) && /computeCombos/.test(store), 'store 引入 stableTimestamp/computeCombos (v335b)');
 }
 
 section('c) 左下角跳转时间输入框');
@@ -49,7 +49,7 @@ section('c) 左下角跳转时间输入框');
   assert(/const \[jump, setJump\] = useState<string \| null>\(null\)/.test(tl), '输入框状态');
   assert(/data-jump-open/.test(tl) && /onClick=\{\(\) => setJump\(stableTimestamp\(store\.currentTime\)\)\}/.test(tl), '点击时间打开 (初值 stable 格式)');
   assert(/data-jump-input/.test(tl) && /onFocus=\{e => e\.target\.select\(\)\}/.test(tl), '打开即全选 (可复制)');
-  assert(/e\.key === 'Enter'\) \{ const t = parseJumpTime\(jump\); if \(t !== null\) store\.seek\(t\); setJump\(null\); \}/.test(tl), 'Enter 跳转');
+  assert(/e\.key === 'Enter'\) \{ if \(!submitJumpObjects\(jump\)\) \{ const t = parseJumpTime\(jump\); if \(t !== null\) store\.seek\(t\); \} setJump\(null\); \}/.test(tl), 'Enter 跳转 (v335: 先尝试物件文本, 再时间)');
   assert(/e\.key === 'Escape'\) setJump\(null\)/.test(tl) && /onBlur=\{\(\) => setJump\(null\)\}/.test(tl), 'Esc/失焦关闭');
   assert(/e\.stopPropagation\(\)/.test(tl), '输入框按键不触发全局快捷键');
 }

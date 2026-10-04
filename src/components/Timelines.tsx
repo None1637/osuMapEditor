@@ -28,13 +28,38 @@ function fmt(ms: number) {
   return `${m}:${String(s).padStart(2, '0')}.${String(mm).padStart(3, '0')}`;
 }
 
-/** v322 (F27): stable Jump to time 解析 — "mm:ss:ms" (分钟可省 = ss:ms; ms 分隔符 : 或 . 均可); 非法返回 null */
+/** v322 (F27): stable Jump to time 解析 — "mm:ss:ms" (分钟可省 = ss:ms; ms 分隔符 : 或 . 均可);
+ *  v335: 支持纯毫秒数字 (stable 可打数字不用冒号, 如 "126666" -> 02:06:666); 非法返回 null */
 function parseJumpTime(s: string): number | null {
+  const plain = /^\s*(\d+)\s*$/.exec(s); // v335: 纯 ms
+  if (plain) return parseInt(plain[1]);
   const m = /^\s*(?:(\d+):)?(\d{1,2})[:.](\d{1,3})\s*$/.exec(s);
   if (!m) return null;
   const min = m[1] ? parseInt(m[1]) : 0, sec = parseInt(m[2]), ms = parseInt(m[3]);
   if (sec >= 60 || ms >= 1000) return null;
   return min * 60000 + sec * 1000 + ms;
+}
+
+/** v335: 解析粘贴进跳转框的物件文本 — lazer 格式 (纯 .osu 物件行, 每行 "x,y,time,flags,...") 与
+ *  stable/旧版格式 ("mm:ss:ms (物件行)") 均支持; 括号内非物件行 (如 stable 组合号) 只取时间戳 (x/y = NaN)。
+ *  返回 null = 不是物件文本 (走普通时间跳转)。 */
+function parseClipboardObjects(text: string): { time: number; x: number; y: number }[] | null {
+  const out: { time: number; x: number; y: number }[] = [];
+  for (const raw of text.split('\n')) {
+    const line = raw.trim();
+    if (!line) continue;
+    const m = /^\d+:\d{1,2}[:.]\d{1,3}\s*\((.*)\)$/.exec(line); // stable 前缀 "mm:ss:ms (...)"
+    const body = (m ? m[1] : line).trim();
+    const f = body.split(',');
+    if (f.length >= 4 && f.slice(0, 4).every(v => /^-?\d+(\.\d+)?$/.test(v.trim()))) {
+      out.push({ x: parseFloat(f[0]), y: parseFloat(f[1]), time: parseFloat(f[2]) }); // x,y,time,flags,...
+    } else if (m) {
+      const t = parseJumpTime(line.slice(0, line.indexOf('(')));
+      if (t !== null) out.push({ x: NaN, y: NaN, time: t }); // 仅时间戳可跳转, 无坐标不参与选中
+      else return null;
+    } else return null; // 无法识别的行 → 整体按非物件文本处理
+  }
+  return out.length ? out : null;
 }
 
 // v245: 药丸文本测宽缓存 — measureText 每帧每药丸一次是 CDP 实测热点; 同 font+text 宽度恒定
@@ -1151,14 +1176,62 @@ export function BottomTimeline() {
     store.seek(((zoomClientX(e.clientX) - r.left) / r.width) * store.songLength());
   };
 
+  // v335b: lazer/stable 复制格式 "mm:ss:fff (combo号,...) - ..." → 跳转并按 combo 序号选中
+  //   (对齐 lazer Editor.HandleTimestamp + OsuHitObjectComposer.SelectFromTimestamp:
+  //   有选区描述时跳到时间戳之后首个物件; 序号 = combo 内 1-based 序号, 从时间戳起逐个向后匹配)
+  const submitComboSelection = (text: string): boolean => {
+    const m = /^\s*(?:(\d{1,3}):)?(\d{1,2})[:.](\d{1,3})\s*\((\d+(?:\s*,\s*\d+)*)\)\s*(?:-[\s\S]*)?$/.exec(text.trim());
+    if (!m) return false;
+    const t = (m[1] ? parseInt(m[1]) : 0) * 60000 + parseInt(m[2]) * 1000 + parseInt(m[3]);
+    const nums = m[4].split(',').map(s => parseInt(s.trim()));
+    const bm = store.beatmap;
+    if (!bm) { store.seek(t); return true; }
+    const combos = computeCombos(bm);
+    const next = bm.hitObjects.find(o => o.time >= t); // lazer: 有选区时 seek 到时间戳之后首个物件
+    store.seek(next ? next.time : t);
+    const ids: number[] = [];
+    let remaining = bm.hitObjects.filter(o => o.time >= t);
+    for (const n of nums) {
+      const cur = remaining.find(o => (combos.get(o.id)?.index ?? 1) === n);
+      if (!cur) continue;
+      ids.push(cur.id);
+      remaining = remaining.filter(o => o !== cur && o.time >= cur.time);
+    }
+    if (ids.length) store.select(ids); // 选中复制的物件
+    return true;
+  };
+
+  // v335: 跳转提交 — 物件文本 (lazer 纯物件行 / stable "mm:ss:ms (行)") → 跳转首个时间点并选中对应物件;
+  //   否则按时间解析 (mm:ss:ms / 纯 ms)。返回 true = 已按物件文本处理。
+  const submitJumpObjects = (text: string): boolean => {
+    if (submitComboSelection(text)) return true; // v335b: lazer/stable 组合号格式优先
+    const list = parseClipboardObjects(text);
+    if (!list) return false;
+    const bm = store.beatmap;
+    const t0 = Math.min(...list.map(e => e.time));
+    if (bm) {
+      const ids: number[] = [];
+      for (const e of list) {
+        if (Number.isNaN(e.x)) continue; // 仅时间戳, 无坐标不参与选中
+        const exact = bm.hitObjects.filter(o => Math.abs(o.time - e.time) <= 1 && Math.abs(o.x - e.x) <= 2 && Math.abs(o.y - e.y) <= 2);
+        const pool = exact.length ? exact : bm.hitObjects.filter(o => Math.abs(o.time - e.time) <= 1); // 坐标不匹配退回仅按时间
+        for (const o of pool) if (!ids.includes(o.id)) ids.push(o.id);
+      }
+      if (ids.length) store.select(ids); // 选中复制的物件 (stable 行为)
+    }
+    store.seek(t0); // 跳转到起始时间点
+    return true;
+  };
+
   return (
     <div className="flex items-stretch gap-2 h-20 px-2 py-1.5" style={{ background: 'rgba(21,21,32,0.1)' }}>{/* v129: 背景半透明; v271: 0.4→0.25; v272: →0.1 (仍遮挡物件); v284: 固定 (开关移除) */}
       {/* v155: 左侧当前时间 + 进度百分比 (stable 底部时间轴样式; 原右侧时间显示移到此处) */}
       <div className="flex flex-col justify-center shrink-0 font-mono text-xs leading-4 select-none w-24" data-bottom-time>
-        {/* v322 (F27): 点击时间 → stable Jump to time 输入框 (Enter 跳转 / Esc·失焦关闭; 打开即全选, 可直接 Ctrl+C 复制 "mm:ss:ms") */}
+        {/* v322 (F27): 点击时间 → stable Jump to time 输入框 (Enter 跳转 / Esc·失焦关闭; 打开即全选, 可直接 Ctrl+C 复制 "mm:ss:ms");
+            v335: 支持纯 ms 数字; 粘贴复制的物件文本 (lazer/stable 两种格式) → 跳转起始时间并选中对应物件 */}
         {jump === null ? (
           <span className="text-white/85 cursor-pointer hover:text-cyan-300" data-jump-open
-            title="点击输入时间跳转 (mm:ss:ms); 打开后文本全选, 可直接复制"
+            title="点击输入时间跳转 (mm:ss:ms 或纯毫秒); 也可粘贴复制的物件文本跳转到其起始时间并选中"
             onClick={() => setJump(stableTimestamp(store.currentTime))}>{fmt(store.currentTime)}</span>
         ) : (
           <input autoFocus data-jump-input value={jump}
@@ -1166,9 +1239,15 @@ export function BottomTimeline() {
             onChange={e => setJump(e.target.value)}
             onFocus={e => e.target.select()}
             onBlur={() => setJump(null)}
+            onPaste={e => {
+              // v335: 单行 input 粘贴多行文本会被浏览器吃掉换行 — 从 clipboardData 自取原文,
+              // 若解析为物件文本则立即跳转+选中并关闭; 否则走默认粘贴 (普通时间文本)
+              const text = e.clipboardData?.getData('text') ?? '';
+              if (submitJumpObjects(text)) { e.preventDefault(); setJump(null); }
+            }}
             onKeyDown={e => {
               e.stopPropagation(); // 输入框内按键不触发全局快捷键
-              if (e.key === 'Enter') { const t = parseJumpTime(jump); if (t !== null) store.seek(t); setJump(null); }
+              if (e.key === 'Enter') { if (!submitJumpObjects(jump)) { const t = parseJumpTime(jump); if (t !== null) store.seek(t); } setJump(null); }
               else if (e.key === 'Escape') setJump(null);
             }} />
         )}

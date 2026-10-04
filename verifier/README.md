@@ -2958,3 +2958,86 @@
   v321 (上时间轴 Alt 断言改绑定匹配/e.altKey 计数 1→0/固定区条目移除),
   v286/v289 (捕获提示与菜单跳过断言加滚轮)。
 - 验证: verifier/v330 (19 条 + tsc); 上述旧验证器回归通过。
+
+## v331 — 旋转窗口预览后直接点选其他物件: 旧物件不复原且不能撤销 (用户反馈)
+- 根因 (竞态): 回滚靠 TransformDialog 的 React effect (v315 F17c), 但画布 mousedown 的
+  beginDrag/pushUndo 在 effect 运行**之前**执行 → undo 快照带着预览态; mouseup 空拖拽
+  store.undo() 把预览态顶回当前态 = "不复原 + 不能撤销"。功能复现确认 store 层原逻辑单独跑没事,
+  必须 select→pushUndo→effect→mouseup-undo 全链才暴露。
+- 修法 1 (store.ts): pushUndo 守卫 — 预览会话 (tfBackup) 中物件选区签名 (新增 tfSelKey/selKeyOf)
+  已变 → 快照前同步 restoreTransformBackup。单点兜底覆盖所有选区变更路径 (画布点击/框选/
+  时间轴/Alt 层直改 selected 等), 不依赖 React effect 时序; 同选区 pushUndo 不误触发。
+- 修法 2 (TransformDialog): 选区切换时角度/倍率归零 (用户反馈: 选其他物件旋转角度不归零);
+  对话框 effect 的 end/begin 保留作双保险。
+- 验证: verifier/v331 (静态 8 条 + esbuild 打包功能全链复现 4 条 + tsc); v315/v301/v209/v210 回归通过。
+  - 追加 (用户反馈 "縮放也是相同問題 / 取消選取不復原 / 新選物件不預設1倍"): 缩放与旋转共用同一
+    tfBackup 预览会话, pushUndo 守卫与选区切换归零 (setFactor(1)/setFactorY(1)) 对缩放同样生效;
+    v331 功能测试补缩放竞态与取消选取 (clearSelection) 路径; v120 pushUndo 断言窗口放宽 (前置守卫注释)。
+
+## v332 — Alt 按下/松开 hover 高亮仍不即时刷新: 主进程拦截 Alt (v328 渲染端拦不住)
+- 用户反馈: v328 后松开/按下 Alt 时选中的物件/滑条点仍无即时变化。
+- 根因: Electron 原生菜单的 Alt 激活是 OS 层行为 (非 DOM 默认行为), 渲染端 keydown
+  preventDefault 拦不住 — autoHideMenuBar 下 Alt 仍唤起原生菜单抢焦点 (blur 复位 altHeldRef)。
+- 修法: electron/main.cjs 主窗口 before-input-event 拦截 Alt (e.preventDefault);
+  DOM keydown/keyup 照常下发 (渲染端 refreshHover 链路不变), v328 渲染端 preventDefault 保留双保险。
+  菜单 accelerator 无 Alt 组合 (grep 确认 0 个), 无快捷键损失。
+- 注意: 此修复在主进程, 需重打包 exe 后实测确认 (静态验证器只能断言接线)。
+- 验证: verifier/v332 (4 条); v328/v279/v280/v281 回归通过。
+
+## v333 — Alt+框选中松开/按下 Alt 立即切换选区类型 (用户反馈: 要移动鼠标才刷新)
+- 用户反馈: Alt+左键拖动框选 (锚点框选) 后松开 Alt, 应切为物件框选 (选中单点/滑条),
+  但实际仍选中滑条锚点, 要移动一下鼠标才刷新。浏览器中同样复现 (非 v328/v332 的菜单抢焦点问题)。
+- 根因: v309 的 syncMarqueeMode (框选类型随 Alt 切换) 只在 mousemove/mouseup 入口调用,
+  Alt 键事件不触发; 且类型转换后选区也要等 mousemove 才按矩形重算。
+- 修法 (EditorCanvas): 框选选区重算抽出 recomputeMarqueeSelection (光标取 cursorRef,
+  节点/物件两种框选逻辑原样保留); keydown/keyup/blur 处理器在 altHeldRef 更新后即调
+  syncMarqueeMode + recomputeMarqueeSelection — Alt 松开/按下零鼠标移动即时切换并重算。
+- 验证: verifier/v333 (8 条 + tsc); v309/v304/v117/v277/v317/v316 回归通过。
+
+## v334 — 节拍切分吸附补齐 5/7/9 + Ctrl+滚轮改 ×2/÷2 (soulten 反馈, 对齐 stable)
+- 用户反馈 (截图): stable 节拍细分全集为 1,2,3,4,5,6,7,8,9,12,16 (我们缺 5/7/9);
+  且 Ctrl+滚轮应为 ×2/÷2, ÷2 无相同值时往下(更小)取最近分割值, ×2 往上(更大)取最近分割值。
+- 修法:
+  1) sliderPath.ts BEAT_SNAP_OPTIONS = [1,2,3,4,5,6,7,8,9,12,16] (补 5/7/9);
+     v219 滑条长度 1/2 吸附 (sliderLengthSnapDivisor) 的 includes 查找逻辑天然兼容, 无需改;
+  2) EditorCanvas onWheel Ctrl 分支由「循环相邻档」改为 ×2/÷2:
+     上滚 cur*2 取 find(v>=target) (无则钳 16), 下滚 cur/2 取 reverse find(v<=target) (无则钳 1);
+     例: 3÷2→1, 5×2→12, 7÷2→3, 9×2→16。
+- 无需改: App.tsx Shift+Digit1-8 位置索引映射与下拉框 map 均自动跟随新列表
+  (Shift+5=1/5 等与 stable 列表顺序一致; 12/16 无键位, 与 stable 相同)。
+- 验证: verifier/v334 (12 条 + 数值映射验证 + tsc); v218 断言同步为新列表/新映射; v321 Ctrl 分支断言同步。
+
+## v335 — 左下角跳转框: 纯 ms 输入 + 粘贴物件文本跳转并选中; 复制文本改 lazer 格式
+- 用户反馈 (soulten): stable 的 Jump to time 可打纯数字不用冒号 (126666 -> 02:06:666);
+  复制出的文本与 stable/lazer 不一致, 且两种格式粘进左下角都不会选取复制的物件。
+- v335b 纠正 (核对 lazer 源码 osu.Game/Screens/Edit/Compose/ComposeScreen.cs 后):
+  初版误以为 lazer 复制 = 纯 .osu 物件行 — 实际 lazer Copy() 写系统剪贴板的只是
+  getTimestamp() 文本, 物件本体走内部 JSON 剪贴板 (不落系统文本)。
+- 修法:
+  1) store.copy(): 系统剪贴板文本 = lazer 格式 "mm:ss:fff (combo号,...) - "
+     (combo号 = computeCombos().index = lazer IndexInCurrentCombo+1, 按时间排序;
+     时间戳取最早选中物件); 内部剪贴板逻辑不变;
+  2) Timelines.tsx 跳转框: parseJumpTime 新增纯毫秒分支; submitComboSelection 解析
+     lazer/stable 组合号格式并按 combo 序号从时间戳向后逐个选中 (对齐 lazer
+     OsuHitObjectComposer.SelectFromTimestamp; 有选区时 seek 到时间戳之后首个物件);
+     parseClipboardObjects 兼容粘贴 .osu 物件行 (含旧版 stable "mm:ss:ms (物件行)" 前缀格式),
+     按 时间±1ms/坐标±2px 匹配选中 (坐标不匹配退回仅按时间); onPaste 从 clipboardData
+     取原文 (单行 input 会吃换行) 解析为物件文本则立即处理并关闭, Enter 走同一入口。
+- 验证: verifier/v335 (26 条 + 数值验证 + tsc); v322 断言同步 (复制格式/Enter 入口)。
+
+## v336 — exe 下 Alt 按下/松开完全无反应 (框选颜色都不变): 只拦 keyUp + IPC 转发
+- 用户反馈: 松开/按下 Alt 时选中的物件/滑条点仍无即时变化; 现在松开 Alt 后框选颜色都不变了。
+- 根因 (CDP 实测定位, verifier/v336/cdp-v336-electron.mjs): v332 在 electron/main.cjs 的
+  before-input-event 对 Alt 一律 preventDefault — Electron 中 preventDefault 会阻止事件下发到页面,
+  渲染端 keydown/keyup 永远收不到 Alt, altHeldRef 恒定 false。
+- v336 初版 (全拦 + IPC 双向转发) 实测仍失败: Windows 菜单激活发生在 Alt **松开**,
+  keyUp 被 preventDefault 后不下发 DOM, 且实测 preventDefault keyDown 时 keyUp 连
+  before-input-event 都不再到 — 松开态丢失。
+- 最终修法 (实测通过): 只 preventDefault keyUp (拦菜单激活), keyDown 放行让页面走原生
+  DOM keydown 更新 altHeldRef; keyUp 的松开态经 "alt-key" IPC 通道转发渲染端
+  (preload onAltKey → EditorCanvas 订阅: altHeldRef + refreshHover + syncMarqueeMode +
+  recomputeMarqueeSelection, 与 DOM keydown/keyup 同一套后续动作)。
+- 验证: verifier/v336/check.mjs (静态 13 条 + tsc); cdp-v336.mjs (浏览器真实输入, 6 条);
+  cdp-v336-electron.mjs (Electron 真实主进程链路, 4 条 — A1/B1 框选即时切换 + E1 只拦 keyUp)。
+  注意: 需重打包 exe 后真实键盘实测确认 (CDP 注入事件与真实按键同走 before-input-event, 已尽力逼近)。
+- 回归: v332/v333/v328 通过。

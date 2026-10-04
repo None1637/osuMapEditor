@@ -182,6 +182,19 @@ async function createWindow() {
       win.webContents.send("close-request")
     }
   })
+  // v332: 主进程拦截 Alt 默认行为 — autoHideMenuBar 下 Alt 唤起原生菜单抢焦点 (窗口 blur →
+  // altHeldRef 复位, 选中物件/滑条点 Alt 层 hover 高亮按下/松开不刷新); 渲染端 preventDefault (v328)
+  // 拦不住 OS 层菜单激活, 必须 before-input-event。菜单 accelerator 无 Alt 组合, 不受影响。
+  // v336 (CDP 实测修正): 只 preventDefault keyUp — Windows 菜单激活发生在 Alt 松开,
+  //   拦 keyUp 即防抢焦点; 且实测 keyUp 一旦被 preventDefault 就不再下发 DOM,
+  //   而 keyDown 放行让页面走原生 DOM keydown 更新 altHeldRef; keyUp 的松开态经
+  //   "alt-key" IPC 转发渲染端同步 (v336 初版全拦导致 DOM 完全收不到 Alt, 框选不变色)
+  win.webContents.on("before-input-event", (e, input) => {
+    if (input.key === "Alt") {
+      if (input.type === "keyUp") e.preventDefault() // 菜单激活在松开时发生, 拦之; DOM 收不到 keyUp, 走下方 IPC
+      if (!win.isDestroyed()) win.webContents.send("alt-key", input.type !== "keyUp")
+    }
+  })
   win.on("closed", () => { win = null })
   win.maximize() // 启动默认最大化
   win.loadURL(`http://127.0.0.1:${port}/`)

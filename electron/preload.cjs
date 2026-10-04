@@ -44,4 +44,10 @@ contextBridge.exposeInMainWorld("osuEditor", {
   menuItemClick: (id) => ipcRenderer.send("menu-item-click", id),
   // v286: 自定义改键 — 渲染端推送 accelerator 覆盖 (menuId → Electron accelerator), 主进程重建菜单
   setAcceleratorOverrides: (map) => ipcRenderer.send("menu-accelerator-overrides", map),
+  // v336: 主进程拦截 Alt (防 OS 菜单抢焦点) 后转发的 Alt 按下/松开态; 返回退订函数
+  onAltKey: (cb) => {
+    const listener = (_e, down) => cb(down)
+    ipcRenderer.on("alt-key", listener)
+    return () => ipcRenderer.removeListener("alt-key", listener)
+  },
 })

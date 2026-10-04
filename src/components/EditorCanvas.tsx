@@ -20,6 +20,7 @@ import { genId, timingAt, csToRadius, arToPreempt, snapAcrossRedLine, type Beatm
 import { IncrementalBSplineBuilder } from '@/osu/freehand/bsplineBuilder';
 import { fitSegmentsToPoints } from '@/osu/freehand/freehandFit';
 import { matchesHotkeyMouse, matchesHotkeyWheel } from '@/osu/hotkeys'; // v330: 游玩区平移/缩放/锁定间距可改键
+import { getElectronAPI } from '@/osu/electronBridge'; // v336: exe 下 Alt 态由主进程转发 (DOM 事件被拦)
 
 const PW = 512, PH = 384; // osu 游玩区坐标系
 const PAD_Y = 40; // 上下留白 (osu px): 摆放在上下边缘的物件 (半径~37px) 不超出屏幕, 对齐 stable 游玩区留边
@@ -541,6 +542,9 @@ export function EditorCanvas() {
       if (e.key === 'Alt') e.preventDefault();
       altHeldRef.current = e.altKey; // v304: F10 框选 Alt 配色实时跟随 (keydown/keyup 都带最新修饰态)
       refreshHover(); // v316: F18a — Alt 切换选取模式立即重算 hover 目标 (不等光标移动)
+      // v333: Alt 松开/按下立即切换进行中的框选类型并按当前矩形重算选区
+      // (原只在 mousemove/mouseup 入口同步 — 无鼠标移动时仍按起手模式框选 = 用户反馈"要移动一下鼠标才刷新")
+      syncMarqueeMode(); recomputeMarqueeSelection();
       // v86: Esc 取消 pattern 拖拽
       if (e.type === 'keydown' && e.key === 'Escape' && store.patternDrag) { store.cancelPatternDrag(); return; }
       const sd = scaleDragRef.current;
@@ -565,11 +569,19 @@ export function EditorCanvas() {
       const nrd = nodeRotateDragRef.current;
       if (nrd && e.shiftKey !== nrd.snap) applyNodeRotateUpdate(nrd.lastP, e.shiftKey);
     };
-    const blur = () => { altHeldRef.current = false; refreshHover(); }; // v304: 焦点丢失时复位 (防 Alt 卡住); v316: 同步刷新 hover
+    const blur = () => { altHeldRef.current = false; refreshHover(); syncMarqueeMode(); recomputeMarqueeSelection(); }; // v304: 焦点丢失时复位 (防 Alt 卡住); v316: 同步刷新 hover; v333: 框选同步
     window.addEventListener('keydown', key);
     window.addEventListener('keyup', key);
     window.addEventListener('blur', blur);
-    return () => { window.removeEventListener('keydown', key); window.removeEventListener('keyup', key); window.removeEventListener('blur', blur); };
+    // v336: exe 下 Alt 被主进程 before-input-event 拦截 (preventDefault 连 DOM 事件一起吞) —
+    // 改由主进程转发的 "alt-key" 通道同步 Alt 态, 与 keydown/keyup 同一套后续动作
+    const offAlt = getElectronAPI()?.onAltKey((down) => {
+      if (altHeldRef.current === down) return;
+      altHeldRef.current = down;
+      refreshHover();
+      syncMarqueeMode(); recomputeMarqueeSelection();
+    });
+    return () => { window.removeEventListener('keydown', key); window.removeEventListener('keyup', key); window.removeEventListener('blur', blur); offAlt?.(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -1684,6 +1696,54 @@ export function EditorCanvas() {
     }
   };
 
+  // v333: 框选选区重算 (光标取 cursorRef — onMouseMove 与 Alt keydown/keyup/blur 共用;
+  // 原只在 mousemove 内联, Alt 松开/按下后无鼠标移动时选区类型不刷新 = 用户反馈
+  // "Alt+拖动后松开 Alt 仍选中滑条锚点, 要移动一下鼠标才刷新为选中单点")
+  const recomputeMarqueeSelection = () => {
+    const bm = store.beatmap;
+    if (!bm) return;
+    const cp = cursorRef.current;
+    // v117: 节点框选: 实时更新节点选区 (只框当前可见滑条, 与物件框选同一可见窗口)
+    const nmq = nodeMarqueeRef.current;
+    if (nmq) {
+      nmq.x1 = cp.x; nmq.y1 = cp.y;
+      const r = {
+        minX: Math.min(nmq.x0, nmq.x1), minY: Math.min(nmq.y0, nmq.y1),
+        maxX: Math.max(nmq.x0, nmq.x1), maxY: Math.max(nmq.y0, nmq.y1),
+      };
+      const sliders = bm.hitObjects.filter(o => o.type === 'slider' && isVisibleAt(bm, o, store.currentTime));
+      // v277: 已选节点所在滑条当前时间不可见时保留 (框选进行中时间改变/播放, 不掉出选区)
+      const keepNodes = nodeEntries(store.selectedNodes).filter(([objId]) => {
+        const o = bm.hitObjects.find(x => x.id === objId);
+        return !!o && !isVisibleAt(bm, o, store.currentTime);
+      });
+      const inRect = nodesInRect(sliders, getStackOffsets(bm), r);
+      if (nmq.subtract) { // v317: F19 — 减选: 框内锚点从 (已有选区 ∪ 保留) 中剔除
+        const rm = new Set(inRect.map(([a, b]) => a + ':' + b));
+        store.setSelectedNodes([...nmq.base, ...keepNodes].filter(([a, b]) => !rm.has(a + ':' + b)));
+      } else {
+        store.setSelectedNodes([...nmq.base, ...keepNodes, ...inRect]);
+      }
+      return;
+    }
+    // 物件框选: 实时更新选区
+    const mq = marqueeRef.current;
+    if (mq) {
+      mq.x1 = cp.x; mq.y1 = cp.y;
+      const r = {
+        minX: Math.min(mq.x0, mq.x1), minY: Math.min(mq.y0, mq.y1),
+        maxX: Math.max(mq.x0, mq.x1), maxY: Math.max(mq.y0, mq.y1),
+      };
+      // v277: 已选中但当前时间不可见的物件保留在选区 — 框选进行中时间改变 (播放/滚轮/边缘滚动)
+      // 时, 每帧重算的「当前可见 ∩ 框」会把它们掉出 (用户需求: 不要取消选中这些物件)
+      const keepHidden = bm.hitObjects.filter(o => !isVisibleAt(bm, o, store.currentTime) && store.selected.has(o.id)).map(o => o.id);
+      store.select([...mq.base, ...keepHidden, ...objectsInRect(
+        // v45: 只框选当前可见物件 (与单击命中同一可见窗口, 不再把全时间物件都框进来)
+        bm.hitObjects.filter(o => isVisibleAt(bm, o, store.currentTime)),
+        r, getStackOffsets(bm))]);
+    }
+  };
+
   // v316: F18a — hover 目标集中重算: onMouseMove 与 Alt keydown/keyup/blur 共用。
   // 普通层: 未选中滑条的控制点预览 (v259); Alt 层: 跨滑条最近锚点 (与 mousedown Alt 点选同候选,
   // 含 v273 例外: 选中/有已选节点的滑条即使当前时间不可见也参与) + 该锚点高亮环
@@ -1841,49 +1901,12 @@ export function EditorCanvas() {
     updateHandleHover(bm && store.tool === 'select' ? cp : null);
     // v117: 节点框选拖拽: 实时更新节点选区 (只框当前可见滑条, 与物件框选同一可见窗口)
     syncMarqueeMode(); // v309: Alt 中途松开/按下 — 框选逻辑随当前 Alt 态切换
-    const nmq = nodeMarqueeRef.current;
-    if (nmq && bm) {
-      nmq.x1 = cp.x; nmq.y1 = cp.y;
-      const r = {
-        minX: Math.min(nmq.x0, nmq.x1), minY: Math.min(nmq.y0, nmq.y1),
-        maxX: Math.max(nmq.x0, nmq.x1), maxY: Math.max(nmq.y0, nmq.y1),
-      };
-      const sliders = bm.hitObjects.filter(o => o.type === 'slider' && isVisibleAt(bm, o, store.currentTime));
-      // v277: 已选节点所在滑条当前时间不可见时保留 (框选进行中时间改变/播放, 不掉出选区)
-      const keepNodes = nodeEntries(store.selectedNodes).filter(([objId]) => {
-        const o = bm.hitObjects.find(x => x.id === objId);
-        return !!o && !isVisibleAt(bm, o, store.currentTime);
-      });
-      const inRect = nodesInRect(sliders, getStackOffsets(bm), r);
-      if (nmq.subtract) { // v317: F19 — 减选: 框内锚点从 (已有选区 ∪ 保留) 中剔除
-        const rm = new Set(inRect.map(([a, b]) => a + ':' + b));
-        store.setSelectedNodes([...nmq.base, ...keepNodes].filter(([a, b]) => !rm.has(a + ':' + b)));
-      } else {
-        store.setSelectedNodes([...nmq.base, ...keepNodes, ...inRect]);
-      }
-      return;
-    }
+    // v333: 节点/物件框选选区重算抽出共用 (recomputeMarqueeSelection) — Alt keydown/keyup/blur 也调
+    if (nodeMarqueeRef.current || marqueeRef.current) { recomputeMarqueeSelection(); return; }
     // v117: 节点整体拖动 — v264: rAF 节流, 只记 pending (应用在帧循环 applyNodesMoveDrag)
     const nmd = nodesMoveDragRef.current;
     if (nmd && bm) {
       nmd.pending = { x: cp.x, y: cp.y };
-      return;
-    }
-    // 框选拖拽: 实时更新选区
-    const mq = marqueeRef.current;
-    if (mq && bm) {
-      mq.x1 = cp.x; mq.y1 = cp.y;
-      const r = {
-        minX: Math.min(mq.x0, mq.x1), minY: Math.min(mq.y0, mq.y1),
-        maxX: Math.max(mq.x0, mq.x1), maxY: Math.max(mq.y0, mq.y1),
-      };
-      // v277: 已选中但当前时间不可见的物件保留在选区 — 框选进行中时间改变 (播放/滚轮/边缘滚动)
-      // 时, 每帧重算的「当前可见 ∩ 框」会把它们掉出 (用户需求: 不要取消选中这些物件)
-      const keepHidden = bm.hitObjects.filter(o => !isVisibleAt(bm, o, store.currentTime) && store.selected.has(o.id)).map(o => o.id);
-      store.select([...mq.base, ...keepHidden, ...objectsInRect(
-        // v45: 只框选当前可见物件 (与单击命中同一可见窗口, 不再把全时间物件都框进来)
-        bm.hitObjects.filter(o => isVisibleAt(bm, o, store.currentTime)),
-        r, getStackOffsets(bm))]);
       return;
     }
     // 滑条节点拖拽 — v264: rAF 节流, 只记 pending (应用在帧循环 applyNodeDrag)
@@ -2219,11 +2242,14 @@ export function EditorCanvas() {
       onContextMenu={onContextMenu}
       onWheel={(e) => {
         const bm = store.beatmap; // v330: distance-lock-wheel 需要
-        // v321 (F26): Ctrl+滚轮 = 循环节拍吸附细分 (stable 同款; 上滚更密/下滚更疏)
+        // v334 (F: soulten): Ctrl+滚轮 = 节拍吸附细分 ×2/÷2 (stable 语义; 上滚 ×2 更密/下滚 ÷2 更疏;
+        //   结果不在配置中时 ÷2 往下(更小)取最近分割值, ×2 往上(更大)取最近分割值; 如 3÷2→1, 5×2→12)
         if (e.ctrlKey) {
-          const i = Math.max(0, BEAT_SNAP_OPTIONS.indexOf(store.beatSnap));
-          const j = Math.max(0, Math.min(BEAT_SNAP_OPTIONS.length - 1, i + (e.deltaY < 0 ? 1 : -1)));
-          if (BEAT_SNAP_OPTIONS[j] !== store.beatSnap) { store.beatSnap = BEAT_SNAP_OPTIONS[j]; store.emit(); }
+          const cur = store.beatSnap, up = e.deltaY < 0, target = up ? cur * 2 : cur / 2;
+          const next = up
+            ? (BEAT_SNAP_OPTIONS.find(v => v >= target) ?? BEAT_SNAP_OPTIONS[BEAT_SNAP_OPTIONS.length - 1])
+            : ([...BEAT_SNAP_OPTIONS].reverse().find(v => v <= target) ?? BEAT_SNAP_OPTIONS[0]);
+          if (next !== cur) { store.beatSnap = next; store.emit(); }
           return;
         }
         // v229/v330: Alt+滚轮行为随平移开关切换 (均可改键, 默认 Alt+Wheel 互斥同键):

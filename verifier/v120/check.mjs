@@ -21,7 +21,7 @@ const dlg = read('src/components/UnsavedDialog.tsx');
 
 // store: 脏标记与拦截
 assert(/dirty = false;/.test(store) && /pendingAction: \(\(\) => void\) \| null = null;/.test(store), 'store: dirty + pendingAction 字段');
-assert(/pushUndo\(\) \{[\s\S]{0,300}v140: 不再在此置脏/.test(store), 'pushUndo: v140 起不再盲置脏 (改 emit() 指纹对比, 无实际改动不脏)');
+assert(/pushUndo\(\) \{[\s\S]{0,700}v140: 不再在此置脏/.test(store), 'pushUndo: v140 起不再盲置脏 (改 emit() 指纹对比, 无实际改动不脏; v331: 窗口放宽 — 前置预览回滚守卫注释)');
 assert(/this\.setDirty\(false\); \/\/ v120/.test(store), 'save 成功: 清脏标记');
 assert(/async save\(\): Promise<boolean>/.test(store), 'save: 返回是否成功 (保存并继续依赖)');
 assert(/this\.pendingAction = null; \/\/ v120/.test(store) && /this\.setDirty\(false\); \/\/ v120: 载入即干净状态/.test(store), 'load: 清脏 + 丢弃待执行动作');

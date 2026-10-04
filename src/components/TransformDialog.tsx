@@ -32,6 +32,8 @@ export function TransformDialog({ mode }: { mode: 'rotate' | 'scale' | 'symmetry
 
   // v315: F17c — 窗口开着时切换选区: 回滚旧选区未提交的预览, 以新选区为基准重开预览会话
   //   (否则新选物件不在 tfBackup 里, 预览会在其当前态上叠加变换 = "不能正確控制")
+  //   v331: 回滚同步兜底已移 store.pushUndo (effect 运行前 beginDrag 会抢先快照预览态);
+  //   此处 end 多为 no-op, 保留作双保险; 切换选区时角度/倍率归零 (用户反馈: 选其他物件角度不归零)
   const selKey = [...store.selected].sort((a, b) => a - b).join(',');
   const prevSelKey = useRef(selKey);
   useEffect(() => {
@@ -40,6 +42,7 @@ export function TransformDialog({ mode }: { mode: 'rotate' | 'scale' | 'symmetry
     store.endTransformPreview();
     store.beginTransformPreview();
     previewOn.current = false;
+    setAngle(0); setFactor(1); setFactorY(1); // v331
   }, [selKey, mode]);
 
   // 值/原点变化时刷新预览 (仅用户已改过值后; 开窗不自动变换)

@@ -1,8 +1,8 @@
 // 编辑器核心状态: 谱面数据 + 撤销/重做 + 剪贴板 + 选择 + 音频时钟
 import { useSyncExternalStore } from 'react';
 import type { Beatmap, HitObject, TimingPoint } from './parser';
-import { genId, timingAt, serializeOsu, snapAcrossRedLine, serializeHitObjectLine, stableTimestamp } from './parser'; // v322: serializeHitObjectLine/stableTimestamp (F27 系统剪贴板)
-import { invalidatePath } from './renderer';
+import { genId, timingAt, serializeOsu, snapAcrossRedLine, stableTimestamp } from './parser'; // v335b: stableTimestamp (复制文本 = lazer "mm:ss:fff (combo号) - ")
+import { invalidatePath, computeCombos } from './renderer'; // v335b: computeCombos (复制文本 combo 序号)
 import { selectionCenter, rotateObjects, flipObjects, scaleObjects, reflectObjectsAcrossLine, type Pt } from './transform';
 import { reverseSelection } from './reverse';
 import { GRID_ORIGIN } from './gridSnap';
@@ -37,6 +37,8 @@ interface Snapshot {
 }
 
 function deepCopy<T>(v: T): T { return JSON.parse(JSON.stringify(v)); }
+/** v331: 物件选区签名 (顺序无关) — 变换预览 pushUndo 守卫比对用 */
+function selKeyOf(s: Set<number>): string { return [...s].sort((a, b) => a - b).join(','); }
 
 /** 变换原点: 'selection' 选区包围盒中心 / 'playfield' 游玩区中心 (256,192) / {x,y} 自定义位置 */
 export type TransformOrigin = 'selection' | 'playfield' | Pt;
@@ -943,6 +945,10 @@ class EditorStore {
   }
 
   pushUndo() {
+    // v331: 变换预览会话中选区已变 (TransformDialog 的 React effect 未及回滚) — 快照前同步回滚预览,
+    // 否则快照带着预览态: 画布 mousedown beginDrag(pushUndo) 先于 effect 运行, mouseup 空拖拽
+    // store.undo() 会把预览态顶回 (用户反馈: 旋转窗口预览后直接点选其他滑条, 旧滑条不复原且不能撤销)
+    if (this.tfBackup && this.tfSelKey !== null && selKeyOf(this.selected) !== this.tfSelKey) this.restoreTransformBackup();
     this.undoStack.push(this.snapshot());
     if (this.undoStack.length > 200) this.undoStack.shift();
     this.redoStack = [];
@@ -1295,11 +1301,14 @@ class EditorStore {
       return c;
     });
     this.clipboardGreens = deepCopy(greens).map(tp => ({ ...tp, time: tp.time - t0 }));
-    // v322 (F27): 系统剪贴板写 stable 文本格式 — "mm:ss:ms (hitobject行)" 每物件一行 (可直接粘到 stable);
-    // 内部剪贴板逻辑不变 (跨窗口/文本编辑器可见时间)
+    // v322 (F27) 起写系统剪贴板; v335b: 格式对齐 lazer ComposeScreen.Copy — "mm:ss:fff (combo号,...) - "
+    //   (combo号 = 物件在 combo 内的 1-based 序号, 即 lazer IndexInCurrentCombo+1 / computeCombos().index, 按时间排序;
+    //   时间戳取最早选中物件; lazer 物件本体走内部 JSON 剪贴板不落系统文本 — 与我们的内部剪贴板同构)
     try {
-      const text = objs.slice().sort((a, b) => a.time - b.time)
-        .map(o => `${stableTimestamp(o.time)} (${serializeHitObjectLine(o)})`).join('\n');
+      const sorted = objs.slice().sort((a, b) => a.time - b.time);
+      const combos = computeCombos(this.beatmap);
+      const nums = sorted.map(o => combos.get(o.id)?.index ?? 1);
+      const text = `${stableTimestamp(sorted[0].time)} (${nums.join(',')}) - `;
       if (text) void navigator.clipboard?.writeText(text).catch(() => { /* 剪贴板权限拒绝时忽略, 内部剪贴板仍可用 */ });
     } catch { /* 非安全上下文等忽略 */ }
     this.emitSelection(); // v209: 编辑菜单「粘贴」置灰依赖 hasClipboard, 复制后刷新订阅者
@@ -1522,10 +1531,12 @@ class EditorStore {
   //   (预览相对基准不叠加, 原点也从备份态解析) → commit 回滚+pushUndo(预览前)+正式应用并重置基准
   //   → end(false) 回滚到最后提交态。预览全程不碰 undo 栈。
   private tfBackup: Map<number, { x: number; y: number; length?: number; curvePoints?: HitObject['curvePoints'] }> | null = null;
+  private tfSelKey: string | null = null; // v331: 备份时的物件选区签名 (pushUndo 守卫比对用)
 
   beginTransformPreview() {
     this.tfBackup = new Map(this.selectedObjects().map(o => [o.id,
       { x: o.x, y: o.y, length: o.length, curvePoints: deepCopy(o.curvePoints) }]));
+    this.tfSelKey = selKeyOf(this.selected); // v331
   }
 
   private restoreTransformBackup() {
@@ -1566,6 +1577,7 @@ class EditorStore {
     if (!this.tfBackup) return;
     this.restoreTransformBackup();
     this.tfBackup = null;
+    this.tfSelKey = null; // v331
     this.emit();
   }
 
