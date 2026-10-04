@@ -102,3 +102,7 @@ input, textarea, [contenteditable="true"] {
 .ui-zoom-root .text-\[9px\]  { font-size: calc(9px  * var(--fs-comp, 1)); }
 .ui-zoom-root .text-\[10px\] { font-size: calc(10px * var(--fs-comp, 1)); }
 .ui-zoom-root .text-\[11px\] { font-size: calc(11px * var(--fs-comp, 1)); }
+/* v325: 菜单栏 (text-[15px]/[13px]) 与快捷键面板 (text-[13px]/[12px]) 同款补偿 — 补全项目内全部任意值字号 */
+.ui-zoom-root .text-\[12px\] { font-size: calc(12px * var(--fs-comp, 1)); }
+.ui-zoom-root .text-\[13px\] { font-size: calc(13px * var(--fs-comp, 1)); }
+.ui-zoom-root .text-\[15px\] { font-size: calc(15px * var(--fs-comp, 1)); }

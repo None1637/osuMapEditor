@@ -17,6 +17,7 @@ import { getSkin } from '@/osu/skin';
 import { displaySettings } from '@/osu/displaySettings'; // v132: 显示设置 (皮肤颜色)
 import { drawWave, drawSpectro, type SpectroScroll } from '@/osu/waveformDraw';
 import { zoomRect, zoomClientX, zoomClientY, fitCanvas } from '@/osu/uiZoom'; // v217: 布局空间绘制/命中; v246: fitCanvas
+import { matchesHotkeyWheel } from '@/osu/hotkeys'; // v330: 锁定间距滚轮可改键
 import {
   bpmPillText, svPoints, svPillText, samplePill, pillLayout,
   PILL_RED, PILL_LIME, PILL_PINK, PILL_PINK_ALT, PILL_TEXT,
@@ -66,6 +67,8 @@ const mixDark = (hex: string, k = 0.55) => {
   const m = (c: number, d: number) => Math.round(c * k + d * (1 - k));
   return `rgb(${m(r, 0x2e)},${m(g, 0x2e)},${m(b, 0x38)})`;
 };
+// v327: 转盘在时间轴固定灰 (spinner 不参与 combo 染色)
+const SPINNER_GRAY = '#8f8f8f';
 // v246: 时间轴数字文本位图缓存 — fillText 每帧每物件一次 (密集谱面 6s 窗口 600+ 物件) 是 CDP 实测热点
 //   (软件光栅下字形每帧重新光栅化); 同 font+text 渲染结果恒定, 预渲染成离屏位图后 drawImage 居中。
 //   内容仅 1~16 combo 序号 × 有限字号, 缓存天然有界; 超 512 项清空防内存膨胀。
@@ -469,7 +472,9 @@ export function TopTimeline() {
           const sel = (store.selected.has(o.id) || prevIds.has(o.id)) && !edgeSel?.size;
           const ci = combos.get(o.id) ?? { combo: 0, comboWithOffset: 0, index: 1 };
           // v201: 皮肤色索引用 combo (ComboIndex), 谱面色用 comboWithOffset (ComboIndexWithOffsets)
-          const col = comboColor(bm, displaySettings.skinColors ? ci.combo : ci.comboWithOffset, displaySettings.skinColors ? getSkin().comboColors : undefined); // v31: 按 combo 染色, 不再固定灰; v132: 皮肤颜色开关
+          // v327: 转盘不染色 (spinner 本身不参与 combo 染色) — 固定灰
+          const col = o.type === 'spinner' ? SPINNER_GRAY
+            : comboColor(bm, displaySettings.skinColors ? ci.combo : ci.comboWithOffset, displaySettings.skinColors ? getSkin().comboColors : undefined); // v31: 按 combo 染色, 不再固定灰; v132: 皮肤颜色开关
           const fill = mixDark(col);
           // v83: 绘制收敛到 drawTimelineObject (与放置预览幻影共用); v162: 堆叠位置/半径
           drawTimelineObject(g, sx, ex, lay.yOf(si.level), lay.rad, {
@@ -966,8 +971,9 @@ export function TopTimeline() {
         onWheel={(e) => {
           const bm = store.beatmap;
           if (!bm) return;
-          if (e.altKey) {
-            // v321 (F26): Alt+滚轮 = 调锁定间距倍率 (仅上方时间轴; 游玩区等其他位置 Alt+滚轮仍是缩放游玩区)
+          if (matchesHotkeyWheel(e, 'distance-lock-wheel')) {
+            // v321 (F26) / v330: 滚轮调锁定间距倍率 (上方时间轴; 可改键, 默认 Alt+滚轮;
+            // 游玩区未开平移时同一动作生效, 开平移时游玩区 Alt+滚轮 = 缩放)
             const d = e.deltaY > 0 ? -0.1 : 0.1;
             bm.editor.distanceSpacing = Math.max(0.1, Math.min(10, Math.round(((bm.editor.distanceSpacing || 1) + d) * 100) / 100));
             store.emit();

@@ -37,7 +37,7 @@ section('EditorCanvas.tsx: playfieldTransform 叠加变换');
 section('EditorCanvas.tsx: 中键拖动');
 {
   const src = readSrc('src/components/EditorCanvas.tsx');
-  assert(/e\.button === 1 && store\.playfieldPanEnabled/.test(src), '中键 + 开关启用才触发');
+  assert(/matchesHotkeyMouse\(e, 'playfield-pan-drag'\) && store\.playfieldPanEnabled/.test(src), '平移拖拽键 + 开关启用才触发 (v330: 可改键, 默认中键)');
   assert(/e\.preventDefault\(\);/.test(src), 'preventDefault 阻止中键自动滚动');
   assert(/panDragRef\.current = \{ sx: e\.clientX, sy: e\.clientY, px: store\.playfieldPanX, py: store\.playfieldPanY \}/.test(src), '记录拖拽起点与起始偏移');
   assert(/store\.playfieldPanX = panDragRef\.current\.px \+ \(e\.clientX - panDragRef\.current\.sx\) \/ z \/ base\.scale;/.test(src), '拖动: 视觉位移 / uiZoom / 基础 scale -> osu px');

@@ -5,6 +5,7 @@ import {
   HOTKEY_ACTIONS,
   comboFromEvent,
   comboFromMouseEvent,
+  comboFromWheelEvent, // v330: 滚轮捕获
   effectiveBindings,
   findConflict,
   formatCombo,
@@ -55,13 +56,21 @@ export function HotkeyPanel() {
       e.stopPropagation();
       settle(comboFromMouseEvent(e));
     };
+    // v330: 捕获滚轮 (修饰+Wheel; 方向不入键。passive:false 才能 preventDefault)
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      settle(comboFromWheelEvent(e));
+    };
     const onCtx = (e: Event) => { e.preventDefault(); e.stopPropagation(); };
     window.addEventListener('keydown', onKey, true);
     window.addEventListener('mousedown', onMouse, true);
+    window.addEventListener('wheel', onWheel, { capture: true, passive: false });
     window.addEventListener('contextmenu', onCtx, true);
     return () => {
       window.removeEventListener('keydown', onKey, true);
       window.removeEventListener('mousedown', onMouse, true);
+      window.removeEventListener('wheel', onWheel, { capture: true });
       window.removeEventListener('contextmenu', onCtx, true);
       setHotkeyCapture(false);
     };
@@ -106,7 +115,7 @@ export function HotkeyPanel() {
                         className="rounded border border-osu-yellow bg-osu-yellow/10 px-1.5 py-0.5 text-[13px] text-osu-yellow"
                         data-testid={`hotkey-capturing-${a.id}`}
                       >
-                        按任意键/鼠标键… Esc取消
+                        按任意键/鼠标键/滚轮… Esc取消 {/* v330: 滚轮可捕获 */}
                       </span>
                     ) : (
                       binds.map((b) => (
@@ -143,8 +152,7 @@ export function HotkeyPanel() {
           <span>Alt+拖动 — 框选滑条锚点</span>
           <span>Alt+Shift+拖动 — 锚点框选减选</span>
           <span>Ctrl+点击 (选中滑条) — 插入锚点</span>
-          <span>中键拖动 — 平移游玩区</span>
-          <span>Alt+滚轮 — 缩放游玩区 / 时间轴上调锁定间距</span>
+          {/* v330: 中键平移/Alt+滚轮缩放/锁定间距移入可改键列表 (游玩区分类) */}
           <span>Ctrl+滚轮 — 游玩区循环节拍细分 / 时间轴上缩放</span>
           <span>Shift+数字1-8 — 设节拍细分</span>
           <span>滚轮 — 移动时间</span>

@@ -19,7 +19,7 @@ const wheelBody = src.slice(src.indexOf('onWheel={(e) => {'), src.indexOf('/>', 
 
 section('EditorCanvas: Alt+滚轮缩放');
 {
-  assert(/if \(e\.altKey && store\.playfieldPanEnabled\)/.test(wheelBody), 'Alt+滚轮 + 平移开启时生效');
+  assert(/if \(store\.playfieldPanEnabled && matchesHotkeyWheel\(e, 'playfield-zoom-wheel'\)\)/.test(wheelBody), '缩放滚轮键 + 平移开启时生效 (v330: 可改键, 默认 Alt+滚轮)');
   assert(/e\.deltaMode === 1 \? e\.deltaY \* 33 : e\.deltaMode === 2 \? e\.deltaY \* 800 : e\.deltaY/.test(wheelBody), 'deltaMode 归一化 (与 wheelSteps 同款)');
   assert(/Math\.pow\(1\.1, -dy \/ 100\)/.test(wheelBody), '每刻度 ×1.1 (滚轮上 = 放大)');
   assert(/Math\.max\(0\.1, Math\.min\(10,/.test(wheelBody), '倍率钳 0.1..10 (同缩放输入框)');

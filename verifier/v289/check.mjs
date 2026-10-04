@@ -33,14 +33,14 @@ assert(/export function comboFromMouseEvent/.test(hk), 'comboFromMouseEvent 导�
 assert(/export function isMouseCombo/.test(hk), 'isMouseCombo 导出');
 assert(/export function matchesHotkeyMouse/.test(hk), 'matchesHotkeyMouse 导出');
 assert(/id: 'test-exit'[\s\S]*?defaults: \['Escape'\]/.test(hk), 'test-exit 注册 (默认 Escape)');
-assert(/if \(isMouseCombo\(b\)\) continue/.test(hk), 'pushMenuAccels 跳过鼠标组合 (非法 Electron accelerator)');
+assert(/if \(isMouseCombo\(b\) \|\| isWheelCombo\(b\)\) continue/.test(hk), 'pushMenuAccels 跳过鼠标组合 (非法 Electron accelerator; v330: 滚轮同跳)');
 assert(/MouseLeft: '鼠标左键'/.test(hk), 'formatCombo 鼠标中文名');
 
 const panel = readSrc('src/components/HotkeyPanel.tsx');
 assert(/comboFromMouseEvent/.test(panel), 'HotkeyPanel: 捕获态录入鼠标按键');
 assert(/addEventListener\('mousedown', onMouse, true\)/.test(panel), 'HotkeyPanel: mousedown 捕获监听');
 assert(/addEventListener\('contextmenu', onCtx, true\)/.test(panel), 'HotkeyPanel: 右键改键时抑制上下文菜单');
-assert(/按任意键\/鼠标键… Esc取消/.test(panel), 'HotkeyPanel: 捕获提示含鼠标键');
+assert(/按任意键\/鼠标键\/滚轮… Esc取消/.test(panel), 'HotkeyPanel: 捕获提示含鼠标键 (v330: 含滚轮)');
 
 const ov = readSrc('src/components/TestPlayOverlay.tsx');
 assert(/matchesHotkeyMouse\(e, 'test-hit-1'\) \|\| matchesHotkeyMouse\(e, 'test-hit-2'\)/.test(ov), '鼠标击打判定走注册表 (isHitButton)');

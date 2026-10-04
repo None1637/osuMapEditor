@@ -981,6 +981,8 @@ class EditorStore {
   addObject(o: HitObject) {
     if (!this.beatmap) return;
     this.pushUndo();
+    // v329: stable 语义 — 同时间点已存在物件时自动删除旧物件 (放置顶替, 一次 undo)
+    this.beatmap.hitObjects = this.beatmap.hitObjects.filter(x => x.time !== o.time);
     this.beatmap.hitObjects.push(o);
     this.beatmap.hitObjects.sort((a, b) => a.time - b.time);
     this.emit();

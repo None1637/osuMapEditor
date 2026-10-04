@@ -19,6 +19,7 @@ import { distanceLockRef, distanceLockDistance } from '@/osu/spacing'; // v145
 import { genId, timingAt, csToRadius, arToPreempt, snapAcrossRedLine, type Beatmap, type HitObject } from '@/osu/parser';
 import { IncrementalBSplineBuilder } from '@/osu/freehand/bsplineBuilder';
 import { fitSegmentsToPoints } from '@/osu/freehand/freehandFit';
+import { matchesHotkeyMouse, matchesHotkeyWheel } from '@/osu/hotkeys'; // v330: 游玩区平移/缩放/锁定间距可改键
 
 const PW = 512, PH = 384; // osu 游玩区坐标系
 const PAD_Y = 40; // 上下留白 (osu px): 摆放在上下边缘的物件 (半径~37px) 不超出屏幕, 对齐 stable 游玩区留边
@@ -535,6 +536,9 @@ export function EditorCanvas() {
   // v49/v50: 缩放/旋转拖拽中按下/松开 Shift (锁长宽比/吸附15°) / Alt (默认原点) 实时生效 (lazer OnKeyDown/OnKeyUp)
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
+      // v328: 阻止 Alt 呼出原生菜单栏抢焦点 — autoHideMenuBar 下按 Alt 会唤出原生菜单并使窗口 blur,
+      // blur 处理器把 altHeldRef 复位 → 选中物件/滑条点的 Alt 层 hover 高亮按下/松开都不更新
+      if (e.key === 'Alt') e.preventDefault();
       altHeldRef.current = e.altKey; // v304: F10 框选 Alt 配色实时跟随 (keydown/keyup 都带最新修饰态)
       refreshHover(); // v316: F18a — Alt 切换选取模式立即重算 hover 目标 (不等光标移动)
       // v86: Esc 取消 pattern 拖拽
@@ -1184,7 +1188,8 @@ export function EditorCanvas() {
     const p = toOsu(e);
     if (e.button === 2) return; // 右键在 contextmenu 处理
     // v223: 游玩区平移开启时, 按住中键拖动游玩区域 (preventDefault 阻止浏览器中键自动滚动)
-    if (e.button === 1 && store.playfieldPanEnabled) {
+    // v330: 按键可改 (默认 MouseMiddle, matchesHotkeyMouse 含修饰组合)
+    if (matchesHotkeyMouse(e, 'playfield-pan-drag') && store.playfieldPanEnabled) {
       e.preventDefault();
       panDragRef.current = { sx: e.clientX, sy: e.clientY, px: store.playfieldPanX, py: store.playfieldPanY };
       store.canvasDragging = true; // 拖拽期间抑制放置预览/时间轴 seek (与物件拖拽同款)
@@ -1402,13 +1407,13 @@ export function EditorCanvas() {
           return;
         }
         // v118/v319: 按住 Ctrl 点击选中滑条 = 新增白色节点。对齐 lazer SliderSelectionBlueprint.OnMouseDown:
-        // 命中蓝图 (滑条身/头尾圈) 即插入, 无线段距离上限 (v118 的 6px 上限 = 用户反馈"点稍微远就取消选中":
-        // 旧逻辑落空后掉到 hitTest, Ctrl+点击自己滑条 toggleSelect 直接丢选区);
         // 插入位置 = 光标原位置 (非投影到控制多边形, lazer addControlPoint 同款 — 圆弧腹部的点落在光标处),
-        // 插入下标 = 距光标最近的控制点线段 (零长红锚点重复对跳过)
+        // 插入下标 = 距光标最近的控制点线段 (零长红锚点重复对跳过)。
+        // v326: stable 语义 — Ctrl+左键点击任何位置都添加锚点, 不再要求命中滑条身
+        // (v324 的直接路径命中门槛/落空守卫移除: stable 无命中要求, 用户反馈"增加滑条点仍然很难");
+        // 点到已有节点手柄仍优先走上方拖拽/切红分支, 不会误插点
         if (e.ctrlKey || e.metaKey) {
-          const onBody = hitTest(p.x, p.y)?.id === so.id;
-          if (onBody && ctrl.length >= 2) {
+          if (ctrl.length >= 2) {
             let best = ctrl.length - 2, bestD = Infinity; // 默认末尾段 (极端: 全部零长段)
             for (let i = 0; i < ctrl.length - 1; i++) {
               if (ctrl[i].x === ctrl[i + 1].x && ctrl[i].y === ctrl[i + 1].y) continue;
@@ -2213,6 +2218,7 @@ export function EditorCanvas() {
       }}
       onContextMenu={onContextMenu}
       onWheel={(e) => {
+        const bm = store.beatmap; // v330: distance-lock-wheel 需要
         // v321 (F26): Ctrl+滚轮 = 循环节拍吸附细分 (stable 同款; 上滚更密/下滚更疏)
         if (e.ctrlKey) {
           const i = Math.max(0, BEAT_SNAP_OPTIONS.indexOf(store.beatSnap));
@@ -2220,9 +2226,10 @@ export function EditorCanvas() {
           if (BEAT_SNAP_OPTIONS[j] !== store.beatSnap) { store.beatSnap = BEAT_SNAP_OPTIONS[j]; store.emit(); }
           return;
         }
-        // v229: 平移功能开启时 Alt+滚轮 = 缩放游玩区 (以光标为焦点, 同步平移量保持光标下内容不动;
-        // 对齐 lazer 时间轴 Alt+滚轮缩放的习惯用法; deltaMode 归一化与 wheelSteps 同款)
-        if (e.altKey && store.playfieldPanEnabled) {
+        // v229/v330: Alt+滚轮行为随平移开关切换 (均可改键, 默认 Alt+Wheel 互斥同键):
+        //   开启平移 = 缩放游玩区 (以光标为焦点, 同步平移量保持光标下内容不动; deltaMode 归一化同 wheelSteps);
+        //   未开平移 = 调锁定间距倍率 (与上时间轴同一动作 distance-lock-wheel)
+        if (store.playfieldPanEnabled && matchesHotkeyWheel(e, 'playfield-zoom-wheel')) {
           const dy = e.deltaMode === 1 ? e.deltaY * 33 : e.deltaMode === 2 ? e.deltaY * 800 : e.deltaY;
           const p = toOsu(e);
           const s0 = store.playfieldScale;
@@ -2231,6 +2238,12 @@ export function EditorCanvas() {
           store.playfieldPanY += (s0 - s1) * p.y;
           store.playfieldScale = s1;
           store.emit(); // 左侧栏 x/y/缩放输入框实时刷新 (画布渲染循环每帧直接读 store)
+          return;
+        }
+        if (!store.playfieldPanEnabled && bm && matchesHotkeyWheel(e, 'distance-lock-wheel')) {
+          const d = e.deltaY > 0 ? -0.1 : 0.1;
+          bm.editor.distanceSpacing = Math.max(0.1, Math.min(10, Math.round(((bm.editor.distanceSpacing || 1) + d) * 100) / 100));
+          store.emit();
           return;
         }
         // v193: 滚轮走 store.wheelSeek (lazer 对齐: 刻度累积; 播放中不吸附大步长 + 轻量重定位, 暂停吸附 1/beatSnap)

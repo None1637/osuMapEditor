@@ -40,7 +40,7 @@ assert(/\{store\.hotkeyPanelOpen && <HotkeyPanel \/\>\}/.test(app), 'App.tsx: �
 
 const panel = readSrc('src/components/HotkeyPanel.tsx');
 assert(/testid="hotkey-panel"/.test(panel), 'HotkeyPanel: 对话框');
-assert(/按任意键\/鼠标键… Esc取消/.test(panel), 'HotkeyPanel: 捕获态提示 (v289: 含鼠标键)');
+assert(/按任意键\/鼠标键\/滚轮… Esc取消/.test(panel), 'HotkeyPanel: 捕获态提示 (v289: 含鼠标键; v330: 含滚轮)');
 assert(/findConflict\(combo, capture\)/.test(panel), 'HotkeyPanel: 冲突检测');
 assert(/resetAllHotkeys/.test(panel), 'HotkeyPanel: 全部恢复默认');
 assert(/setHotkeyCapture\(true\)/.test(panel), 'HotkeyPanel: 捕获期屏蔽全局派发');

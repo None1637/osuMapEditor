@@ -2896,3 +2896,65 @@
   20MB 故事板谱解析实测 ~6ms。
 - 验证: verifier/v323 (静态断言 + 临时目录功能回归 config/list/file/write/404/403/并发 50
   + esbuild 现打包 parseIndexEntry 巨型/常规功能与耗时); v67 断言同步 (writeFileSync → fs.promises.writeFile)。
+
+## v324 — F28 再反馈: 选中滑条插点仍落空 (重叠物件抢命中)
+- 根因: v319 门槛 `hitTest(p.x, p.y)?.id === so.id` — hitTest 在多物件重叠命中时按
+  「离 currentTime 最近」挑选 (pickTimeNearestHit), 选中滑条会被旁边时间更近的重叠物件
+  抢走命中 → 插点落空 → 掉到通用分支 Ctrl+点击 toggleSelect/清空 → 丢选区。
+  lazer 中选中物件的 SliderSelectionBlueprint 有输入优先级, OnMouseDown 先于其他物件
+  处理 Ctrl+点击 → addControlPoint, 不经全局 hitTest 挑选。
+- 修法 (EditorCanvas mousedown 插点块):
+  1) 门槛改为直接测该滑条自身路径 (getSliderPath 采样点 + csToRadius 圆圈半径容差,
+     含堆叠偏移), 不经 hitTest;
+  2) 落空守卫: Ctrl+点击落空任何物件 = 不动选区直接 return; 命中其他物件仍 fall through
+     走 toggleSelect (对齐 lazer ctrl+click 切换语义)。
+- 保留 v319 语义: 光标原位置插入/最近线段下标/零长红锚点对跳过/v240 直线升级圆弧/SnapTo。
+- 验证: verifier/v324 (12 条); v319/v118 断言同步修订 (旧 onBody=hitTest 断言 → 新形态)。
+
+## v326 — F28 三次反馈: stable 语义, Ctrl+左键点击任何位置都添加滑条锚点
+- 用户澄清: "不是无需 Ctrl，是 Ctrl+左键点击任何位置能添加滑条锚点" — stable 选中滑条后
+  Ctrl+点击无命中要求; v319 (命中蓝图才插) 与 v324 (直接路径命中门槛 + 落空守卫) 均不符。
+- 修法 (EditorCanvas mousedown): Ctrl 分支移除 onBody/hitTest 门槛与落空守卫, 直接插点;
+  已有节点手柄优先 (nearestCtrlPoint 分支先行 return, Ctrl+点击白点 = 选中/切红不误插)。
+  插入语义不变 (光标原位置/最近线段下标/零长红锚点对跳过/v240 直线升级圆弧/SnapTo)。
+  hitTest(p.x,p.y) 调用点回落为 2 处 (mousedown 选中/拖动 + 右键删除)。
+- 适配: v171 (3→2 调用点), v118/v319/v324 断言同步 (门槛存在 → 门槛移除)。
+- 验证: verifier/v326 (11 条); tsc 通过。
+
+## v327 — 上方时间轴转盘改灰色 (spinner 不参与 combo 染色)
+- 需求: 转盘本身不染色, 时间轴中不应按 combo 上色。
+- 修法: Timelines.tsx 物件绘制处 `o.type === 'spinner'` 用新增常量 SPINNER_GRAY (#8f8f8f),
+  其余物件 comboColor 染色逻辑 (v31/v132/v201) 不变; fill/barFill 链路不变。
+- 验证: verifier/v327 (4 条 + tsc); v31/v132/v201/v83 回归通过。
+
+## v328 — Alt 按下/松开时选中物件/滑条点 hover 高亮不即时更新 (用户反馈)
+- 根因: electron/main.cjs autoHideMenuBar:true + 原生菜单仍 setApplicationMenu (注释自述
+  "Alt 可临时呼出原生菜单") → Windows 下按 Alt 唤出原生菜单并抢焦点, 窗口 blur → blur 处理器
+  复位 altHeldRef → Alt 层 hover (v316 F18a 锚点高亮环 / v304 F10 框选配色) 按下/松开都无变化。
+- 修法: EditorCanvas 全局 key 处理器对 Alt 键 preventDefault (keydown/keyup 共用 handler),
+  阻止菜单激活的默认行为; 菜单 accelerator 全局快捷键不受影响; blur 复位保留作真正失焦兜底。
+- 验证: verifier/v328 (6 条 + tsc); v304/v316 回归通过。
+
+## v329 — 同时间点放置新物件自动删除旧物件 (stable 语义)
+- 需求: 在已有物件的时间点放置新物件时自动删除旧物件, 与 stable 对齐。
+- 修法: store.addObject 统一实现 — pushUndo 后先 filter 删同 start-time 旧物件再 push+sort
+  (一次 undo)。addObject 全部 4 个调用点均为放置路径 (单点/滑条完成×2/转盘提交),
+  粘贴/批量复制等不经此路, 不受影响。
+- 验证: verifier/v329 (5 条 + tsc); v180/v188/v82 回归通过。
+
+## v330 — 游玩区相关快捷键可改键 + Alt+滚轮行为随平移开关切换
+- 需求: 没开游玩区平移时 Alt+滚轮 = 改锁定间距; 开了平移时 Alt+滚轮 = 游玩区缩放;
+  且游玩区相关快捷键支持在快捷键绑定中调整。
+- hotkeys.ts: 新增滚轮组合体系 (comboFromWheelEvent/isWheelCombo/matchesHotkeyWheel,
+  方向不入键, 增减由动作内部按 deltaY 决定); 新动作分类「游玩区」: playfield-pan-drag
+  (MouseMiddle) / playfield-zoom-wheel (Alt+Wheel) / distance-lock-wheel (Alt+Wheel);
+  后两者语境互斥 (平移开/关) 经 conflictOk 豁免允许同键; pushMenuAccels 跳过滚轮组合。
+- EditorCanvas: 平移拖拽 (mousedown) / 缩放滚轮 / 锁定间距滚轮全部改绑定匹配;
+  onWheel 按平移开关分流 (开=缩放, 关=锁定间距, 钳 0.1..10)。
+- Timelines: 上时间轴 Alt+滚轮锁定间距改 distance-lock-wheel 绑定匹配 (平移开关无关)。
+- HotkeyPanel: 捕获态支持滚轮 (wheel 监听 passive:false, Esc 取消不变); 固定键位区移除
+  中键平移/Alt+滚轮两条 (已可改键); 捕获提示加"滚轮"。
+- 适配: v223 (button===1 → matchesHotkeyMouse), v229 (e.altKey → matchesHotkeyWheel),
+  v321 (上时间轴 Alt 断言改绑定匹配/e.altKey 计数 1→0/固定区条目移除),
+  v286/v289 (捕获提示与菜单跳过断言加滚轮)。
+- 验证: verifier/v330 (19 条 + tsc); 上述旧验证器回归通过。

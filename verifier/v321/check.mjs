@@ -49,12 +49,13 @@ section('F26: 吸附快捷键');
   const wheel = canvas.match(/onWheel=\{\(e\) => \{[\s\S]{0,2000}?\n      \}\}/);
   assert(!!wheel, 'EditorCanvas onWheel 存在');
   assert(!!wheel && /if \(e\.ctrlKey\) \{[\s\S]{0,400}?BEAT_SNAP_OPTIONS\.indexOf\(store\.beatSnap\)/.test(wheel[0]), '游玩区 Ctrl+滚轮循环节拍细分');
-  assert(!!wheel && wheel[0].indexOf('e.ctrlKey') < wheel[0].indexOf('e.altKey'), 'Ctrl 分支先于 Alt 分支');
+  // v330: Alt 分支改绑定匹配 (matchesHotkeyWheel), Ctrl 分支仍最先
+  assert(!!wheel && wheel[0].indexOf('e.ctrlKey') > 0 && wheel[0].indexOf('e.ctrlKey') < wheel[0].indexOf('matchesHotkeyWheel'), 'Ctrl 分支先于滚轮绑定分支');
   const topWheel = timelines.match(/onWheel=\{\(e\) => \{\s*const bm = store\.beatmap;[\s\S]{0,1500}?\}\} \/>/);
-  assert(!!topWheel && /if \(e\.altKey\) \{[\s\S]{0,400}?bm\.editor\.distanceSpacing = Math\.max\(0\.1, Math\.min\(10,/.test(topWheel[0]), '上时间轴 Alt+滚轮调锁定间距 (钳 0.1..10)');
-  assert(!!topWheel && topWheel[0].indexOf('e.altKey') < topWheel[0].indexOf('e.ctrlKey'), 'Alt 分支优先于 Ctrl 缩放');
+  assert(!!topWheel && /if \(matchesHotkeyWheel\(e, 'distance-lock-wheel'\)\) \{[\s\S]{0,400}?bm\.editor\.distanceSpacing = Math\.max\(0\.1, Math\.min\(10,/.test(topWheel[0]), '上时间轴滚轮调锁定间距 (v330: 可改键, 默认 Alt+滚轮; 钳 0.1..10)');
+  assert(!!topWheel && topWheel[0].indexOf('distance-lock-wheel') < topWheel[0].indexOf('e.ctrlKey'), '锁定间距分支优先于 Ctrl 缩放');
   const altCount = (timelines.match(/e\.altKey/g) || []).length;
-  assert(altCount === 1, `下时间轴不加 Alt 分支 (全文件 e.altKey 出现 ${altCount} 次, 期望 1)`);
+  assert(altCount === 0, `时间轴不再直读 e.altKey (v330 改绑定匹配; 实际 ${altCount} 次)`);
 }
 
 section('F18c: 固定键位分区');
@@ -62,7 +63,9 @@ section('F18c: 固定键位分区');
   assert(/data-testid="hotkey-fixed-section"/.test(hkPanel), '固定键位分区存在');
   assert(/固定键位 \(不可修改\)/.test(hkPanel), '分区标题');
   assert(/Alt\+点击 — 选中\/取消滑条锚点/.test(hkPanel), 'Alt+点击 条目');
-  assert(/中键拖动 — 平移游玩区/.test(hkPanel), '中键拖动 条目');
+  // v330: 中键平移/Alt+滚轮移入可改键列表 (游玩区分类), 固定区不再列
+  assert(!/中键拖动 — 平移游玩区/.test(hkPanel), '中键拖动移出固定区 (v330 可改键)');
+  assert(!/Alt\+滚轮 — 缩放游玩区/.test(hkPanel), 'Alt+滚轮移出固定区 (v330 可改键)');
   assert(/Shift\+数字1-8 — 设节拍细分/.test(hkPanel), 'Shift+数字 条目 (F26 联动)');
   assert(/Ctrl\+滚轮 — 游玩区循环节拍细分 \/ 时间轴上缩放/.test(hkPanel), 'Ctrl+滚轮 条目 (F26 联动)');
   assert(hkPanel.indexOf('hotkey-fixed-section') > hkPanel.indexOf('hotkey-list'), '分区在可改键列表之后');

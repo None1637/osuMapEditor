@@ -17,9 +17,10 @@ section('EditorCanvas.tsx: hitTest 已选优先');
   assert(/const selHits = hits\.filter\(o => store\.selected\.has\(o\.id\)\);/.test(src), '命中列表筛出已选子集');
   assert(/return pickTimeNearestHit\(selHits\.length \? selHits : hits, store\.currentTime\);/.test(src),
     '有已选命中 → 已选子集内挑时间最近; 否则维持 v154 全命中挑时间最近');
-  // 三处调用点 (mousedown 拖动/选中 + 右键删除 + v319 Ctrl+点击插点) 共用 hitTest, 一处修复全生效
+  // 两处调用点 (mousedown 拖动/选中 + 右键删除) 共用 hitTest, 一处修复全生效
+  // (v326: v319/v324 的 Ctrl+点击插点不再走 hitTest — stable 语义点击任何位置都插点, 无命中门槛)
   const calls = src.match(/hitTest\(p\.x, p\.y\)/g) ?? [];
-  assert(calls.length === 3, `hitTest 三处调用点共用 (实际 ${calls.length})`);
+  assert(calls.length === 2, `hitTest 两处调用点共用 (实际 ${calls.length})`);
 }
 
 console.log(failures ? `\nV171 FAILED: ${failures}` : '\nV171 ALL PASSED');

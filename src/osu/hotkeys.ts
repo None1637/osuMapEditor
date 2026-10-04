@@ -14,6 +14,7 @@ export interface HotkeyAction {
   category: string;
   defaults: string[];   // 规范组合键, 首个为主键 (改键后替换全部)
   menuId?: string;      // 同步原生菜单 accelerator 的键 (main.cjs acc() 用同一 id)
+  conflictOk?: string[]; // v330: 与本列表中的动作允许同键 (语境互斥, 如平移开/关的两个滚轮动作)
 }
 
 // v181: 不用符号字符 — 展示名用 ASCII/中文
@@ -74,6 +75,11 @@ export const HOTKEY_ACTIONS: HotkeyAction[] = [
   { id: 'timing-add-green', label: '添加绿线 (继承区间)', category: 'Timing', defaults: ['Ctrl+Shift+P'], menuId: 'timing-add-green' },
   { id: 'timing-delete-current', label: '删除当前Timing区间', category: 'Timing', defaults: ['Ctrl+I'], menuId: 'timing-delete-current' },
   { id: 'timing-open-settings', label: 'Timing设置', category: 'Timing', defaults: ['F6'], menuId: 'timing-open-settings' },
+  // 游玩区 (v330: 原固定键位改可改键; 滚轮组合方向不入键, 增减由动作内部按 deltaY 决定。
+  // 两个 Alt+Wheel 动作语境互斥 — 缩放仅平移开启时生效, 锁定间距仅未开平移 (游玩区) / 时间轴生效, 故允许同键)
+  { id: 'playfield-pan-drag', label: '平移游玩区 (按住拖动, 需开启平移)', category: '游玩区', defaults: ['MouseMiddle'] },
+  { id: 'playfield-zoom-wheel', label: '缩放游玩区 (滚轮, 需开启平移)', category: '游玩区', defaults: ['Alt+Wheel'], conflictOk: ['distance-lock-wheel'] },
+  { id: 'distance-lock-wheel', label: '锁定间距调整 (滚轮, 未开平移/时间轴)', category: '游玩区', defaults: ['Alt+Wheel'], conflictOk: ['playfield-zoom-wheel'] },
 ];
 
 const LS_KEY = 'osu-editor:hotkeys';
@@ -109,6 +115,17 @@ export function isMouseCombo(combo: string): boolean {
   return /(^|\+)Mouse(Left|Middle|Right|4|5)$/.test(combo);
 }
 
+// ---- v330: 滚轮组合 ----
+/** WheelEvent → 规范组合键 (如 "Alt+Wheel"; 方向不入键, 增减由动作内部按 deltaY 决定) */
+export function comboFromWheelEvent(e: Pick<WheelEvent, 'ctrlKey' | 'metaKey' | 'altKey' | 'shiftKey'>): string {
+  return (e.ctrlKey || e.metaKey ? 'Ctrl+' : '') + (e.altKey ? 'Alt+' : '') + (e.shiftKey ? 'Shift+' : '') + 'Wheel';
+}
+
+/** 组合键是否为滚轮 (Electron accelerator 不支持, 菜单同步需跳过) */
+export function isWheelCombo(combo: string): boolean {
+  return /(^|\+)Wheel$/.test(combo);
+}
+
 const hasModifier = (combo: string) => /^(Ctrl|Alt|Shift)\+/.test(combo);
 
 // ---- 覆盖持久化 ----
@@ -141,7 +158,7 @@ function pushMenuAccels() {
   for (const a of HOTKEY_ACTIONS) {
     if (!a.menuId) continue;
     const b = effectiveBindings(a.id)[0];
-    if (isMouseCombo(b)) continue; // v289: 鼠标按键不是合法 Electron accelerator, 跳过 (保留默认显示)
+    if (isMouseCombo(b) || isWheelCombo(b)) continue; // v289/v330: 鼠标/滚轮不是合法 Electron accelerator, 跳过 (保留默认显示)
     map[a.menuId] = toElectronAccel(b);
   }
   try { getElectronAPI()?.setAcceleratorOverrides(map); } catch { /* 非 Electron */ }
@@ -198,10 +215,23 @@ export function matchesHotkeyMouse(e: Pick<MouseEvent, 'button' | 'ctrlKey' | 'm
   return false;
 }
 
-/** 冲突检测: combo 已被其他动作占用 (含无修饰 Shift 松弛) 则返回该动作 id */
+/** v330: 滚轮是否命中指定动作 (同一匹配规则, 组合来自 comboFromWheelEvent; deltaY 方向不参与匹配) */
+export function matchesHotkeyWheel(e: Pick<WheelEvent, 'ctrlKey' | 'metaKey' | 'altKey' | 'shiftKey'>, id: string): boolean {
+  const combo = comboFromWheelEvent(e);
+  const shiftCombo = e.shiftKey ? combo.replace(/^Shift\+/, '') : null;
+  for (const b of effectiveBindings(id)) {
+    if (b === combo) return true;
+    if (shiftCombo && !hasModifier(b) && b === shiftCombo) return true;
+  }
+  return false;
+}
+
+/** 冲突检测: combo 已被其他动作占用 (含无修饰 Shift 松弛) 则返回该动作 id;
+    v330: conflictOk 列表中的动作语境互斥, 允许同键不算冲突 */
 export function findConflict(combo: string, excludeId: string): string | null {
   for (const a of HOTKEY_ACTIONS) {
     if (a.id === excludeId) continue;
+    if (a.conflictOk?.includes(excludeId)) continue;
     for (const b of effectiveBindings(a.id)) {
       if (b === combo) return a.id;
       // 无修饰绑定与 Shift+该键 等效 → 判冲突也要互相挡住
@@ -231,6 +261,7 @@ export function formatCombo(combo: string): string {
     Space: '空格', Escape: 'Esc', Delete: 'Del', Backspace: '退格',
     ArrowLeft: 'Left', ArrowRight: 'Right', ArrowUp: 'Up', ArrowDown: 'Down',
     MouseLeft: '鼠标左键', MouseMiddle: '鼠标中键', MouseRight: '鼠标右键', Mouse4: '鼠标侧键4', Mouse5: '鼠标侧键5',
+    Wheel: '滚轮', // v330
   };
   const k = pretty[key] ?? key;
   return combo.slice(0, combo.length - key.length) + k;
