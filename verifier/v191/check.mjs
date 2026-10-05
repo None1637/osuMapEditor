@@ -11,11 +11,13 @@ const src = fs.readFileSync(path.join(root, 'src/App.tsx'), 'utf8');
 
 console.log('== App.tsx: 工具按钮图标');
 assert(/MousePointer2, Circle, Spline, Disc/.test(src), '导入 4 个 lucide 图标');
-assert(/\{ id: 'select', label: '选择', action: 'tool-select', icon: MousePointer2 \}/.test(src), '选择 → MousePointer2 (v321: key→action 动态键位)');
-assert(/\{ id: 'circle', label: '单点', action: 'tool-circle', icon: Circle \}/.test(src), '单点 → Circle (v321)');
-assert(/\{ id: 'slider', label: '滑条', action: 'tool-slider', icon: Spline \}/.test(src), '滑条 → Spline (v321)');
-assert(/\{ id: 'spinner', label: '转盘', action: 'tool-spinner', icon: Disc \}/.test(src), '转盘 → Disc (v321)');
-assert(/<t\.icon className="inline-block w-4 h-4 mr-1\.5 -mt-0\.5" \/>\{t\.label\}/.test(src), '按钮文本前渲染图标');
+// v346 i18n 适配: 工具条目带 labelKey (词典键) + label (英文原文); 中文译文断言 dicts/zh-CN/app.ts
+const dictApp = fs.readFileSync(path.join(root, 'src/i18n/dicts/zh-CN/app.ts'), 'utf8');
+assert(/\{ id: 'select', labelKey: 'app\.tool_select', label: 'Select', action: 'tool-select', icon: MousePointer2 \}/.test(src) && /'app\.tool_select': '选择'/.test(dictApp), '选择 → MousePointer2 (v321: key→action 动态键位)');
+assert(/\{ id: 'circle', labelKey: 'app\.tool_circle', label: 'Hit Circle', action: 'tool-circle', icon: Circle \}/.test(src) && /'app\.tool_circle': '单点'/.test(dictApp), '单点 → Circle (v321)');
+assert(/\{ id: 'slider', labelKey: 'app\.tool_slider', label: 'Slider', action: 'tool-slider', icon: Spline \}/.test(src) && /'app\.tool_slider': '滑条'/.test(dictApp), '滑条 → Spline (v321)');
+assert(/\{ id: 'spinner', labelKey: 'app\.tool_spinner', label: 'Spinner', action: 'tool-spinner', icon: Disc \}/.test(src) && /'app\.tool_spinner': '转盘'/.test(dictApp), '转盘 → Disc (v321)');
+assert(/<tool\.icon className="inline-block w-4 h-4 mr-1\.5 -mt-0\.5" \/>\{t\(tool\.labelKey, tool\.label\)\}/.test(src), '按钮文本前渲染图标');
 assert(!/['"](🖱|🔘|📏|🌀|⭕)['"]/.test(src), '无 emoji 图标 (AGENTS.md 规范)');
 
 if (failures) { console.error(`V191 FAILED: ${failures}`); process.exit(1); }

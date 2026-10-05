@@ -6,6 +6,7 @@ import { store } from './store';
 import { serverDir } from './serverFs';
 import { listDifficulties, loadDifficulty } from './library';
 import { getElectronAPI, type ElectronMenuCommand } from './electronBridge';
+import { getLang, onLangChange } from '@/i18n'; // v346: 多语言 — 语言上报主进程 (菜单标签重建)
 import { computeMerge } from './convert/merge'; // v212: 作图菜单「合并滑条」
 import type { Beatmap } from './parser';
 import type { MapSource } from './saveMap';
@@ -34,6 +35,16 @@ export async function reportMenuState(bm: Beatmap, source: MapSource | null): Pr
 /** v120: 向主进程上报脏标记 (关闭窗口拦截用; 非 Electron 无操作) */
 export function reportDirtyState(b: boolean): void {
   getElectronAPI()?.dirtyState(b);
+}
+
+// v346: 界面语言上报 — 启动时上报一次当前语言, 之后 onLangChange 订阅切换;
+// 主进程收到 "menu-lang" 后重建菜单 (buildMenu → onMenuDefinition 推送, MenuBar 自动刷新)
+{
+  const api = getElectronAPI();
+  if (api) {
+    api.menuLang(getLang());
+    onLangChange(() => api.menuLang(getLang()));
+  }
 }
 
 /** 经服务器目录加载指定难度; 成功返回 true。v120: 有未保存改动时先弹保存/废弃提示 (提示确认后重入本函数) */

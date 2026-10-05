@@ -42,7 +42,7 @@ section('renderer.ts: drawSelectionDecor 按 selectionStyle 分支');
   // v305: F03 — 用户对比 stable 截图确认选中是圆环/边框高亮而非 hitcircleselect 方框, drawSelectionBox 已移除
   assert(/export function drawSelectionRing\(g: CanvasRenderingContext2D, x: number, y: number, r: number, color = '#f5a623'\)/.test(src),
     'stable 选中 = 橙黄圆环 drawSelectionRing (v305, 取代 v232 皮肤方框)');
-  assert(/drawSliderBodyOutline\(g, p\.points, radius, stableSel \? '#4a90e2' : '#4df3ff', stableSel\)/.test(src),
+  assert(/sliderOutlineSprite\(p\.points, radius, stableSel \? '#4a90e2' : '#4df3ff', stableSel, o\.id/.test(src), // v340: 缓存 sprite
     'stable 滑条选中 = sliderborder 蓝色高亮描边 (v305; v308 起 cover 模式覆盖原白边)');
   assert(/drawSelectionRing\(g, o\.x, o\.y, radius\);\s*const tail = p\.points\[p\.points\.length - 1\];\s*if \(tail\) drawSelectionRing\(g, tail\.x, tail\.y, radius\);/.test(src),
     'stable 滑条: 头 (x,y) 与尾 (路径终点) 各画橙黄圆环 (v305)');
@@ -58,8 +58,12 @@ section('renderer.ts: drawSelectionDecor 按 selectionStyle 分支');
 section('DisplayPanel.tsx: 「物件选中效果」下拉行');
 {
   const src = readSrc('src/components/DisplayPanel.tsx');
-  assert(/key: 'selectionStyle', name: '物件选中效果/.test(src), 'SELECT_ROWS 含物件选中效果行');
-  assert(/\['stable', 'stable 圆环'\], \['lazer', 'lazer 描边'\]/.test(src), '选项 stable 圆环 / lazer 描边 (v305 改名)');
+  const dict = readSrc('src/i18n/dicts/zh-CN/display.ts');
+  // v346 i18n: name/options 改 nameKey+nameEn / [value, key, en] 元组, zh-CN 译文在 display 词典分片
+  assert(/key: 'selectionStyle', nameKey: 'display\.selection_style_name'/.test(src), 'SELECT_ROWS 含物件选中效果行');
+  assert(/'display\.selection_style_name': '物件选中效果/.test(dict), '词典行名译文 = 物件选中效果');
+  assert(/\['stable', 'display\.selection_style_option_stable', 'stable rings'\], \['lazer', 'display\.selection_style_option_lazer', 'lazer outline'\]/.test(src), '选项 stable 圆环 / lazer 描边 (v305 改名; i18n key)');
+  assert(/'display\.selection_style_option_stable': 'stable 圆环'/.test(dict) && /'display\.selection_style_option_lazer': 'lazer 描边'/.test(dict), '词典选项译文 = stable 圆环 / lazer 描边');
 }
 
 if (failures) { console.error(`V232 FAILED: ${failures}`); process.exit(1); }

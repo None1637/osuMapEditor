@@ -18,10 +18,10 @@ const src = readSrc('src/osu/renderer.ts');
 
 section('drawSelectionRing: 环带精确等于蓝边带 0.81r..0.925r');
 {
-  const ring = src.match(/export function drawSelectionRing[\s\S]{0,600}?\n\}/);
+  const ring = src.match(/export function drawSelectionRing[\s\S]{0,2000}?\n\}/);
   assert(!!ring, 'drawSelectionRing 存在');
   assert(!!ring && /const lw = Math\.max\(1\.5, r \* 0\.115\);/.test(ring[0]), '线宽 0.115r (= 蓝边带宽 0.925-0.81), 保底 1.5');
-  assert(!!ring && /g\.arc\(x, y, r \* 0\.8675, 0, Math\.PI \* 2\)/.test(ring[0]), '弧半径 0.8675r = 蓝边带中心 → 环带 0.81r..0.925r');
+  assert(!!ring && /const rad = r \* 0\.8675;/.test(ring[0]) && /og\.arc\(0, 0, rad, 0, Math\.PI \* 2\)/.test(ring[0]), '弧半径 0.8675r = 蓝边带中心 → 环带 0.81r..0.925r');
   assert(!!ring && !/r - lw \* 0\.5/.test(ring[0]), 'v311 的错误弧半径 r-0.5lw 已移除');
 }
 

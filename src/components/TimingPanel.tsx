@@ -4,6 +4,7 @@ import { store, useEditor, usePlaybackFrame } from '@/osu/store';
 import type { TimingPoint } from '@/osu/parser';
 import { defaultNewPoint, setEffectBit, EFFECT_KIAI, EFFECT_OMIT_BARLINE, formatMsTime, activeGreenAt, scrollTargetIndex } from '@/osu/timingEdit';
 import { hotkeyLabel } from '@/osu/hotkeys'; // v321 (F21): 快捷键提示随改键同步
+import { useT } from '@/i18n';
 
 // Timing 面板: 增删改红线(BPM)/绿线(SV), 以及难度参数 CS/AR/OD/HP
 // v70: full 模式改为紧凑独立窗口 (w-fit 居中, 行高紧凑, 属性连续排版并居中);
@@ -14,6 +15,7 @@ import { hotkeyLabel } from '@/osu/hotkeys'; // v321 (F21): 快捷键提示随�
 export function TimingPanel({ full = false }: { full?: boolean }) {
   useEditor();
   usePlaybackFrame(); // v245: 播放中逐帧更新 (生效绿线行高亮/时间显示), 独立通道不再依赖全量重渲
+  const t = useT();
   const scrollRef = useRef<HTMLDivElement>(null);
   // v157: All/红线/绿线 页签过滤 (仅 full 窗口; 过滤不影响全局索引 i, updateTp/滚动定位不变)
   const [filter, setFilter] = useState<'all' | 'red' | 'green'>('all');
@@ -41,9 +43,9 @@ export function TimingPanel({ full = false }: { full?: boolean }) {
 
   const addTimingPoint = (uninherited: boolean) => {
     store.pushUndo();
-    const t = Math.round(store.currentTime);
+    const time = Math.round(store.currentTime);
     // v62 (lazer ControlPointList.addNew): 克隆当前生效同类点的全部字段 (含音效集/序号/音量/kiai)
-    bm.timingPoints.push(defaultNewPoint(bm.timingPoints, t, uninherited));
+    bm.timingPoints.push(defaultNewPoint(bm.timingPoints, time, uninherited));
     bm.timingPoints.sort((a, b) => a.time - b.time);
     store.emit();
   };
@@ -83,7 +85,7 @@ export function TimingPanel({ full = false }: { full?: boolean }) {
     <div className={`bg-[#16161d] text-sm text-white/80 ${full
       ? 'w-fit max-w-[96%] mx-auto my-4 border border-white/15 rounded-lg shadow-xl overflow-hidden'
       : 'border-t border-white/10'}`}>
-      {!full && <div className="px-3 py-1.5 font-bold text-white/90">Timing 设置 (BPM / SV / 难度参数)</div>}
+      {!full && <div className="px-3 py-1.5 font-bold text-white/90">{t('timing.panel_title', 'Timing Settings (BPM / SV / Difficulty)')}</div>}
       {/* v71: 顶部控制栏固定在窗口内, 不随表格滚动 */}
       <div className="px-3 pt-2">
         <div className="flex gap-3 py-2 flex-wrap items-center justify-center">
@@ -95,14 +97,14 @@ export function TimingPanel({ full = false }: { full?: boolean }) {
                 className={`w-14 ${inp}`} />
             </label>
           ))}
-          <button onClick={() => addTimingPoint(true)} className="px-2 py-0.5 rounded bg-red-500/30 hover:bg-red-500/50 border border-red-400/40">+ 红线(BPM)</button>
-          <button onClick={() => addTimingPoint(false)} className="px-2 py-0.5 rounded bg-green-500/30 hover:bg-green-500/50 border border-green-400/40">+ 绿线(SV)</button>
+          <button onClick={() => addTimingPoint(true)} className="px-2 py-0.5 rounded bg-red-500/30 hover:bg-red-500/50 border border-red-400/40">{t('timing.add_red', '+ Timing Point (BPM)')}</button>
+          <button onClick={() => addTimingPoint(false)} className="px-2 py-0.5 rounded bg-green-500/30 hover:bg-green-500/50 border border-green-400/40">{t('timing.add_green', '+ Inherited Timing Point (SV)')}</button>
         </div>
       </div>
       {/* v157: All/红线/绿线 页签 (仅 full 窗口) */}
       {full && (
         <div data-tp-tabs className="flex justify-center gap-1 px-3 pb-1">
-          {([['all', 'All'], ['red', '红线'], ['green', '绿线']] as const).map(([k, label]) => (
+          {([['all', t('timing.tab_all', 'All')], ['red', t('timing.red_line', 'Timing Point')], ['green', t('timing.green_line', 'Inherited Timing Point')]] as const).map(([k, label]) => (
             <button key={k} data-tp-tab={k} onClick={() => setFilter(k)}
               className={`px-3 py-0.5 rounded-t border border-b-0 border-white/15 ${filter === k ? 'bg-white/15 text-white' : 'bg-black/30 text-white/50 hover:text-white/80'}`}>
               {label}
@@ -113,25 +115,25 @@ export function TimingPanel({ full = false }: { full?: boolean }) {
       {/* v157: 绿线多选批量编辑栏 (勾选行首 checkbox 后出现; 修改即时应用到所有选中绿线, 一次 undo) */}
       {full && selGreens.length > 0 && batchFirst && (
         <div data-tp-batch className="flex flex-wrap items-center justify-center gap-2 px-3 py-1.5 border-y border-emerald-400/30 bg-emerald-500/10">
-          <span className="text-emerald-300">已选 {selGreens.length} 条绿线</span>
+          <span className="text-emerald-300">{t('timing.green_selected', '{n} inherited lines selected', { n: selGreens.length })}</span>
           <label className="flex items-center gap-1">SV
             <input type="number" step="0.05" value={+(-100 / batchFirst.beatLength).toFixed(2)} data-tp-batch-input="sv"
               onChange={e => batchApply({ beatLength: -100 / (parseFloat(e.target.value) || 1) })}
               className={`w-16 ${inp}`} />x
           </label>
-          <label className="flex items-center gap-1">音效集
+          <label className="flex items-center gap-1">{t('timing.sample_set', 'Sample Set')}
             <select value={batchFirst.sampleSet} data-tp-batch-input="sampleSet"
               onChange={e => batchApply({ sampleSet: parseInt(e.target.value) })}
               className="bg-black/40 border border-white/15 rounded px-1 py-0.5 text-white">
               <option value={1}>Normal</option><option value={2}>Soft</option><option value={3}>Drum</option>
             </select>
           </label>
-          <label className="flex items-center gap-1">序号
+          <label className="flex items-center gap-1">{t('timing.sample_index', 'Index')}
             <input type="number" min="0" max="99" value={batchFirst.sampleIndex} data-tp-batch-input="sampleIndex"
               onChange={e => batchApply({ sampleIndex: parseInt(e.target.value) || 0 })}
               className={`w-12 ${inp}`} />
           </label>
-          <label className="flex items-center gap-1">音量
+          <label className="flex items-center gap-1">{t('timing.volume', 'Volume')}
             <input type="number" min="0" max="100" value={batchFirst.volume} data-tp-batch-input="volume"
               onChange={e => batchApply({ volume: parseInt(e.target.value) || 0 })}
               className={`w-12 ${inp}`} />
@@ -143,7 +145,7 @@ export function TimingPanel({ full = false }: { full?: boolean }) {
           </label>
           <button data-tp-batch-delete
             onClick={() => store.deleteGreenLinesAt(selGreens.map(g => g.time))}
-            className="px-2 py-0.5 rounded bg-red-500/30 hover:bg-red-500/50 border border-red-400/40">删除所选</button>
+            className="px-2 py-0.5 rounded bg-red-500/30 hover:bg-red-500/50 border border-red-400/40">{t('timing.delete_selected', 'Delete Selected')}</button>
         </div>
       )}
       {/* v71: 滚动条在窗口内部 (表格区独立滚动) */}
@@ -154,8 +156,8 @@ export function TimingPanel({ full = false }: { full?: boolean }) {
             <tr className="border-b border-white/10">
               {/* v157: 最左选择列 (绿线可多选, 用于批量编辑/删除) */}
               <th className={`${th} bg-[#16161d]`}></th>
-              <th className={`${th} bg-[#16161d]`}>类型</th><th className={`${th} bg-[#16161d]`}>时间 (ms)</th><th className={`${th} bg-[#16161d]`}>BPM/SV</th><th className={`${th} bg-[#16161d]`}>拍号</th>
-              <th className={`${th} bg-[#16161d]`}>音效集</th><th className={`${th} bg-[#16161d]`}>序号</th><th className={`${th} bg-[#16161d]`}>音量</th><th className={`${th} bg-[#16161d]`}>效果</th><th className={`${th} bg-[#16161d]`}></th>
+              <th className={`${th} bg-[#16161d]`}>{t('timing.col_type', 'Type')}</th><th className={`${th} bg-[#16161d]`}>{t('timing.time_ms', 'Time (ms)')}</th><th className={`${th} bg-[#16161d]`}>BPM/SV</th><th className={`${th} bg-[#16161d]`}>{t('timing.meter', 'Meter')}</th>
+              <th className={`${th} bg-[#16161d]`}>{t('timing.sample_set', 'Sample Set')}</th><th className={`${th} bg-[#16161d]`}>{t('timing.sample_index', 'Index')}</th><th className={`${th} bg-[#16161d]`}>{t('timing.volume', 'Volume')}</th><th className={`${th} bg-[#16161d]`}>{t('timing.effects', 'Effects')}</th><th className={`${th} bg-[#16161d]`}></th>
             </tr>
           </thead>
           <tbody>
@@ -177,7 +179,7 @@ export function TimingPanel({ full = false }: { full?: boolean }) {
                         onChange={() => store.toggleGreenLineSelected(tp.time)} />
                     )}
                   </td>
-                  <td className={td}>{tp.uninherited ? <span className="text-red-400">红线</span> : <span className="text-green-400">绿线</span>}</td>
+                  <td className={td}>{tp.uninherited ? <span className="text-red-400">{t('timing.red_line', 'Timing Point')}</span> : <span className="text-green-400">{t('timing.green_line', 'Inherited Timing Point')}</span>}</td>
                   <td className={td}>
                     <input type="number" value={Math.round(tp.time)} data-tp-input="time"
                       onChange={e => updateTp(i, { time: parseFloat(e.target.value) || 0 })}
@@ -228,10 +230,10 @@ export function TimingPanel({ full = false }: { full?: boolean }) {
                         kiai
                       </label>
                       {tp.uninherited && (
-                        <label className="flex items-center gap-1" title="省略首条小节线 (effects bit3, lazer OmitFirstBarLine)">
+                        <label className="flex items-center gap-1" title={t('timing.omit_barline_title', 'Omit first bar line (effects bit3, lazer OmitFirstBarLine)')}>
                           <input type="checkbox" checked={(tp.effects & EFFECT_OMIT_BARLINE) !== 0} data-tp-input="omitBar"
                             onChange={e => updateTp(i, { effects: setEffectBit(tp.effects, EFFECT_OMIT_BARLINE, e.target.checked) })} />
-                          省略小节线
+                          {t('timing.omit_barline', 'Omit Bar Line')}
                         </label>
                       )}
                     </span>
@@ -251,6 +253,7 @@ export function TimingPanel({ full = false }: { full?: boolean }) {
 }
 
 export function TimingPage() {
+  const t = useT();
   return (
     <div className="flex-1 flex min-h-0 bg-[#101016] overflow-auto">
       {/* v70: 原本内容改为居中独立窗口 (原全宽表格每排隔得太远) */}
@@ -258,14 +261,14 @@ export function TimingPage() {
         <TimingPanel full />
       </div>
       <div className="w-72 shrink-0 border-l border-white/10 p-4 text-sm text-white/50 space-y-2"> {/* v321 (F23): xs→sm */}
-        <div className="font-bold text-white/70 text-base">说明</div> {/* v321 (F23): sm→base */}
-        <div><span className="text-red-400">红线</span>: 继承时间点 (uninherited), 定义 BPM 与拍号。BPM = 60000 / beatLength。</div>
-        <div><span className="text-green-400">绿线</span>: 非继承时间点, 定义滑条速度倍率 (SV)。1.0x = 基础速度。绿行同时携带音效集 (Normal/Soft/Drum) / 自定义序号 / 音量 / kiai (.osu 绿行全字段)。</div>
-        <div>新增红线/绿线时克隆当前生效同类点的全部字段 (lazer ControlPointList.addNew)。</div>
-        <div>鼠标悬停上方时间轴的红/绿线时, 对应行高亮; 当前时间生效的绿线行实时绿色高亮。切换到本页签时自动滚动到生效绿线行。</div>
-        <div>All/红线/绿线页签可按类型过滤; 勾选绿线行首复选框可多选, 批量修改 SV/音效集/序号/音量/kiai 或批量删除 (Del 键同样生效)。</div>
-        <div>难度参数 CS(圆圈大小) / AR(缩圈速度) 修改后立即反映到游玩区渲染。</div>
-        <div>所有修改支持 {hotkeyLabel('undo')} 撤销, 并通过 {hotkeyLabel('save')} 保存。</div>
+        <div className="font-bold text-white/70 text-base">{t('timing.help_title', 'Notes')}</div> {/* v321 (F23): sm→base */}
+        <div><span className="text-red-400">{t('timing.red_line', 'Timing Point')}</span>: {t('timing.help_red', 'uninherited timing point; defines BPM and meter. BPM = 60000 / beatLength.')}</div>
+        <div><span className="text-green-400">{t('timing.green_line', 'Inherited Timing Point')}</span>: {t('timing.help_green', 'inherited timing point; defines the slider velocity multiplier (SV). 1.0x = base speed. Inherited lines also carry sample set (Normal/Soft/Drum) / custom index / volume / kiai (full .osu inherited line fields).')}</div>
+        <div>{t('timing.help_clone', 'Adding a timing/inherited point clones all fields of the currently active point of the same kind (lazer ControlPointList.addNew).')}</div>
+        <div>{t('timing.help_hover', 'Hovering a timing/inherited point on the timeline above highlights its row; the inherited line active at the current time is highlighted live in green. Switching to this tab auto-scrolls to the active inherited line.')}</div>
+        <div>{t('timing.help_filter', 'The All/Timing Point/Inherited tabs filter by type; tick the checkbox at the start of inherited rows to multi-select, then batch-edit SV/sample set/index/volume/kiai or batch-delete (Del key also works).')}</div>
+        <div>{t('timing.help_difficulty', 'Difficulty settings CS (circle size) / AR (approach rate) apply to playfield rendering immediately.')}</div>
+        <div>{t('timing.help_undo', 'All changes can be undone with {undo} and saved with {save}.', { undo: hotkeyLabel('undo'), save: hotkeyLabel('save') })}</div>
       </div>
     </div>
   );

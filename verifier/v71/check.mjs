@@ -36,10 +36,11 @@ section('TimingPanel.tsx: 窗口内滚动条');
   assert(/data-tp-scroll/.test(src), '滚动容器挂钩');
   assert(/max-h-\[65vh\]/.test(src) && /overflow-auto/.test(src), 'full 模式表格区限高滚动 (滚动条在窗口内)');
   assert(/ref={scrollRef}/.test(src), 'scrollRef 挂在滚动容器');
-  // 控制栏 (cs/ar/od/hp + 按钮) 在滚动容器之外
-  const ctrlIdx = src.indexOf("+ 红线(BPM)");
+  // 控制栏 (cs/ar/od/hp + 按钮) 在滚动容器之外 (v346: 按钮文案走 i18n key timing.add_red)
+  const ctrlIdx = src.indexOf("t('timing.add_red'");
   const scrollIdx = src.indexOf('data-tp-scroll');
   assert(ctrlIdx > -1 && scrollIdx > -1 && ctrlIdx < scrollIdx, '顶部控制栏固定在滚动区外');
+  assert(/'timing\.add_red': '\+ 红线\(BPM\)'/.test(readSrc('src/i18n/dicts/zh-CN/timing.ts')), '控制栏加红线按钮 zh-CN 译文 (+ 红线(BPM))');
 }
 
 section('TimingPanel.tsx: 切页签滚动到生效绿线');

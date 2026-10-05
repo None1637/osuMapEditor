@@ -6,6 +6,7 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode, type PointerEvent } from 'react';
 import { X } from 'lucide-react'; // v181: 关闭按钮 emoji ✕ → lucide
 import { dialogFit, useUiZoom } from '../osu/uiZoom';
+import { useT } from '../i18n';
 
 /** 居中落点 (纯函数): 视口 (vw,vh) 内放 (w,h) 窗口的左上角, 负值钳 0 */
 export function dialogCenterPos(vw: number, vh: number, w: number, h: number) {
@@ -20,6 +21,7 @@ export function DraggableDialog({ title, onClose, children, width = 300, testid 
   testid?: string;
 }) {
   const z = useUiZoom();
+  const t = useT();
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null); // v249: 视觉 px
   const [fit, setFit] = useState(1); // v249: 视口容纳系数 (1 = 自然大小)
   const boxRef = useRef<HTMLDivElement>(null);
@@ -55,11 +57,11 @@ export function DraggableDialog({ title, onClose, children, width = 300, testid 
 
   return (
     <div ref={boxRef} className="fixed z-40 rounded-lg border border-white/20 bg-[#1b1b24] shadow-2xl text-xs text-white/85"
-      style={{ left: pos ? pos.x / fit : -9999, top: pos ? pos.y / fit : -9999, width, zoom: c, '--fs-comp': 1 } as CSSProperties} data-dialog={testid}>
+      style={{ left: pos ? pos.x / fit : -9999, top: pos ? pos.y / fit : -9999, width, zoom: c, '--fs-comp': 1, '--ui-zoom': 1 } as CSSProperties} data-dialog={testid}>{/* v339: 独立窗口反缩放后为自然字号, 不参与 12px 视觉下限换算 */}
       <div className="flex items-center justify-between px-3 py-2 rounded-t-lg bg-[#252532] cursor-move select-none font-bold text-white/90"
         onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp}>
         <span>{title}</span>
-        <button onClick={onClose} className="px-1.5 rounded hover:bg-white/15 text-white/60 hover:text-white flex items-center" title="关闭 (不应用)"><X className="w-3.5 h-3.5" /></button>
+        <button onClick={onClose} className="px-1.5 rounded hover:bg-white/15 text-white/60 hover:text-white flex items-center" title={t('dialog.close_no_apply', 'Close (without applying)')}><X className="w-3.5 h-3.5" /></button>
       </div>
       <div className="p-3 space-y-2">{children}</div>
     </div>

@@ -12,7 +12,7 @@ import { objectsInRect } from '@/osu/transform';
 import { pickTimeNearestHit } from '@/osu/hitPick'; // v154: 重叠命中挑离当前时间最近者
 import { selectionScaleQuad, scaleHandleAnchors, anchorPoint, hitScaleHandle, anchorAxis, dragToScale, anchorOpposite, minimumEnclosingCircleCenter, movablePoints, snapshotScaleStates, applyScaleDrag, selectionBoxVisible, selectionDisplayQuad, hitRotationHandle, rotationHandlePoints, angleDeltaDeg, snapRotation, rotationOrigin, applyRotateDrag, scaledPosition, type ScaleAnchor, type RotateCorner, type ScaleObjectState, type Quad } from '@/osu/selectionBox';
 import { ctrlPoints, nodeEntries, nearestNode, nodesInRect, nodeBounds, withRedPartners, snapshotNodes, transformNodesFromSnapshot } from '@/osu/nodeSelection';
-import { isVisibleAt } from '@/osu/lifecycle';
+import { isVisibleAt, hitObjectEndTime, HIT_FADE } from '@/osu/lifecycle';
 import { uiZoom, zoomRect, zoomClientX, zoomClientY, fitCanvas } from '@/osu/uiZoom'; // v217; v246: fitCanvas
 import { displaySettings } from '@/osu/displaySettings'; // v168: 背景图亮度
 import { distanceLockRef, distanceLockDistance } from '@/osu/spacing'; // v145
@@ -61,7 +61,13 @@ export function EditorCanvas() {
   useEditor();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const skinRef = useRef<Skin | null>(null);
-  const dragRef = useRef<{ ids: number[]; startX: number; startY: number; orig: Map<number, { x: number; y: number; curve?: { x: number; y: number }[] }>; moved: boolean } | null>(null);
+  const dragRef = useRef<{ ids: number[]; startX: number; startY: number; orig: Map<number, { x: number; y: number; curve?: { x: number; y: number }[] }>; moved: boolean;
+    // v341: deltaX/deltaY/uniform = 本帧实际位移与是否全体一致 (非一致 = 界外钳制分歧, 回退实时补画);
+    //   tails: 快照几何预算的滑条尾点 (吸附试探/界内钳制共用, 原每 mousemove 新建 SliderPath 是全选拖动热点)
+    //   pending: rAF 节流 (同 v264 节点拖拽) — mousemove 只记落点, 帧循环每帧最多 apply+emit 一次;
+    //   objs: id→物件 预算 (原 apply 循环逐 id find 是 O(n²))
+    deltaX: number; deltaY: number; uniform: boolean; tails: Map<number, Pt>; pending: Pt | null;
+    objs: Map<number, HitObject> } | null>(null);
   const nodeDragRef = useRef<{ objId: number; pointIndex: number; pairWith: number | null; startX: number; startY: number; moved: boolean; toggleRed: boolean; pending: Pt | null } | null>(null);
   // 框选: 选择工具下空白处按下拖动 (base = 按下时已有选区, Shift 追加)
   const marqueeRef = useRef<{ x0: number; y0: number; x1: number; y1: number; base: number[] } | null>(null);
@@ -432,20 +438,20 @@ export function EditorCanvas() {
     const finishHandleDrag = () => {
       // v50: 缩放/旋转拖拽收尾 (画布内 onMouseUp 已收尾时 ref 为 null, 这里 no-op)
       if (scaleDragRef.current) {
-        if (scaleDragRef.current.moved) store.commitDrag(); else store.undo();
+        if (scaleDragRef.current.moved) store.commitDrag(); else store.cancelDragNoop(); // v345
         scaleDragRef.current = null;
       }
       if (rotateDragRef.current) {
-        if (rotateDragRef.current.moved) store.commitDrag(); else store.undo();
+        if (rotateDragRef.current.moved) store.commitDrag(); else store.cancelDragNoop(); // v345
         rotateDragRef.current = null;
       }
       // v117: 节点层手柄拖拽收尾 (与物件层同款: 动过 commit, 没动弹出空快照)
       if (nodeScaleDragRef.current) {
-        if (nodeScaleDragRef.current.moved) store.commitDrag(); else store.undo();
+        if (nodeScaleDragRef.current.moved) store.commitDrag(); else store.cancelDragNoop(); // v345
         nodeScaleDragRef.current = null;
       }
       if (nodeRotateDragRef.current) {
-        if (nodeRotateDragRef.current.moved) store.commitDrag(); else store.undo();
+        if (nodeRotateDragRef.current.moved) store.commitDrag(); else store.cancelDragNoop(); // v345
         nodeRotateDragRef.current = null;
       }
       if (canvasRef.current) canvasRef.current.style.cursor = '';
@@ -608,6 +614,8 @@ export function EditorCanvas() {
           if (nmd0?.pending) { const q = nmd0.pending; nmd0.pending = null; applyNodesMoveDrag(q); }
           const nd0 = nodeDragRef.current;
           if (nd0?.pending) { const q = nd0.pending; nd0.pending = null; applyNodeDrag(q); }
+          const d0 = dragRef.current; // v341: 物件拖拽同款式 rAF 节流
+          if (d0?.pending) { const q = d0.pending; d0.pending = null; applyObjectDrag(q); }
         }
         const g = c.getContext('2d')!;
         const r = zoomRect(c); // v217: 布局空间 (固定 px 内容随整体缩放)
@@ -756,9 +764,38 @@ export function EditorCanvas() {
           }
         }
         const __pt0 = performance.now(); // v99: 渲染性能采样 (CDP 读 window.__perfRender)
+        // v340: 暂停时启用物件场景静态层 (密集谱面框选/拖曳瓶颈); 播放/中键平移 (时间/变换逐帧变) 走原路径。
+        //   拖拽/变换中的物件不进层 (几何原地改动不 bump dataVersion, 层会残留旧位置), blit 后实时补画
+        let staticExclude: Set<number> | undefined;
+        let staticTranslate: { ids: Set<number>; dx: number; dy: number } | undefined;
+        let selTranslate: { dx: number; dy: number; key: string } | undefined;
+        (window as unknown as { __dragState?: unknown }).__dragState = dragRef.current
+          ? { moved: dragRef.current.moved, uniform: dragRef.current.uniform, dx: dragRef.current.deltaX, dy: dragRef.current.deltaY, n: dragRef.current.ids.length }
+          : null; // v341 调试
+        if (dragRef.current?.moved && dragRef.current.uniform) {
+          // v341: 平移拖拽 (全体同 delta) — 被拖物件进拖拽层按位移 blit, 全选拖动不再每帧全量重画
+          const d = dragRef.current;
+          staticTranslate = { ids: new Set(d.ids), dx: d.deltaX, dy: d.deltaY };
+          // 拖拽集覆盖整个选区时, 选中装饰层同样按位移 blit (否则 cacheKey 逐帧变 → 装饰层逐帧重建,
+          //   千件全选拖动实测 40ms+/帧); 层键 = dataVersion (拖拽提交/撤销都会 bump, 不会跨拖拽复用)
+          if (d.ids.length === store.selected.size && d.ids.every(id => store.selected.has(id)))
+            selTranslate = { dx: d.deltaX, dy: d.deltaY, key: `selt|${store.getDataVersion()}` };
+        } else if (dragRef.current?.moved || scaleDragRef.current?.moved || rotateDragRef.current?.moved) {
+          // v341: 仅在已产生位移/形变后才排除重建 (未 moved 时物件仍在原位, 静态层内容本就正确,
+          //   全选按住不拖不再每帧全量重画)
+          staticExclude = new Set(store.selected);
+          if (dragRef.current) for (const id of dragRef.current.ids) staticExclude.add(id);
+        } else if (nodeDragRef.current?.moved || nodesMoveDragRef.current?.moved || nodeScaleDragRef.current?.moved || nodeRotateDragRef.current?.moved) {
+          staticExclude = new Set(store.selectedNodes.keys());
+          if (nodeDragRef.current) staticExclude.add(nodeDragRef.current.objId);
+        }
         renderPlayfield({
           g, bm: bmRender, skin, time: store.currentTime,
           selected: selView, cacheKey: String(store.getVersion()), // v245: 帧级缓存键 (选中装饰层/followPoint); v250: 改用 getVersion — 拖拽中原地改坐标只 bump version (emitSelection), dataVersion 不变会导致装饰层停在原位
+          dataKey: String(store.getDataVersion()), // v340: 静态场景层键 (拖拽只 bump version 不失效)
+          staticScene: !store.playing && !panDragRef.current && bmRender === bm, staticExclude, staticTranslate, selTranslate, // v340/v341
+          // ^ staticScene 门: 播放中时间逐帧变/平移中变换逐帧变/幽灵或转换预览合并视图 (bmRender !== bm)
+          //   每帧换谱面引用 — 这些场景缓存必失效, 走原路径避免重建+blit 双重开销
           comboInfo: getCombos(bmRender), stackOffsets: getStackOffsets(bm),
         }, store.pendingSlider,
           // v207: 已有控制点时预览幻影用吸附后的 pendingCursor (onMouseMove 里与落点同公式), 否则原始光标 (头部幽灵)
@@ -784,7 +821,11 @@ export function EditorCanvas() {
           const hid = hoverSliderRef.current;
           const ho = hid !== null ? bm.hitObjects.find(o => o.id === hid) : null;
           // v316: F20 — 滚轮改时间后滑条离开可见窗, hover 预览同步消失 (选中滑条的装饰不受影响, 始终保留)
-          if (ho && ho.type === 'slider' && !store.selected.has(ho.id) && isVisibleAt(bm, ho, store.currentTime)) {
+          // v342: 结束侧门控收紧到 滑条身消失时机 (end+HIT_FADE) — 暂留模式 (打击动画关) 下原按 isVisibleAt
+          //   的 HIT_LINGER(800ms) 残留, 比 stable 多挂 ~560ms (soulten 实测 stable 末帧 = end+~222ms)
+          if (ho && ho.type === 'slider' && !store.selected.has(ho.id)
+            && store.currentTime >= ho.time - arToPreempt(bm.difficulty.ar)
+            && store.currentTime <= hitObjectEndTime(bm, ho) + HIT_FADE) {
             const hoff = getStackOffsets(bm).get(ho.id);
             g.save();
             g.translate(hoff?.dx ?? 0, hoff?.dy ?? 0);
@@ -797,7 +838,8 @@ export function EditorCanvas() {
         {
           const hn = hoverNodeRef.current;
           const ho = hn ? bm.hitObjects.find(o => o.id === hn.objId) : null;
-          if (hn && ho && ho.type === 'slider' && (isVisibleAt(bm, ho, store.currentTime) || store.selected.has(ho.id) || store.selectedNodes.has(ho.id))) {
+          if (hn && ho && ho.type === 'slider' && (store.selected.has(ho.id) || store.selectedNodes.has(ho.id)
+            || (store.currentTime >= ho.time - arToPreempt(bm.difficulty.ar) && store.currentTime <= hitObjectEndTime(bm, ho) + HIT_FADE))) { // v342: 同 hover 预览, 未选时按滑条身消失时机门控
             const hoff = getStackOffsets(bm).get(ho.id);
             const hctrl = [{ x: ho.x, y: ho.y }, ...(ho.curvePoints ?? [])];
             const pt = hctrl[hn.idx];
@@ -1456,12 +1498,18 @@ export function EditorCanvas() {
         if (!store.lockNotes) { // v115: 锁定物件 — 可选中, 不可拖动
           store.beginDrag();
           store.canvasDragging = true;
+          const objs = new Map([...store.selected].map(id => [id, bm.hitObjects.find(x => x.id === id)!] as const));
           dragRef.current = {
             ids: [...store.selected], startX: p.x, startY: p.y, moved: false,
-            orig: new Map([...store.selected].map(id => {
-              const o = bm.hitObjects.find(x => x.id === id)!;
-              return [id, { x: o.x, y: o.y, curve: o.curvePoints?.map(c => ({ ...c })) }];
-            })),
+            deltaX: 0, deltaY: 0, uniform: true, pending: null, objs,
+            orig: new Map([...objs].map(([id, o]) =>
+              [id, { x: o.x, y: o.y, curve: o.curvePoints?.map(c => ({ ...c })) }])),
+            // v341: 拖拽起点一次性预算滑条尾点 (吸附试探/F04 界内钳制每 mousemove 共用, 不再逐帧 new SliderPath)
+            tails: new Map([...objs].map(([id, o]) => {
+              if (o.type !== 'slider' || !o.curvePoints?.length) return [id, null] as const;
+              const path = new SliderPath(o.curveType ?? 'L', [{ x: o.x, y: o.y }, ...o.curvePoints], o.length ?? 100);
+              return [id, path.positionAt((o.slides ?? 1) % 2 === 0 ? 0 : (o.length ?? path.totalLength))] as const;
+            }).filter(([, t]) => t !== null) as [number, Pt][]),
           };
         }
       } else {
@@ -1718,9 +1766,14 @@ export function EditorCanvas() {
         return !!o && !isVisibleAt(bm, o, store.currentTime);
       });
       const inRect = nodesInRect(sliders, getStackOffsets(bm), r);
-      if (nmq.subtract) { // v317: F19 — 减选: 框内锚点从 (已有选区 ∪ 保留) 中剔除
-        const rm = new Set(inRect.map(([a, b]) => a + ':' + b));
-        store.setSelectedNodes([...nmq.base, ...keepNodes].filter(([a, b]) => !rm.has(a + ':' + b)));
+      if (nmq.subtract) { // v343: Alt+Shift 减选改对称差 (toggle) — 框内已选的剔除、未选的加入
+        //   (v317 原纯减选 = 只能减不能加, soulten 反馈「变成橡皮擦了」; stable 同款 toggle 语义)
+        const baseArr = [...nmq.base, ...keepNodes];
+        const inKeys = new Set(inRect.map(([a, b]) => a + ':' + b));
+        const baseKeys = new Set(baseArr.map(([a, b]) => a + ':' + b));
+        const kept = baseArr.filter(([a, b]) => !inKeys.has(a + ':' + b)); // 框内已选 → 剔除
+        const added = inRect.filter(([a, b]) => !baseKeys.has(a + ':' + b)); // 框内未选 → 加入
+        store.setSelectedNodes([...kept, ...added]);
       } else {
         store.setSelectedNodes([...nmq.base, ...keepNodes, ...inRect]);
       }
@@ -1915,9 +1968,19 @@ export function EditorCanvas() {
       nd.pending = { x: cp.x, y: cp.y };
       return;
     }
+    // v341: 物件拖拽 rAF 节流 (同 v264 节点拖拽) — 高回报率鼠标下同帧重复 apply+emitSelection
+    //   (React 面板重渲染) 是全选拖动剩余热点; 这里只记落点, 帧循环 applyObjectDrag 每帧最多应用一次
     const d = dragRef.current;
     if (!d || !bm) return;
-    const p = toOsu(e);
+    d.pending = toOsu(e);
+  };
+
+  // v341: 物件拖拽应用 (帧循环/onMouseUp 收尾调用; 原在 onMouseMove 内每事件全量执行)
+  const applyObjectDrag = (p: Pt) => {
+    const bm = store.beatmap;
+    const d = dragRef.current;
+    if (!d || !bm) return;
+    const __mt0 = performance.now(); // v341 调试分段
     let dx = Math.round(p.x - d.startX), dy = Math.round(p.y - d.startY);
     if (Math.abs(dx) + Math.abs(dy) > 1) d.moved = true;
     // v55: 拖拽吸附到附近物件 (lazer checkSnappingBlueprintToNearbyObjects):
@@ -1925,17 +1988,14 @@ export function EditorCanvas() {
     {
       const dragPts: { x: number; y: number }[] = [];
       for (const id of d.ids) {
-        const o = bm.hitObjects.find(x => x.id === id);
         const orig = d.orig.get(id);
-        if (!o || !orig) continue;
+        if (!orig) continue;
         dragPts.push({ x: orig.x, y: orig.y });
-        if (o.type === 'slider' && orig.curve) {
-          const path = new SliderPath(o.curveType ?? 'L', [{ x: orig.x, y: orig.y }, ...orig.curve], o.length ?? 100);
-          dragPts.push(path.positionAt((o.slides ?? 1) % 2 === 0 ? 0 : (o.length ?? path.totalLength)));
-        }
+        const tail = d.tails.get(id); // v341: 拖拽起点预算, 不再逐 mousemove new SliderPath
+        if (tail) dragPts.push(tail);
       }
-      const targets = objectSnapPoints(bm, bm.hitObjects.filter(o => !store.selected.has(o.id) && isVisibleAt(bm, o, store.currentTime)));
-      const corr = store.objectSnapEnabled ? snapDragDelta(dragPts, targets, dx, dy) : null; // v235: 吸附到物件总开关
+      const corr = store.objectSnapEnabled // v235: 吸附到物件总开关; v341: 目标点预算也收进开关内 (关时不白算)
+        ? snapDragDelta(dragPts, objectSnapPoints(bm, bm.hitObjects.filter(o => !store.selected.has(o.id) && isVisibleAt(bm, o, store.currentTime))), dx, dy) : null;
       let corrDist: number | null = null;
       if (corr) { corrDist = Math.hypot(corr.dx - dx, corr.dy - dy); dx = corr.dx; dy = corr.dy; }
       // v91: 拖拽吸附辅助线/点 (lazer 蓝图吸附同款语义: 与物件修正取更近者; 排除被拖物件自身辅助, 防自锁)
@@ -1971,20 +2031,19 @@ export function EditorCanvas() {
         dx = Math.round(snapped.x - orig.x); dy = Math.round(snapped.y - orig.y);
       }
     }
-    // v302: F04 — 滑条尾/控制点也受「限制物件在游玩区域内」约束: 共享 delta 按全部被拖点
-    // (头 + 控制点 + 滑条尾) 钳到界内, 不再只钳头部 (原滑条尾可拖出界); 已在界外的点不纳入
+    // v302: F04 — 滑条尾也受「限制物件在游玩区域内」约束: 共享 delta 按被拖物件的头/尾中心
+    // 钳到界内 (原只钳头部, 滑条尾可拖出界); 已在界外的点不纳入
     // (否则 Begin 即越界的物件会被强制拉回/卡死 — 与 F09 缩放钳制同款规则)
+    // v352: 钳制点集收窄为「头/尾中心」— 原连控制点一起钳 (v302), 用户反馈滑条点不该被限制,
+    //   只有头尾的中心要被限制 (控制点可出界成形)
     if (store.limitToPlayfield && d.ids.length) {
       let xLo = -Infinity, xHi = Infinity, yLo = -Infinity, yHi = Infinity;
       for (const id of d.ids) {
-        const o = bm.hitObjects.find(x => x.id === id);
         const orig = d.orig.get(id);
-        if (!o || !orig) continue;
-        const pts = [{ x: orig.x, y: orig.y }, ...(orig.curve ?? [])];
-        if (o.type === 'slider' && orig.curve?.length) { // 滑条尾 = 路径终点 (非末锚点, 曲线会截断)
-          const path = new SliderPath(o.curveType ?? 'L', [{ x: orig.x, y: orig.y }, ...orig.curve], o.length ?? 100);
-          pts.push(path.positionAt((o.slides ?? 1) % 2 === 0 ? 0 : (o.length ?? path.totalLength)));
-        }
+        if (!orig) continue;
+        const pts = [{ x: orig.x, y: orig.y }]; // v352: 只钳头 (+尾), 控制点不参与
+        const tail = d.tails.get(id); // v341: 预算尾点 (同上)
+        if (tail) pts.push(tail);
         for (const p of pts) {
           if (p.x >= 0 && p.x <= PW) { xLo = Math.max(xLo, -p.x); xHi = Math.min(xHi, PW - p.x); }
           if (p.y >= 0 && p.y <= PH) { yLo = Math.max(yLo, -p.y); yHi = Math.min(yHi, PH - p.y); }
@@ -1993,14 +2052,19 @@ export function EditorCanvas() {
       if (xLo <= xHi) dx = Math.max(xLo, Math.min(xHi, dx));
       if (yLo <= yHi) dy = Math.max(yLo, Math.min(yHi, dy));
     }
+    // v341: 记录本帧实际位移与全体一致性 (界外物件逐件钳制会产生分歧 → 非平移, 渲染回退实时补画)
+    d.deltaX = dx; d.deltaY = dy; d.uniform = true;
+    let firstAx: number | null = null, firstAy: number | null = null;
     for (const id of d.ids) {
-      const o = bm.hitObjects.find(x => x.id === id);
+      const o = d.objs.get(id); // v341: 预算映射, 原逐 id find 是 O(n²)
       const orig = d.orig.get(id);
       if (o && orig) {
         // 头部钳制后的实际位移, 滑条控制点整体同步平移 (否则只动头会把滑条拉变形)
         // v163: 关闭"限制物件在游玩区域内"时不钳制, 物件可拖出游玩区
         const ax = (store.limitToPlayfield ? Math.max(0, Math.min(PW, orig.x + dx)) : orig.x + dx) - orig.x;
         const ay = (store.limitToPlayfield ? Math.max(0, Math.min(PH, orig.y + dy)) : orig.y + dy) - orig.y;
+        if (firstAx === null) { firstAx = ax; firstAy = ay; }
+        else if (ax !== firstAx || ay !== firstAy) d.uniform = false;
         const changed = o.x !== orig.x + ax || o.y !== orig.y + ay;
         o.x = orig.x + ax;
         o.y = orig.y + ay;
@@ -2015,6 +2079,10 @@ export function EditorCanvas() {
     }
     // v145: 拖动中原地改坐标不经任何 emit, React 面板不刷新 — 通知选区订阅者 (间距面板实时更新)
     if (d.moved) store.emitSelection();
+    { // v341 调试分段
+      const w = window as unknown as { __perfMove?: number[] };
+      const a = (w.__perfMove ??= []); a.push(performance.now() - __mt0); if (a.length > 900) a.splice(0, a.length - 900);
+    }
   };
 
   const onMouseUp = () => {
@@ -2053,20 +2121,20 @@ export function EditorCanvas() {
     }
     if (rotateDragRef.current) {
       // lazer Commit: 一次拖拽一次 undo; 未产生旋转则弹出 beginDrag 的空快照
-      if (rotateDragRef.current.moved) store.commitDrag(); else store.undo();
+      if (rotateDragRef.current.moved) store.commitDrag(); else store.cancelDragNoop(); // v345
       rotateDragRef.current = null;
       updateHandleHover(null);
       return;
     }
     // v117: 节点层手柄拖拽收尾 (与物件层同款语义)
     if (nodeRotateDragRef.current) {
-      if (nodeRotateDragRef.current.moved) store.commitDrag(); else store.undo();
+      if (nodeRotateDragRef.current.moved) store.commitDrag(); else store.cancelDragNoop(); // v345
       nodeRotateDragRef.current = null;
       updateHandleHover(null);
       return;
     }
     if (nodeScaleDragRef.current) {
-      if (nodeScaleDragRef.current.moved) store.commitDrag(); else store.undo();
+      if (nodeScaleDragRef.current.moved) store.commitDrag(); else store.cancelDragNoop(); // v345
       nodeScaleDragRef.current = null;
       updateHandleHover(null);
       return;
@@ -2075,7 +2143,7 @@ export function EditorCanvas() {
     if (nodesMoveDragRef.current) {
       const nmd = nodesMoveDragRef.current;
       if (nmd.pending) { const q = nmd.pending; nmd.pending = null; applyNodesMoveDrag(q); } // v264: 落点补齐
-      if (nmd.moved) store.commitDrag(); else store.undo();
+      if (nmd.moved) store.commitDrag(); else store.cancelDragNoop(); // v345
       nodesMoveDragRef.current = null;
       return;
     }
@@ -2087,7 +2155,7 @@ export function EditorCanvas() {
     }
     if (scaleDragRef.current) {
       // lazer Commit: 一次拖拽一次 undo; 未产生缩放则弹出 beginDrag 的空快照
-      if (scaleDragRef.current.moved) store.commitDrag(); else store.undo();
+      if (scaleDragRef.current.moved) store.commitDrag(); else store.cancelDragNoop(); // v345
       scaleDragRef.current = null;
       updateHandleHover(null);
       return;
@@ -2119,12 +2187,13 @@ export function EditorCanvas() {
         invalidatePath(o.id);
         store.commitDrag();
       } else {
-        store.undo(); // 头部等不可切换: 弹出 mousedown 压入的空快照
+        store.cancelDragNoop(); // v345: 头部等不可切换: 弹出 mousedown 压入的空快照
       }
       return;
     }
     if (dragRef.current) {
-      if (!dragRef.current.moved) store.undo(); // 没拖动则撤销 beginDrag 的快照
+      if (dragRef.current.pending) { const q = dragRef.current.pending; dragRef.current.pending = null; applyObjectDrag(q); } // v341: flush 未应用的末帧落点再提交
+      if (!dragRef.current.moved) store.cancelDragNoop(); // v345: 没拖动则弹出 beginDrag 的空快照
       else store.commitDrag();
       dragRef.current = null;
     }
@@ -2268,8 +2337,7 @@ export function EditorCanvas() {
         }
         if (!store.playfieldPanEnabled && bm && matchesHotkeyWheel(e, 'distance-lock-wheel')) {
           const d = e.deltaY > 0 ? -0.1 : 0.1;
-          bm.editor.distanceSpacing = Math.max(0.1, Math.min(10, Math.round(((bm.editor.distanceSpacing || 1) + d) * 100) / 100));
-          store.emit();
+          store.setEditorField('distanceSpacing', Math.max(0.1, Math.min(10, Math.round(((bm.editor.distanceSpacing || 1) + d) * 100) / 100))); // v345: 入 undo
           return;
         }
         // v193: 滚轮走 store.wheelSeek (lazer 对齐: 刻度累积; 播放中不吸附大步长 + 轻量重定位, 暂停吸附 1/beatSnap)

@@ -35,7 +35,10 @@ section('stream.ts: 节拍间距 + 数量=1 + 曲线简化');
 section('StreamDialog/DraggableDialog: 曲线选项 + 草稿输入');
 {
   const dlg = readSrc('src/components/convert/StreamDialog.tsx');
-  assert(dlg.includes("'bellInv', '先减后加'") && dlg.includes("'linear', '线性变化'"), '曲线选项: 线性变化/先加后减/先减后加');
+  // v346 多语言改造: 曲线选项元组为 [值, i18n 键后缀, 英文原文], 中文译文在 zh-CN 词典
+  assert(dlg.includes("'bellInv', 'curve_bell_inv'") && dlg.includes("'linear', 'curve_linear'"), '曲线选项: 线性变化/先加后减/先减后加 (i18n key)');
+  const zhConvert = readSrc('src/i18n/dicts/zh-CN/convert.ts');
+  assert(/'convert\.curve_linear':\s*'线性变化'/.test(zhConvert) && /'convert\.curve_bell':\s*'先加后减'/.test(zhConvert) && /'convert\.curve_bell_inv':\s*'先减后加'/.test(zhConvert), 'zh-CN 词典曲线选项译文');
   assert(!/\['(accel|decel)'/.test(dlg) && !/<option[^>]*>(加速|减速)</.test(dlg), '加速/减速选项已移除');
   assert(dlg.includes('间距 (拍)'), '间距标签为拍');
   assert(dlg.includes('DraftNum'), '数字输入用 DraftNum');

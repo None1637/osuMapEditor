@@ -19,6 +19,7 @@ import {
 } from '@/osu/gameplay/mods'; // v294
 import { matchesHotkey, matchesHotkeyMouse, effectiveBindings, formatCombo } from '@/osu/hotkeys'; // v288/v289: 击打键走快捷键注册表 (键盘+鼠标可改键)
 import { zoomRect, zoomClientX, zoomClientY, fitCanvas } from '@/osu/uiZoom';
+import { useT } from '@/i18n';
 import { viewTransform } from './EditorCanvas'; // v300: 游玩区大小与编辑器一致 (同一适配变换)
 
 /** v288: 事件是否命中游玩击打键 (test-hit-1/test-hit-2 任一; v289: 默认含鼠标左键, 可改) */
@@ -34,8 +35,19 @@ const PW = 512, PH = 384;
 const RESULT_COLORS: Record<MainResult, string> = { great: '#ffffff', ok: '#7fff7f', meh: '#5f9fff', miss: '#ff5f5f' };
 const RESULT_TEXT: Record<MainResult, string> = { great: '300', ok: '100', meh: '50', miss: 'MISS' };
 const POPUP_LIFE = 600;
+// v346: mod 按钮 title 文案 (key/英文原文/zh 词典均走 testplay.mod_*)
+const MOD_TITLE_KEYS: Record<TestModId, [string, string]> = {
+  EZ: ['testplay.mod_ez', 'Easy: all difficulty settings halved'],
+  HR: ['testplay.mod_hr', 'HardRock: ×1.4 (CS×1.3) + vertical flip'],
+  HT: ['testplay.mod_ht', 'HalfTime: 0.75x'],
+  DT: ['testplay.mod_dt', 'DoubleTime: 1.5x'],
+  RX: ['testplay.mod_rx', 'Relax: no key pressing required'],
+  AP: ['testplay.mod_ap', 'Autopilot: no aiming required'],
+  AT: ['testplay.mod_at', 'Autoplay: fully automatic'],
+};
 
 export function TestPlayOverlay({ onClose }: { onClose: () => void }) {
+  const t = useT();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const cursorRef = useRef({ x: PW / 2, y: PH / 2 });
   const heldRef = useRef({ mouse: 0, keys: 0 }); // v288/v289: 击打键计数 (多键同时按住不互相清)
@@ -263,7 +275,7 @@ export function TestPlayOverlay({ onClose }: { onClose: () => void }) {
             className={`px-1.5 py-0.5 rounded text-[11px] font-mono cursor-pointer ${mods.includes(m)
               ? 'bg-[#e6437d] text-white'
               : 'bg-white/10 text-white/50 hover:bg-white/20 hover:text-white/80'}`}
-            title={{ EZ: 'Easy: 难度全项减半', HR: 'HardRock: ×1.4 (CS×1.3) + 垂直翻转', HT: 'HalfTime: 0.75x', DT: 'DoubleTime: 1.5x', RX: 'Relax: 免按键', AP: 'Autopilot: 免瞄准', AT: 'Autoplay: 全自动' }[m]}
+            title={t(MOD_TITLE_KEYS[m][0], MOD_TITLE_KEYS[m][1])}
             data-testid={`testplay-mod-${m}`}
             onClick={() => setMods(prev => { const next = toggleMod(prev, m); saveTestMods(next); return next; })}
           >
@@ -272,14 +284,18 @@ export function TestPlayOverlay({ onClose }: { onClose: () => void }) {
         ))}
       </div>
       <div className="absolute top-2 left-1/2 -translate-x-1/2 text-white/50 text-xs pointer-events-none select-none">
-        测试游玩 · {formatCombo(effectiveBindings('test-hit-1')[0])}/{formatCombo(effectiveBindings('test-hit-2')[0])} 击打 (含鼠标绑定) · {formatCombo(effectiveBindings('test-exit')[0])} 返回编辑器 {/* v289 */}
+        {t('testplay.hint', 'Test Play · {hit1}/{hit2} to hit (mouse bindings included) · {exit} to return to editor', {
+          hit1: formatCombo(effectiveBindings('test-hit-1')[0]),
+          hit2: formatCombo(effectiveBindings('test-hit-2')[0]),
+          exit: formatCombo(effectiveBindings('test-exit')[0]),
+        })} {/* v289 */}
       </div>
       <button
         className="absolute top-2 right-3 px-2 py-1 rounded bg-white/10 hover:bg-white/20 text-white/70 text-xs cursor-pointer"
         data-testid="testplay-exit"
         onClick={() => exitRef.current()}
       >
-        退出 (Esc)
+        {t('testplay.exit', 'Exit (Esc)')}
       </button>
     </div>
   );

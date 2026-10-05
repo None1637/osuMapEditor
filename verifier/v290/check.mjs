@@ -64,10 +64,18 @@ assert(/onDoubleClick=\{\(\) => \{ selectEntry\(e\); void openDiff\(e\.fileName\
 assert(/if \(!store\.guardUnsaved\(\(\) => \{ void openDiff\(fileName\); \}\)\) return;/.test(sl), 'openDiff: v120 guardUnsaved 保留');
 assert(/store\.load\(r\.bm, r\.audioUrl, r\.bgUrl, r\.samples, \{ dir: d\.handle, fileName \}\)/.test(sl), 'openDiff: v67 来源记录保留');
 assert(/libraryCache = null; \/\/ v128: 任何显式扫描/.test(sl) && /!s\.rootName \|\| !scanDoneRef\.current/.test(sl), 'v128 会话缓存规则保留 (显式扫描失效 + 中途关闭不写)');
-assert(/dirHandleFromDropEx/.test(sl) && /permNeeded/.test(sl) && /授权访问/.test(sl), '拖拽导入 + 授权流程保留');
+const dictLib = fs.readFileSync(path.join(root, 'src/i18n/dicts/zh-CN/library.ts'), 'utf8');
+assert(/dirHandleFromDropEx/.test(sl) && /permNeeded/.test(sl)
+  && /t\('library\.grant_access', 'Grant Access'\)/.test(sl) && dictLib.includes("'library.grant_access': '授权访问'"),
+  '拖拽导入 + 授权流程保留 (v346: i18n key library.grant_access + zh-CN 译文)');
 // v296: 全局星数队列已屏蔽 (太慢), 头部不再显示「星级计算中 x/y」; runStarQueue 导出保留 (见上)
-assert(!/setStarProg/.test(sl) && /难度 \/ /.test(sl), '头部状态行 (N 难度 / M 目录; v296 星数进度已移除)');
-assert(/已从索引缓存恢复/.test(sl) && /idbLibraryIndexGet/.test(sl), '启动读索引缓存立即可搜');
+assert(!/setStarProg/.test(sl)
+  && /t\('library\.header_stats', '\{root\} · \{diffs\} difficulties \/ \{dirs\} directories'/.test(sl)
+  && dictLib.includes("'library.header_stats': '{root} · {diffs} 难度 / {dirs} 目录'"),
+  '头部状态行 (N 难度 / M 目录; v296 星数进度已移除; v346: i18n key library.header_stats + zh-CN 译文)');
+assert(/tNow\('library\.restored_from_index_cache', 'Restored \{n\} difficulties from index cache/.test(sl) && /idbLibraryIndexGet/.test(sl)
+  && dictLib.includes("'library.restored_from_index_cache': '已从索引缓存恢复 {n} 难度, 后台校验更新…'"),
+  '启动读索引缓存立即可搜 (v346: i18n key library.restored_from_index_cache + zh-CN 译文)');
 
 if (failures) { console.error(`\nV290_FAILED: ${failures} 处失败`); process.exit(1); }
 console.log('\nV290_ALL_PASSED');

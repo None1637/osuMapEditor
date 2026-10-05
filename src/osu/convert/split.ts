@@ -12,6 +12,7 @@
 import type { Beatmap, HitObject } from '../parser';
 import { genId, sliderVelocityAt } from '../parser';
 import { extractRange, measureSegments, segmentsToPoints, sliderToBezierSegments } from './bezierPath';
+import { tNow } from '@/i18n';
 
 export interface SplitParams {
   count: number;   // 拆分数 n (2~64)
@@ -31,21 +32,21 @@ const roundPt = (p: { x: number; y: number }) => ({ x: Math.round(p.x), y: Math.
 
 /** 单条滑条 -> n 段等长小滑条 (纯函数) */
 export function computeSplit(bm: Beatmap, s: HitObject, p: SplitParams): SplitResult {
-  if (s.type !== 'slider') return { objects: [], error: '仅支持拆分滑条' };
+  if (s.type !== 'slider') return { objects: [], error: tNow('convert.split_err_not_slider', 'Only sliders can be split') };
   const n = Math.round(p.count);
-  if (!(n >= 2 && n <= 64)) return { objects: [], error: '拆分数需在 2~64 之间' };
+  if (!(n >= 2 && n <= 64)) return { objects: [], error: tNow('convert.split_err_count', 'Split count must be between 2 and 64') };
   const timeGap = Math.max(0, p.timeGap || 0);
   const distGap = Math.max(0, p.distGap || 0);
   const L = s.length ?? 0;
   const sm = bm.difficulty.sliderMultiplier;
   const vel0 = sliderVelocityAt(bm.timingPoints, s.time, sm);
-  if (L <= 0 || vel0 <= 0) return { objects: [], error: '滑条长度或速度无效' };
+  if (L <= 0 || vel0 <= 0) return { objects: [], error: tNow('convert.split_err_invalid', 'Slider length or velocity is invalid') };
   const segLen = (L - (n - 1) * distGap) / n;
-  if (segLen <= 0) return { objects: [], error: `距离间隙过大: 每段长度 ${segLen.toFixed(1)} <= 0` };
+  if (segLen <= 0) return { objects: [], error: tNow('convert.split_err_gap_too_large', 'Distance gap too large: segment length {len} <= 0', { len: segLen.toFixed(1) }) };
 
   // 统一转贝塞尔 + 弧长测量
   const segs = sliderToBezierSegments(s);
-  if (!segs.length) return { objects: [], error: '控制点不足' };
+  if (!segs.length) return { objects: [], error: tNow('convert.split_err_control_points', 'Not enough control points') };
   const m = measureSegments(segs);
 
   // 各段时间 (顺序累积: 段时长 = 段长 / 段起点时刻速度; 段间加 timeGap; 默认全 0 时严格等时间首尾相接)
@@ -81,7 +82,7 @@ export function computeSplit(bm: Beatmap, s: HitObject, p: SplitParams): SplitRe
   for (let j = 0; j < n; j++) {
     const d0 = j * (segLen + distGap), d1 = d0 + segLen;
     const piece = extractRange(m, d0, d1);
-    if (!piece.length) return { objects: [], error: '路径几何长度不足, 无法剖分' };
+    if (!piece.length) return { objects: [], error: tNow('convert.split_err_geometry', 'Path geometry too short to subdivide') };
     const pts = segmentsToPoints(piece);
     const obj: HitObject = {
       id: genId(), type: 'slider',

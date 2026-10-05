@@ -1,14 +1,17 @@
 import { useEffect, useState } from 'react';
 import { DraggableDialog } from './DraggableDialog';
 import { store, useEditor } from '@/osu/store';
+import { useT } from '@/i18n';
 import {
   HOTKEY_ACTIONS,
+  HOTKEY_CATEGORY_I18N,
   comboFromEvent,
   comboFromMouseEvent,
   comboFromWheelEvent, // v330: 滚轮捕获
   effectiveBindings,
   findConflict,
   formatCombo,
+  hotkeyActionKey,
   isHotkeyOverridden,
   resetAllHotkeys,
   setHotkeyCapture,
@@ -18,9 +21,17 @@ import {
 /** v286: 快捷键设置面板 —— 列出全部可改键动作，点击绑定进入捕获态自定义改键。 */
 export function HotkeyPanel() {
   useEditor(); // 订阅 store (面板开关变化时重渲染)
+  const t = useT();
   const [capture, setCapture] = useState<string | null>(null);
-  const [conflict, setConflict] = useState<{ id: string; name: string } | null>(null);
+  const [conflict, setConflict] = useState<{ id: string; otherId: string } | null>(null);
   const [, setTick] = useState(0);
+
+  // v346: 动作/分类展示名 (i18n)
+  const actionLabel = (a: (typeof HOTKEY_ACTIONS)[number]) => t('hotkey.action.' + hotkeyActionKey(a.id), a.en);
+  const catLabel = (cat: string) => {
+    const c = HOTKEY_CATEGORY_I18N[cat];
+    return c ? t('hotkey.cat.' + c.key, c.en) : cat;
+  };
 
   useEffect(() => {
     if (!capture) return;
@@ -30,8 +41,7 @@ export function HotkeyPanel() {
       if (!combo) return; // 纯修饰键/未知鼠标键, 继续等待
       const other = findConflict(combo, capture);
       if (other) {
-        const act = HOTKEY_ACTIONS.find((a) => a.id === other);
-        setConflict({ id: capture, name: act?.label ?? other });
+        setConflict({ id: capture, otherId: other });
         setCapture(null);
         return;
       }
@@ -79,22 +89,22 @@ export function HotkeyPanel() {
   const cats = [...new Set(HOTKEY_ACTIONS.map((a) => a.category))];
 
   return (
-    <DraggableDialog title="快捷键设置" testid="hotkey-panel" width={560} onClose={() => store.setHotkeyPanelOpen(false)}> {/* v292/v293: 字体调大, 面板加宽配套 */}
+    <DraggableDialog title={t('hotkey.panel.title', 'Hotkey Settings')} testid="hotkey-panel" width={560} onClose={() => store.setHotkeyPanelOpen(false)}> {/* v292/v293: 字体调大, 面板加宽配套 */}
       <div className="flex max-h-[60vh] flex-col gap-2 overflow-y-auto pr-1" data-testid="hotkey-list">
         {cats.map((cat) => (
           <div key={cat}>
-            <div className="mt-1 text-[13px] font-bold uppercase tracking-wider text-osu-textdim">{cat}</div> {/* v293: 12→13px */}
+            <div className="mt-1 text-[13px] font-bold uppercase tracking-wider text-osu-textdim">{catLabel(cat)}</div> {/* v293: 12→13px */}
             {HOTKEY_ACTIONS.filter((a) => a.category === cat).map((a) => {
               const overridden = isHotkeyOverridden(a.id);
               const binds = effectiveBindings(a.id);
               return (
                 <div key={a.id} className="flex items-center gap-1.5 py-1" data-testid={`hotkey-row-${a.id}`}>
                   <span className="w-48 shrink-0 text-sm text-osu-text"> {/* v293: 13px→14px */}
-                    {a.label}
+                    {actionLabel(a)}
                     {overridden && (
                       <button
                         className="ml-1 cursor-pointer text-osu-textdim hover:text-osu-yellow"
-                        title="恢复默认"
+                        title={t('hotkey.reset_default', 'Reset to Default')}
                         data-testid={`hotkey-reset-${a.id}`}
                         onClick={() => {
                           setHotkeyOverride(a.id, null);
@@ -108,14 +118,21 @@ export function HotkeyPanel() {
                   </span>
                   <span className="flex flex-1 flex-wrap items-center justify-end gap-1">
                     {conflict?.id === a.id && (
-                      <span className="text-[11px] text-osu-red">与「{conflict.name}」冲突</span> // v293: 10→11px
+                      <span className="text-[11px] text-osu-red">
+                        {t('hotkey.conflict', 'Conflicts with "{name}"', {
+                          name: (() => {
+                            const act = HOTKEY_ACTIONS.find((x) => x.id === conflict.otherId);
+                            return act ? actionLabel(act) : conflict.otherId;
+                          })(),
+                        })}
+                      </span> // v293: 10→11px
                     )}
                     {capture === a.id ? (
                       <span
                         className="rounded border border-osu-yellow bg-osu-yellow/10 px-1.5 py-0.5 text-[13px] text-osu-yellow"
                         data-testid={`hotkey-capturing-${a.id}`}
                       >
-                        按任意键/鼠标键/滚轮… Esc取消 {/* v330: 滚轮可捕获 */}
+                        {t('hotkey.capture_hint', 'Press any key / mouse button / wheel… Esc to cancel')} {/* v330: 滚轮可捕获 */}
                       </span>
                     ) : (
                       binds.map((b) => (
@@ -126,7 +143,7 @@ export function HotkeyPanel() {
                               ? 'border-osu-yellow/50 text-osu-yellow hover:bg-osu-yellow/10'
                               : 'border-osu-border text-osu-textdim hover:bg-osu-panel2 hover:text-osu-text'
                           }`}
-                          title="点击修改快捷键"
+                          title={t('hotkey.click_to_rebind', 'Click to Rebind')}
                           data-testid={`hotkey-bind-${a.id}`}
                           onClick={() => {
                             setConflict(null);
@@ -146,21 +163,21 @@ export function HotkeyPanel() {
       </div>
       {/* v321 (F18c): 固定键位分区 (不可改键的鼠标/系统组合, 仅展示) */}
       <div className="mt-2 border-t border-osu-border pt-2" data-testid="hotkey-fixed-section">
-        <div className="mb-1 text-[13px] font-bold uppercase tracking-wider text-osu-textdim">固定键位 (不可修改)</div>
+        <div className="mb-1 text-[13px] font-bold uppercase tracking-wider text-osu-textdim">{t('hotkey.fixed.title', 'Fixed Bindings (Not Customizable)')}</div>
         <div className="grid grid-cols-2 gap-x-4 gap-y-0.5 text-[12px] text-osu-textdim">
-          <span>Alt+点击 — 选中/取消滑条锚点</span>
-          <span>Alt+拖动 — 框选滑条锚点</span>
-          <span>Alt+Shift+拖动 — 锚点框选减选</span>
-          <span>Ctrl+点击 (选中滑条) — 插入锚点</span>
+          <span>{t('hotkey.fixed.alt_click_anchor', 'Alt+Click — Select/Deselect Slider Anchors')}</span>
+          <span>{t('hotkey.fixed.alt_drag_anchor', 'Alt+Drag — Box Select Slider Anchors')}</span>
+          <span>{t('hotkey.fixed.alt_shift_drag_anchor', 'Alt+Shift+Drag — Box Select (Subtract) Anchors')}</span>
+          <span>{t('hotkey.fixed.ctrl_click_anchor', 'Ctrl+Click (Selected Slider) — Insert Anchor')}</span>
           {/* v330: 中键平移/Alt+滚轮缩放/锁定间距移入可改键列表 (游玩区分类) */}
-          <span>Ctrl+滚轮 — 游玩区循环节拍细分 / 时间轴上缩放</span>
-          <span>Shift+数字1-8 — 设节拍细分</span>
-          <span>滚轮 — 移动时间</span>
-          <span>右键 — 完成滑条 / 删除物件</span>
+          <span>{t('hotkey.fixed.ctrl_wheel', 'Ctrl+Wheel — Cycle Beat Snap Divisor (Playfield) / Zoom (Timeline)')}</span>
+          <span>{t('hotkey.fixed.shift_number_snap', 'Shift+1-8 — Set Beat Snap Divisor')}</span>
+          <span>{t('hotkey.fixed.wheel_seek', 'Wheel — Seek Time')}</span>
+          <span>{t('hotkey.fixed.right_click', 'Right Click — Finish Slider / Delete Object')}</span>
         </div>
       </div>
       <div className="mt-2 flex items-center justify-between">
-        <span className="text-[11px] text-osu-textdim">点击键位后按下新组合即可改键,关闭编辑器后保留</span> {/* v293: 10→11px */}
+        <span className="text-[11px] text-osu-textdim">{t('hotkey.footer_hint', 'Click a binding and press the new combo to rebind; kept after closing the editor')}</span> {/* v293: 10→11px */}
         <button
           className="cursor-pointer rounded border border-osu-border px-2 py-0.5 text-[13px] text-osu-textdim hover:text-osu-text"
           data-testid="hotkey-reset-all"
@@ -170,7 +187,7 @@ export function HotkeyPanel() {
             setTick((t) => t + 1);
           }}
         >
-          全部恢复默认
+          {t('hotkey.reset_all', 'Reset All to Defaults')}
         </button>
       </div>
     </DraggableDialog>

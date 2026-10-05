@@ -49,7 +49,13 @@ assert(/store\.setWaveMode\(store\.waveMode === 'wave' \? 'spectro' : 'wave'\)/.
 assert(/data-wave="layer"/.test(tl), '背景/上层切换钮');
 assert(/store\.setWaveOnTop\(!store\.waveOnTop\)/.test(tl), '层级切换回写 store');
 assert(/absolute right-1 top-1 flex gap-1 z-10/.test(tl), '右侧按钮组 z-10 (高于 canvas 内上层波形)');
-assert(/\{store\.waveMode === 'wave' \? '波形图' : '频谱图'\}/.test(tl) && /\{store\.waveOnTop \? '上层' : '背景'\}/.test(tl), '按钮文案随状态');
+// v346 适配: 按钮文案改 i18n key (zh-CN 词典译文不变)
+const zhTl = read('src/i18n/dicts/zh-CN/timeline.ts');
+assert(/\{store\.waveMode === 'wave' \? t\('timeline\.wave_mode_wave', 'Waveform'\) : t\('timeline\.wave_mode_spectro', 'Spectrogram'\)\}/.test(tl)
+  && /\{store\.waveOnTop \? t\('timeline\.wave_layer_top', 'On Top'\) : t\('timeline\.wave_layer_background', 'Background'\)\}/.test(tl)
+  && zhTl.includes("'timeline.wave_mode_wave': '波形图'") && zhTl.includes("'timeline.wave_mode_spectro': '频谱图'")
+  && zhTl.includes("'timeline.wave_layer_top': '上层'") && zhTl.includes("'timeline.wave_layer_background': '背景'"),
+  '按钮文案随状态 (timeline.wave_mode_*/wave_layer_*)');
 
 console.log(failures ? '\nV127_CHECK_FAILED: ' + failures : '\nV127_CHECK_PASSED');
 process.exit(failures ? 1 : 0);

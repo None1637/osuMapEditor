@@ -41,7 +41,7 @@ section('App.tsx: 锁定间距控件 (拉长 + 上限 10x)');
   const i = src.indexOf('data-ds-input="range"');
   const blk = src.slice(src.lastIndexOf('<label', i), src.indexOf('</label>', i));
   assert(/min=\{0\.1\} max=\{10\} step=\{0\.05\}/.test(blk), 'range min 0.1 max 10 step 0.05');
-  assert(/className="flex-1 min-w-0 accent-cyan-400"/.test(blk), '滑条 flex-1 拉满剩余宽度 (原 w-16)');
+  assert(/className="flex-1 min-w-0 accent-amber-400"/.test(blk), '滑条 flex-1 拉满剩余宽度 (原 w-16; v351: accent 随锁定间距改橘色)');
   assert(/w-full flex items-center/.test(blk), 'label 占满控件宽度');
   assert(/Math\.max\(0\.1, Math\.min\(10, v\)\)/.test(blk), '数字输入钳制 0.1..10');
   assert(/w-14 shrink-0/.test(blk), '输入框固定宽不压缩');

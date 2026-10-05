@@ -55,7 +55,8 @@ section('renderer.ts: 关打击动画时不放大');
 section('DisplayPanel: 新选项行');
 {
   const src = readSrc('src/components/DisplayPanel.tsx');
-  assert(/key: 'hitAnimation', name: 'note 打击动画 \(Hit Animation\)'/.test(src), '打击动画开关行');
+  assert(/key: 'hitAnimation', nameKey: 'display\.hit_animation_name'/.test(src), '打击动画开关行 (v346: i18n key)');
+  assert(readSrc('src/i18n/dicts/zh-CN/display.ts').includes("'display.hit_animation_name': 'note 打击动画 (Hit Animation)'"), '词典译文: note 打击动画 (Hit Animation)');
   const iExpl = src.indexOf("key: 'hitExplosion'");
   const iAnim = src.indexOf("key: 'hitAnimation'");
   assert(iExpl >= 0 && iAnim > iExpl, '排在点击特效之后');

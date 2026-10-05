@@ -29,15 +29,19 @@ section('App.tsx: 快捷键传 playfield 原点');
   assert(/store\.rotateSelected\(90, 'playfield'\)/.test(src), 'Ctrl+. 顺转90° → playfield');
   assert(/store\.flipSelected\('h', 'playfield'\)/.test(src), 'Ctrl+H 水平镜像 → playfield');
   assert(/store\.flipSelected\('v', 'playfield'\)/.test(src), 'Ctrl+J 垂直镜像 → playfield');
-  assert(/游玩区中心\)/.test(src), '帮助文本标注游玩区中心');
+  // v346 i18n 适配: 帮助文本走 t('app.hk_rotate'/'app.hk_flip'), 中文译文在 dicts/zh-CN/app.ts
+  const dictApp2 = readSrc('src/i18n/dicts/zh-CN/app.ts');
+  assert(/t\('app\.hk_(rotate|flip)'/.test(src) && /游玩区中心/.test(dictApp2), '帮助文本标注游玩区中心 (app.hk_rotate/app.hk_flip 词典译文)');
 }
 
 section('Inspector.tsx: 面板按钮仍用界面原点, 提示文本更新');
 {
   const src = readSrc('src/components/Inspector.tsx');
   assert(/store\.flipSelected\('h', origin\)/.test(src), '面板水平镜像按钮仍用界面原点');
-  assert(/围绕游玩区中心 \(stable 同款\)/.test(src), '提示文本已更新');
-  assert(!/均围绕选区中心/.test(src), '旧提示文本已移除');
+  // v346 i18n 适配: 提示文本走 t('inspector.transform_hotkeys_hint'), 中文译文在 dicts/zh-CN/inspector.ts
+  const dictInsp = readSrc('src/i18n/dicts/zh-CN/inspector.ts');
+  assert(/t\('inspector\.transform_hotkeys_hint'/.test(src) && /围绕游玩区中心 \(stable 同款\)/.test(dictInsp), '提示文本已更新 (inspector.transform_hotkeys_hint 词典译文)');
+  assert(!/均围绕选区中心/.test(src) && !/均围绕选区中心/.test(dictInsp), '旧提示文本已移除');
 }
 
 if (failures) { console.error(`V192 FAILED: ${failures}`); process.exit(1); }

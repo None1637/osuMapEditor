@@ -21,7 +21,9 @@ assert(/v268: 节点信息改首末距离/.test(src), 'v268 注释在');
 assert(/groups\.sort\(\(a, b\) => a\.time - b\.time\)/.test(src), '跨滑条按物件时间排序取两端');
 assert(/prevDist: dist\(gf\.ctrl, firstIdx - 1, firstIdx\)/.test(src), '最前选中节点到前一节点距离');
 assert(/nextDist: dist\(gl\.ctrl, lastIdx, lastIdx \+ 1\)/.test(src), '最后选中节点到后一节点距离');
-assert(/滑条点 ×\{nodeInfo\.count\}/.test(src), '节点计数标题行');
+assert(/t\('timeline\.slider_nodes', 'Slider Points ×\{n\}', \{ n: nodeInfo\.count \}\)/.test(src), '节点计数标题行 (v346: i18n key timeline.slider_nodes)');
+const dictTimeline = fs.readFileSync(path.join(root, 'src/i18n/dicts/zh-CN/timeline.ts'), 'utf8');
+assert(dictTimeline.includes("'timeline.slider_nodes': '滑条点 ×{n}'"), 'zh-CN 词典: 滑条点 ×{n}');
 assert(/nodeInfo \? \(/.test(src), '节点分支优先于物件间距分支');
 
 if (failures) { console.error(`\nV260_FAILED: ${failures} 处失败`); process.exit(1); }

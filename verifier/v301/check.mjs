@@ -60,7 +60,9 @@ section('TransformDialog.tsx: 实时预览接线');
   assert(/commit\(\(objs, c\) => rotateObjects\(objs, c, -Math\.abs\(angle\)\)\)/.test(src), '逆时针按钮走 commit');
   assert(/commit\(\(objs, c\) => scaleObjects\(objs, c, factor, factorY\)\)/.test(src), '应用倍率走 commit');
   assert(!/store\.rotateSelected\(/.test(src) && !/store\.scaleSelected\(/.test(src), '对话框不再直接调 rotateSelected/scaleSelected');
-  assert(/改数值即时预览/.test(src), '底部提示说明实时预览行为');
+  assert(/t\('transform\.footer_hint', 'Changing values previews instantly/.test(src)
+    && readSrc('src/i18n/dicts/zh-CN/transform.ts').includes("'transform.footer_hint': '改数值即时预览"),
+    '底部提示说明实时预览行为 (v346: i18n key transform.footer_hint + zh-CN 译文)');
 }
 
 section('编译');

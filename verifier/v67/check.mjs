@@ -37,7 +37,11 @@ section('store.ts: mapSource + save()');
   const src = readSrc('src/osu/store.ts');
   assert(/mapSource: MapSource \| null = null/.test(src), 'mapSource 字段');
   assert(/async save\(\): Promise<boolean>/.test(src) && /saveBeatmap\(this\.beatmap, this\.mapSource\)/.test(src), 'save() 调 saveBeatmap (v120: 返回是否成功)');
-  assert(/r\.route === 'download' \? `已导出/.test(src) && /`已保存/.test(src), '保存反馈消息区分通道');
+  assert(/r\.route === 'download'\s*\n\s*\? tNow\('store\.save_exported'/.test(src) && /tNow\('store\.save_saved'/.test(src), '保存反馈消息区分通道 (v346: i18n key)');
+  {
+    const dict = readSrc('src/i18n/dicts/zh-CN/backend.ts');
+    assert(/'store\.save_exported': '已导出/.test(dict) && /'store\.save_saved': '已保存/.test(dict), '保存反馈 zh-CN 译文 (已导出/已保存)');
+  }
   assert(/lastSave: SaveOutcome \| null/.test(src), 'lastSave 测试挂钩');
   assert(/source: MapSource \| null = null\)/.test(src) && /this\.mapSource = source/.test(src), 'load() 接收来源');
 }
@@ -48,7 +52,8 @@ section('App.tsx: Ctrl+S + 反馈 UI');
   assert(/case 'save': e\.preventDefault\(\); store\.save\(\)/.test(src), 'Ctrl+S 快捷键 (v286 注册表派发)');
   assert(/data-save-message/.test(src) && /store\.saveMessage/.test(src), '保存反馈 (v81 起在右上角标题前缀)');
   assert(!/导出 \.osu<\/button>/.test(src), 'v81: 独立导出按钮已删除 (下载兜底仍在 store.save 内)');
-  assert(/\{hotkeyLabel\('save'\)\} 保存谱面/.test(src), '快捷键帮助 (v321: 经 hotkeyLabel 动态)');
+  assert(/\{hotkeyLabel\('save'\)\} \{t\('app\.hk_save', 'save beatmap'\)\}/.test(src), '快捷键帮助 (v321: 经 hotkeyLabel 动态; v346: i18n key)');
+  assert(/'app\.hk_save': '保存谱面'/.test(readSrc('src/i18n/dicts/zh-CN/app.ts')), '快捷键帮助 zh-CN 译文 (保存谱面)');
 }
 
 section('SongLibrary.tsx: 载入记录来源');

@@ -41,9 +41,10 @@ section('PatternPanel.tsx: 收藏到当前选中分类');
 section('App.tsx: 快捷键提示更新');
 {
   const app = readSrc('src/App.tsx');
-  assert(/hotkeyLabel\('reverse'\)\} 反转选区/.test(app), '提示含反转选区 (v321: hotkeyLabel 动态)');
+  const zhApp = readSrc('src/i18n/dicts/zh-CN/app.ts');
+  assert(/\{hotkeyLabel\('reverse'\)\} \{t\('app\.hk_reverse'/.test(app) && /'app\.hk_reverse': '反转选区/.test(zhApp), '提示含反转选区 (v321: hotkeyLabel 动态; v346: i18n key)');
   assert(!/Ctrl\+G 旋转/.test(app), '旧提示 Ctrl+G 旋转 已移除');
-  assert(/hotkeyLabel\('rot-ccw'\)\}\/\{hotkeyLabel\('rot-cw'\)\} 旋转90°/.test(app), '提示含旋转90° (v321: hotkeyLabel 动态)');
+  assert(/\{hotkeyLabel\('rot-ccw'\)\}\/\{hotkeyLabel\('rot-cw'\)\} \{t\('app\.hk_rotate'/.test(app) && /'app\.hk_rotate': '旋转90°/.test(zhApp), '提示含旋转90° (v321: hotkeyLabel 动态; v346: i18n key)');
 }
 
 if (failures) { console.error(`\nVERIFIER_V92_FAILED: ${failures} 处失败`); process.exit(1); }

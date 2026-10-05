@@ -15,11 +15,18 @@ const src = fs.readFileSync(path.join(root, 'src/App.tsx'), 'utf8');
 console.log('== 右栏顶部放置态指示 (始终显示)');
 {
   // 指示块在 <Inspector /> 之前 (右侧栏容器内)
-  const blockIdx = src.indexOf("title=\"放置态: 放置工具下按 Q/W/E/R");
+  // v346 i18n 改造后: title 走 t('app.placement_state_title', ...), 口哨/拍手走 t('app.hs_whistle'/'app.hs_clap')
+  const blockIdx = src.indexOf("t('app.placement_state_title'");
   const inspIdx = src.indexOf('<Inspector />');
-  assert(blockIdx > -1 && inspIdx > -1 && blockIdx < inspIdx, '放置态指示块位于 <Inspector /> 之前 (右栏顶部)');
+  assert(blockIdx > -1 && inspIdx > -1 && blockIdx < inspIdx, '放置态指示块位于 <Inspector /> 之前 (右栏顶部, i18n key app.placement_state_title)');
   assert(/v244: 放置态指示移到右侧栏顶部且始终显示/.test(src), 'v244 注释');
-  assert(/NC\(\{hotkeyLabel\('hs-newcombo'\)\}\)/.test(src) && /口哨\(\{hotkeyLabel\('hs-whistle'\)\}\)/.test(src) && /Finish\(\{hotkeyLabel\('hs-finish'\)\}\)/.test(src) && /拍手\(\{hotkeyLabel\('hs-clap'\)\}\)/.test(src), '四个状态项齐全 (v321: 键位经 hotkeyLabel 动态)');
+  const dict = fs.readFileSync(path.join(root, 'src/i18n/dicts/zh-CN/app.ts'), 'utf8');
+  assert(/NC\(\{hotkeyLabel\('hs-newcombo'\)\}\)/.test(src)
+    && /t\('app\.hs_whistle', 'Whistle'\)\}\(\{hotkeyLabel\('hs-whistle'\)\}\)/.test(src)
+    && /Finish\(\{hotkeyLabel\('hs-finish'\)\}\)/.test(src)
+    && /t\('app\.hs_clap', 'Clap'\)\}\(\{hotkeyLabel\('hs-clap'\)\}\)/.test(src)
+    && dict.includes("'app.hs_whistle': '口哨'") && dict.includes("'app.hs_clap': '拍手'"),
+    '四个状态项齐全 (v321: 键位经 hotkeyLabel 动态; v346: 口哨/拍手经 i18n key, zh-CN 译文正确)');
   assert(/store\.placeNewCombo \? 'text-pink-300/.test(src)
     && /store\.placeHitSound & 2/.test(src) && /store\.placeHitSound & 4/.test(src) && /store\.placeHitSound & 8/.test(src),
     '高亮逻辑不变 (NC + 三个音效位)');

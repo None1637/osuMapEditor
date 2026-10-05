@@ -7,6 +7,7 @@
 import { parseOsu } from './parser';
 import { computeStarRating } from './starRating';
 import type { FsDirLike, FsFileLike } from './library'; // type-only: 避免拉入 renderer 依赖链
+import { tNow } from '@/i18n'; // v346: 多语言
 
 export interface LibraryIndexEntry {
   dirName: string;
@@ -378,7 +379,7 @@ export async function* buildLibraryIndexAuto(
   let wake: (() => void) | null = null;
   let failed: string | null = null;
   worker.onmessage = (ev: MessageEvent<WMsg>) => { inbox.push(ev.data); wake?.(); };
-  worker.onerror = (e) => { failed = e.message || '索引 worker 错误'; wake?.(); };
+  worker.onerror = (e) => { failed = e.message || tNow('fs.index_worker_error', 'Index worker error'); wake?.(); };
   worker.postMessage({ type: 'scan', root: native, cached, opts: opts ?? null });
   let lastPrio: string | null | undefined;
   try {
@@ -389,7 +390,7 @@ export async function* buildLibraryIndexAuto(
       while (inbox.length) {
         const m = inbox.shift()!;
         if (m.type === 'batch' && m.entries?.length) yield m.entries;
-        else if (m.type === 'error') throw new Error(m.message ?? '索引 worker 失败');
+        else if (m.type === 'error') throw new Error(m.message ?? tNow('fs.index_worker_failed', 'Index worker failed'));
         else if (m.type === 'done') return;
       }
       if (failed) throw new Error(failed);

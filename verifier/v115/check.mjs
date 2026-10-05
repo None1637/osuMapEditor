@@ -47,7 +47,9 @@ assert(/const upd = \(patch: Partial<typeof o>\) => \{\s*if \(store\.lockNotes\)
 // App: 左侧栏开关
 assert(/data-lock-notes="toggle"/.test(app), '左侧栏: 锁定物件按钮 (测试挂钩)');
 assert(/store\.lockNotes = !store\.lockNotes; store\.emitSelection\(\)/.test(app), '左侧栏: 开关切换 + emitSelection (UI 状态不 bump dataVersion)');
-assert(/锁定物件 \(Lock Notes\): 开启后无法移动\/修改\/删除任何物件/.test(app), '左侧栏: 按钮提示文案');
+// v346 适配: 提示文案改 i18n key (zh-CN 词典保留原中文)
+const zhApp = read('src/i18n/dicts/zh-CN/app.ts');
+assert(/t\('app\.lock_notes_title', 'Lock Notes:/.test(app) && /'app\.lock_notes_title': '锁定物件 \(Lock Notes\): 开启后无法移动\/修改\/删除任何物件/.test(zhApp), '左侧栏: 按钮提示文案 (app.lock_notes_title)');
 
 console.log(failures ? `\nV115_CHECK_FAILED: ${failures}` : '\nV115_CHECK_PASSED');
 process.exit(failures ? 1 : 0);

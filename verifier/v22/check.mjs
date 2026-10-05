@@ -17,18 +17,23 @@ function readSrc(rel) { return fs.readFileSync(path.join(root, rel), 'utf8'); }
 section('SongLibrary.tsx: 待授权分支也 setRoot (授权按钮可见)');
 {
   const src = readSrc('src/components/SongLibrary.tsx');
-  const blk = src.match(/已恢复目录「\$\{r\.handle\.name\}」[\s\S]*?else setPermNeeded\(true\);/)?.[0] ?? '';
+  // v346 多语言改造: 恢复日志走 tNow(library.dir_restored), 中文译文在 zh-CN 词典
+  const blk = src.match(/library\.dir_restored[\s\S]*?else setPermNeeded\(true\);/)?.[0] ?? '';
   assert(blk.length > 0, '恢复分支存在');
   assert(/setRootNative\(r\.handle\);\s*\n\s*setRoot\(asDirLike\(r\.handle\)\);/.test(blk), 'granted 判断前先 setRoot');
   assert(/if \(r\.granted\) \{[\s\S]*?startScan\(/.test(blk), 'granted 才 startScan (startScan 在 granted 块内)');
-  assert(/!root \? \([\s\S]*?permNeeded \? \([\s\S]*?授权访问/.test(src), 'JSX: 授权页在 permNeeded 分支 (root 非空前提)');
+  assert(/!root \? \([\s\S]*?permNeeded \? \([\s\S]*?library\.grant_access/.test(src), 'JSX: 授权页在 permNeeded 分支 (root 非空前提, i18n key)');
+  const zhLib = readSrc('src/i18n/dicts/zh-CN/library.ts');
+  assert(/'library\.grant_access':\s*'授权访问'/.test(zhLib), 'zh-CN 词典授权按钮译文「授权访问」');
 }
 
 section('SkinPicker.tsx: 授权按钮不依赖额外状态 (对照, 本来就没问题)');
 {
   const src = readSrc('src/components/SkinPicker.tsx');
   assert(src.includes('setNativeHandle(r.handle);'), '恢复先 setNativeHandle');
-  assert(/\{permNeeded \? \([\s\S]*?授权访问/.test(src), '授权按钮只看 permNeeded');
+  assert(/\{permNeeded \? \([\s\S]*?skin\.grant_access/.test(src), '授权按钮只看 permNeeded (i18n key)');
+  const zhSkin = readSrc('src/i18n/dicts/zh-CN/skin.ts');
+  assert(/'skin\.grant_access':\s*'授权访问/.test(zhSkin), 'zh-CN 词典授权按钮译文「授权访问」');
 }
 
 if (failures) { console.error(`\nVERIFIER_V22_FAILED: ${failures} 处失败`); process.exit(1); }

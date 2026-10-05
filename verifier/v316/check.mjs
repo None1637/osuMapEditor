@@ -1,7 +1,7 @@
 // 验证器 v316: F18a/b + F20 Alt 选取模式即时刷新 / Alt 点选锚点修正 / hover 预览随时间消失
 //   F18a: Alt 按下/松开立即重算 hover 目标 (refreshHover, 与 mousemove 同源), Alt 层画锚点高亮环
 //   F18b: Alt+点击候选含选中/有已选节点的滑条 (时间滚走后仍可点选), 且在清空物件选区之前取候选
-//   F20: 滚轮改时间后滑条出可见窗 → hover 预览消失 (isVisibleAt 守卫; 选中滑条装饰不受影响)
+//   F20: 滚轮改时间后滑条出可见窗 → hover 预览消失 (选中滑条装饰不受影响); v342: 结束侧收紧到 end+HIT_FADE
 //   (F18c 快捷键面板固定键位条目 → v321 统一补)
 // 运行: node verifier/v316/check.mjs
 import { fileURLToPath } from 'url';
@@ -49,7 +49,8 @@ section('F18b: Alt+点击候选修正');
 section('F20: hover 预览随可见窗消失');
 {
   const hv = ec.match(/const ho = hid !== null[\s\S]{0,700}?drawSliderControlPoints\(g, ho\);/);
-  assert(!!hv && /isVisibleAt\(bm, ho, store\.currentTime\)/.test(hv[0]), 'hover 滑条点预览加 isVisibleAt 守卫');
+  assert(!!hv && /store\.currentTime >= ho\.time - arToPreempt/.test(hv[0]) && /store\.currentTime <= hitObjectEndTime\(bm, ho\) \+ HIT_FADE/.test(hv[0]),
+    'hover 滑条点预览可见窗守卫 (v342: 结束侧收紧到 end+HIT_FADE, 对齐 stable 滑条身消失时机)');
 }
 
 section('编译');

@@ -29,7 +29,10 @@ section('stream.ts: expo 曲线 + exponent 参数');
 section('StreamDialog.tsx: 指数参数输入框, 仅指数变化时显示');
 {
   const src = readSrc('src/components/convert/StreamDialog.tsx');
-  assert(/\['expo', '指数变化'\]/.test(src), '曲线下拉框含「指数变化」选项');
+  const dict = readSrc('src/i18n/dicts/zh-CN/convert.ts');
+  // v346 i18n: 选项元组为 ['expo', 'curve_expo', 'Exponential'], 中文译文在 convert 词典分片
+  assert(/\['expo', 'curve_expo', 'Exponential'\]/.test(src), '曲线下拉框含指数变化选项 (curve_expo key)');
+  assert(/'convert\.curve_expo': '指数变化'/.test(dict), '词典 convert.curve_expo 译文 = 指数变化');
   assert(/params\.curve === 'expo' && \(/.test(src), '指数输入行仅选中指数变化时渲染');
   assert(/data-conv=\{?["']exponent["']\}?|testid="exponent"/.test(src), '输入框 testid=exponent');
   assert(/step=\{0\.01\}/.test(src), '步进 0.01');

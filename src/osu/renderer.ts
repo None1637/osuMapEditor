@@ -6,7 +6,7 @@ import { alphaAt, isVisibleAt, sliderRepeatAlpha, approachBounceScale, sliderDur
 import { computePendingPath, getSliderPath, invalidateSliderPath, pendingPhantomPoint, placementLength, truncatePathAtLength } from './sliderPath';
 import { followPointPairs, followPointsBetween, followPointFrameIndex, followPointCrop } from './followPoints';
 import { sliderTickPoints } from './clock/hitSounds';
-import { tintedSprite, skinScaleAdjust, skinSpriteWidth, hitcircleSpriteWidth, type Skin, type SkinImage } from './skin';
+import { tintedSprite, skinScaleAdjust, skinSpriteWidth, hitcircleSpriteWidth, getSkinContentSeq, type Skin, type SkinImage } from './skin';
 import { displaySettings } from './displaySettings'; // v132: 显示设置 (皮肤颜色/轨迹线/缩圈/渐出/点击特效)
 import type { GameplayObjRender } from './gameplay/testPlaySession'; // v287: 测试游玩渲染数据
 
@@ -98,8 +98,8 @@ export { getSliderPath } from './sliderPath';
 
 export function invalidatePath(id?: number) {
   invalidateSliderPath(id);
-  if (id === undefined) bodyCache.clear();
-  else bodyCache.delete(id);
+  if (id === undefined) { bodyCache.clear(); outlineCache.clear(); } // v340: 描边缓存联动
+  else { bodyCache.delete(id); outlineCache.delete(id); }
 }
 
 export interface RenderCtx {
@@ -110,6 +110,18 @@ export interface RenderCtx {
   selected: Set<number>;
   /** v245: 帧级缓存键 (EditorCanvas 传 dataVersion) — 选中装饰离屏层/followPoint 对缓存按它失效 */
   cacheKey?: string;
+  /** v340: 数据版本键 (EditorCanvas 传 dataVersion) — 静态场景层按它失效 (拖拽只 bump version 不影响) */
+  dataKey?: string;
+  /** v340: 启用物件场景静态层 (暂停且非平移时; 播放/测试中时间逐帧变, 缓存无意义) */
+  staticScene?: boolean;
+  /** v340: 静态层排除集 (正在拖拽/变换的物件) — 这些物件不进层, blit 后实时补画 */
+  staticExclude?: Set<number>;
+  /** v341: 平移拖拽 (多选移动) — 被拖物件几何变化是纯平移时, 渲染进独立拖拽层, 每帧按 (dx,dy)
+   *  偏移 blit (全选千件拖动从每帧全量重画降为 2 次 drawImage); dx/dy = 相对拖拽起点的位移 (osu px) */
+  staticTranslate?: { ids: Set<number>; dx: number; dy: number };
+  /** v341: 选中装饰层随平移拖拽整体偏移 blit (拖拽覆盖整个选区时由 EditorCanvas 传入);
+   *  key = 拖拽期间稳定的层键 (替代逐帧变的 cacheKey), 层内容建于拖拽首帧, blit 偏移 = 位移差 */
+  selTranslate?: { dx: number; dy: number; key: string };
   /** v201: combo = lazer ComboIndex (皮肤色用), comboWithOffset = ComboIndexWithOffsets (谱面 [Colours] 用), index = 显示数字 */
   comboInfo: Map<number, { combo: number; comboWithOffset: number; index: number }>;
   /** 物件堆叠偏移 (osu px): key=物件 id, 无条目表示不偏移; 由 stacking.ts 按谱面数据预算 */
@@ -181,6 +193,9 @@ export function comboColor(bm: Beatmap, combo: number, override?: string[]): str
 }
 
 // v132: 滑条身 border/track 颜色 — 开「使用皮肤颜色」时皮肤 skin.ini 优先, 未定义回退谱面颜色
+// v347: SliderBorder 解析进 skin 渲染链路 (此前开关关闭时读不到)
+// v348: SliderBorder 优先级随开关翻转 — 开: 皮肤 > 谱面 > 默认; 关: 谱面 > 皮肤 > 默认
+//   (缺省互相回退, 都没有才纯白)
 function sliderBodyColors(bm: Beatmap, skin: Skin, color: string): { border: string; track: string } {
   if (displaySettings.skinColors) {
     return {
@@ -188,11 +203,14 @@ function sliderBodyColors(bm: Beatmap, skin: Skin, color: string): { border: str
       track: skin.sliderTrackOverride || bm.colors.sliderTrackOverride || color,
     };
   }
-  return { border: bm.colors.sliderBorder || '#ffffff', track: bm.colors.sliderTrackOverride || color };
+  return {
+    border: bm.colors.sliderBorder || skin.sliderBorder || '#ffffff',
+    track: bm.colors.sliderTrackOverride || color,
+  };
 }
 
 export function renderPlayfield(rc: RenderCtx, pending?: { x: number; y: number; redAnchor: boolean }[], cursor?: { x: number; y: number } | null, pendingDistanceLock = false, pendingSkeleton = false) {
-  const { g, bm, time } = rc;
+  const { bm, time } = rc;
   const cs = bm.difficulty.cs;
   const ar = bm.difficulty.ar;
   const radius = csToRadius(cs);
@@ -200,10 +218,41 @@ export function renderPlayfield(rc: RenderCtx, pending?: { x: number; y: number;
 
   const visible = bm.hitObjects.filter(o => isVisibleAt(bm, o, time));
 
-  drawFollowPoints(rc, radius);
+  // v340: 暂停时物件场景静态层 — 框选/拖曳只动选区或被拖物件, 其余物件+follow point 每帧全量重画
+  //   是密集谱面 (近千物件同屏) 交互帧数冰点 (CDP 实测 ~20fps, render 均 20ms+, 几乎全是逐物件
+  //   save/restore/drawImage 光栅)。层键 = 时间+dataKey+谱面引用+皮肤内容序号+变换+显示设置+排除集签名;
+  //   命中时每帧 1 次 drawImage, 被拖物件 (staticExclude) 不进层、blit 后实时补画。
+  //   播放/测试游玩中时间逐帧变, 缓存无意义, 走原路径。
+  const excl = rc.staticExclude?.size ? rc.staticExclude : undefined;
+  const __w = window as unknown as { __perfScene?: number[]; __perfSel?: number[] };
+  const __t0 = performance.now();
+  if (rc.staticScene && !rc.gameplay) drawStaticScene(rc, visible, radius, preempt, excl, rc.staticTranslate);
+  else drawSceneObjects(rc, visible, radius, preempt);
+  const __t1 = performance.now();
+  { const a = (__w.__perfScene ??= []); a.push(__t1 - __t0); if (a.length > 900) a.splice(0, a.length - 900); } // v340 调试分段
+
+  // v245: 选中装饰统一走离屏层缓存 (原逐物件穿插在物件循环内/后绘制, 2000 物件全选时每帧
+  //   逐物件重画是全选场景最大热点 — CDP 实测 3fps, 帧忙时 ~330ms 几乎全是软件光栅)。
+  //   视觉差异: 装饰整体盖在全部物件上层 (原为逐物件穿插); v40 "不可见选中物件也画装饰" 语义保留。
+  if (rc.selected.size) drawSelectionLayer(rc, radius);
+  { const a = (__w.__perfSel ??= []); a.push(performance.now() - __t1); if (a.length > 900) a.splice(0, a.length - 900); } // v340 调试分段
+
+  if (pending && pending.length) drawPendingSlider(rc, pending, cursor ?? null, pendingDistanceLock, pendingSkeleton);
+}
+
+// v340: 物件+follow point 场景绘制 (renderPlayfield 主体抽出, 静态层离屏合成与实时补画共用);
+//   skip = 跳过这些 id (静态层排除被拖物件), only = 只画这些 id (blit 后实时补画被拖物件)
+//   v341: fpMode 控制 only 对 follow point 连接对的语义 — 'either' 任一端命中即画 (默认),
+//   'both' 两端都命中才画 (平移拖拽层: 随层整体平移), 'xor' 恰好一端命中 (拖拽层外实时补画)
+function drawSceneObjects(rc: RenderCtx, visible: HitObject[], radius: number, preempt: number,
+  skip?: Set<number>, only?: Set<number>, fpMode: 'either' | 'both' | 'xor' = 'either') {
+  const { g, bm, time } = rc;
+  drawFollowPoints(rc, radius, skip, only, fpMode);
 
   for (let i = visible.length - 1; i >= 0; i--) {
     const o = visible[i];
+    if (skip?.has(o.id)) continue;
+    if (only && !only.has(o.id)) continue;
     const dt = time - o.time;
     const alpha = alphaAt(bm, o, time);
     // v215: 暂留模式 (打击动画关) 滑条头/尾圈有独立残留期 — 滑条身 alpha 归零后仍要画头/尾, 不剔除
@@ -229,19 +278,148 @@ export function renderPlayfield(rc: RenderCtx, pending?: { x: number; y: number;
     else drawSpinner(rc, o, dt, preempt);
     g.restore();
   }
+}
 
-  // v245: 选中装饰统一走离屏层缓存 (原逐物件穿插在物件循环内/后绘制, 2000 物件全选时每帧
-  //   逐物件重画是全选场景最大热点 — CDP 实测 3fps, 帧忙时 ~330ms 几乎全是软件光栅)。
-  //   视觉差异: 装饰整体盖在全部物件上层 (原为逐物件穿插); v40 "不可见选中物件也画装饰" 语义保留。
-  if (rc.selected.size) drawSelectionLayer(rc, radius);
+// v340: 物件场景静态层 (键含义见 renderPlayfield 注释)。层裁剪到可见物件内容包围盒 (v246 同款带宽考量),
+//   包围盒并入滑条路径点/控制点 + 缩圈外沿 (4r) 边距; 转盘占整游玩区, 直接不裁剪。
+let sceneLayer: { key: string; c: HTMLCanvasElement; x: number; y: number; empty: boolean } | null = null;
+const bmSeqIds = new WeakMap<Beatmap, number>();
+let bmSeqN = 0;
 
-  if (pending && pending.length) drawPendingSlider(rc, pending, cursor ?? null, pendingDistanceLock, pendingSkeleton);
+// 可见物件内容包围盒 (osu px, 已含 4r+16 边距); 转盘 → 整游玩区
+function sceneContentBBox(bm: Beatmap, drawn: HitObject[], radius: number): { x0: number; y0: number; x1: number; y1: number } {
+  const hasSpinner = drawn.some(o => o.type === 'spinner');
+  if (hasSpinner) return { x0: -16, y0: -16, x1: 512 + 16, y1: 384 + 16 };
+  const pad = radius * 4 + 16;
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (const o of drawn) {
+    const pts = o.type === 'slider'
+      ? [...getSliderPath(bm, o).points, o, ...(o.curvePoints ?? [])]
+      : [{ x: o.x, y: o.y }];
+    for (const p of pts) {
+      if (p.x < x0) x0 = p.x; if (p.y < y0) y0 = p.y;
+      if (p.x > x1) x1 = p.x; if (p.y > y1) y1 = p.y;
+    }
+  }
+  return { x0: x0 - pad, y0: y0 - pad, x1: x1 + pad, y1: y1 + pad };
+}
+
+// osu 包围盒 → 设备 px 矩形 (四角变换求外接, 裁剪到画布); 无交集返回 null
+function bboxToDevice(m: DOMMatrix, bb: { x0: number; y0: number; x1: number; y1: number }, cw: number, ch: number) {
+  let rx = Infinity, ry = Infinity, rx1 = -Infinity, ry1 = -Infinity;
+  for (const [cx, cy] of [[bb.x0, bb.y0], [bb.x1, bb.y0], [bb.x0, bb.y1], [bb.x1, bb.y1]] as const) {
+    const dx = m.a * cx + m.c * cy + m.e, dy = m.b * cx + m.d * cy + m.f;
+    if (dx < rx) rx = dx; if (dy < ry) ry = dy;
+    if (dx > rx1) rx1 = dx; if (dy > ry1) ry1 = dy;
+  }
+  rx = Math.max(0, Math.floor(rx)); ry = Math.max(0, Math.floor(ry));
+  const rw = Math.min(cw, Math.ceil(rx1)) - rx, rh = Math.min(ch, Math.ceil(ry1)) - ry;
+  return rw > 0 && rh > 0 ? { rx, ry, rw, rh } : null;
+}
+
+function drawStaticScene(rc: RenderCtx, visible: HitObject[], radius: number, preempt: number, excl?: Set<number>,
+  tr?: { ids: Set<number>; dx: number; dy: number }) {
+  const { g, bm } = rc;
+  const m = g.getTransform();
+  if (tr?.ids.size) excl = tr.ids; // v341: 平移拖拽 — 被拖物件同样不进基层
+  let bid = bmSeqIds.get(bm);
+  if (bid === undefined) bmSeqIds.set(bm, (bid = ++bmSeqN));
+  const sid = skinIds.get(rc.skin) ?? 0;
+  // 排除集签名: 顺序无关 (size + id 和), 拖拽期间集合稳定, 每帧比较成本 O(size)
+  let exclSize = 0, exclSum = 0;
+  if (excl) for (const id of excl) { exclSize++; exclSum = (exclSum + id) | 0; }
+  const key = [rc.time, rc.dataKey ?? '', bid, sid, getSkinContentSeq(),
+    g.canvas.width, g.canvas.height,
+    m.a.toFixed(4), m.b.toFixed(4), m.c.toFixed(4), m.d.toFixed(4), m.e.toFixed(2), m.f.toFixed(2),
+    displaySettings.skinColors, displaySettings.sliderPathLine, displaySettings.approachCircle,
+    displaySettings.sliderFadeOut, displaySettings.hitExplosion, displaySettings.hitAnimation,
+    exclSize, exclSum].join('|');
+  // v340 调试: 页面置 window.__sceneDbg = { rebuilds: 0 } 后统计重建次数/键漂移 (profile 脚本用)
+  const dbg = (window as unknown as { __sceneDbg?: { rebuilds: number; prevKey: string; diff: string } }).__sceneDbg;
+  if (dbg && sceneLayer && sceneLayer.key !== key) {
+    dbg.rebuilds++;
+    const a = dbg.prevKey.split('|'), b = key.split('|');
+    dbg.diff = b.map((s, i) => (s === a[i] ? '' : `${i}:${a[i]}->${s}`)).filter(Boolean).join(' ');
+    dbg.prevKey = key;
+  } else if (dbg) dbg.prevKey = key;
+  if (!sceneLayer || sceneLayer.key !== key) {
+    const drawn = excl ? visible.filter(o => !excl.has(o.id)) : visible;
+    const dev = bboxToDevice(m, sceneContentBBox(bm, drawn, radius), g.canvas.width, g.canvas.height);
+    if (!sceneLayer) sceneLayer = { key, c: document.createElement('canvas'), x: 0, y: 0, empty: true };
+    sceneLayer.key = key;
+    sceneLayer.x = dev?.rx ?? 0; sceneLayer.y = dev?.ry ?? 0;
+    sceneLayer.empty = !dev || !drawn.length;
+    const c = sceneLayer.c;
+    const rw = dev?.rw ?? 1, rh = dev?.rh ?? 1;
+    if (c.width !== Math.max(1, rw) || c.height !== Math.max(1, rh)) { c.width = Math.max(1, rw); c.height = Math.max(1, rh); }
+    if (!sceneLayer.empty && dev) {
+      const lg = c.getContext('2d')!;
+      lg.setTransform(1, 0, 0, 1, 0, 0);
+      lg.clearRect(0, 0, c.width, c.height);
+      lg.setTransform(m.a, m.b, m.c, m.d, m.e - dev.rx, m.f - dev.ry);
+      drawSceneObjects({ ...rc, g: lg }, visible, radius, preempt, excl);
+    }
+  }
+  if (!sceneLayer.empty) {
+    g.save();
+    g.setTransform(1, 0, 0, 1, 0, 0);
+    g.drawImage(sceneLayer.c, sceneLayer.x, sceneLayer.y);
+    g.restore();
+  }
+  if (tr?.ids.size) {
+    // v341: 平移拖拽 — 被拖物件 + 两端都被拖的 follow point 合成独立层, 按 (当前位移 - 构建时位移) 偏移 blit;
+    //   恰好一端被拖的跨界连接对实时补画 (会随拖拽拉伸)
+    const w = window as unknown as { __dragPath?: string }; w.__dragPath = 'translate'; // 调试
+    drawDragLayer(rc, visible, radius, preempt, tr, key);
+    drawFollowPoints(rc, radius, undefined, tr.ids, 'xor');
+  } else if (excl) {
+    const w = window as unknown as { __dragPath?: string }; w.__dragPath = 'live-exclude'; // 调试
+    // 被拖物件实时补画 (含其 follow point); 层级略高于静态物件属拖拽期可接受的瞬态差异
+    drawSceneObjects(rc, visible, radius, preempt, undefined, excl);
+  }
+}
+
+// v341: 平移拖拽层 — 内容 = 被拖物件 + 两端都被拖的 follow point, 构建于拖拽首帧 (记录构建时位移 bx/by),
+//   键跟随基层 (排除集签名含拖拽 id 集); 拖拽期间每帧 1 次 drawImage (偏移 = 仿射变换后的位移差)
+let dragLayer: { key: string; c: HTMLCanvasElement; x: number; y: number; bx: number; by: number; empty: boolean } | null = null;
+function drawDragLayer(rc: RenderCtx, visible: HitObject[], radius: number, preempt: number,
+  tr: { ids: Set<number>; dx: number; dy: number }, baseKey: string) {
+  const { g, bm } = rc;
+  const m = g.getTransform();
+  const key = baseKey + '|drag';
+  if (!dragLayer || dragLayer.key !== key) {
+    const drawn = visible.filter(o => tr.ids.has(o.id));
+    const dev = bboxToDevice(m, sceneContentBBox(bm, drawn, radius), g.canvas.width, g.canvas.height);
+    if (!dragLayer) dragLayer = { key, c: document.createElement('canvas'), x: 0, y: 0, bx: 0, by: 0, empty: true };
+    dragLayer.key = key;
+    dragLayer.x = dev?.rx ?? 0; dragLayer.y = dev?.ry ?? 0;
+    dragLayer.bx = tr.dx; dragLayer.by = tr.dy; // 构建时位移 (物件已按此位移就位)
+    dragLayer.empty = !dev || !drawn.length;
+    const c = dragLayer.c;
+    const rw = dev?.rw ?? 1, rh = dev?.rh ?? 1;
+    if (c.width !== Math.max(1, rw) || c.height !== Math.max(1, rh)) { c.width = Math.max(1, rw); c.height = Math.max(1, rh); }
+    if (!dragLayer.empty && dev) {
+      const lg = c.getContext('2d')!;
+      lg.setTransform(1, 0, 0, 1, 0, 0);
+      lg.clearRect(0, 0, c.width, c.height);
+      lg.setTransform(m.a, m.b, m.c, m.d, m.e - dev.rx, m.f - dev.ry);
+      drawSceneObjects({ ...rc, g: lg }, visible, radius, preempt, undefined, tr.ids, 'both');
+    }
+  }
+  if (dragLayer.empty) return;
+  // osu 位移差 → 设备 px 偏移 (走完整仿射, 平移层只含 scale+translate 时等价 m.a*dx / m.d*dy)
+  const ox = m.a * (tr.dx - dragLayer.bx) + m.c * (tr.dy - dragLayer.by);
+  const oy = m.b * (tr.dx - dragLayer.bx) + m.d * (tr.dy - dragLayer.by);
+  g.save();
+  g.setTransform(1, 0, 0, 1, 0, 0);
+  g.drawImage(dragLayer.c, dragLayer.x + ox, dragLayer.y + oy);
+  g.restore();
 }
 
 // v245: 选中装饰离屏层 — 装饰内容与当前时间无关 (位置/堆叠/选区/样式/皮肤/变换决定),
 //   合成到离屏位图, 键不变时每帧仅 1 次 drawImage; 编辑/选区/缩放/设置变更经键失效重建。
 // v246: 层裁剪到选中物件内容包围盒 (原为整画布尺寸, 大窗口/高 dpr 下每帧全幅 blit 带宽开销大)。
-let selLayer: { key: string; c: HTMLCanvasElement; x: number; y: number; empty: boolean } | null = null;
+let selLayer: { key: string; c: HTMLCanvasElement; x: number; y: number; bx: number; by: number; empty: boolean } | null = null;
 const skinIds = new WeakMap<Skin, number>(); // 皮肤对象 → 序号 (hitcircleselect 等贴图随皮肤整体更换)
 let skinSeq = 0;
 
@@ -252,7 +430,9 @@ function drawSelectionLayer(rc: RenderCtx, radius: number) {
   for (const id of rc.selected) sig = (sig + id) | 0; // 顺序无关选区签名 (id 全局唯一, 和+数量足够)
   let sid = skinIds.get(rc.skin);
   if (!sid) skinIds.set(rc.skin, (sid = ++skinSeq));
-  const key = [rc.cacheKey ?? '', rc.selected.size, sig, g.canvas.width, g.canvas.height,
+  // v341: 平移拖拽中 (selTranslate) 用稳定键 — 拖拽只 bump version 会让 cacheKey 逐帧变,
+  //   千件全选拖动装饰层逐帧重建 (实测 40ms+/帧) 是剩余最大热点; 改为构建一次 + 按位移差 blit
+  const key = [rc.selTranslate?.key ?? rc.cacheKey ?? '', rc.selected.size, sig, g.canvas.width, g.canvas.height,
     m.a.toFixed(4), m.b.toFixed(4), m.c.toFixed(4), m.d.toFixed(4), m.e.toFixed(2), m.f.toFixed(2),
     displaySettings.selectionStyle, displaySettings.sliderPointStyle, sid].join('|');
   if (!selLayer || selLayer.key !== key) {
@@ -282,9 +462,10 @@ function drawSelectionLayer(rc: RenderCtx, radius: number) {
     }
     rx = Math.max(0, Math.floor(rx)); ry = Math.max(0, Math.floor(ry));
     const rw = Math.min(cw, Math.ceil(rx1)) - rx, rh = Math.min(ch, Math.ceil(ry1)) - ry;
-    if (!selLayer) selLayer = { key, c: document.createElement('canvas'), x: 0, y: 0, empty: true };
+    if (!selLayer) selLayer = { key, c: document.createElement('canvas'), x: 0, y: 0, bx: 0, by: 0, empty: true };
     selLayer.key = key;
     selLayer.x = rx; selLayer.y = ry;
+    selLayer.bx = rc.selTranslate?.dx ?? 0; selLayer.by = rc.selTranslate?.dy ?? 0; // v341: 构建时位移 (装饰已按此位移就位)
     selLayer.empty = rw <= 0 || rh <= 0; // 选区完全在画布外 (v223 平移/缩放得再远也不重建不贴图)
     const c = selLayer.c;
     if (c.width !== Math.max(1, rw) || c.height !== Math.max(1, rh)) { c.width = Math.max(1, rw); c.height = Math.max(1, rh); }
@@ -298,9 +479,12 @@ function drawSelectionLayer(rc: RenderCtx, radius: number) {
     }
   }
   if (selLayer.empty) return;
+  // v341: osu 位移差 → 设备 px 偏移 (同 dragLayer); 非拖拽态 bx/by=0 偏移为 0
+  const tdx = (rc.selTranslate?.dx ?? 0) - selLayer.bx, tdy = (rc.selTranslate?.dy ?? 0) - selLayer.by;
+  const ox = m.a * tdx + m.c * tdy, oy = m.b * tdx + m.d * tdy;
   g.save();
   g.setTransform(1, 0, 0, 1, 0, 0);
-  g.drawImage(selLayer.c, selLayer.x, selLayer.y);
+  g.drawImage(selLayer.c, selLayer.x + ox, selLayer.y + oy);
   g.restore();
 }
 
@@ -320,10 +504,17 @@ function followPointPairsMemo(rc: RenderCtx): { start: HitObject; end: HitObject
   return pairs;
 }
 
-function drawFollowPoints(rc: RenderCtx, radius: number) {
+function drawFollowPoints(rc: RenderCtx, radius: number, skip?: Set<number>, only?: Set<number>, fpMode: 'either' | 'both' | 'xor' = 'either') {
   const { g, bm, skin, time } = rc;
   const frames = skin.followpointFrames;
   for (const { start, end } of followPointPairsMemo(rc)) {
+    // v340: 静态层排除/补画语义 (skip = 跳过触及被拖物件的连接对, only = 只画触及的)
+    if (skip && (skip.has(start.id) || skip.has(end.id))) continue;
+    if (only) {
+      const sIn = only.has(start.id), eIn = only.has(end.id);
+      // v341: fpMode — both = 两端都在集合内 (平移拖拽层), xor = 恰好一端 (跨界对实时补画), either = 任一端
+      if (fpMode === 'both' ? !(sIn && eIn) : fpMode === 'xor' ? sIn === eIn : !sIn && !eIn) continue;
+    }
     for (const p of followPointsBetween(bm, start, end, time, rc.stackOffsets)) {
       if (p.alpha <= 0) continue;
       const img = frames.length > 1
@@ -373,17 +564,34 @@ function drawControlPointHandle(g: CanvasRenderingContext2D, x: number, y: numbe
 // v314: 弧半径修正 — v311 误用 r-0.5lw (=0.9425r, 环带实际 0.885r..1.0r 整体偏外, 遮不住蓝边带);
 //       蓝边带 = 0.81r..0.925r (见 drawSliderBodyOutline cover), 弧半径应为其中心 0.8675r,
 //       环带恰 0.81r..0.925r 与蓝边带逐点重合 (用户反馈: 环过大, 没遮住滑条蓝色选中边框)
+// v340: 选中圆环共享 sprite 缓存 — 原实现每物件一次带 shadowBlur 的 arc stroke, 框选上千物件
+//   选区变动时装饰层全量重建是实测热点 (shadowBlur 光栅极慢); 环只随半径/颜色/分辨率变, 全局共享。
+const ringCache = new Map<string, { c: HTMLCanvasElement; half: number }>();
 export function drawSelectionRing(g: CanvasRenderingContext2D, x: number, y: number, r: number, color = '#f5a623') {
   const lw = Math.max(1.5, r * 0.115);
-  g.save();
-  g.strokeStyle = color;
-  g.lineWidth = lw;
-  g.shadowColor = color;
-  g.shadowBlur = lw * 0.6;
-  g.beginPath();
-  g.arc(x, y, r * 0.8675, 0, Math.PI * 2);
-  g.stroke();
-  g.restore();
+  const m = g.getTransform();
+  const q = Math.min(4, Math.max(1, Math.hypot(m.a, m.b) || 1)); // 超采样倍数 (与 sliderBodySprite 同款)
+  const rad = r * 0.8675;
+  const half = rad + lw / 2 + lw * 0.6 + 2; // 半径 + 线半宽 + 辉光 + 余量 (osu px)
+  const key = `${r.toFixed(2)}|${color}|${q.toFixed(2)}`;
+  let sp = ringCache.get(key);
+  if (!sp) {
+    const c = document.createElement('canvas');
+    c.width = c.height = Math.ceil(half * 2 * q);
+    const og = c.getContext('2d')!;
+    og.scale(q, q);
+    og.translate(half, half);
+    og.strokeStyle = color;
+    og.lineWidth = lw;
+    og.shadowColor = color;
+    og.shadowBlur = lw * 0.6; // shadowBlur 是设备 px 语义, 不随 CTM 缩放 (与原实现一致)
+    og.beginPath();
+    og.arc(0, 0, rad, 0, Math.PI * 2);
+    og.stroke();
+    sp = { c, half };
+    ringCache.set(key, sp);
+  }
+  g.drawImage(sp.c, x - half, y - half, half * 2, half * 2);
 }
 
 // v259: 控制点连线 + 手柄绘制抽为共用 — 选中装饰 (drawSelectionDecor) 与 hover 预览 (EditorCanvas) 复用
@@ -426,10 +634,13 @@ function drawSelectionDecor(rc: RenderCtx, o: HitObject, radius: number) {
   g.translate(so.dx, so.dy); // 选中高亮与控制点手柄随堆叠偏移整体平移
   if (o.type === 'slider') {
     const p = getSliderPath(bm, o);
-    // 选中描边: 沿滑条身外形画一圈高亮环 (离屏粗描边 -> destination-out 镂空出环)
+    // 选中描边: 沿滑条身外形画一圈高亮环 (v340: 逐滑条 sprite 缓存, 选区变动重建装饰层时 1 次 drawImage)
     // v305: stable = 蓝色边框高亮 (sliderborder 选中变色), lazer 默认 = 青色环
     // v308: stable 改 cover 模式 — 蓝色环带覆盖原白边 (不再外凸一圈), 附外缘辉光
-    drawSliderBodyOutline(g, p.points, radius, stableSel ? '#4a90e2' : '#4df3ff', stableSel);
+    const osp = p.points.length >= 2
+      ? sliderOutlineSprite(p.points, radius, stableSel ? '#4a90e2' : '#4df3ff', stableSel, o.id, g.getTransform().a)
+      : null;
+    if (osp) g.drawImage(osp.c, osp.dx, osp.dy, osp.w, osp.h);
     if (stableSel) {
       // v305: F03 — 滑条头/尾各画橙黄圆环 (stable 选中效果, 见用户对比截图)
       drawSelectionRing(g, o.x, o.y, radius);
@@ -513,6 +724,61 @@ function drawPendingSlider(rc: RenderCtx, pend: { x: number; y: number; redAncho
 // v310: 用户嫌 v308 的 0.79r..0.96r 环带仍过粗 — 缩到精确覆盖白边带 (±1% 余量防白边毛刺):
 //   描边 0.925r 镂空 0.81r, 剩下 0.81r..0.925r 只是让滑条原有描边变蓝
 let outlineCanvas: HTMLCanvasElement | null = null;
+// v340: 选中滑条描边逐滑条 sprite 缓存 — drawSliderBodyOutline 每次调用都在「整层尺寸」离屏上
+//   清屏+两次粗描边+shadowBlur 合成, 框选几百条滑条时每次选区变动全量重算是实测热点 (D1 场景 ~20ms/帧)。
+//   描边内容只随滑条几何/半径/样式变, 按 slider id 缓存包围盒 sprite (invalidatePath 联动失效),
+//   装饰层重建退化为逐滑条 1 次 drawImage。
+const outlineCache = new Map<number, { sprite: SliderBodySprite; key: string }>();
+function sliderOutlineSprite(points: { x: number; y: number }[], r: number, color: string, cover: boolean, cacheId: number, ss: number): SliderBodySprite {
+  const pad = r + 5 + 12; // 描边半宽 + 外缘辉光 (shadowBlur 10) 余量
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  for (const p of points) {
+    if (p.x < minX) minX = p.x; if (p.x > maxX) maxX = p.x;
+    if (p.y < minY) minY = p.y; if (p.y > maxY) maxY = p.y;
+  }
+  let w = maxX - minX + pad * 2, h = maxY - minY + pad * 2;
+  if (!(w > 0) || !(h > 0)) { minX = minY = 0; w = h = 1; } // 退化路径保底
+  // v301/v306 同款尺寸上限 (防极端滑条位图打崩 GPU 进程)
+  const MAX_DIM = 8192, MAX_AREA = 8192 * 4096;
+  const q = Math.min(4, Math.max(0.005, ss, 1), MAX_DIM / w, MAX_DIM / h, Math.sqrt(MAX_AREA / (w * h)));
+  const key = `${r.toFixed(2)}|${q.toFixed(3)}|${color}|${cover ? 1 : 0}`;
+  const hit = outlineCache.get(cacheId);
+  if (hit && hit.key === key) return hit.sprite;
+  const c = document.createElement('canvas');
+  c.width = Math.ceil(w * q);
+  c.height = Math.ceil(h * q);
+  const og = c.getContext('2d')!;
+  og.scale(q, q);
+  og.translate(-minX + pad, -minY + pad);
+  og.lineJoin = 'round'; og.lineCap = 'round';
+  const trace = () => {
+    og.beginPath();
+    points.forEach((p, i) => (i === 0 ? og.moveTo(p.x, p.y) : og.lineTo(p.x, p.y)));
+    og.stroke();
+  };
+  og.strokeStyle = color;
+  if (cover) {
+    og.lineWidth = r * 2 * 0.925;
+    og.shadowColor = color; og.shadowBlur = 10; // 设备 px (sprite 分辨率 q, 1:1 blit 后 = 10 设备 px)
+    trace();
+    og.shadowBlur = 0;
+    og.globalCompositeOperation = 'destination-out';
+    og.lineWidth = r * 2 * 0.81;
+    trace();
+    og.globalCompositeOperation = 'source-over';
+  } else {
+    og.lineWidth = r * 2 + 5;
+    trace();
+    og.globalCompositeOperation = 'destination-out';
+    og.lineWidth = r * 2 - 1.5;
+    trace();
+    og.globalCompositeOperation = 'source-over';
+  }
+  const sprite = { c, dx: minX - pad, dy: minY - pad, w, h };
+  outlineCache.set(cacheId, { sprite, key });
+  return sprite;
+}
+
 export function drawSliderBodyOutline(g: CanvasRenderingContext2D, points: { x: number; y: number }[], r: number, color = '#4df3ff', cover = false) { // v305: 颜色参数 + 导出; v308: cover 参数
   if (points.length < 2) return;
   const w = g.canvas.width, h = g.canvas.height;

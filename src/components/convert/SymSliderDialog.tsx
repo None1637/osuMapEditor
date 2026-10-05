@@ -13,6 +13,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { store, useEditor } from '@/osu/store';
 import { DraggableDialog, DraftNum, loadParams, saveParams, useSaveParamsOnClose } from '../DraggableDialog';
 import { computeSymSlider, DEFAULT_SYM_SLIDER_PARAMS, type SymSliderMode, type SymSliderParams } from '@/osu/convert/symSlider';
+import { useT } from '@/i18n';
 
 const Row = ({ label, children }: { label: string; children: React.ReactNode }) => (
   <div className="flex items-center gap-2">
@@ -23,6 +24,7 @@ const Row = ({ label, children }: { label: string; children: React.ReactNode }) 
 
 export function SymSliderDialog() {
   useEditor();
+  const t = useT();
   // v236 二轮修正: 参数集换代 (轴配置简化为 axisDir 三选 v/h/custom); loadParams 浅合并,
   //   旧持久化数据缺新字段时回退默认值 (多余的旧键残留无害, 下次保存即清)
   const [params, setParams] = useState<SymSliderParams>(() => loadParams('symSlider', DEFAULT_SYM_SLIDER_PARAMS));
@@ -81,9 +83,9 @@ export function SymSliderDialog() {
   const joinedNodes = params.join !== 'none' && result.length ? (result[0].curvePoints?.length ?? 0) + 1 : 0;
 
   return (
-    <DraggableDialog title="对称滑条" testid="symSlider" width={340} onClose={() => store.closeConversion()}>
-      <Row label="模式">
-        {([['axis', '轴对称'], ['point', '中心对称'], ['rotate', '中心旋转'], ['translate', '方向平移']] as [SymSliderMode, string][]).map(([m, label]) => (
+    <DraggableDialog title={t('convert.sym_title', 'Symmetric Slider')} testid="symSlider" width={340} onClose={() => store.closeConversion()}>
+      <Row label={t('convert.mode', 'Mode')}>
+        {([['axis', t('convert.sym_mode_axis', 'Axis mirror')], ['point', t('convert.sym_mode_point', 'Point mirror')], ['rotate', t('convert.sym_mode_rotate', 'Rotate around center')], ['translate', t('convert.sym_mode_translate', 'Translate')]] as [SymSliderMode, string][]).map(([m, label]) => (
           <label key={m} className="flex items-center gap-0.5">
             <input type="radio" name="sym-mode" checked={params.mode === m} data-conv={`mode-${m}`}
               onChange={() => upd({ mode: m })} />
@@ -91,8 +93,8 @@ export function SymSliderDialog() {
           </label>
         ))}
       </Row>
-      <Row label="拼接">
-        {([['tail', '拼到尾部'], ['head', '拼到头部'], ['none', '独立副本']] as const).map(([j, label]) => (
+      <Row label={t('convert.join', 'Join')}>
+        {([['tail', t('convert.sym_join_tail', 'Join to tail')], ['head', t('convert.sym_join_head', 'Join to head')], ['none', t('convert.sym_join_none', 'Separate copy')]] as const).map(([j, label]) => (
           <label key={j} className="flex items-center gap-0.5">
             <input type="radio" name="sym-join" checked={params.join === j} data-conv={`join-${j}`}
               onChange={() => upd({ join: j })} />
@@ -101,15 +103,15 @@ export function SymSliderDialog() {
         ))}
       </Row>
       {!isAxisLike && (
-        <Row label="份数">
+        <Row label={t('convert.copies', 'Copies')}>
           <DraftNum value={params.count} testid="count" min={1} max={99} set={v => upd({ count: Math.round(v) })} />
-          <span className="text-white/40">轴/中心对称恒 1 份</span>
+          <span className="text-white/40">{t('convert.sym_axis_fixed_one', 'Axis/point symmetry is always 1 copy')}</span>
         </Row>
       )}
       {/* v236 二轮修正: 轴对称配置一行三选 — v/h 轴过拼接锚点 (仅方向有效), custom = 两点直线 (画布可拖) */}
       {params.mode === 'axis' && <>
-        <Row label="对称轴">
-          {([['v', '竖直线'], ['h', '水平线'], ['custom', '自定义']] as const).map(([d, label]) => (
+        <Row label={t('convert.axis', 'Axis')}>
+          {([['v', t('convert.sym_axis_v', 'Vertical line')], ['h', t('convert.sym_axis_h', 'Horizontal line')], ['custom', t('convert.custom', 'Custom')]] as const).map(([d, label]) => (
             <label key={d} className="flex items-center gap-0.5">
               <input type="radio" name="sym-axis-dir" checked={params.axisDir === d} data-conv={`dir-${d}`}
                 onChange={() => upd({ axisDir: d })} />
@@ -118,43 +120,43 @@ export function SymSliderDialog() {
           ))}
         </Row>
         {params.axisDir === 'custom' ? (<>
-          <Row label="轴点 1">
+          <Row label={t('convert.sym_axis_point_1', 'Axis point 1')}>
             <DraftNum value={params.axisP1.x} testid="axisP1x" set={v => upd({ axisP1: { ...params.axisP1, x: v } })} />
             <DraftNum value={params.axisP1.y} testid="axisP1y" set={v => upd({ axisP1: { ...params.axisP1, y: v } })} />
           </Row>
-          <Row label="轴点 2">
+          <Row label={t('convert.sym_axis_point_2', 'Axis point 2')}>
             <DraftNum value={params.axisP2.x} testid="axisP2x" set={v => upd({ axisP2: { ...params.axisP2, x: v } })} />
             <DraftNum value={params.axisP2.y} testid="axisP2y" set={v => upd({ axisP2: { ...params.axisP2, y: v } })} />
-            <span className="text-white/40">两点决定的直线, 画布可拖拽</span>
+            <span className="text-white/40">{t('convert.sym_axis_two_points', 'Line through two points; draggable on canvas')}</span>
           </Row>
         </>) : (
-          <div className="text-white/40">轴过拼接点 (拼尾=滑条尾, 拼头=滑条头, 副本=滑条尾)</div>
+          <div className="text-white/40">{t('convert.sym_axis_through_join', 'Axis passes through join point (tail join = slider tail, head join = slider head, copy = slider tail)')}</div>
         )}
       </>}
       {params.mode === 'rotate' && (
-        <Row label="旋转 °/份">
+        <Row label={t('convert.rotate_per_copy', 'Rotate °/copy')}>
           <DraftNum value={params.rotateDeg} testid="rotateDeg" min={-360} max={360}
             set={v => upd({ rotateDeg: v })} />
-          <span className="text-white/40">顺时针为正</span>
+          <span className="text-white/40">{t('convert.clockwise_positive', 'Clockwise is positive')}</span>
         </Row>
       )}
       {params.mode === 'translate' && <>
-        <Row label="向量/份">
+        <Row label={t('convert.vector_per_copy', 'Vector/copy')}>
           <DraftNum value={params.dx} testid="dx" min={-512} max={512} set={v => upd({ dx: v })} />
           <DraftNum value={params.dy} testid="dy" min={-512} max={512} set={v => upd({ dy: v })} />
           <span className="text-white/40">dx, dy px</span>
         </Row>
-        <Row label="增量/份">
+        <Row label={t('convert.increment_per_copy', 'Increment/copy')}>
           <DraftNum value={params.ddx} testid="ddx" min={-512} max={512} set={v => upd({ ddx: v })} />
           <DraftNum value={params.ddy} testid="ddy" min={-512} max={512} set={v => upd({ ddy: v })} />
-          <span className="text-white/40">第 i 份 = i×向量 + i(i-1)/2×增量</span>
+          <span className="text-white/40">{t('convert.sym_increment_formula', 'copy i = i×vector + i(i-1)/2×increment')}</span>
         </Row>
       </>}
       {/* v236 二轮修正: 锚点行只在 rotate/translate 显示 (axis/point 恒用拼接锚点, 无参数行);
           point = 无锚点, rotate = 旋转中心, translate = 缩放锚点 */}
       {(params.mode === 'rotate' || params.mode === 'translate') && (
-        <Row label="锚点">
-          {([['tail', '滑条尾'], ['head', '滑条头'], ['custom', '自定义']] as const).map(([a, label]) => (
+        <Row label={t('convert.anchor', 'Anchor')}>
+          {([['tail', t('convert.sym_anchor_tail', 'Slider tail')], ['head', t('convert.sym_anchor_head', 'Slider head')], ['custom', t('convert.custom', 'Custom')]] as const).map(([a, label]) => (
             <label key={a} className="flex items-center gap-0.5">
               <input type="radio" name="sym-anchor" checked={params.anchor === a} data-conv={`anchor-${a}`}
                 onChange={() => upd({ anchor: a })} />
@@ -164,26 +166,28 @@ export function SymSliderDialog() {
         </Row>
       )}
       {anchorActive && (
-        <Row label="锚点坐标">
+        <Row label={t('convert.anchor_coords', 'Anchor coordinates')}>
           <DraftNum value={params.customX} testid="customX" min={-1024} max={1024} set={v => upd({ customX: v })} />
           <DraftNum value={params.customY} testid="customY" min={-1024} max={1024} set={v => upd({ customY: v })} />
-          <span className="text-white/40">画布上可拖拽</span>
+          <span className="text-white/40">{t('convert.draggable_on_canvas', 'Draggable on canvas')}</span>
         </Row>
       )}
       {/* v236: 每份递增缩放 (v116 同款语义) — 第 i 份变换后绕缩放锚点 (axis/point = 拼接锚点) 再缩放 1 + i×此值 */}
-      <Row label="缩放/份">
+      <Row label={t('convert.scale_per_copy', 'Scale/copy')}>
         <DraftNum value={params.scalePerCopy} testid="scalePerCopy" min={-0.99} max={5} step={0.05}
           set={v => upd({ scalePerCopy: v })} />
-        <span className="text-white/40">第 i 份 = 1 + i×此值 (绕锚点)</span>
+        <span className="text-white/40">{t('convert.scale_formula_anchor', 'copy i = 1 + i×this (around anchor)')}</span>
       </Row>
       <div className="text-white/40">
         {params.join === 'none'
-          ? `将生成 ${copyCount} 个独立副本 (原滑条保留, 预览已隐藏)`
-          : `将拼接为 1 条滑条 (${joinedNodes} 个节点, ${params.join === 'tail' ? '拼到尾部, endTime 延长' : '拼到头部, time 提前'}, 替换原滑条)`}
+          ? t('convert.sym_summary_copies', 'Will create {n} separate copies (original slider kept, hidden in preview)', { n: copyCount })
+          : params.join === 'tail'
+            ? t('convert.sym_summary_join_tail', 'Will join into 1 slider ({n} nodes, joined to tail, endTime extended, replacing original)', { n: joinedNodes })
+            : t('convert.sym_summary_join_head', 'Will join into 1 slider ({n} nodes, joined to head, time moved earlier, replacing original)', { n: joinedNodes })}
       </div>
-      {!obj && <div className="text-red-300">需要恰好选中 1 个滑条 (当前选中变化, 请重新选择)</div>}
+      {!obj && <div className="text-red-300">{t('convert.sym_need_one_slider', 'Select exactly 1 slider (selection changed; please re-select)')}</div>}
       {result.length === 0 && obj && params.mode === 'axis' && params.axisDir === 'custom'
-        && <div className="text-red-300">自定义对称轴两点重合, 无法镜像</div>}
+        && <div className="text-red-300">{t('convert.sym_axis_degenerate', 'Custom axis points coincide; cannot mirror')}</div>}
       <div className="flex gap-2 pt-1">
         <button data-conv="apply"
           onClick={() => {
@@ -194,9 +198,9 @@ export function SymSliderDialog() {
           }}
           disabled={!obj || !result.length}
           className="px-3 py-1 rounded bg-pink-500 hover:bg-pink-400 disabled:opacity-40 text-white font-bold">
-          应用
+          {t('convert.apply', 'Apply')}
         </button>
-        <button onClick={() => store.closeConversion()} className="px-3 py-1 rounded bg-white/10 hover:bg-white/20">取消</button>
+        <button onClick={() => store.closeConversion()} className="px-3 py-1 rounded bg-white/10 hover:bg-white/20">{t('convert.cancel', 'Cancel')}</button>
       </div>
     </DraggableDialog>
   );

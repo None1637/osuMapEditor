@@ -16,11 +16,14 @@ section('App.tsx: 两个 Label 拆分 (v184: 页签栏 song setup 左侧, 名称
   const src = readSrc('src/App.tsx');
   assert(/flex-1 flex items-center justify-center gap-2 min-w-0 pointer-events-none/.test(src),
     '容器: 页签栏 flex-1 居中 (song setup 左侧)');
-  assert(/CS\{bm\.difficulty\.cs\} AR\{bm\.difficulty\.ar\} · \{bm\.hitObjects\.length\} 物件/.test(src),
-    '数据 Label: CS/AR/物件数');
+  // v346 i18n 改造后: 物件数文案走 t('app.object_count', ...), 中文译文在词典分片里
+  assert(/CS\{bm\.difficulty\.cs\} AR\{bm\.difficulty\.ar\} · \{t\('app\.object_count', '\{n\} objects', \{ n: bm\.hitObjects\.length \}\)\}/.test(src),
+    '数据 Label: CS/AR/物件数 (i18n key)');
+  const appDict = readSrc('src/i18n/dicts/zh-CN/app.ts');
+  assert(appDict.includes("'app.object_count': '{n} 物件'"), '物件数 zh-CN 译文正确');
   // v184: 顺序 = 名称 Label(左) → 数据 Label(右, CS/AR/物件数 → ★星数)
   const nameIdx = src.indexOf('{bm.metadata.artist} - {bm.metadata.title}');
-  const statsIdx = src.indexOf('{bm.hitObjects.length} 物件');
+  const statsIdx = src.indexOf("t('app.object_count'");
   const starIdx = src.indexOf('starRating.toFixed(2)'); // v181: ★${...} → lucide Star + toFixed(2)
   assert(nameIdx > -1 && statsIdx > nameIdx && starIdx > statsIdx, '顺序: 艺术家-歌曲名 (左) → 物件数 → ★星数 (右)');
   // 名称 Label 不含 CS/AR/物件数

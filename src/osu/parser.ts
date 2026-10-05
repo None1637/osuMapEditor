@@ -227,7 +227,8 @@ export function parseOsu(text: string): Beatmap {
 
   // colours 未提供时使用默认
   if (!bm.colors.combos.length) bm.colors.combos = ['#FF69B4', '#46B4FF', '#FFD746', '#6BFF6B'];
-  if (!bm.colors.sliderBorder) bm.colors.sliderBorder = '#FFFFFF';
+  // v348: sliderBorder 不回填默认 — 留空表示「谱面未定义」, 渲染层回退皮肤 SliderBorder/纯白
+  //   (回填 '#FFFFFF' 会让「关: 谱面 > 皮肤」链路里皮肤永远轮不到)
 
   bm.hitObjects.sort((a, b) => a.time - b.time);
   bm.timingPoints.sort((a, b) => a.time - b.time);

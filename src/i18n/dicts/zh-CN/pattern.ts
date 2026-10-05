@@ -1,0 +1,21 @@
+// pattern 收藏面板 zh-CN 词典分片
+export const zhCN: Record<string, string> = {
+  'pattern.library': 'pattern 库',
+  'pattern.name_placeholder': 'pattern 名称',
+  'pattern.bookmark_selected': '收藏选中 ({n})',
+  'pattern.bookmark_selected_label': '收藏选中',
+  'pattern.align_greenline': '插入绿线对齐',
+  'pattern.align_greenline_hint': '在 pattern 开头插入绿线改变 SV 对齐收藏时速度, 结尾插入绿线还原 SV',
+  'pattern.align_scale': '缩放滑条对齐',
+  'pattern.align_scale_hint': '几何缩放滑条大小, 确保收藏时占一拍的滑条拖出来后仍占一拍',
+  'pattern.new_group_placeholder': '新分类',
+  'pattern.rename': '改名',
+  'pattern.delete': '删除',
+  'pattern.empty_hint_pre': '该分类暂无 pattern — 选中物件后点「',
+  'pattern.empty_hint_post': '」',
+  'pattern.card_hint': '拖到游玩区放置; 拖到左侧分类标签移动分类',
+  'pattern.rename_hint': '双击重命名',
+  'pattern.delete_pattern': '删除 pattern',
+  'pattern.timing_hint': '时序按节拍数记录: 间隔一拍的 pattern 拖到其他 BPM 的歌曲仍间隔一拍。放置时首物件跟随鼠标 (享受物件/网格吸附), 起点时间 = 当前编辑器时间 (吸附节拍)。',
+  'pattern.ungrouped': '未分类',
+};

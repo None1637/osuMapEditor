@@ -64,7 +64,10 @@ section('SkinListPanel.tsx: Row 提升模块级 (播放中 60fps 重渲染不再
   assert(rowIdx !== -1 && rowIdx < panelIdx, 'Row 定义在 SkinListPanel 之前 (模块级)');
   assert(!src.includes('const Row = ('), '组件内 Row 定义已移除');
   assert(/function Row\(\{ name, label, current, busy, onChoose \}:/.test(src), 'Row 接收 current/busy/onChoose props');
-  assert(/<Row name=\{null\} label="默认皮肤 \(内置\)" current=\{current\} busy=\{busy\} onChoose=\{choose\} \/>/.test(src), '默认皮肤行传 props');
+  // v346 i18n 改造后: 默认皮肤行 label 走 t('skin.default_skin_builtin', ...)
+  assert(/<Row name=\{null\} label=\{t\('skin\.default_skin_builtin', 'Default Skin \(built-in\)'\)\} current=\{current\} busy=\{busy\} onChoose=\{choose\} \/>/.test(src), '默认皮肤行传 props (i18n label)');
+  const skinDict = readSrc('src/i18n/dicts/zh-CN/skin.ts');
+  assert(skinDict.includes("'skin.default_skin_builtin': '默认皮肤 (内置)'"), '默认皮肤行 zh-CN 译文 = 默认皮肤 (内置)');
   assert(/skins\.map\(name => <Row key=\{name\} name=\{name\} label=\{name\} current=\{current\} busy=\{busy\} onChoose=\{choose\} \/>\)/.test(src), '皮肤行传 props');
 }
 

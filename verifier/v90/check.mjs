@@ -47,8 +47,8 @@ section('App.tsx: 「辅助线」切换 + 「辅助线配置」开面板');
 {
   const app = readSrc('src/App.tsx');
   assert(/data-geo-input="toggle"/.test(app) && /setGeoEnabled\(!store\.geoEnabled\)/.test(app), '辅助线按钮 = 切换显示/隐藏');
-  assert(/Magnet className[^>]*\/>辅助线/.test(app), '按钮名 = 辅助线 (v181: 🧲 → lucide Magnet)');
-  assert(/data-geo-input="panel-toggle"/.test(app) && /Settings2 className[^>]*\/>辅助线配置/.test(app), '辅助线配置按钮 = 开面板 (v181: ⚙ → lucide Settings2)');
+  assert(/Magnet className[^>]*\/>\{t\('app\.geo_lines', 'Guides'\)\}/.test(app) && /'app\.geo_lines': '辅助线'/.test(readSrc('src/i18n/dicts/zh-CN/app.ts')), '按钮名 = 辅助线 (v181: 🧲 → lucide Magnet; v346: i18n key)');
+  assert(/data-geo-input="panel-toggle"/.test(app) && /Settings2 className[^>]*\/>\{t\('app\.geo_config', 'Guide Settings'\)\}/.test(app) && /'app\.geo_config': '辅助线配置'/.test(readSrc('src/i18n/dicts/zh-CN/app.ts')), '辅助线配置按钮 = 开面板 (v181: ⚙ → lucide Settings2; v346: i18n key)');
 }
 
 if (failures) { console.error(`\nVERIFIER_V90_FAILED: ${failures} 处失败`); process.exit(1); }

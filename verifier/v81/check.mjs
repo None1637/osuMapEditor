@@ -33,7 +33,9 @@ section('App.tsx: 谱面名称加宽 + 保存反馈前缀');
 section('TimingPanel.tsx: 帮助文本同步');
 {
   const src = readSrc('src/components/TimingPanel.tsx');
-  assert(/并通过 \{hotkeyLabel\('save'\)\} 保存/.test(src), '帮助文本为保存热键 (导出按钮已删; v321: hotkeyLabel 动态)');
+  // v346: 帮助文本走 i18n key timing.help_undo, {save} 占位仍由 hotkeyLabel('save') 动态注入
+  assert(/t\('timing\.help_undo'/.test(src) && /save: hotkeyLabel\('save'\)/.test(src), '帮助文本为保存热键 (导出按钮已删; v321: hotkeyLabel 动态; v346: i18n key)');
+  assert(/'timing\.help_undo': '所有修改支持 \{undo\} 撤销, 并通过 \{save\} 保存。'/.test(readSrc('src/i18n/dicts/zh-CN/timing.ts')), '帮助文本 zh-CN 译文 (通过 {save} 保存)');
   assert(!/「导出 \.osu」/.test(src), '旧「导出 .osu」文本已移除');
 }
 

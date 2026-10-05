@@ -22,7 +22,7 @@ section('Timelines.tsx: 物件拖拽');
   const src = readSrc('src/components/Timelines.tsx');
   assert(src.includes('markerDragRef') && src.includes('snapMs'), 'markerDragRef + 节拍吸附 snapMs');
   assert(/store\.beginDrag\(\);[\s\S]*?store\.canvasDragging = true/.test(src), '拖拽开始: undo 快照 + 守卫标志');
-  assert(/finishMarkerDrag[\s\S]*?store\.undo\(\)/.test(src), '未拖动 = 点击: 弹空快照 (v79 起不再 seek)');
+  assert(/finishMarkerDrag[\s\S]*?store\.cancelDragNoop\(\)/.test(src), '未拖动 = 点击: 弹空快照 (v79 起不再 seek; v345 起 cancelDragNoop)');
   assert(/window\.addEventListener\('mouseup'/.test(src), 'window mouseup 兜底收尾');
 }
 

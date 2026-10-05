@@ -96,7 +96,10 @@ section('SkinPicker/App: UI 接线与启动自动恢复');
   assert(src.includes('collectSampleFiles') && src.includes('applySkinSamples'), '皮肤 hitsound 应用');
   const app = readSrc('src/App.tsx');
   assert(app.includes('SkinPicker'), 'App 引入 SkinPicker');
-  assert(app.includes('Palette') && /Palette className="inline-block w-4 h-4 mr-1 -mt-0\.5" \/>皮肤/.test(app), '工具栏皮肤按钮 (v181: 🎨 → lucide Palette)');
+  // v346 多语言改造: 按钮文本走 i18n (app.skin), 图标仍是 lucide Palette
+  assert(app.includes('Palette') && /Palette className="inline-block w-4 h-4 mr-1 -mt-0\.5" \/>\{t\('app\.skin', 'Skin'\)\}/.test(app), '工具栏皮肤按钮 (v181: 🎨 → lucide Palette, v346: i18n app.skin)');
+  const zhApp = readSrc('src/i18n/dicts/zh-CN/app.ts');
+  assert(/'app\.skin':\s*'皮肤'/.test(zhApp), 'zh-CN 词典 app.skin 译文为「皮肤」');
   assert(app.includes('restoreSkinDir'), '启动时自动恢复皮肤目录');
   assert(app.includes('showLibrary || showSkin'), '皮肤面板打开时禁用快捷键');
 }

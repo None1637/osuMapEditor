@@ -56,7 +56,9 @@ const main = read('electron/main.cjs');
 ok(main.includes('"backup_beatmaps"') && /app\.isPackaged \? path\.dirname\(app\.getPath\("exe"\)\)/.test(main), '备份根目录 = exe 同目录/backup_beatmaps (dev 回退 app/)');
 ok(/ipcMain\.handle\("backup-beatmap"/.test(main), 'IPC: backup-beatmap');
 ok(/ipcMain\.handle\("open-backup-folder"/.test(main) && /shell\.openPath\(folder\)/.test(main), 'IPC: open-backup-folder → shell.openPath');
-ok(/label: "查看备份"[\s\S]*?type: "open-backups"/.test(main), '文件菜单含「查看备份」→ open-backups');
+// v346 i18n 适配: 菜单 label 走 mT("menu.view_backups"), 中文译文在 main.cjs 菜单词典
+ok(/mT\("menu\.view_backups"\)[\s\S]*?type: "open-backups"/.test(main), '文件菜单含「查看备份」(menu.view_backups) → open-backups');
+ok(/"menu\.view_backups": \{[^}]*"zh-CN": "查看备份"/.test(main), '菜单词典: menu.view_backups 中文 = 查看备份');
 ok(/backupCore = await import\("\.\.\/server\/backupCore\.mjs"\)/.test(main), 'main() 动态 import backupCore');
 
 // ---------- preload / bridge ----------

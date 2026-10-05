@@ -53,7 +53,10 @@ section('App.tsx: 左侧栏开关 + x/y/scale 输入框');
   assert(/data-pan-input="toggle"/.test(src), '开关按钮 (data-pan-input=toggle)');
   assert(/store\.playfieldPanEnabled = !store\.playfieldPanEnabled/.test(src), '开关切换 store');
   assert(/data-pan-input=\{label\}/.test(src), '输入框带 data-pan-input (x/y/scale, CDP 可测)');
-  assert(/<PanNumInput label="x"/.test(src) && /<PanNumInput label="y"/.test(src) && /<PanNumInput label="缩放"/.test(src), 'x/y/缩放 三个输入框 (v224: scale 改名缩放)');
+  // v346 i18n: 缩放输入框 label 改英文原文 'Zoom' + labelKey 'app.playfield_zoom', zh-CN 译文 '缩放' 在 dicts/zh-CN/app.ts
+  const dict = readSrc('src/i18n/dicts/zh-CN/app.ts');
+  assert(/<PanNumInput label="x"/.test(src) && /<PanNumInput label="y"/.test(src) && /<PanNumInput label="Zoom" labelKey="app\.playfield_zoom"/.test(src), 'x/y/缩放 三个输入框 (v224: scale 改名缩放; v346: 缩放走 i18n key app.playfield_zoom)');
+  assert(/'app\.playfield_zoom': '缩放'/.test(dict), '词典 app.playfield_zoom 译文 = 缩放');
   assert(/min=\{0\.1\} max=\{10\}/.test(src), 'scale 钳 0.1..10');
   assert(/value=\{text \?\? String\(value\)\}/.test(src) && /onBlur=\{\(\) => setText\(null\)\}/.test(src), '局部文本态: 拖动中实时刷新, 失焦还原');
 }

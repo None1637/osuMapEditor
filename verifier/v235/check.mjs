@@ -26,14 +26,17 @@ console.log('== EditorCanvas.tsx: 四处吸附拦截');
   assert(/const snapWithGeo = \([^\n]+\): Pt \| null => \{\s*if \(!store\.objectSnapEnabled\) return null;/.test(src), 'snapWithGeo 入口拦截 (物件点+几何+间距辅助线)');
   assert(/const geoSnap = \([^\n]+\): Pt \| null => \{\s*if \(!store\.objectSnapEnabled\) return null;/.test(src), 'geoSnap 入口拦截 (拖拽几何修正)');
   assert(/const geoDistSnap = \([^\n]+\): Pt \| null => \{\s*if \(!store\.objectSnapEnabled\) return null;/.test(src), 'geoDistSnap 入口拦截 (拖拽间距辅助线修正)');
-  assert(/const corr = store\.objectSnapEnabled \? snapDragDelta\(dragPts, targets, dx, dy\) : null;/.test(src), 'snapDragDelta 拖拽整体校正拦截');
+  assert(/const corr = store\.objectSnapEnabled[\s\S]{0,240}?\? snapDragDelta\(dragPts, objectSnapPoints/.test(src), 'snapDragDelta 拖拽整体校正拦截 (v341: 目标点预算收进开关内)');
 }
 
 console.log('== App.tsx: 左侧栏按钮 (网格中心区块之后)');
 {
   const src = readSrc('src/App.tsx');
   assert(/setObjectSnapEnabled\(!store\.objectSnapEnabled\)/.test(src) && /data-grid-input="object-snap-toggle"/.test(src), '吸附到物件按钮接线');
-  assert(/<Target className="inline-block w-4 h-4 mr-1 -mt-0\.5" \/>吸附到物件/.test(src), '按钮文案 + Target 图标 (lucide)');
+  // v346 i18n: 按钮文案改 t('app.object_snap', 'Snap to Objects'), 中文译文 '吸附到物件' 在 dicts/zh-CN/app.ts
+  const dict = readSrc('src/i18n/dicts/zh-CN/app.ts');
+  assert(/<Target className="inline-block w-4 h-4 mr-1 -mt-0\.5" \/>\{t\('app\.object_snap', 'Snap to Objects'\)\}/.test(src), '按钮文案 + Target 图标 (lucide; i18n key app.object_snap)');
+  assert(/'app\.object_snap': '吸附到物件'/.test(dict), '词典 app.object_snap 译文 = 吸附到物件');
   assert(/from 'lucide-react';/.test(src) && /Move, Target/.test(src), 'Target 已导入');
   const iOrigin = src.indexOf('网格中心');
   const iBtn = src.indexOf('吸附到物件');

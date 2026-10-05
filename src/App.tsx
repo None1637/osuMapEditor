@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 // v181: 图标统一用 Lucide (规范: 界面禁用 emoji 图标, 见 AGENTS.md)
-import { Volume2, Eye, Keyboard, Play, FolderOpen, Palette, Ruler, Lock, LockOpen, Crosshair, Box, Magnet, Settings2, Package, AudioWaveform, Star, Undo2, Redo2, Grid3x3, MousePointer2, Circle, Spline, Disc, Move, Target } from 'lucide-react';
+import { Volume2, Eye, Keyboard, Play, FolderOpen, Palette, Ruler, Lock, LockOpen, Crosshair, Box, Magnet, Settings2, Package, AudioWaveform, Star, Undo2, Redo2, Grid3x3, MousePointer2, Circle, Spline, Disc, Move, Target, RefreshCw } from 'lucide-react';
 import { store, useEditor, type Tool } from '@/osu/store';
+import { loadDifficulty } from '@/osu/library'; // v350: 刷新谱面 (从磁盘重载)
 import { seekByBeats } from '@/osu/seekSnapping';
 import { BEAT_SNAP_OPTIONS } from '@/osu/sliderPath'; // v218: 节拍细分配置项 (与滑条长度吸附同一来源)
 import { normalizeRotation, rotationPeriod } from '@/osu/gridSnap';
@@ -14,6 +15,7 @@ import { Inspector } from '@/components/Inspector';
 import { StreamDialog } from '@/components/convert/StreamDialog';
 import { GeoSnapPanel } from '@/components/GeoSnapPanel';
 import { DisplayPanel } from '@/components/DisplayPanel'; // v132: 显示设置面板
+import { LangSwitcher } from '@/components/LangSwitcher'; // v346: 语言切换
 import { HotkeyPanel } from '@/components/HotkeyPanel'; // v286: 快捷键设置面板 (自定义改键)
 import { TestPlayOverlay } from '@/components/TestPlayOverlay'; // v287: 测试游玩覆盖层 (lazer EditorPlayer)
 import { findHotkeyAction, hotkeyCaptureActive, hotkeyLabel } from '@/osu/hotkeys'; // v286: 快捷键注册表派发; v321: hotkeyLabel (F21 提示动态化)
@@ -37,28 +39,32 @@ import { computeStarRating } from '@/osu/starRating'; // v167: 谱面星数 (laz
 import { FirstRunWizard } from '@/components/FirstRunWizard';
 import { SkinListPanel } from '@/components/SkinListPanel';
 import { UnsavedDialog } from '@/components/UnsavedDialog'; // v120
+import { LangFirstRun } from '@/components/LangFirstRun'; // v349: 首次启动先选语言
 import { TransformDialog } from '@/components/TransformDialog'; // v209: 旋转/缩放独立窗口
 import { FpsCounter } from '@/components/FpsCounter'; // v220: 右下角帧数显示
 import { displaySettings } from '@/osu/displaySettings'; // v253: 帧数显示开关
+import { useT } from '@/i18n'; // v346: 多语言
 
 // v191: 工具按钮文本前加 Lucide 图标; v321 (F21): key 改为动作 id, 展示名经 hotkeyLabel 动态取 (改键同步)
-const TOOLS: { id: Tool; label: string; action: string; icon: typeof MousePointer2 }[] = [
-  { id: 'select', label: '选择', action: 'tool-select', icon: MousePointer2 },
-  { id: 'circle', label: '单点', action: 'tool-circle', icon: Circle },
-  { id: 'slider', label: '滑条', action: 'tool-slider', icon: Spline },
-  { id: 'spinner', label: '转盘', action: 'tool-spinner', icon: Disc },
+// v346: label = 英文原文 (i18n 回退兜底), labelKey = 词典符号键 (zh-CN 译文在 dicts/zh-CN/app.ts)
+const TOOLS: { id: Tool; labelKey: string; label: string; action: string; icon: typeof MousePointer2 }[] = [
+  { id: 'select', labelKey: 'app.tool_select', label: 'Select', action: 'tool-select', icon: MousePointer2 },
+  { id: 'circle', labelKey: 'app.tool_circle', label: 'Hit Circle', action: 'tool-circle', icon: Circle },
+  { id: 'slider', labelKey: 'app.tool_slider', label: 'Slider', action: 'tool-slider', icon: Spline },
+  { id: 'spinner', labelKey: 'app.tool_spinner', label: 'Spinner', action: 'tool-spinner', icon: Disc },
 ];
 
 // v223: 游玩区平移/缩放数值输入 — 局部文本态 (同 GridSpacingInput): 未聚焦显示 store 值 (中键拖动时实时刷新),
 // 聚焦后编辑原文 (可输负号/小数中间态), 仅有限值提交 (scale 钳 0.1..10), 失焦还原
 // v224: grow = 平分父行宽度 (x/y 行); 默认固定宽 (开关行的缩放)
-function PanNumInput({ label, value, step, min, max, grow, onCommit }: {
-  label: string; value: number; step: number; min?: number; max?: number; grow?: boolean; onCommit: (v: number) => void;
+function PanNumInput({ label, labelKey, value, step, min, max, grow, onCommit }: {
+  label: string; labelKey?: string; value: number; step: number; min?: number; max?: number; grow?: boolean; onCommit: (v: number) => void;
 }) {
+  const t = useT(); // v346
   const [text, setText] = useState<string | null>(null);
   return (
     <span className={`flex items-center gap-0.5 ${grow ? 'flex-1 min-w-0' : 'shrink-0'}`}>
-      <span className="text-white/50 shrink-0">{label}</span>
+      <span className="text-white/50 shrink-0">{labelKey ? t(labelKey, label) : label}</span>
       <input type="number" step={step} data-pan-input={label}
         value={text ?? String(value)}
         onFocus={() => setText(String(value))}
@@ -88,8 +94,7 @@ function GridSpacingInput({ disabled }: { disabled: boolean }) {
         const v = parseInt(e.target.value);
         if (store.beatmap && isFinite(v) && v >= 4 && v <= 256) {
           store.gridSpacing = v;
-          store.beatmap.editor.gridSize = v; // lazer: GridLineSpacing 写回 editorBeatmap.GridSize
-          store.emit();
+          store.setEditorField('gridSize', v); // lazer: GridLineSpacing 写回 editorBeatmap.GridSize; v345: 入 undo
         }
       }}
       onBlur={() => setText(null)}
@@ -99,6 +104,7 @@ function GridSpacingInput({ disabled }: { disabled: boolean }) {
 
 // v156: Timing 菜单「整体平移所有物件的时间...」弹窗 (模块级组件 — 组件内定义会随 60fps 重渲染重挂载吞点击, 见 v150)
 function ShiftAllDialog({ onClose }: { onClose: () => void }) {
+  const t = useT(); // v346
   const [text, setText] = useState('0');
   const ms = parseFloat(text);
   const ok = isFinite(ms) && ms !== 0;
@@ -106,19 +112,19 @@ function ShiftAllDialog({ onClose }: { onClose: () => void }) {
     <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center" onClick={onClose}>
       <div className="w-72 bg-[#16161d] border border-[#333] rounded-lg p-4 flex flex-col gap-3 text-xs text-white/80"
            onClick={e => e.stopPropagation()} data-shiftall-dialog>
-        <div className="text-sm font-semibold text-white">整体平移所有物件的时间</div>
+        <div className="text-sm font-semibold text-white">{t('app.shift_all_title', 'Shift All Objects in Time')}</div>
         <label className="flex items-center gap-2">
-          偏移 (ms)
+          {t('app.shift_all_offset', 'Offset (ms)')}
           <input type="number" step={1} autoFocus value={text} data-shiftall-input
             onChange={e => setText(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter' && ok) { store.timingShiftAll(ms); onClose(); } if (e.key === 'Escape') onClose(); }}
             className="flex-1 bg-black/40 border border-white/15 rounded px-2 py-1 text-right" />
         </label>
-        <div className="text-white/40">所有物件的 time/endTime 同步平移 (负值前移)。支持撤销 (Ctrl+Z)。</div>
+        <div className="text-white/40">{t('app.shift_all_hint', 'Shifts time/endTime of all objects together (negative moves earlier). Supports undo (Ctrl+Z).')}</div>
         <div className="flex justify-end gap-2">
-          <button className="px-3 py-1 rounded bg-[#2c2c38] hover:bg-[#3c3c4c]" onClick={onClose}>取消</button>
+          <button className="px-3 py-1 rounded bg-[#2c2c38] hover:bg-[#3c3c4c]" onClick={onClose}>{t('app.cancel', 'Cancel')}</button>
           <button className="px-3 py-1 rounded bg-[#e6437d] hover:bg-[#f0558e] disabled:opacity-40" disabled={!ok}
-            onClick={() => { store.timingShiftAll(ms); onClose(); }}>应用</button>
+            onClick={() => { store.timingShiftAll(ms); onClose(); }}>{t('app.apply', 'Apply')}</button>
         </div>
       </div>
     </div>
@@ -134,6 +140,7 @@ import { useUiZoom, textZoomComp } from '@/osu/uiZoom';
 
 export default function App() {
   useEditor();
+  const t = useT(); // v346: 多语言
   const uiZoom = useUiZoom(); // v217
   const fsComp = textZoomComp(); // v225: 文本补偿系数 (resize 时随 useUiZoom 重渲染更新)
   const [tab, setTab] = useState<'edit' | 'setup' | 'timing'>('edit');
@@ -149,6 +156,25 @@ export default function App() {
   const [libraryKey, setLibraryKey] = useState(0);
   // v263: 窗口条隐藏 (Electron, 重启生效) — 生效时页签栏兼作窗口拖拽区, 右侧留白避开原生窗口按钮
   const [hideTitleBar, setHideTitleBar] = useState(false);
+  const [reloadingMap, setReloadingMap] = useState(false); // v350: 刷新谱面中
+
+  // v350: 刷新谱面 — 从磁盘重新加载当前 .osu (osu! 本体/记事本等外部修改后更新表现;
+  //   未保存的改动经 guardUnsaved 确认后丢弃; 重载后尽量保持当前时间)
+  const reloadMap = async () => {
+    const src = store.mapSource;
+    if (!src || reloadingMap) return;
+    if (!store.guardUnsaved(() => { void reloadMap(); })) return;
+    setReloadingMap(true);
+    try {
+      const r = await loadDifficulty(src.dir, src.fileName);
+      const t0 = store.currentTime;
+      store.load(r.bm, r.audioUrl, r.bgUrl, r.samples, src);
+      const lastEnd = r.bm.hitObjects.reduce((m, o) => Math.max(m, o.endTime || o.time), 0);
+      store.seek(Math.min(t0, lastEnd + 5000));
+    } catch (e) {
+      alert(t('app.reload_failed', 'Reload failed: {msg}', { msg: e instanceof Error ? e.message : String(e) }));
+    } finally { setReloadingMap(false); }
+  };
 
   // Electron: 首跑 (曲库目录未配置) 显示配置向导; 菜单"重新配置"也可再次打开
   useEffect(() => {
@@ -244,6 +270,17 @@ export default function App() {
       if (showLibrary || showSkin || testPlay) return;
       if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return;
       if (hotkeyCaptureActive()) return; // v286: 改键捕获中不派发
+      // v345: 变换预览会话 (旋转/缩放/对称窗口) 中屏蔽编辑类快捷键 — 预览态物件几何不该进 undo
+      //   快照 (撤销链错位, 「不能撤销到上次保存」B 类根因) 也不该被 J/K/Delete/Ctrl+G 等改动;
+      //   放行 save (内部先回滚预览) / 窗口切换 / Esc 关窗
+      if (store.transformDialog) {
+        const id0 = findHotkeyAction(e);
+        if (id0 === 'save') { e.preventDefault(); store.save(); }
+        else if (id0 === 'open-rotate') { e.preventDefault(); store.openTransformDialog('rotate'); }
+        else if (id0 === 'open-scale') { e.preventDefault(); store.openTransformDialog('scale'); }
+        else if (id0 === 'cancel') { e.preventDefault(); store.closeTransformDialog(); }
+        return;
+      }
       // v321 (F26): Shift+数字 1..8 = 直接设节拍细分 (stable 同款; 用 e.code 防 Shift 变换键符如 '!';
       // 必须先于 findHotkeyAction — 其 Shift 松弛匹配会把 Shift+1 误判成 tool-select)
       if (e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && /^Digit[1-8]$/.test(e.code)) {
@@ -266,6 +303,9 @@ export default function App() {
         case 'bookmark-remove': e.preventDefault(); store.removeBookmarkNear(store.currentTime); return;
         case 'tool-select': case 'tool-circle': case 'tool-slider': case 'tool-spinner':
           store.tool = id.slice(5) as Tool; store.pendingSlider = []; store.pendingSpinner = null; store.emit(); return;
+        case 'tab-compose': e.preventDefault(); setTab('edit'); return; // v352: F1
+        case 'tab-timing': e.preventDefault(); setTab('timing'); return; // v352: F2
+        case 'tab-setup': e.preventDefault(); setTab('setup'); return; // v352: F3
         case 'undo': e.preventDefault(); store.undo(); return;
         case 'redo': e.preventDefault(); store.redo(); return;
         case 'copy': store.copy(); return;
@@ -420,7 +460,7 @@ export default function App() {
     <div className="h-screen w-screen overflow-hidden bg-[#0d0d12] text-white relative">
     <div
       className="ui-zoom-root flex flex-col overflow-hidden relative"
-      style={{ zoom: uiZoom, width: `${100 / uiZoom}vw`, height: `${100 / uiZoom}vh`, '--fs-comp': fsComp } as CSSProperties}
+      style={{ zoom: uiZoom, width: `${100 / uiZoom}vw`, height: `${100 / uiZoom}vh`, '--fs-comp': fsComp, '--ui-zoom': uiZoom } as CSSProperties}
     >
       {/* v127: 原 h-12 顶部标题行 (粉色加粗标题文字) 已删除 — 无实际功能 */}
 
@@ -434,31 +474,31 @@ export default function App() {
           菜单条自身留白 140), 页签栏在其下不被覆盖 (原 140 留白导致音量/显示设置按钮被无故左移) */}
       <div className="flex items-stretch gap-1 px-3 bg-[#101016] border-b border-white/10 shrink-0"
         style={hideTitleBar ? { WebkitAppRegion: 'drag' } as CSSProperties : undefined}>
-        {([['edit', 'compose'], ['timing', 'timing']] as const).map(([id, label]) => (
+        {([['edit', 'compose', 'tab-compose'], ['timing', 'timing', 'tab-timing']] as const).map(([id, label, action]) => (
           <button key={id} onClick={() => setTab(id)}
             style={{ WebkitAppRegion: 'no-drag' } as CSSProperties}
             className={`px-7 py-2 text-lg tracking-wide transition-colors ${tab === id ? 'bg-[#2563eb] text-white font-bold rounded-t-md mt-1' : 'text-white/45 hover:text-white/80'}`}>
-            {label}
+            {label} <span className="opacity-50 text-xs">{hotkeyLabel(action)}</span>{/* v352: F1/F2 提示 */}
           </button>
         ))}
         <button onClick={() => setTab('setup')}
           style={{ WebkitAppRegion: 'no-drag' } as CSSProperties}
           className={`px-7 py-2 text-lg tracking-wide transition-colors ${tab === 'setup' ? 'bg-[#2563eb] text-white font-bold rounded-t-md mt-1' : 'text-white/45 hover:text-white/80'}`}>
-          song setup
+          song setup <span className="opacity-50 text-xs">{hotkeyLabel('tab-setup')}</span>{/* v352: F3 提示 */}
         </button>
         {/* v184: 谱面信息从游玩区左下角移到页签栏 — v186: song setup 在谱面信息左边, flex-1 居中尽量靠窗口中间 (所有页签可见);
             仍分两个 Label: 左 = 名称 (艺术家-歌曲名[难度名], 未保存指示器/保存反馈随行), 右 = 谱面数据 (CS/AR/物件数/★星数);
             (原 v111 左下角 / v124 未保存指示器 / v169 两段拆分, 位置属性 data-dirty-indicator/data-save-message 不变) */}
         {bm && (
           <div className="flex-1 flex items-center justify-center gap-2 min-w-0 pointer-events-none">
-            <div className={`text-xs bg-black/60 rounded px-2 py-1 truncate min-w-0 max-w-[28rem] ${store.saveMessage ? (store.saveMessage.startsWith('保存失败') ? 'text-red-400' : 'text-emerald-400') : 'text-white/50'}`}
+            <div className={`text-xs bg-black/60 rounded px-2 py-1 truncate min-w-0 max-w-[28rem] ${store.saveMessage ? (store.saveMessage.startsWith(t('app.save_failed', 'Save failed')) ? 'text-red-400' : 'text-emerald-400') : 'text-white/50'}`}
               {...(store.saveMessage ? { 'data-save-message': store.saveMessage } : {})}>
-              {store.dirty && <b className="text-white/90" data-dirty-indicator>[<span className="inline-block w-2 h-2 rounded-full bg-white/90 align-middle" /> 未保存] </b>}
+              {store.dirty && <b className="text-white/90" data-dirty-indicator>[<span className="inline-block w-2 h-2 rounded-full bg-white/90 align-middle" /> {t('app.unsaved', 'Unsaved')}] </b>}
               {store.saveMessage && <b>[{store.saveMessage.split(':')[0]}] </b>}
               {bm.metadata.artist} - {bm.metadata.title} [{bm.metadata.version}]
             </div>
             <div className="text-xs bg-black/60 rounded px-2 py-1 text-white/50 whitespace-nowrap shrink-0">
-              CS{bm.difficulty.cs} AR{bm.difficulty.ar} · {bm.hitObjects.length} 物件
+              CS{bm.difficulty.cs} AR{bm.difficulty.ar} · {t('app.object_count', '{n} objects', { n: bm.hitObjects.length })}
               {store.starRating !== null && <> · <Star className="inline w-3 h-3 -mt-0.5 fill-current" />{store.starRating.toFixed(2)}</>}{/* v167: 星数 (lazer 移植, 防抖异步重算); v181: ★→lucide Star */}
             </div>
           </div>
@@ -470,32 +510,43 @@ export default function App() {
           data-volume-panel-btn
           style={{ WebkitAppRegion: 'no-drag' } as CSSProperties}
           className={`self-center px-3 py-1 rounded text-sm transition-colors ${store.volumePanelOpen ? 'bg-red-500/40 border border-red-400/50' : 'bg-white/10 hover:bg-white/20'}`}
-          title="音量设置: 主音量 / 歌曲音量 / 音效音量">
-          <Volume2 className="inline-block w-4 h-4 mr-1 -mt-0.5" />音量
+          title={t('app.volume_title', 'Volume settings: master / music / effects volume')}>
+          <Volume2 className="inline-block w-4 h-4 mr-1 -mt-0.5" />{t('app.volume', 'Volume')}
         </button>
         {/* v287: 测试游玩 — 快捷键左侧按钮 (F5, lazer EditorPlayer) */}
         <button onClick={() => setTestPlay(true)}
           data-testplay-btn
           style={{ WebkitAppRegion: 'no-drag' } as CSSProperties}
           className="self-center px-3 py-1 rounded text-sm transition-colors bg-white/10 hover:bg-white/20"
-          title="测试游玩 (F5): 从当前时间前3秒开始游玩谱面, Esc 返回编辑器">
-          <Play className="inline-block w-4 h-4 mr-1 -mt-0.5" />测试游玩
+          title={t('app.test_play_title', 'Test play (F5): play the beatmap from 3s before the current time, Esc returns to the editor')}>
+          <Play className="inline-block w-4 h-4 mr-1 -mt-0.5" />{t('app.test_play', 'Test Play')}
         </button>
         {/* v286: 快捷键设置 — 显示设置左侧按钮 (自定义改键) */}
         <button onClick={() => store.setHotkeyPanelOpen(!store.hotkeyPanelOpen)}
           data-hotkey-panel-btn
           style={{ WebkitAppRegion: 'no-drag' } as CSSProperties}
           className={`self-center px-3 py-1 rounded text-sm transition-colors ${store.hotkeyPanelOpen ? 'bg-red-500/40 border border-red-400/50' : 'bg-white/10 hover:bg-white/20'}`}
-          title="快捷键设置: 查看/自定义全部快捷键">
-          <Keyboard className="inline-block w-4 h-4 mr-1 -mt-0.5" />快捷键
+          title={t('app.hotkeys_title', 'Hotkey settings: view/customize all hotkeys')}>
+          <Keyboard className="inline-block w-4 h-4 mr-1 -mt-0.5" />{t('app.hotkeys', 'Hotkeys')}
         </button>
         <button onClick={() => store.setDisplayPanelOpen(!store.displayPanelOpen)}
           data-display-panel-btn
           style={{ WebkitAppRegion: 'no-drag' } as CSSProperties}
           className={`self-center px-3 py-1 rounded text-sm transition-colors ${store.displayPanelOpen ? 'bg-red-500/40 border border-red-400/50' : 'bg-white/10 hover:bg-white/20'}`}
-          title="显示设置: 皮肤颜色 / 滑条轨迹线 / 缩圈 / 滑条渐出 / note 点击特效 开关">
-          <Eye className="inline-block w-4 h-4 mr-1 -mt-0.5" />显示设置
+          title={t('app.display_settings_title', 'Display settings: skin colors / slider track lines / approach circles / slider fade-out / note click effects toggles')}>
+          <Eye className="inline-block w-4 h-4 mr-1 -mt-0.5" />{t('app.display_settings', 'Display Settings')}
         </button>
+        {/* v350: 刷新谱面 — 外部修改 .osu 后从磁盘重载 (无磁盘来源时禁用) */}
+        <button onClick={() => { void reloadMap(); }}
+          data-reload-map-btn
+          disabled={!store.mapSource || reloadingMap}
+          style={{ WebkitAppRegion: 'no-drag' } as CSSProperties}
+          className="self-center px-3 py-1 rounded text-sm transition-colors bg-white/10 hover:bg-white/20 disabled:opacity-40 disabled:cursor-not-allowed"
+          title={t('app.reload_map_title', 'Reload the current beatmap from disk (picks up external edits, e.g. from osu! or a text editor; unsaved changes are discarded)')}>
+          <RefreshCw className={`inline-block w-4 h-4 mr-1 -mt-0.5${reloadingMap ? ' animate-spin' : ''}`} />{t('app.reload_map', 'Reload')}
+        </button>
+        {/* v346: 语言切换 (简体中文/繁體中文/English) */}
+        <LangSwitcher />
       </div>
 
       {/* v129: 主区 = 相对容器 — edit 页签时 EditorCanvas 铺满底层 (absolute inset-0 z-0),
@@ -524,48 +575,48 @@ export default function App() {
         <div className="w-56 shrink-0 bg-[#16161d]/75 border-r border-white/10 overflow-y-auto flex flex-col gap-1.5 px-2 py-2 text-sm pointer-events-auto">
           {/* 文件 (v151: 曲库/皮肤各半宽, 并排一行) */}
           <div className="flex gap-1.5">
-            <button onClick={() => setShowLibrary(true)} className="flex-1 min-w-0 text-left px-3 py-1.5 rounded bg-pink-500/30 border border-pink-400/40 hover:bg-pink-500/50" title="浏览 osu! Songs 目录, 选择歌曲与难度"><FolderOpen className="inline-block w-4 h-4 mr-1 -mt-0.5" />曲库</button>
-            <button onClick={() => setShowSkin(true)} className="flex-1 min-w-0 text-left px-3 py-1.5 rounded bg-white/10 hover:bg-white/20" title="选择 osu! 皮肤文件夹 (贴图 + hitsound), 会记住选择"><Palette className="inline-block w-4 h-4 mr-1 -mt-0.5" />皮肤</button>
+            <button onClick={() => setShowLibrary(true)} className="flex-1 min-w-0 text-left px-3 py-1.5 rounded bg-white/10 hover:bg-white/20" title={t('app.song_library_title', 'Browse the osu! Songs folder, pick a song and difficulty')}><FolderOpen className="inline-block w-4 h-4 mr-1 -mt-0.5" />{t('app.song_library', 'Song Library')}</button>
+            <button onClick={() => setShowSkin(true)} className="flex-1 min-w-0 text-left px-3 py-1.5 rounded bg-white/10 hover:bg-white/20" title={t('app.skin_title', 'Pick an osu! skin folder (textures + hitsounds); the choice is remembered')}><Palette className="inline-block w-4 h-4 mr-1 -mt-0.5" />{t('app.skin', 'Skin')}</button>
           </div>
           {/* v81: 旧「打开文件」「导出」按钮已删除 (无用: 打开走曲库/拖拽, 保存走 Ctrl+S) */}
           <div className="h-px bg-white/15 mx-1 my-0.5" />
           {/* 工具 (v151: 常用按钮放大 — 一行一个, 整行宽) */}
           <div className="flex flex-col gap-1.5">
-            {TOOLS.map(t => (
-              <button key={t.id}
-                onClick={() => { store.tool = t.id; store.pendingSlider = []; store.pendingSpinner = null; store.emit(); }}
-                className={`w-full text-left px-3 py-1.5 rounded ${store.tool === t.id ? 'bg-pink-500 font-bold' : 'bg-white/10 hover:bg-white/20'}`}>
-                <t.icon className="inline-block w-4 h-4 mr-1.5 -mt-0.5" />{t.label} <span className="opacity-50 text-xs">{hotkeyLabel(t.action)}</span>
+            {TOOLS.map(tool => (
+              <button key={tool.id}
+                onClick={() => { store.tool = tool.id; store.pendingSlider = []; store.pendingSpinner = null; store.emit(); }}
+                className={`w-full text-left px-3 py-1.5 rounded ${store.tool === tool.id ? 'bg-pink-500/30 border border-pink-400/40 font-bold' : 'bg-white/10 hover:bg-white/20'}`}>
+                <tool.icon className="inline-block w-4 h-4 mr-1.5 -mt-0.5" />{t(tool.labelKey, tool.label)} <span className="opacity-50 text-xs">{hotkeyLabel(tool.action)}</span>
               </button>
             ))}
           </div>
           <div className="h-px bg-white/15 mx-1 my-0.5" />
           {/* 节拍吸附 */}
           <label className="flex items-center gap-1.5 text-sm text-white/70 px-1">
-            节拍吸附 1/
+            {t('app.beat_snap_divisor', 'Beat Snap Divisor 1/')}
             <select value={store.beatSnap} onChange={e => { store.beatSnap = parseInt(e.target.value); store.emit(); }}
               className="bg-black/40 border border-white/15 rounded px-1.5 py-1">
               {BEAT_SNAP_OPTIONS.map(n => <option key={n} value={n}>{n}</option>)}
             </select>
           </label>
           <div className="h-px bg-white/15 mx-1 my-0.5" />
-          {/* 锁定间距 */}
+          {/* 锁定间距 (v351: 高亮改橘色, 与锁定物件同色系 — 用户反馈左栏颜色太杂) */}
           <button onClick={() => { store.distanceLock = !store.distanceLock; store.emit(); }}
-            className={`w-full text-left px-3 py-1.5 rounded ${store.distanceLock ? 'bg-cyan-500/40 border border-cyan-400/50' : 'bg-white/10 hover:bg-white/20'}`}
-            title="锁定间距 (DistanceSpacing): 新物件与上个物件保持固定距离">
-            <Ruler className="inline-block w-4 h-4 mr-1 -mt-0.5" />锁定间距
+            className={`w-full text-left px-3 py-1.5 rounded ${store.distanceLock ? 'bg-amber-500/40 border border-amber-400/50' : 'bg-white/10 hover:bg-white/20'}`}
+            title={t('app.distance_snap_title', 'Distance Snap: keep a fixed distance between the new object and the previous one')}>
+            <Ruler className="inline-block w-4 h-4 mr-1 -mt-0.5" />{t('app.distance_snap', 'Distance Snap')}
           </button>
           {/* v45: 锁定间距倍率控制 (DistanceSpacing), 与右上角 Prev/Next 同单位; v149: 上限 10x, 滑条拉满控件宽度 */}
-          <label className="w-full flex items-center gap-1.5 text-sm text-white/70 px-1" title="锁定间距倍率 (DistanceSpacing): 1x = 滑条球每拍行进距离 = 100×SliderMultiplier×当前SV px (lazer 同款, 随 SV 变化)">
+          <label className="w-full flex items-center gap-1.5 text-sm text-white/70 px-1" title={t('app.distance_snap_multiplier_title', 'Distance snap multiplier: 1x = distance the slider ball travels per beat = 100×SliderMultiplier×current SV px (same as lazer, varies with SV)')}>
             <input type="range" min={0.1} max={10} step={0.05} disabled={!bm} data-ds-input="range"
               value={bm?.editor.distanceSpacing ?? 1}
-              onChange={e => { if (store.beatmap) { store.beatmap.editor.distanceSpacing = parseFloat(e.target.value); store.emit(); } }}
-              className="flex-1 min-w-0 accent-cyan-400" />
+              onChange={e => store.setEditorField('distanceSpacing', parseFloat(e.target.value))} // v345: 入 undo (拖动连写自动合并)
+              className="flex-1 min-w-0 accent-amber-400" />
             <input type="number" min={0.1} max={10} step={0.05} disabled={!bm} data-ds-input="number"
               value={bm ? Math.round(bm.editor.distanceSpacing * 100) / 100 : 1}
               onChange={e => {
                 const v = parseFloat(e.target.value);
-                if (store.beatmap && isFinite(v)) { store.beatmap.editor.distanceSpacing = Math.max(0.1, Math.min(10, v)); store.emit(); }
+                if (store.beatmap && isFinite(v)) store.setEditorField('distanceSpacing', Math.max(0.1, Math.min(10, v))); // v345: 入 undo
               }}
               className="w-14 shrink-0 bg-black/40 border border-white/15 rounded px-1 py-0.5 text-right" />
             <span className="shrink-0">x</span>
@@ -574,10 +625,10 @@ export default function App() {
           <button onClick={() => { store.lockNotes = !store.lockNotes; store.emitSelection(); }}
             data-lock-notes="toggle"
             className={`w-full text-left px-3 py-1.5 rounded ${store.lockNotes ? 'bg-amber-500/40 border border-amber-400/50' : 'bg-white/10 hover:bg-white/20'}`}
-            title="锁定物件 (Lock Notes): 开启后无法移动/修改/删除任何物件; 放置新物件、绿线编辑不受影响">
+            title={t('app.lock_notes_title', 'Lock Notes: objects cannot be moved/modified/deleted while on; placing new objects and inherited timing point editing are unaffected')}>
             {store.lockNotes
               ? <Lock className="inline-block w-4 h-4 mr-1 -mt-0.5" />
-              : <LockOpen className="inline-block w-4 h-4 mr-1 -mt-0.5" />}锁定物件
+              : <LockOpen className="inline-block w-4 h-4 mr-1 -mt-0.5" />}{t('app.lock_notes', 'Lock Notes')}
           </button>
           <div className="h-px bg-white/15 mx-1 my-0.5" />
           {/* v223: 游玩区平移/缩放 — 开启后按住鼠标中键拖动游玩区域; x/y/缩放输入框实时显示并可设定 (视图辅助, 不入谱面)
@@ -586,10 +637,10 @@ export default function App() {
             <button onClick={() => { store.playfieldPanEnabled = !store.playfieldPanEnabled; store.emit(); }}
               data-pan-input="toggle"
               className={`flex-1 min-w-0 text-left px-3 py-1.5 rounded ${store.playfieldPanEnabled ? 'bg-cyan-500/40 border border-cyan-400/50' : 'bg-white/10 hover:bg-white/20'}`}
-              title="游玩区平移: 开启后按住鼠标中键拖动游玩区域; x/y = 偏移 (osu px), 缩放 = 倍率 (默认 1.0); 关闭后恢复默认视图 (已设值保留)">
-              <Move className="inline-block w-4 h-4 mr-1 -mt-0.5" />游玩区平移
+              title={t('app.playfield_pan_title', 'Playfield pan: hold the middle mouse button to drag the playfield; x/y = offset (osu px), zoom = scale (default 1.0); turning off restores the default view (values are kept)')}>
+              <Move className="inline-block w-4 h-4 mr-1 -mt-0.5" />{t('app.playfield_pan', 'Playfield Pan')}
             </button>
-            <PanNumInput label="缩放" value={Math.round(store.playfieldScale * 100) / 100} step={0.1} min={0.1} max={10}
+            <PanNumInput label="Zoom" labelKey="app.playfield_zoom" value={Math.round(store.playfieldScale * 100) / 100} step={0.1} min={0.1} max={10}
               onCommit={v => { store.playfieldScale = v; store.emit(); }} />
           </div>
           <div className="flex items-center gap-1.5 text-sm text-white/70 px-1">
@@ -604,8 +655,8 @@ export default function App() {
           <div className="flex gap-1.5">
             <button onClick={() => { store.gridSnap = !store.gridSnap; store.emit(); }}
               className={`flex-1 min-w-0 text-left px-3 py-1.5 rounded ${store.gridSnap ? 'bg-cyan-500/40 border border-cyan-400/50' : 'bg-white/10 hover:bg-white/20'}`}
-              title="网格吸附 (Grid Snap): 放置/拖拽吸附到位置网格 (优先级: 物件吸附 > 锁定间距 > 网格)">
-              <Grid3x3 className="inline-block w-4 h-4 mr-1 -mt-0.5" />网格吸附
+              title={t('app.grid_snap_title', 'Grid Snap: snap placement/dragging to a position grid (priority: object snap > distance snap > grid)')}>
+              <Grid3x3 className="inline-block w-4 h-4 mr-1 -mt-0.5" />{t('app.grid_snap', 'Grid Snap')}
             </button>
             <select value={store.gridType} data-grid-input="type"
               onChange={e => {
@@ -614,20 +665,20 @@ export default function App() {
                 if (period !== null) store.setGridRotation(normalizeRotation(store.gridRotation, period)); // v278: 走 setter 持久化
                 store.emit();
               }}
-              className="flex-1 min-w-0 bg-black/40 border border-white/15 rounded px-1.5 py-1 text-sm" title="网格类型 (lazer PositionSnapGridType; v119: 无网格 = 显示/吸附全关, 贴近游玩表现)">
-              <option value="square">正方形</option>
-              <option value="triangle">三角形</option>
-              <option value="circle">圆形</option>
-              <option value="none">无网格</option>
+              className="flex-1 min-w-0 bg-black/40 border border-white/15 rounded px-1.5 py-1 text-sm" title={t('app.grid_type_title', 'Grid type (lazer PositionSnapGridType; "no grid" disables both display and snapping, closer to gameplay)')}>
+              <option value="square">{t('app.grid_square', 'Square')}</option>
+              <option value="triangle">{t('app.grid_triangle', 'Triangle')}</option>
+              <option value="circle">{t('app.grid_circle', 'Circle')}</option>
+              <option value="none">{t('app.grid_none', 'No Grid')}</option>
             </select>
           </div>
           <div className="flex items-center gap-1.5 text-sm text-white/70 px-1">
-            <span className="flex items-center gap-1" title="网格间距 (lazer GridLineSpacing 4..256, 写回 [Editor] GridSize)">
-              间距 <GridSpacingInput disabled={!bm} /> px
+            <span className="flex items-center gap-1" title={t('app.grid_spacing_title', 'Grid spacing (lazer GridLineSpacing 4..256, written back to [Editor] GridSize)')}>
+              {t('app.grid_spacing', 'Spacing')} <GridSpacingInput disabled={!bm} /> px
             </span>
             <span className="flex-1" />
-            <span className="flex items-center gap-1" title="网格旋转 (度; 圆形禁用 — lazer GridLinesRotation.Disabled)">
-              旋转
+            <span className="flex items-center gap-1" title={t('app.grid_rotation_title', 'Grid rotation (degrees; disabled for circle grid — lazer GridLinesRotation.Disabled)')}>
+              {t('app.grid_rotation', 'Rotation')}
               <input type="number" step={1} disabled={!bm || store.gridType === 'circle' || store.gridType === 'none'} data-grid-input="rotation"
                 value={Math.round(store.gridRotation * 10) / 10}
                 onChange={e => {
@@ -642,11 +693,11 @@ export default function App() {
           <button onClick={() => store.setGridOriginCustom(!store.gridOriginCustom)} disabled={!bm}
             data-grid-input="origin-toggle"
             className={`w-full text-left px-3 py-1.5 rounded disabled:opacity-30 ${store.gridOriginCustom ? 'bg-cyan-500/40 border border-cyan-400/50' : 'bg-white/10 hover:bg-white/20'}`}
-            title="自定义网格中心: 开启后网格/吸附以指定点为原点 (默认游玩区中心); 画布上的青色标记可拖拽">
-            <Crosshair className="inline-block w-4 h-4 mr-1 -mt-0.5" />网格中心
+            title={t('app.grid_origin_title', 'Custom grid origin: grid/snapping uses the given point as origin (default: playfield center); the cyan marker on the canvas is draggable')}>
+            <Crosshair className="inline-block w-4 h-4 mr-1 -mt-0.5" />{t('app.grid_origin', 'Grid Origin')}
           </button>
           {store.gridOriginCustom && (
-            <label className="flex items-center gap-1.5 text-sm text-white/70 px-1" title="网格中心坐标 (osu 像素; 画布拖拽标记同步)">
+            <label className="flex items-center gap-1.5 text-sm text-white/70 px-1" title={t('app.grid_origin_coords_title', 'Grid origin coordinates (osu px; synced with the draggable canvas marker)')}>
               <input type="number" step={1} data-grid-input="origin-x" value={store.gridOrigin.x}
                 onChange={e => { const v = parseFloat(e.target.value); if (isFinite(v)) store.setGridOrigin({ x: v, y: store.gridOrigin.y }); }}
                 className="w-14 bg-black/40 border border-white/15 rounded px-1 py-0.5 text-right" />
@@ -659,50 +710,50 @@ export default function App() {
           <button onClick={() => store.setObjectSnapEnabled(!store.objectSnapEnabled)} disabled={!bm}
             data-grid-input="object-snap-toggle"
             className={`w-full text-left px-3 py-1.5 rounded disabled:opacity-30 ${store.objectSnapEnabled ? 'bg-cyan-500/40 border border-cyan-400/50' : 'bg-white/10 hover:bg-white/20'}`}
-            title="吸附到物件: 放置/拖动时吸附到其他物件的中心与滑条尾 (含几何辅助/间距辅助线吸附); 关闭后只吃网格吸附 (默认开)">
-            <Target className="inline-block w-4 h-4 mr-1 -mt-0.5" />吸附到物件
+            title={t('app.object_snap_title', "Snap to objects: snap to other objects' centers and slider ends when placing/dragging (incl. geometry/distance guide snapping); off = grid snap only (default on)")}>
+            <Target className="inline-block w-4 h-4 mr-1 -mt-0.5" />{t('app.object_snap', 'Snap to Objects')}
           </button>
           {/* v163: 限制物件在游玩区域内 (默认开 = 既有行为); 关闭后可拖动/放置物件到游玩区外 */}
           <button onClick={() => store.setLimitToPlayfield(!store.limitToPlayfield)} disabled={!bm}
             data-grid-input="limit-playfield"
             className={`w-full text-left px-3 py-1.5 rounded disabled:opacity-30 ${store.limitToPlayfield ? 'bg-cyan-500/40 border border-cyan-400/50' : 'bg-white/10 hover:bg-white/20'}`}
-            title="限制物件在游玩区域内: 开启时放置/拖动物件不会超出游玩区 (默认开); 关闭后可摆到游玩区外 (摆形状用)">
-            <Box className="inline-block w-4 h-4 mr-1 -mt-0.5" />限制物件在游玩区内
+            title={t('app.limit_playfield_title', 'Limit objects to the playfield: objects stay inside the playfield when placed/dragged (default on); off allows placing outside (for shaping)')}>
+            <Box className="inline-block w-4 h-4 mr-1 -mt-0.5" />{t('app.limit_playfield', 'Limit to Playfield')}
           </button>
           <div className="h-px bg-white/15 mx-1 my-0.5" />
           {/* v84/v90: 辅助线 — 按钮 = 显示/隐藏总开关 (高亮=开); 旁「辅助线配置」开面板 (圆心点/三点圆/直线延伸线 + 显示范围) */}
           <button onClick={() => store.setGeoEnabled(!store.geoEnabled)} disabled={!bm}
             data-geo-input="toggle"
             className={`w-full text-left px-3 py-1.5 rounded disabled:opacity-30 ${store.geoEnabled ? 'bg-red-500/40 border border-red-400/50' : 'bg-white/10 hover:bg-white/20'}`}
-            title="辅助线: 显示/隐藏辅助点线 (选中滑条的圆心/三点圆/直线延伸线, 放置与拖拽可吸附)">
-            <Magnet className="inline-block w-4 h-4 mr-1 -mt-0.5" />辅助线
+            title={t('app.geo_lines_title', 'Geometry guides: show/hide guide points and lines (circle centers / 3-point circles / line extensions of selected sliders; snappable when placing and dragging)')}>
+            <Magnet className="inline-block w-4 h-4 mr-1 -mt-0.5" />{t('app.geo_lines', 'Guides')}
           </button>
           <button onClick={() => store.setGeoPanelOpen(!store.geoPanelOpen)} disabled={!bm}
             data-geo-input="panel-toggle"
             className={`w-full text-left px-3 py-1.5 rounded disabled:opacity-30 ${store.geoPanelOpen ? 'bg-red-500/40 border border-red-400/50' : 'bg-white/10 hover:bg-white/20'}`}
-            title="辅助线配置: 三种辅助图形开关 + 显示范围">
-            <Settings2 className="inline-block w-4 h-4 mr-1 -mt-0.5" />辅助线配置
+            title={t('app.geo_config_title', 'Guide settings: toggles for the three guide shapes + display scope')}>
+            <Settings2 className="inline-block w-4 h-4 mr-1 -mt-0.5" />{t('app.geo_config', 'Guide Settings')}
           </button>
           <div className="h-px bg-white/15 mx-1 my-0.5" />
           {/* v86: pattern 库 — 收藏选中物件为 pattern, 缩略图拖到游玩区落盘 (节拍时序, 跨 BPM 保结构) */}
           <button onClick={() => { store.loadPatternsIfNeeded(); store.setPatternPanelOpen(!store.patternPanelOpen); }} disabled={!bm}
             data-pattern-input="panel-toggle"
-            className={`w-full text-left px-3 py-1.5 rounded disabled:opacity-30 ${store.patternPanelOpen ? 'bg-red-500/40 border border-red-400/50' : 'bg-white/10 hover:bg-white/20'}`}
-            title="pattern 库: 收藏选中物件, 从窗口拖到游玩区放置 (按节拍间隔记录, 支持 SV/缩放对齐)">
+            className={`w-full text-left px-3 py-1.5 rounded disabled:opacity-30 ${store.patternPanelOpen ? 'bg-emerald-500/40 border border-emerald-400/50' : 'bg-white/10 hover:bg-white/20'}`}
+            title={t('app.pattern_library_title', 'Pattern library: bookmark selected objects, drag from the panel onto the playfield to place (recorded by beat intervals, supports SV/scale alignment)')}>
             <Package className="inline-block w-4 h-4 mr-1 -mt-0.5" />pattern
           </button>
           {/* v127: 波形/频谱显示开关 — 画在上方时间轴 (默认背景层, 时间轴右侧按钮切模式/层级); 原悬浮窗 (v103) 已废弃 */}
           <button onClick={() => store.setWavePanelOpen(!store.wavePanelOpen)} disabled={!bm}
             data-wave-input="toggle"
             className={`w-full text-left px-3 py-1.5 rounded disabled:opacity-30 ${store.wavePanelOpen ? 'bg-emerald-500/40 border border-emerald-400/50' : 'bg-white/10 hover:bg-white/20'}`}
-            title="波形: 在上方时间轴显示音频波形图/频谱图 (时间轴右侧按钮切换波形/频谱与背景/上层)">
-            <AudioWaveform className="inline-block w-4 h-4 mr-1 -mt-0.5" />波形
+            title={t('app.waveform_title', 'Waveform: show the audio waveform/spectrogram on the top timeline (buttons on the right side of the timeline switch waveform/spectrogram and background/overlay)')}>
+            <AudioWaveform className="inline-block w-4 h-4 mr-1 -mt-0.5" />{t('app.waveform', 'Waveform')}
           </button>
           <div className="h-px bg-white/15 mx-1 my-0.5" />
           {/* 历史 */}
           <div className="flex gap-1.5">
-            <button onClick={() => store.undo()} disabled={!store.canUndo} className="flex-1 px-2 py-1.5 rounded bg-white/10 hover:bg-white/20 disabled:opacity-30" title={hotkeyLabel('undo')}><Undo2 className="inline-block w-4 h-4 mr-1 -mt-0.5" />撤销</button>
-            <button onClick={() => store.redo()} disabled={!store.canRedo} className="flex-1 px-2 py-1.5 rounded bg-white/10 hover:bg-white/20 disabled:opacity-30" title={hotkeyLabel('redo')}><Redo2 className="inline-block w-4 h-4 mr-1 -mt-0.5" />重做</button>
+            <button onClick={() => store.undo()} disabled={!store.canUndo} className="flex-1 px-2 py-1.5 rounded bg-white/10 hover:bg-white/20 disabled:opacity-30" title={hotkeyLabel('undo')}><Undo2 className="inline-block w-4 h-4 mr-1 -mt-0.5" />{t('app.undo', 'Undo')}</button>
+            <button onClick={() => store.redo()} disabled={!store.canRedo} className="flex-1 px-2 py-1.5 rounded bg-white/10 hover:bg-white/20 disabled:opacity-30" title={hotkeyLabel('redo')}><Redo2 className="inline-block w-4 h-4 mr-1 -mt-0.5" />{t('app.redo', 'Redo')}</button>
           </div>
         </div>
 
@@ -713,7 +764,7 @@ export default function App() {
             <div className="flex-1 min-w-0 relative">
               {store.tool === 'slider' && (
                 <div className="absolute top-2 left-2 text-xs bg-black/60 rounded px-2 py-1 text-white/80 pointer-events-none">
-                  点击放置锚点 · Ctrl+点击=红锚点 · 双击/右键完成滑条 · Esc取消
+                  {t('app.slider_tool_hint', 'Click to place anchors · Ctrl+click = red anchor · double-click/right-click to finish the slider · Esc to cancel')}
                 </div>
               )}
               {/* v184: 谱面信息已移到页签栏 (song setup 左侧居中), 此处不再渲染 */}
@@ -722,38 +773,38 @@ export default function App() {
             <div className="w-56 shrink-0 bg-[#16161d]/75 border-l border-white/10 overflow-auto pointer-events-auto">
               {/* v244: 放置态指示移到右侧栏顶部且始终显示 (原 v241 在左栏工具区, 仅放置工具时显示) —
                   放置工具下按 Q/W/E/R 预设下次放下物件的 NC (仅一次, 放置后复位) 与音效 (保持) */}
-              <div className="px-3 py-2 text-[11px] text-white/45 flex gap-x-2 flex-wrap border-b border-white/10" title="放置态: 放置工具下按 Q/W/E/R 预设下次放下物件的 New Combo (仅一次, 放置后复位) 与音效 (保持)">
-                放置
+              <div className="px-3 py-2 text-[11px] text-white/45 flex gap-x-2 flex-wrap border-b border-white/10" title={t('app.placement_state_title', "Placement state: with a placement tool, press Q/W/E/R to preset the next placed object's New Combo (one-shot, resets after placement) and hitsounds (sticky)")}>
+                {t('app.placement_state', 'Place')}
                 <span className={store.placeNewCombo ? 'text-pink-300 font-bold' : ''}>NC({hotkeyLabel('hs-newcombo')})</span>
-                <span className={(store.placeHitSound & 2) ? 'text-pink-300 font-bold' : ''}>口哨({hotkeyLabel('hs-whistle')})</span>
+                <span className={(store.placeHitSound & 2) ? 'text-pink-300 font-bold' : ''}>{t('app.hs_whistle', 'Whistle')}({hotkeyLabel('hs-whistle')})</span>
                 <span className={(store.placeHitSound & 4) ? 'text-pink-300 font-bold' : ''}>Finish({hotkeyLabel('hs-finish')})</span>
-                <span className={(store.placeHitSound & 8) ? 'text-pink-300 font-bold' : ''}>拍手({hotkeyLabel('hs-clap')})</span>
+                <span className={(store.placeHitSound & 8) ? 'text-pink-300 font-bold' : ''}>{t('app.hs_clap', 'Clap')}({hotkeyLabel('hs-clap')})</span>
               </div>
               <Inspector />
               <div className="p-3 text-xs text-white/40 space-y-1 border-t border-white/10">
-                <div className="font-bold text-white/60">快捷键</div>
-                <div>右上角「快捷键」按钮可自定义改键</div>
+                <div className="font-bold text-white/60">{t('app.hotkeys', 'Hotkeys')}</div>
+                <div>{t('app.hotkeys_customize_hint', 'Use the "Hotkeys" button (top right) to customize bindings')}</div>
                 {/* v321 (F21): 提示全部经 hotkeyLabel 取当前生效绑定, 改键后同步 */}
-                <div>{hotkeyLabel('play-pause')} 播放/暂停</div>
-                <div>{TOOLS.map(t => hotkeyLabel(t.action)).join('/')} 切换工具</div>
-                <div>{hotkeyLabel('copy')}/{hotkeyLabel('paste')} 复制/粘贴</div>
-                <div>{hotkeyLabel('undo')}/{hotkeyLabel('redo')} 撤销/重做</div>
-                <div>{hotkeyLabel('save')} 保存谱面</div>
-                <div>{hotkeyLabel('bookmark-add')} 添加书签 · {hotkeyLabel('bookmark-remove')} 删除书签</div>
-                <div>{hotkeyLabel('bookmark-prev')}/{hotkeyLabel('bookmark-next')} 跳到前/后一条书签</div>
-                <div>{hotkeyLabel('delete')} 删除所选</div>
-                <div>空白处拖拽 框选 (Shift 追加)</div>
-                <div>Ctrl+点击物件 添加/移除选中</div>
-                <div>{hotkeyLabel('reverse')} 反转选区 (时间镜像+路径反向)</div>
-                <div>{hotkeyLabel('rot-ccw')}/{hotkeyLabel('rot-cw')} 旋转90° (逆/顺时针, 游玩区中心)</div>
-                <div>{hotkeyLabel('flip-h')}/{hotkeyLabel('flip-v')} 水平/垂直镜像 (游玩区中心)</div>
-                <div>{hotkeyLabel('hs-newcombo')}/{hotkeyLabel('hs-whistle')}/{hotkeyLabel('hs-finish')}/{hotkeyLabel('hs-clap')} 新Combo/Whistle/Finish/Clap</div>
-                <div>{hotkeyLabel('nudge-time-prev')}/{hotkeyLabel('nudge-time-next')} 选中物件前移/后移一个吸附</div>
-                <div>{hotkeyLabel('jump-last')} 跳到最后一个物件</div>
-                <div>滚轮 按节拍移动时间</div>
-                <div>{hotkeyLabel('seek-left')}/{hotkeyLabel('seek-right')} 按节拍移动时间 (Shift 4拍)</div>
-                <div>{hotkeyLabel('ctrl-left')}/{hotkeyLabel('ctrl-right')} 跳到上/下个物件</div>
-                <div>选中滑条后可拖拽白色节点编辑形状</div>
+                <div>{hotkeyLabel('play-pause')} {t('app.hk_play_pause', 'play/pause')}</div>
+                <div>{TOOLS.map(tool => hotkeyLabel(tool.action)).join('/')} {t('app.hk_switch_tool', 'switch tool')}</div>
+                <div>{hotkeyLabel('copy')}/{hotkeyLabel('paste')} {t('app.hk_copy_paste', 'copy/paste')}</div>
+                <div>{hotkeyLabel('undo')}/{hotkeyLabel('redo')} {t('app.undo', 'Undo')}/{t('app.redo', 'Redo')}</div>
+                <div>{hotkeyLabel('save')} {t('app.hk_save', 'save beatmap')}</div>
+                <div>{hotkeyLabel('bookmark-add')} {t('app.hk_bookmark_add', 'add bookmark')} · {hotkeyLabel('bookmark-remove')} {t('app.hk_bookmark_remove', 'remove bookmark')}</div>
+                <div>{hotkeyLabel('bookmark-prev')}/{hotkeyLabel('bookmark-next')} {t('app.hk_bookmark_jump', 'jump to previous/next bookmark')}</div>
+                <div>{hotkeyLabel('delete')} {t('app.hk_delete', 'delete selection')}</div>
+                <div>{t('app.hk_box_select', 'drag on empty area: box select (Shift to add)')}</div>
+                <div>{t('app.hk_ctrl_click', 'Ctrl+click object: add/remove from selection')}</div>
+                <div>{hotkeyLabel('reverse')} {t('app.hk_reverse', 'reverse selection (time mirror + path reversal)')}</div>
+                <div>{hotkeyLabel('rot-ccw')}/{hotkeyLabel('rot-cw')} {t('app.hk_rotate', 'rotate 90° (CCW/CW, around playfield center)')}</div>
+                <div>{hotkeyLabel('flip-h')}/{hotkeyLabel('flip-v')} {t('app.hk_flip', 'flip horizontally/vertically (around playfield center)')}</div>
+                <div>{hotkeyLabel('hs-newcombo')}/{hotkeyLabel('hs-whistle')}/{hotkeyLabel('hs-finish')}/{hotkeyLabel('hs-clap')} {t('app.hk_hitsounds', 'new combo/Whistle/Finish/Clap')}</div>
+                <div>{hotkeyLabel('nudge-time-prev')}/{hotkeyLabel('nudge-time-next')} {t('app.hk_nudge_time', 'nudge selected objects one snap earlier/later')}</div>
+                <div>{hotkeyLabel('jump-last')} {t('app.hk_jump_last', 'jump to the last object')}</div>
+                <div>{t('app.hk_wheel', 'mouse wheel: move time by beats')}</div>
+                <div>{hotkeyLabel('seek-left')}/{hotkeyLabel('seek-right')} {t('app.hk_seek', 'move time by beats (Shift = 4 beats)')}</div>
+                <div>{hotkeyLabel('ctrl-left')}/{hotkeyLabel('ctrl-right')} {t('app.hk_jump_object', 'jump to previous/next object')}</div>
+                <div>{t('app.hk_node_edit', 'with a slider selected, drag the white nodes to edit its shape')}</div>
               </div>
             </div>
           </div>
@@ -793,6 +844,8 @@ export default function App() {
       {showShiftAll && <ShiftAllDialog onClose={() => setShowShiftAll(false)} />}{/* v156 */}
       {/* v120: 未保存改动提示 (z 层级最高, 盖住曲库等弹窗) */}
       <UnsavedDialog />
+      {/* v349: 首次启动先选语言 (悬浮于所有控件之上, 选后不再出现) */}
+      <LangFirstRun />
     </div>
     {/* v220: 右下角帧数显示 — 悬浮于所有控件之上; 挂在 v217 zoom 容器外, 不随界面缩放; v253: 显示设置可关 */}
     {displaySettings.showFps && <FpsCounter />}

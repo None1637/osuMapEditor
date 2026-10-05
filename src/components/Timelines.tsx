@@ -16,12 +16,13 @@ import { pendingSliderTimeline, spinnerPlacementEnd } from '@/osu/sliderPath'; /
 import { getSkin } from '@/osu/skin';
 import { displaySettings } from '@/osu/displaySettings'; // v132: 显示设置 (皮肤颜色)
 import { drawWave, drawSpectro, type SpectroScroll } from '@/osu/waveformDraw';
-import { zoomRect, zoomClientX, zoomClientY, fitCanvas } from '@/osu/uiZoom'; // v217: 布局空间绘制/命中; v246: fitCanvas
+import { zoomRect, zoomClientX, zoomClientY, fitCanvas, textZoomComp, uiZoom } from '@/osu/uiZoom'; // v217: 布局空间绘制/命中; v246: fitCanvas; v351: 药丸字号补偿
 import { matchesHotkeyWheel } from '@/osu/hotkeys'; // v330: 锁定间距滚轮可改键
 import {
   bpmPillText, svPoints, svPillText, samplePill, pillLayout,
   PILL_RED, PILL_LIME, PILL_PINK, PILL_PINK_ALT, PILL_TEXT,
 } from '@/osu/timelinePills';
+import { useT } from '@/i18n';
 
 function fmt(ms: number) {
   const m = Math.floor(ms / 60000), s = Math.floor((ms % 60000) / 1000), mm = Math.floor(ms % 1000);
@@ -117,9 +118,13 @@ function fillTextCached(g: CanvasRenderingContext2D, text: string, x: number, y:
   g.drawImage(c, x - c.width / 2, y - c.height / 2);
 }
 
+// v351: 时间轴药丸字号 — 与 CSS 文本同规则的缩放补偿 (index.css v225/v339):
+//   布局字号 = max(base × textZoomComp, 12/uiZoom) → 视觉 max(base×textZoom, 12px), 缩放后不低于 12px
+//   (用户反馈: 分辨率缩小后样本药丸 $xx / SV 药丸 0.00x 文字超小; 绘制与命中测试必须用同一字号)
+const pillFont = (base: number) => `bold ${Math.max(base * textZoomComp(), 12 / uiZoom())}px sans-serif`;
+
 /** combo 色半透明: 滑条连体条填充 */
-const alphaOf = (hex: string, a: number) => {
-  const [r, g, b] = hexRgb(hex);
+const alphaOf = (hex: string, a: number) => {  const [r, g, b] = hexRgb(hex);
   return `rgba(${r},${g},${b},${a})`;
 };
 
@@ -205,6 +210,7 @@ function drawTimelineObject(g: CanvasRenderingContext2D, sx: number, ex: number,
 }
 
 export function TopTimeline() {
+  const t = useT();
   useEditor();
   const ref = useRef<HTMLCanvasElement>(null);
   void useEditor; // 订阅重渲染
@@ -246,7 +252,7 @@ export function TopTimeline() {
       greenDragRef.current = null;
       store.canvasDragging = false;
       if (gd.moved) { store.commitDrag(); return; }
-      store.undo();
+      store.cancelDragNoop(); // v345
       return;
     }
     // v79: 单击 (未拖出矩形) = 仅清空选区; 点击时间轴一律不改变当前时间 (用户反馈: 点击不该 seek)
@@ -275,7 +281,7 @@ export function TopTimeline() {
       spinnerResizeRef.current = null;
       store.canvasDragging = false;
       if (srz.moved) { store.commitDrag(); return; }
-      store.undo();
+      store.cancelDragNoop(); // v345
       return;
     }
     const tr = tailResizeRef.current;
@@ -283,7 +289,7 @@ export function TopTimeline() {
       tailResizeRef.current = null;
       store.canvasDragging = false;
       if (tr.moved) { store.commitDrag(); return; }
-      store.undo();
+      store.cancelDragNoop(); // v345
       // v213: 单击尾端 (未拖动) = 选中尾节点 (stable: 时间轴点尾圆单独加音效)
       const to = store.beatmap?.hitObjects.find(x => x.id === tr.objId);
       if (to?.type === 'slider') store.selectEdges(tr.objId, [to.slides ?? 1]);
@@ -294,7 +300,7 @@ export function TopTimeline() {
     markerDragRef.current = null;
     store.canvasDragging = false;
     if (md.moved) { store.commitDrag(); return; }
-    store.undo(); // 未拖动 = 点击: 弹出 beginDrag 空快照 (v79: 不再 seek 到物件时间)
+    store.cancelDragNoop(); // v345: 未拖动 = 点击: 弹出 beginDrag 空快照 (v79: 不再 seek 到物件时间)
   };
 
   /** v102: 框选/绿线拖拽共享移动逻辑 (canvas onMouseMove 与 window 兜底共用 — 拖出边界后继续跟踪, lazer ReceivePositionalInputAt 越界语义) */
@@ -399,6 +405,7 @@ export function TopTimeline() {
     let memoSv: { ver: number; pts: TimingPoint[]; out: ReturnType<typeof svPoints> } | null = null;
     let lastTs = 0; // v102: 帧间隔 (边缘滚动 ramp/速度积分用)
     const draw = () => {
+      const __pt0 = performance.now(); // v340: 渲染性能采样 (CDP 读 window.__perfTlA)
       const nowTs = performance.now();
       const dtMs = lastTs ? nowTs - lastTs : 16;
       lastTs = nowTs;
@@ -547,20 +554,21 @@ export function TopTimeline() {
         }
         // v53: 粉药丸绘制 (头圆下方, 压分隔线垂入 tick 行; 过密时收缩为圆点 — lazer SamplePointContracted)
         {
-          g.font = 'bold 10px sans-serif';
+          g.font = pillFont(10); // v351: 缩放补偿 (原固定 10px, 缩小后超小)
           // v190: v189 起物件倒序绘制, 收集到的药丸 x 为降序; pillLayout 依赖升序, 否则全部误判重叠收缩成点
           const items = samplePills.map(p => ({ ...p, w: measureCached(g, p.text) + 10 })).sort((a, b) => a.x - b.x); // v245: 测宽走缓存
           const kinds = pillLayout(items);
+          const spPh = Math.max(14, 12 / uiZoom() + 2); // v351: 药丸高度随字号下限撑高
           items.forEach((p, i) => {
             g.fillStyle = p.alt ? PILL_PINK_ALT : PILL_PINK;
             if (kinds[i] === 'dot') {
               g.beginPath(); g.arc(p.x, 57, 3, 0, Math.PI * 2); g.fill();
               return;
             }
-            g.beginPath(); g.roundRect(p.x - p.w / 2, 50, p.w, 14, 7); g.fill();
+            g.beginPath(); g.roundRect(p.x - p.w / 2, 50, p.w, spPh, spPh / 2); g.fill();
             g.fillStyle = PILL_TEXT;
             g.textAlign = 'center'; g.textBaseline = 'middle';
-            g.fillText(p.text, p.x, 57.5);
+            g.fillText(p.text, p.x, 50 + spPh / 2 + 0.5);
             g.textAlign = 'start'; g.textBaseline = 'alphabetic';
           });
         }
@@ -590,18 +598,20 @@ export function TopTimeline() {
         }
         // v53/v61: timing 药丸 (lazer 时间轴标签): 红线 = BPM (红), 全部绿线 = SV 倍率 (绿); 画在 tick 之上
         {
-          g.font = 'bold 9.5px sans-serif';
+          g.font = pillFont(9.5); // v351: 缩放补偿 (原固定 9.5px)
           g.textAlign = 'center'; g.textBaseline = 'middle';
           const drawPill = (px: number, py: number, text: string, bg: string, sel = false) => {
             const w = measureCached(g, text) + 10; // v245: 测宽走缓存 (lazer HitObjectPointPiece: Padding=5 两侧)
+            const ph = Math.max(13, 12 / uiZoom() + 2); // v351: 药丸高度随字号下限撑高 (缩放后 visual ≥14)
+            py = Math.min(py, r.height - ph - 1); // v351: 撑高后上抬, 防下缘裁出画布
             g.fillStyle = bg;
-            g.beginPath(); g.roundRect(px - w / 2, py, w, 13, 6.5); g.fill();
+            g.beginPath(); g.roundRect(px - w / 2, py, w, ph, ph / 2); g.fill();
             if (sel) { // v102: 选中绿线 — 与选中物件同款黄色描边
               g.strokeStyle = '#ffcc22'; g.lineWidth = 2;
-              g.beginPath(); g.roundRect(px - w / 2, py, w, 13, 6.5); g.stroke();
+              g.beginPath(); g.roundRect(px - w / 2, py, w, ph, ph / 2); g.stroke();
             }
             g.fillStyle = PILL_TEXT;
-            g.fillText(text, px, py + 7);
+            g.fillText(text, px, py + ph / 2 + 0.5);
           };
           for (const tp of bm.timingPoints) {
             if (!tp.uninherited) continue;
@@ -662,6 +672,12 @@ export function TopTimeline() {
         // v138: onTop=true — 波形画到离屏再贴回, 其半透明底透出下层暗化后的内容 (旧独立波形窗口观感)
         if (store.wavePanelOpen && store.waveOnTop) { drawDimOverlay(g, r); drawWaveLayer(g, r, dpr, t0, win, true); }
       }
+      { // v340: 渲染性能采样
+        const w = window as unknown as { __perfTlA?: number[] };
+        const pf = (w.__perfTlA ??= []);
+        pf.push(performance.now() - __pt0);
+        if (pf.length > 900) pf.splice(0, pf.length - 900);
+      }
       raf = requestAnimationFrame(draw);
     };
     raf = requestAnimationFrame(draw);
@@ -707,13 +723,15 @@ export function TopTimeline() {
     const r = zoomRect(c); // v217: 布局空间
     const mx = zoomClientX(e.clientX) - r.left, my = zoomClientY(e.clientY) - r.top;
     const g = c.getContext('2d')!;
-    g.font = 'bold 9.5px sans-serif';
+    g.font = pillFont(9.5); // v351: 与绘制同字号 (缩放补偿)
     const win = 6000 / (bm.editor.timelineZoom || 1);
     const t0 = store.currentTime - win / 2;
     const tx = (ms: number) => ((ms - t0) / win) * r.width;
     const inRect = (cx: number, py: number, text: string) => {
       const w = g.measureText(text).width + 10; // lazer HitObjectPointPiece: Padding=5 两侧
-      return mx >= cx - w / 2 && mx <= cx + w / 2 && my >= py && my <= py + 13;
+      const ph = Math.max(13, 12 / uiZoom() + 2); // v351: 与 drawPill 同高
+      py = Math.min(py, r.height - ph - 1); // v351: 与 drawPill 同上抬
+      return mx >= cx - w / 2 && mx <= cx + w / 2 && my >= py && my <= py + ph;
     };
     for (let i = 0; i < bm.timingPoints.length; i++) {
       const tp = bm.timingPoints[i];
@@ -1000,13 +1018,11 @@ export function TopTimeline() {
             // v321 (F26) / v330: 滚轮调锁定间距倍率 (上方时间轴; 可改键, 默认 Alt+滚轮;
             // 游玩区未开平移时同一动作生效, 开平移时游玩区 Alt+滚轮 = 缩放)
             const d = e.deltaY > 0 ? -0.1 : 0.1;
-            bm.editor.distanceSpacing = Math.max(0.1, Math.min(10, Math.round(((bm.editor.distanceSpacing || 1) + d) * 100) / 100));
-            store.emit();
+            store.setEditorField('distanceSpacing', Math.max(0.1, Math.min(10, Math.round(((bm.editor.distanceSpacing || 1) + d) * 100) / 100))); // v345: 入 undo
           } else if (e.ctrlKey) {
             // Ctrl+滚轮: 缩放时间轴 (TimelineZoom)
             const f = e.deltaY > 0 ? 1 / 1.25 : 1.25;
-            bm.editor.timelineZoom = Math.max(0.25, Math.min(8, (bm.editor.timelineZoom || 1) * f));
-            store.emit();
+            store.setEditorField('timelineZoom', Math.max(0.25, Math.min(8, (bm.editor.timelineZoom || 1) * f))); // v345: 入 undo (滚轮连写自动合并)
           } else {
             // v193: 滚轮走 store.wheelSeek (lazer 对齐: 刻度累积; 播放中不吸附大步长 + 轻量重定位, 暂停吸附 1/beatSnap)
             store.wheelSeek(e.deltaY, e.deltaMode);
@@ -1017,28 +1033,28 @@ export function TopTimeline() {
       <div className="absolute right-1 top-1 flex gap-1 z-10">
         {store.wavePanelOpen && (
           <>
-            <button data-wave="mode" className="px-1.5 text-xs rounded bg-emerald-500/40 text-white/85 hover:bg-emerald-500/60" title="切换波形图/频谱图 (显示在时间轴上)"
+            <button data-wave="mode" className="px-1.5 text-xs rounded bg-emerald-500/40 text-white/85 hover:bg-emerald-500/60" title={t('timeline.wave_mode_title', 'Toggle waveform/spectrogram (shown on the timeline)')}
               onClick={() => store.setWaveMode(store.waveMode === 'wave' ? 'spectro' : 'wave')}>
-              {store.waveMode === 'wave' ? '波形图' : '频谱图'}
+              {store.waveMode === 'wave' ? t('timeline.wave_mode_wave', 'Waveform') : t('timeline.wave_mode_spectro', 'Spectrogram')}
             </button>
-            <button data-wave="layer" className="px-1.5 text-xs rounded bg-emerald-500/40 text-white/85 hover:bg-emerald-500/60" title="切换波形/频谱显示层级: 时间轴背景 / 时间轴上层"
+            <button data-wave="layer" className="px-1.5 text-xs rounded bg-emerald-500/40 text-white/85 hover:bg-emerald-500/60" title={t('timeline.wave_layer_title', 'Toggle waveform/spectrogram layer: timeline background / above timeline')}
               onClick={() => store.setWaveOnTop(!store.waveOnTop)}>
-              {store.waveOnTop ? '上层' : '背景'}
+              {store.waveOnTop ? t('timeline.wave_layer_top', 'On Top') : t('timeline.wave_layer_background', 'Background')}
             </button>
             {/* v135: 关闭波形/频谱 (同左侧栏「波形」开关, setWavePanelOpen 持久化记忆) */}
-            <button data-wave="close" className="px-1.5 text-xs rounded bg-emerald-500/40 text-white/85 hover:bg-red-500/60 flex items-center" title="关闭波形图/频谱图 (左侧栏「波形」可重新开启)"
+            <button data-wave="close" className="px-1.5 text-xs rounded bg-emerald-500/40 text-white/85 hover:bg-red-500/60 flex items-center" title={t('timeline.wave_close_title', 'Close waveform/spectrogram (re-enable via the Waveform toggle in the left sidebar)')}
               onClick={() => store.setWavePanelOpen(false)}><X className="w-3.5 h-3.5" /></button>
           </>
         )}
         {/* v63: 当前时间插入红/绿线 (默认值克隆生效点 — lazer ControlPointList.addNew) */}
-        <button data-tp-add="red" className="px-1.5 text-xs rounded bg-red-500/40 text-white/85 hover:bg-red-500/60" title="在当前时间插入红线 (克隆生效点默认值)"
-          onClick={() => { const bm = store.beatmap; if (bm) store.openTimingPointDialog('add', -1, defaultNewPoint(bm.timingPoints, Math.round(store.currentTime), true)); }}>+红</button>
-        <button data-tp-add="green" className="px-1.5 text-xs rounded bg-green-500/40 text-white/85 hover:bg-green-500/60" title="在当前时间插入绿线 (克隆生效点默认值)"
-          onClick={() => { const bm = store.beatmap; if (bm) store.openTimingPointDialog('add', -1, defaultNewPoint(bm.timingPoints, Math.round(store.currentTime), false)); }}>+绿</button>
-        <button className="px-1.5 text-xs rounded bg-black/50 text-white/70 hover:text-white" title="放大 (Ctrl+滚轮)"
-          onClick={() => { const bm = store.beatmap; if (bm) { bm.editor.timelineZoom = Math.min(8, (bm.editor.timelineZoom || 1) * 1.25); store.emit(); } }}>+</button>
-        <button className="px-1.5 text-xs rounded bg-black/50 text-white/70 hover:text-white" title="缩小 (Ctrl+滚轮)"
-          onClick={() => { const bm = store.beatmap; if (bm) { bm.editor.timelineZoom = Math.max(0.25, (bm.editor.timelineZoom || 1) / 1.25); store.emit(); } }}>−</button>
+        <button data-tp-add="red" className="px-1.5 text-xs rounded bg-red-500/40 text-white/85 hover:bg-red-500/60" title={t('timeline.add_red_title', 'Insert a Timing Point at the current time (clones the active point defaults)')}
+          onClick={() => { const bm = store.beatmap; if (bm) store.openTimingPointDialog('add', -1, defaultNewPoint(bm.timingPoints, Math.round(store.currentTime), true)); }}>{t('timeline.add_red', '+Red')}</button>
+        <button data-tp-add="green" className="px-1.5 text-xs rounded bg-green-500/40 text-white/85 hover:bg-green-500/60" title={t('timeline.add_green_title', 'Insert an Inherited Timing Point at the current time (clones the active point defaults)')}
+          onClick={() => { const bm = store.beatmap; if (bm) store.openTimingPointDialog('add', -1, defaultNewPoint(bm.timingPoints, Math.round(store.currentTime), false)); }}>{t('timeline.add_green', '+Green')}</button>
+        <button className="px-1.5 text-xs rounded bg-black/50 text-white/70 hover:text-white" title={t('timeline.zoom_in_title', 'Zoom In (Ctrl+Wheel)')}
+          onClick={() => { const bm = store.beatmap; if (bm) store.setEditorField('timelineZoom', Math.min(8, (bm.editor.timelineZoom || 1) * 1.25)); }}>+</button>
+        <button className="px-1.5 text-xs rounded bg-black/50 text-white/70 hover:text-white" title={t('timeline.zoom_out_title', 'Zoom Out (Ctrl+Wheel)')}
+          onClick={() => { const bm = store.beatmap; if (bm) store.setEditorField('timelineZoom', Math.max(0.25, (bm.editor.timelineZoom || 1) / 1.25)); }}>−</button>
       </div>
     </div>
   );
@@ -1046,6 +1062,7 @@ export function TopTimeline() {
 
 // 下方全局时间轴 + 播放控制
 export function BottomTimeline() {
+  const t = useT();
   useEditor();
   usePlaybackFrame(); // v252: 播放中逐帧刷新左下角时间/百分比 (播放帧只 bump playbackFrameVersion, 不走 useEditor 的主 version, 原实现播放中时间静止不动)
   const ref = useRef<HTMLCanvasElement>(null);
@@ -1060,6 +1077,7 @@ export function BottomTimeline() {
     //   逐物件 arc, CDP 实测热点); 缓存到离屏位图, 键不变时每帧 1 次 drawImage + 播放头
     let layer: { key: string; c: HTMLCanvasElement } | null = null;
     const draw = () => {
+      const __pt0 = performance.now(); // v340: 渲染性能采样 (CDP 读 window.__perfTlB)
       const bm = store.beatmap;
       const g = c.getContext('2d')!;
       const r = zoomRect(c); // v217: 布局空间
@@ -1165,6 +1183,12 @@ export function BottomTimeline() {
         g.fillStyle = 'rgba(16,16,24,0.15)'; // v272: 0.4→0.15; v284: 固定
         g.fillRect(0, 0, r.width, r.height);
       }
+      { // v340: 渲染性能采样
+        const w = window as unknown as { __perfTlB?: number[] };
+        const pf = (w.__perfTlB ??= []);
+        pf.push(performance.now() - __pt0);
+        if (pf.length > 900) pf.splice(0, pf.length - 900);
+      }
       raf = requestAnimationFrame(draw);
     };
     raf = requestAnimationFrame(draw);
@@ -1231,7 +1255,7 @@ export function BottomTimeline() {
             v335: 支持纯 ms 数字; 粘贴复制的物件文本 (lazer/stable 两种格式) → 跳转起始时间并选中对应物件 */}
         {jump === null ? (
           <span className="text-white/85 cursor-pointer hover:text-cyan-300" data-jump-open
-            title="点击输入时间跳转 (mm:ss:ms 或纯毫秒); 也可粘贴复制的物件文本跳转到其起始时间并选中"
+            title={t('timeline.jump_title', 'Click to enter a time to jump to (mm:ss:ms or plain milliseconds); you can also paste copied object text to jump to its start time and select the objects')}
             onClick={() => setJump(stableTimestamp(store.currentTime))}>{fmt(store.currentTime)}</span>
         ) : (
           <input autoFocus data-jump-input value={jump}
@@ -1264,8 +1288,8 @@ export function BottomTimeline() {
         {/* 倍速 (lazer PlaybackControl.PlaybackTabControl: 底栏右侧, 25/50/75/100%, 激活加粗)
             v296: 编辑器倍速固定不变调 (signalsmith-stretch, lazer PlaybackControl Tempo 语义), 变调按钮已移除;
             变调 (Frequency 重采样) 仅测试游玩 DT/HT 内部强制使用 */}
-        <div className="flex flex-col items-center gap-0.5 px-1" title="播放速度 (变速不变调 signalsmith-stretch, lazer Tempo)">
-          <span className="text-[10px] text-white/40 leading-3">倍速</span>
+        <div className="flex flex-col items-center gap-0.5 px-1" title={t('timeline.speed_title', 'Playback speed (tempo-preserving, signalsmith-stretch; lazer Tempo)')}>
+          <span className="text-[10px] text-white/40 leading-3">{t('timeline.speed_label', 'Speed')}</span>
           <div className="flex rounded overflow-hidden border border-white/10">
             {[0.25, 0.5, 0.75, 1].map(v => (
               <button key={v} data-speed-input={v} onClick={() => store.setRate(v)}
@@ -1278,10 +1302,10 @@ export function BottomTimeline() {
           </div>
         </div>
         {/* v256: 播放按钮改低调配色 (原亮粉色在深色底栏过于刺眼), 与旁边回到开头按钮一致 */}
-        <button onClick={() => store.togglePlay()} className="px-3 py-1.5 rounded bg-white/10 hover:bg-white/20 text-white text-sm font-bold w-12 flex items-center justify-center" title="空格">
+        <button onClick={() => store.togglePlay()} className="px-3 py-1.5 rounded bg-white/10 hover:bg-white/20 text-white text-sm font-bold w-12 flex items-center justify-center" title={t('timeline.play_title', 'Space')}>
           {store.playing ? <Pause className="w-4 h-4" fill="currentColor" /> : <Play className="w-4 h-4" fill="currentColor" />}
         </button>
-        <button onClick={() => { store.pause(); store.seek(0); }} className="px-2 py-1.5 rounded bg-white/10 hover:bg-white/20 text-white text-sm flex items-center" title="回到开头"><Square className="w-4 h-4" fill="currentColor" /></button>
+        <button onClick={() => { store.pause(); store.seek(0); }} className="px-2 py-1.5 rounded bg-white/10 hover:bg-white/20 text-white text-sm flex items-center" title={t('timeline.back_to_start_title', 'Back to Start')}><Square className="w-4 h-4" fill="currentColor" /></button>
       </div>
     </div>
   );
@@ -1290,6 +1314,7 @@ export function BottomTimeline() {
 // v45: 右上角选区信息 — 选中首件 (按时间) 坐标 + 前/后间距倍率 (单位同锁定间距 1x,
 // 与上方时间轴同行, 见 App.tsx 布局)
 export function SelectionInfoPanel() {
+  const t = useT();
   useEditor();
   const bm = store.beatmap;
   const info = bm ? selectionSpacingInfo(bm, store.selected) : null;
@@ -1323,10 +1348,10 @@ export function SelectionInfoPanel() {
     <div className="w-40 shrink-0 border-l border-white/10 flex flex-col items-end justify-center px-2 font-mono text-[11px] leading-5 text-white/85 select-none whitespace-nowrap" style={{ background: 'rgba(12,12,17,0.15)' }}>{/* v129: 背景半透明; v284: 固定 (开关移除) */}
       {nodeInfo ? (
         <>
-          <div className="text-white/60">滑条点 ×{nodeInfo.count}</div>
+          <div className="text-white/60">{t('timeline.slider_nodes', 'Slider Points ×{n}', { n: nodeInfo.count })}</div>
           {/* v268: 最前选中节点到前一节点的距离 / 最后选中节点到后一节点的距离 (无端点显示 —) */}
-          <div className="text-white/60">前 #{nodeInfo.firstIdx}← <span className="text-cyan-300">{nodeInfo.prevDist === null ? '—' : `${nodeInfo.prevDist}px`}</span></div>
-          <div className="text-white/60">后 #{nodeInfo.lastIdx}→ <span className="text-cyan-300">{nodeInfo.nextDist === null ? '—' : `${nodeInfo.nextDist}px`}</span></div>
+          <div className="text-white/60">{t('timeline.node_first', 'First #{i} ←', { i: nodeInfo.firstIdx })} <span className="text-cyan-300">{nodeInfo.prevDist === null ? '—' : `${nodeInfo.prevDist}px`}</span></div>
+          <div className="text-white/60">{t('timeline.node_last', 'Last #{i} →', { i: nodeInfo.lastIdx })} <span className="text-cyan-300">{nodeInfo.nextDist === null ? '—' : `${nodeInfo.nextDist}px`}</span></div>
         </>
       ) : info ? (
         <>
@@ -1342,7 +1367,7 @@ export function SelectionInfoPanel() {
           <div className="text-white/60">Next: <span className="text-white/30">—</span></div>
         </>
       ) : (
-        <div className="text-white/30">未选中物件</div>
+        <div className="text-white/30">{t('timeline.no_selection', 'No Object Selected')}</div>
       )}
     </div>
   );

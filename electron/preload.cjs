@@ -50,4 +50,8 @@ contextBridge.exposeInMainWorld("osuEditor", {
     ipcRenderer.on("alt-key", listener)
     return () => ipcRenderer.removeListener("alt-key", listener)
   },
+  // v338: 渲染端错误上报 (主进程写 <userData>/crash.log — 远程白屏排查用)
+  reportError: (msg) => ipcRenderer.send("renderer-error", msg),
+  // v346: 界面语言上报 (主进程按语言重建菜单标签)
+  menuLang: (lang) => ipcRenderer.send("menu-lang", lang),
 })

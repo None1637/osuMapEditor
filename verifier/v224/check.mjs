@@ -24,15 +24,16 @@ section('App.tsx: 开关半宽 + 缩放同行');
   const src = readSrc('src/App.tsx');
   assert(/data-pan-input="toggle"\s*\n?\s*className=\{`flex-1 min-w-0 text-left/.test(src), '开关按钮 flex-1 (约半宽, 不再 w-full)');
   assert(!/data-pan-input="toggle"\s*\n?\s*className=\{`w-full/.test(src), '开关不再整行宽');
-  assert(/<\/button>\s*\n\s*<PanNumInput label="缩放"/.test(src), '缩放输入框紧跟开关按钮 (同一 flex 行)');
-  assert(/label="缩放" value=\{Math\.round\(store\.playfieldScale \* 100\) \/ 100\} step=\{0\.1\} min=\{0\.1\} max=\{10\}/.test(src), '缩放 = 原 scale 输入 (倍率, 钳 0.1..10)');
+  // v346 i18n: 缩放输入框 label 改英文原文 'Zoom' + labelKey 'app.playfield_zoom'
+  assert(/<\/button>\s*\n\s*<PanNumInput label="Zoom" labelKey="app\.playfield_zoom"/.test(src), '缩放输入框紧跟开关按钮 (同一 flex 行)');
+  assert(/label="Zoom" labelKey="app\.playfield_zoom" value=\{Math\.round\(store\.playfieldScale \* 100\) \/ 100\} step=\{0\.1\} min=\{0\.1\} max=\{10\}/.test(src), '缩放 = 原 scale 输入 (倍率, 钳 0.1..10)');
 }
 
 section('App.tsx: x/y 平分一行');
 {
   const src = readSrc('src/App.tsx');
   assert(/<PanNumInput label="x" grow /.test(src) && /<PanNumInput label="y" grow /.test(src), 'x/y 均带 grow (平分行宽)');
-  assert(!/<PanNumInput label="缩放" grow/.test(src), '缩放不 grow (固定宽, 在开关行)');
+  assert(!/<PanNumInput label="Zoom" grow/.test(src), '缩放不 grow (固定宽, 在开关行)');
 }
 
 if (failures) { console.error(`V224 FAILED: ${failures}`); process.exit(1); }

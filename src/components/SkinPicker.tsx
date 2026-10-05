@@ -9,9 +9,11 @@ import {
   requestReadPermission, restoreSkinDir,
   type FsDirLike,
 } from '../osu/library';
+import { tNow, useT } from '@/i18n';
 
 /** 皮肤选择面板: 选择/拖拽 osu! 皮肤文件夹 (贴图 + hitsound), 记住选择, 可恢复默认 */
 export function SkinPicker({ onClose }: { onClose: () => void }) {
+  const t = useT();
   const supported = isFileSystemAccessSupported();
   const [source, setSource] = useState(skinSourceName);
   const [nativeHandle, setNativeHandle] = useState<FileSystemDirectoryHandle | null>(null);
@@ -27,19 +29,19 @@ export function SkinPicker({ onClose }: { onClose: () => void }) {
 
   const apply = useCallback(async (dir: FsDirLike, name: string) => {
     setBusy(true);
-    say(`加载皮肤「${name}」…`);
+    say(tNow('skin.log_loading_skin', 'Loading skin "{name}"…', { name }));
     try {
       const r = await applySkinFromDir(dir, name);
-      say(`贴图: ${r.loaded}/${r.total} 张已加载 (缺失的使用回退贴图)`);
+      say(tNow('skin.log_textures_loaded', 'Textures: {loaded}/{total} loaded (fallback for missing)', { loaded: r.loaded, total: r.total }));
       const samples = await collectSampleFiles(dir);
       if (samples.size) {
         const n = await store.applySkinSamples(samples);
-        say(`hitsound: ${n} 个采样已应用 (覆盖内置默认)`);
-      } else say('目录中无 hitsound 采样, 沿用内置默认');
+        say(tNow('skin.log_samples_applied', 'Hitsounds: {n} samples applied (overriding built-in defaults)', { n }));
+      } else say(tNow('skin.log_no_samples', 'No hitsound samples in folder; keeping built-in defaults'));
       setSource(name);
       store.emitPlayback();
     } catch (e) {
-      say('加载失败: ' + (e instanceof Error ? e.message : String(e)));
+      say(tNow('skin.log_load_failed', 'Load failed: {error}', { error: e instanceof Error ? e.message : String(e) }));
     } finally { setBusy(false); }
   }, [say]);
 
@@ -49,8 +51,8 @@ export function SkinPicker({ onClose }: { onClose: () => void }) {
     (async () => {
       // 会话内记忆优先 (含服务器直读模式): 免浏览器权限
       const mem = getRememberedSkinDir();
-      if (mem) { say(`已从会话记忆恢复「${mem.dir.name}」`); apply(mem.dir, mem.dir.name); return; }
-      if (!supported) { say('不支持 File System Access API, 可拖拽导入'); return; }
+      if (mem) { say(tNow('skin.log_restored_session', 'Restored "{name}" from session memory', { name: mem.dir.name })); apply(mem.dir, mem.dir.name); return; }
+      if (!supported) { say(tNow('skin.log_no_fs_api', 'File System Access API not supported; drag & drop to import')); return; }
       const r = await restoreSkinDir(); // IndexedDB 恢复
       if (cancelled) return;
       if (!r) return;
@@ -58,29 +60,29 @@ export function SkinPicker({ onClose }: { onClose: () => void }) {
       if (r.granted) {
         // 写入会话记忆: 本会话内再次打开直接走记忆快速通道, 不再查权限
         rememberSkinDir(asDirLike(r.handle), r.handle);
-        say(`已恢复目录「${r.handle.name}」`);
+        say(tNow('skin.log_restored_dir', 'Restored folder "{name}"', { name: r.handle.name }));
         apply(asDirLike(r.handle), r.handle.name);
-      } else { setPermNeeded(true); say(`已记住「${r.handle.name}」, 需要重新授权`); }
+      } else { setPermNeeded(true); say(tNow('skin.log_remembered_need_auth', 'Remembered "{name}"; re-authorization required', { name: r.handle.name })); }
     })();
     return () => { cancelled = true; };
   }, [supported, apply, say]);
 
   const chooseDir = async () => {
-    say('打开目录选择器…');
+    say(tNow('skin.log_opening_picker', 'Opening folder picker…'));
     try {
       const h = await pickSkinDir();
-      if (!h) { say('选择被取消 → 也可把皮肤文件夹直接拖进本窗口'); return; }
+      if (!h) { say(tNow('skin.log_pick_cancelled', 'Selection cancelled — you can also drag a skin folder into this window')); return; }
       setNativeHandle(h); setPermNeeded(false);
       apply(asDirLike(h), h.name);
     } catch (e) {
-      say('选择器报错: ' + (e instanceof Error ? `${e.name} ${e.message}` : String(e)) + ' —— 可改用拖拽');
+      say(tNow('skin.log_picker_error', 'Picker error: {error} — try drag & drop instead', { error: e instanceof Error ? `${e.name} ${e.message}` : String(e) }));
     }
   };
 
   const grantPerm = async () => {
     if (!nativeHandle) return;
     const ok = await requestReadPermission(nativeHandle);
-    say('权限结果: ' + (ok ? '已授权' : '被拒绝'));
+    say(tNow('skin.log_perm_result', 'Permission: {result}', { result: ok ? tNow('skin.perm_granted', 'Granted') : tNow('skin.perm_denied', 'Denied') }));
     setPermNeeded(!ok);
     if (ok) {
       // 授权成功后写入会话记忆: 避免部分环境同会话内反复要求授权
@@ -94,19 +96,21 @@ export function SkinPicker({ onClose }: { onClose: () => void }) {
     const item = [...e.dataTransfer.items].find(i => i.kind === 'file');
     if (!item) return;
     const d = await dirHandleFromDropEx(item);
-    if (!d) { say('拖入内容不是文件夹'); return; }
+    if (!d) { say(tNow('skin.log_not_a_folder', 'Dropped item is not a folder')); return; }
     if (d.native) {
       const ok = await persistSkinDirHandle(d.native);
-      say(ok ? '目录已记住 (下次自动恢复)' : '跨会话记忆写入失败: ' + (getLastPersistError() ?? '未知错误'));
+      say(ok
+        ? tNow('skin.log_dir_remembered', 'Folder remembered (auto-restored next time)')
+        : tNow('skin.log_persist_failed', 'Failed to save cross-session memory: {error}', { error: getLastPersistError() ?? tNow('skin.unknown_error', 'Unknown error') }));
       setNativeHandle(d.native);
       rememberSkinDir(d.dir, d.native);
     } else {
-      say('当前浏览器不支持拖拽句柄持久化, 仅本次会话内记住');
+      say(tNow('skin.log_no_handle_persist', 'Browser does not support drag-handle persistence; remembered for this session only'));
       setNativeHandle(null);
       rememberSkinDir(d.dir, null);
     }
     setPermNeeded(false);
-    apply(d.dir, d.dir.name + ' (拖拽)');
+    apply(d.dir, d.dir.name + tNow('skin.drag_suffix', ' (drag)'));
   };
 
   const resetDefault = () => {
@@ -115,7 +119,7 @@ export function SkinPicker({ onClose }: { onClose: () => void }) {
     forgetSkinDir();
     setSource('默认皮肤');
     setNativeHandle(null); setPermNeeded(false);
-    say('已恢复默认皮肤与内置 hitsound');
+    say(tNow('skin.log_reset_default', 'Restored default skin and built-in hitsounds'));
     store.emitPlayback();
   };
 
@@ -127,8 +131,8 @@ export function SkinPicker({ onClose }: { onClose: () => void }) {
            onDragLeave={e => { e.stopPropagation(); setDropActive(false); }}
            onDrop={onDropDir}>
         <div className="flex items-center gap-3 px-4 py-2.5 border-b border-[#2c2c38]">
-          <span className="text-sm font-semibold flex items-center gap-1.5"><Palette className="w-4 h-4" />皮肤</span>
-          <span className="text-xs text-slate-500 truncate">当前: {source}</span>
+          <span className="text-sm font-semibold flex items-center gap-1.5"><Palette className="w-4 h-4" />{t('skin.title', 'Skin')}</span>
+          <span className="text-xs text-slate-500 truncate">{t('skin.current', 'Current: {name}', { name: source === '默认皮肤' ? t('skin.defaultSkinName', 'Default Skin') : source })}</span>
           <div className="flex-1" />
           <button className="text-xs px-2 py-1 rounded bg-[#2c2c38] hover:bg-[#3c3c4c] flex items-center" onClick={onClose}><X className="w-3.5 h-3.5" /></button>
         </div>
@@ -136,38 +140,38 @@ export function SkinPicker({ onClose }: { onClose: () => void }) {
         <div className="p-5 flex flex-col items-center gap-3 relative">
           {dropActive && (
             <div className="absolute inset-0 z-10 bg-[#e6437d]/15 border-2 border-dashed border-[#e6437d] flex items-center justify-center text-sm text-pink-200 pointer-events-none">
-              松开以导入皮肤文件夹
+              {t('skin.drop_hint', 'Release to import skin folder')}
             </div>
           )}
           <div className="text-xs text-slate-400 text-center leading-5">
-            选择 osu! 皮肤文件夹 (含 hitcircle.png / normal-hitnormal.wav 等的目录)。
-            <br />贴图与 hitsound 都会应用；选择会被记住，下次自动恢复。
+            {t('skin.desc_line1', 'Choose an osu! skin folder (a directory containing hitcircle.png / normal-hitnormal.wav etc.)')}
+            <br />{t('skin.desc_line2', 'Textures and hitsounds are both applied; your choice is remembered and restored next time.')}
           </div>
           {permNeeded ? (
             <button className="px-4 py-2 rounded bg-[#e6437d] hover:bg-[#f0558e] text-sm font-medium disabled:opacity-40"
                     disabled={busy} onClick={grantPerm}>
-              授权访问「{nativeHandle?.name}」
+              {t('skin.grant_access', 'Grant access to "{name}"', { name: nativeHandle?.name ?? '' })}
             </button>
           ) : (
             <div className="flex gap-2">
               <button className="px-4 py-2 rounded bg-[#e6437d] hover:bg-[#f0558e] text-sm font-medium disabled:opacity-40"
                       disabled={busy} onClick={chooseDir}>
-                {busy ? '加载中…' : '选择皮肤文件夹…'}
+                {busy ? t('skin.loading', 'Loading…') : t('skin.choose_folder', 'Choose Skin Folder…')}
               </button>
               <button className="px-4 py-2 rounded bg-[#2c2c38] hover:bg-[#3c3c4c] text-sm disabled:opacity-40"
                       disabled={busy} onClick={resetDefault}>
-                恢复默认皮肤
+                {t('skin.reset_default', 'Restore Default Skin')}
               </button>
             </div>
           )}
           <div className="text-[11px] text-slate-600 text-center">
-            也可以<strong className="text-pink-300">直接把皮肤文件夹拖进这个窗口</strong>（拖拽导入不会被记住）
+            {t('skin.drag_hint_prefix', 'You can also ')}<strong className="text-pink-300">{t('skin.drag_hint_strong', 'drag a skin folder into this window')}</strong>{t('skin.drag_hint_suffix', ' (drag import is not remembered)')}
           </div>
         </div>
 
         <div className="shrink-0 border-t border-[#2c2c38] px-3 py-1 bg-[#101016]">
           {log.length === 0
-            ? <div className="text-[10px] text-slate-600">日志</div>
+            ? <div className="text-[10px] text-slate-600">{t('skin.log_label', 'Log')}</div>
             : log.map((l, i) => <div key={i} className="text-[10px] text-slate-500 font-mono truncate">{l}</div>)}
         </div>
       </div>

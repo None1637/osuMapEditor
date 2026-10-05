@@ -35,7 +35,10 @@ section('SongLibrary.tsx: 记忆兜底与诊断日志');
 {
   const src = readSrc('src/components/SongLibrary.tsx');
   assert(src.includes('getRememberedSongsDir'), '恢复失败时查会话记忆 (拖拽通道)');
-  assert(src.includes('已从会话记忆恢复') || src.includes('已从本次会话记忆恢复'), '会话记忆恢复日志');
+  // v346 多语言改造: 日志文本走 tNow(library.restored_from_session), 中文译文在 zh-CN 词典
+  assert(src.includes("tNow('library.restored_from_session'"), '会话记忆恢复日志 (i18n key)');
+  const zhLib = readSrc('src/i18n/dicts/zh-CN/library.ts');
+  assert(/'library\.restored_from_session':\s*'已从会话记忆恢复/.test(zhLib), 'zh-CN 词典恢复日志译文');
   assert(src.includes('rememberSongsDir(d.dir, null)'), '拖拽导入写入会话记忆 (v21: 旧 API 回退路径 native=null)');
   assert(src.includes('getLastPersistError'), '选择后显示持久化结果');
   assert(src.includes('idbSelfTest'), '无记录时跑 IDB 自检');

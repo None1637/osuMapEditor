@@ -42,8 +42,8 @@ section('Timelines.tsx: 药丸绘制接线');
   assert(/svPillText\(p\.sv\), PILL_LIME/.test(src), '变速绿线 -> SV 绿药丸');
   assert(/samplePill\(bm, o\)/.test(src) && /PILL_PINK_ALT : PILL_PINK|PILL_PINK\b/.test(src), '物件 -> 粉药丸 (slider= Pink2)');
   assert(/pillLayout\(items\)/.test(src), '过密收缩 pillLayout');
-  assert(/roundRect\(p\.x - p\.w \/ 2, 50, p\.w, 14, 7\)/.test(src), '粉药丸挂头圆下方 (y=50, h=14)');
-  assert(/roundRect\(px - w \/ 2, py, w, 13, 6\.5\)/.test(src), 'timing 药丸胶囊 (h=13)');
+  assert(/roundRect\(p\.x - p\.w \/ 2, 50, p\.w, spPh, spPh \/ 2\)/.test(src), '粉药丸挂头圆下方 (y=50, h=spPh 随字号下限撑高, v351)');
+  assert(/roundRect\(px - w \/ 2, py, w, ph, ph \/ 2\)/.test(src), 'timing 药丸胶囊 (h=ph 随字号下限撑高, v351)');
 }
 
 if (failures) { console.error(`\nVERIFIER_V53_FAILED: ${failures} 处失败`); process.exit(1); }

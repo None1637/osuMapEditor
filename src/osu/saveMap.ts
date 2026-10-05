@@ -5,6 +5,7 @@
 //   download — 其他来源 (.osz/拖拽/演示谱面), 兜底下载 .osu (stable 命名规则)
 import { serializeOsu, type Beatmap } from './parser';
 import type { FsDirLike } from './library';
+import { tNow } from '@/i18n'; // v346: 多语言
 
 export interface MapSource {
   dir: FsDirLike;
@@ -62,7 +63,7 @@ export async function saveBeatmap(bm: Beatmap, source: MapSource | null | undefi
       requestPermission(o: { mode: string }): Promise<string>;
     };
     if ((await dir.requestPermission({ mode: 'readwrite' })) !== 'granted')
-      throw new Error('未获得歌曲目录写入授权');
+      throw new Error(tNow('fs.write_permission_denied', 'Write permission to the song folder was not granted'));
     const fh = await dir.getFileHandle(fileName, { create: true });
     const w = await fh.createWritable();
     await w.write(text);

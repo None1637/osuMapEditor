@@ -1,8 +1,10 @@
 import { store, useEditor } from '@/osu/store';
+import { useT } from '@/i18n';
 
 // 基础数据页签: [General] / [Editor] / [Metadata] / [Difficulty]
 export function SetupPage() {
   useEditor();
+  const t = useT();
   const bm = store.beatmap;
   if (!bm) return null;
 
@@ -42,51 +44,51 @@ export function SetupPage() {
   return (
     <div className="flex-1 overflow-auto bg-[#101016] p-4">
       <div className="max-w-4xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <Section title="[General] 常规">
-          <Text label="AudioFilename 音频文件" value={bm.general.audioFilename} onChange={v => upd(() => bm.general.audioFilename = v)} />
-          <Num label="AudioLeadIn 提前量" value={bm.general.audioLeadIn} onChange={v => upd(() => bm.general.audioLeadIn = v)} hint="音乐开始前预留 ms" />
-          <Num label="PreviewTime 预览时间" value={bm.general.previewTime} onChange={v => upd(() => bm.general.previewTime = v)} hint="-1 = 自动" />
-          <Num label="Countdown 倒计时" value={bm.general.countdown} onChange={v => upd(() => bm.general.countdown = Math.round(v))} hint="0=无 1=正常 2=半速 3=倍速" />
-          <Text label="SampleSet 音效组" value={bm.general.sampleSet} onChange={v => upd(() => bm.general.sampleSet = v)} hint="Normal / Soft / Drum" />
-          <Num label="StackLeniency 堆叠容差" value={bm.general.stackLeniency} step={0.1} onChange={v => upd(() => bm.general.stackLeniency = v)} />
-          <Num label="Mode 模式" value={bm.general.mode} onChange={v => upd(() => bm.general.mode = Math.round(v))} hint="0=std 1=taiko 2=catch 3=mania" />
-          <Check label="LetterboxInBreaks" value={!!bm.general.letterboxInBreaks} onChange={v => upd(() => bm.general.letterboxInBreaks = v ? 1 : 0)} hint="休息段黑边" />
-          <Check label="WidescreenStoryboard" value={!!bm.general.widescreenStoryboard} onChange={v => upd(() => bm.general.widescreenStoryboard = v ? 1 : 0)} hint="宽屏故事板" />
+        <Section title={t('setup.section_general', '[General] General')}>
+          <Text label={t('setup.audio_filename', 'AudioFilename Audio File')} value={bm.general.audioFilename} onChange={v => upd(() => bm.general.audioFilename = v)} />
+          <Num label={t('setup.audio_lead_in', 'AudioLeadIn Audio Lead-In')} value={bm.general.audioLeadIn} onChange={v => upd(() => bm.general.audioLeadIn = v)} hint={t('setup.audio_lead_in_hint', 'Reserved ms before music starts')} />
+          <Num label={t('setup.preview_time', 'PreviewTime Preview Time')} value={bm.general.previewTime} onChange={v => upd(() => bm.general.previewTime = v)} hint={t('setup.preview_time_hint', '-1 = automatic')} />
+          <Num label={t('setup.countdown', 'Countdown')} value={bm.general.countdown} onChange={v => upd(() => bm.general.countdown = Math.round(v))} hint={t('setup.countdown_hint', '0=None 1=Normal 2=Half 3=Double')} />
+          <Text label={t('setup.sample_set', 'SampleSet Sample Set')} value={bm.general.sampleSet} onChange={v => upd(() => bm.general.sampleSet = v)} hint="Normal / Soft / Drum" />
+          <Num label={t('setup.stack_leniency', 'StackLeniency Stack Leniency')} value={bm.general.stackLeniency} step={0.1} onChange={v => upd(() => bm.general.stackLeniency = v)} />
+          <Num label={t('setup.mode', 'Mode')} value={bm.general.mode} onChange={v => upd(() => bm.general.mode = Math.round(v))} hint="0=std 1=taiko 2=catch 3=mania" />
+          <Check label="LetterboxInBreaks" value={!!bm.general.letterboxInBreaks} onChange={v => upd(() => bm.general.letterboxInBreaks = v ? 1 : 0)} hint={t('setup.letterbox_in_breaks_hint', 'Letterbox during breaks')} />
+          <Check label="WidescreenStoryboard" value={!!bm.general.widescreenStoryboard} onChange={v => upd(() => bm.general.widescreenStoryboard = v ? 1 : 0)} hint={t('setup.widescreen_storyboard_hint', 'Widescreen storyboard')} />
         </Section>
 
-        <Section title="[Editor] 编辑器行为">
-          <Num label="DistanceSpacing 锁定间距" value={bm.editor.distanceSpacing} step={0.1} onChange={v => upd(() => bm.editor.distanceSpacing = v)}
-            hint="新note与上个note的距离 = 倍率×100×间隔拍数" />
-          <Check label="启用锁定间距" value={store.distanceLock} onChange={v => { store.distanceLock = v; store.emit(); }}
-            hint="放置物件时自动保持固定间距" />
-          <Num label="BeatDivisor 节拍细分" value={bm.editor.beatDivisor} onChange={v => upd(() => bm.editor.beatDivisor = Math.max(1, Math.round(v)))}
-            hint="时间轴吸附与节拍线: 1/n" />
-          <Num label="GridSize 网格大小" value={bm.editor.gridSize} onChange={v => upd(() => bm.editor.gridSize = Math.max(0, Math.round(v)))}
-            hint="游玩区辅助线网格 px, 0=关闭" />
-          <Num label="TimelineZoom 时间轴缩放" value={bm.editor.timelineZoom} step={0.25} onChange={v => upd(() => bm.editor.timelineZoom = Math.max(0.25, v))}
-            hint="上方时间轴缩放倍率" />
+        <Section title={t('setup.section_editor', '[Editor] Editor Behavior')}>
+          <Num label={t('setup.distance_spacing', 'DistanceSpacing Distance Snap')} value={bm.editor.distanceSpacing} step={0.1} onChange={v => upd(() => bm.editor.distanceSpacing = v)}
+            hint={t('setup.distance_spacing_hint', 'New note distance from previous = multiplier × 100 × beat interval')} />
+          <Check label={t('setup.distance_lock_enable', 'Enable Distance Snap')} value={store.distanceLock} onChange={v => { store.distanceLock = v; store.emit(); }}
+            hint={t('setup.distance_lock_enable_hint', 'Automatically keep fixed spacing when placing objects')} />
+          <Num label={t('setup.beat_divisor', 'BeatDivisor Beat Snap Divisor')} value={bm.editor.beatDivisor} onChange={v => upd(() => bm.editor.beatDivisor = Math.max(1, Math.round(v)))}
+            hint={t('setup.beat_divisor_hint', 'Timeline snapping and beat lines: 1/n')} />
+          <Num label={t('setup.grid_size', 'GridSize Grid Size')} value={bm.editor.gridSize} onChange={v => upd(() => bm.editor.gridSize = Math.max(0, Math.round(v)))}
+            hint={t('setup.grid_size_hint', 'Playfield guide grid px, 0 = off')} />
+          <Num label={t('setup.timeline_zoom', 'TimelineZoom Timeline Zoom')} value={bm.editor.timelineZoom} step={0.25} onChange={v => upd(() => bm.editor.timelineZoom = Math.max(0.25, v))}
+            hint={t('setup.timeline_zoom_hint', 'Zoom factor of the upper timeline')} />
         </Section>
 
-        <Section title="[Metadata] 元数据">
-          <Text label="Title 标题" value={bm.metadata.title} onChange={v => upd(() => bm.metadata.title = v)} />
+        <Section title={t('setup.section_metadata', '[Metadata] Metadata')}>
+          <Text label={t('setup.title', 'Title')} value={bm.metadata.title} onChange={v => upd(() => bm.metadata.title = v)} />
           <Text label="TitleUnicode" value={bm.metadata.titleUnicode} onChange={v => upd(() => bm.metadata.titleUnicode = v)} />
-          <Text label="Artist 艺术家" value={bm.metadata.artist} onChange={v => upd(() => bm.metadata.artist = v)} />
+          <Text label={t('setup.artist', 'Artist')} value={bm.metadata.artist} onChange={v => upd(() => bm.metadata.artist = v)} />
           <Text label="ArtistUnicode" value={bm.metadata.artistUnicode} onChange={v => upd(() => bm.metadata.artistUnicode = v)} />
-          <Text label="Creator 作图者" value={bm.metadata.creator} onChange={v => upd(() => bm.metadata.creator = v)} />
-          <Text label="Version 难度名" value={bm.metadata.version} onChange={v => upd(() => bm.metadata.version = v)} />
-          <Text label="Source 来源" value={bm.metadata.source} onChange={v => upd(() => bm.metadata.source = v)} />
-          <Text label="Tags 标签" value={bm.metadata.tags} onChange={v => upd(() => bm.metadata.tags = v)} />
+          <Text label={t('setup.creator', 'Creator')} value={bm.metadata.creator} onChange={v => upd(() => bm.metadata.creator = v)} />
+          <Text label={t('setup.version', 'Version')} value={bm.metadata.version} onChange={v => upd(() => bm.metadata.version = v)} />
+          <Text label={t('setup.source', 'Source')} value={bm.metadata.source} onChange={v => upd(() => bm.metadata.source = v)} />
+          <Text label={t('setup.tags', 'Tags')} value={bm.metadata.tags} onChange={v => upd(() => bm.metadata.tags = v)} />
           <Text label="BeatmapID" value={bm.metadata.beatmapID} onChange={v => upd(() => bm.metadata.beatmapID = v)} />
           <Text label="BeatmapSetID" value={bm.metadata.beatmapSetID} onChange={v => upd(() => bm.metadata.beatmapSetID = v)} />
         </Section>
 
-        <Section title="[Difficulty] 难度">
+        <Section title={t('setup.section_difficulty', '[Difficulty] Difficulty')}>
           <Num label="HPDrainRate HP" value={bm.difficulty.hp} step={0.1} onChange={v => upd(() => bm.difficulty.hp = v)} />
-          <Num label="CircleSize CS" value={bm.difficulty.cs} step={0.1} onChange={v => upd(() => bm.difficulty.cs = v)} hint="圆圈大小, 实时生效" />
+          <Num label="CircleSize CS" value={bm.difficulty.cs} step={0.1} onChange={v => upd(() => bm.difficulty.cs = v)} hint={t('setup.circle_size_hint', 'Hit circle size, takes effect immediately')} />
           <Num label="OverallDifficulty OD" value={bm.difficulty.od} step={0.1} onChange={v => upd(() => bm.difficulty.od = v)} />
-          <Num label="ApproachRate AR" value={bm.difficulty.ar} step={0.1} onChange={v => upd(() => bm.difficulty.ar = v)} hint="缩圈速度, 实时生效" />
-          <Num label="SliderMultiplier 滑条速度" value={bm.difficulty.sliderMultiplier} step={0.1} onChange={v => upd(() => bm.difficulty.sliderMultiplier = v)} />
-          <Num label="SliderTickRate 滑条点率" value={bm.difficulty.sliderTickRate} step={0.5} onChange={v => upd(() => bm.difficulty.sliderTickRate = v)} />
+          <Num label="ApproachRate AR" value={bm.difficulty.ar} step={0.1} onChange={v => upd(() => bm.difficulty.ar = v)} hint={t('setup.approach_rate_hint', 'Approach circle speed, takes effect immediately')} />
+          <Num label={t('setup.slider_multiplier', 'SliderMultiplier Slider Velocity')} value={bm.difficulty.sliderMultiplier} step={0.1} onChange={v => upd(() => bm.difficulty.sliderMultiplier = v)} />
+          <Num label={t('setup.slider_tick_rate', 'SliderTickRate Slider Tick Rate')} value={bm.difficulty.sliderTickRate} step={0.5} onChange={v => upd(() => bm.difficulty.sliderTickRate = v)} />
         </Section>
       </div>
     </div>

@@ -51,7 +51,7 @@ section('EditorCanvas.tsx: 手柄命中 / 拖拽 / 键盘修饰 / 渲染 / undo'
   assert(/dragToScale\(sd\.anchor, sd\.quad\.w, sd\.quad\.h/.test(src), '倍率 = dragToScale (1 + 位移/边长)');
   assert(/alt \? sd\.defaultOrigin : anchorOpposite\(sd\.quad, sd\.anchor\)/.test(src), 'Alt=默认原点, 否则对角锚点');
   assert(/addEventListener\('keydown', key\)/.test(src) && /addEventListener\('keyup', key\)/.test(src), '拖拽中 Shift/Alt 按下松开实时重算 (lazer OnKeyDown/OnKeyUp)');
-  assert(/moved\) store\.commitDrag\(\); else store\.undo\(\)/.test(src), 'mouseup: 有改动 commit, 无改动弹空快照');
+  assert(/moved\) store\.commitDrag\(\); else store\.cancelDragNoop\(\)/.test(src), 'mouseup: 有改动 commit, 无改动弹空快照 (v345 cancelDragNoop)');
   assert(/#f2b544/.test(src) && /strokeRect\(dq\.x, dq\.y, dq\.w, dq\.h\)/.test(src), '黄色边框渲染 (lazer YellowDark)');
   assert(/fillRect\(hp\.x - s \/ 2/.test(src), '手柄方块渲染在显示框锚点上');
 }

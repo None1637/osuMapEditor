@@ -10,7 +10,7 @@ const app = fs.readFileSync(path.join(root, 'src/App.tsx'), 'utf8');
 
 // 1. 页签栏结构: compose / timing → song setup → 谱面信息容器 → 音量/显示设置 (v186: song setup 在谱面信息左边)
 const iCompose = app.indexOf("'compose'");
-const iSetup = app.indexOf("setTab('setup')");
+const iSetup = app.indexOf("onClick={() => setTab('setup')}"); // v352: 排除 onKey 分发 case 'tab-setup' 的提前命中
 const iInfo = app.indexOf('flex-1 flex items-center justify-center gap-2 min-w-0 pointer-events-none');
 const iVolume = app.indexOf('data-volume-panel-btn');
 ok(iCompose > 0 && iSetup > iCompose && iInfo > iSetup && iVolume > iInfo, '顺序: compose/timing → song setup → 谱面信息 → 音量/显示设置 (v186)');
@@ -19,7 +19,10 @@ ok(/v186: song setup 在谱面信息左边/.test(app), 'v186 注释 (song setup 
 
 // 2. 两个 Label: 名称左 (含指示器/保存反馈), 数据右 (CS/AR/物件数/★)
 const nameIdx = app.indexOf('{bm.metadata.artist} - {bm.metadata.title}');
-const statsIdx = app.indexOf('{bm.hitObjects.length} 物件');
+// v346 i18n 适配: 物件数文本走 t('app.object_count'), 不再 grep 中文
+const statsIdx = app.indexOf("t('app.object_count'");
+const dictApp = fs.readFileSync(path.join(root, 'src/i18n/dicts/zh-CN/app.ts'), 'utf8');
+ok(/'app\.object_count': '\{n\} 物件'/.test(dictApp), '词典: app.object_count 中文译文保留');
 ok(app.indexOf('data-dirty-indicator') < nameIdx && nameIdx < statsIdx, '名称 Label 在左 (指示器 → 名称), 数据 Label 在右');
 ok(/max-w-\[28rem\]/.test(app) && /truncate/.test(app.slice(iInfo, iVolume)), '名称 Label 限宽截断');
 

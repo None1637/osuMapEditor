@@ -29,7 +29,10 @@ section('App.tsx: V 键跳转最后物件');
 
 section('快捷键帮助列表');
 {
-  assert(/<div>\{hotkeyLabel\('jump-last'\)\} 跳到最后一个物件<\/div>/.test(src), '帮助列表含跳到最后物件条目 (v321: hotkeyLabel 动态)');
+  // v346 i18n 改造后: 帮助文案走 t('app.hk_jump_last', ...), 中文译文在词典分片里
+  assert(/<div>\{hotkeyLabel\('jump-last'\)\} \{t\('app\.hk_jump_last', 'jump to the last object'\)\}<\/div>/.test(src), '帮助列表含跳到最后物件条目 (v321: hotkeyLabel 动态, v346: i18n)');
+  const appDict = fs.readFileSync(path.join(root, 'src/i18n/dicts/zh-CN/app.ts'), 'utf8');
+  assert(appDict.includes("'app.hk_jump_last': '跳到最后一个物件'"), '跳到最后物件 zh-CN 译文正确');
 }
 
 if (failures) { console.error(`\nV153_FAILED: ${failures} 处失败`); process.exit(1); }

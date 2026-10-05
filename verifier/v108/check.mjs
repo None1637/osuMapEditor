@@ -41,7 +41,9 @@ for (const [pat, name] of [
   assert(sidebar.includes(pat), `左侧栏含控件: ${name}`);
 }
 assert(sidebar.includes('TOOLS.map'), '左侧栏含四工具按钮组');
-assert(sidebar.includes('节拍吸附 1/'), '左侧栏含节拍吸附');
+// v346 适配: 中文显示文本改 i18n — 断言 key 在侧栏 + zh-CN 词典译文正确
+const zhApp = read('src/i18n/dicts/zh-CN/app.ts');
+assert(sidebar.includes("t('app.beat_snap_divisor'") && zhApp.includes("'app.beat_snap_divisor': '节拍吸附 1/'"), '左侧栏含节拍吸附 (app.beat_snap_divisor, zh-CN=节拍吸附 1/)');
 assert(sidebar.includes('Crosshair'), 'v109: 网格中心按钮 (v181: ◎ → lucide Crosshair)');
 
 // 控件略放大 (py-1.5 / text-sm)

@@ -25,15 +25,16 @@ fs.unlinkSync(out);
 section('electron/main.cjs: "文件" 菜单 (最左侧)');
 {
   const src = readSrc('electron/main.cjs');
-  assert(/label: "文件",\s*submenu/.test(src), '"文件" 菜单存在');
-  assert(src.indexOf('label: "文件"') < src.indexOf('label: "设置"'), '"文件" 在 "设置" 之前 (最左侧)');
-  assert(/label: "保存", accelerator: acc\("save", "CmdOrCtrl\+S"\)/.test(src) && /send\(\{ type: "save" \}\)/.test(src), '保存 (CmdOrCtrl+S) => menu-cmd save (v286: acc() 支持改键覆盖)');
-  assert(/label: "打开一个难度"/.test(src) && /menuState\.difficulties\.map/.test(src) && /type: "open", folderRel: menuState\.folderRel, file: d\.file/.test(src), '打开一个难度 => 当前谱面难度子菜单');
-  assert(/label: "打开最近的难度"/.test(src) && /readSettings\(\)\.recents/.test(src) && /type: "open", folderRel: r\.folderRel, file: r\.file/.test(src), '打开最近的难度 => settings.recents 子菜单');
+  // v346: 菜单文案走 mT("menu.*") i18n, zh-CN 译文在同文件 MENU_LABELS 表
+  assert(/label: mT\("menu\.file"\),\s*submenu/.test(src) && /"menu\.file": \{ en: "File", "zh-CN": "文件"/.test(src), '"文件" 菜单存在 (v346: mT i18n)');
+  assert(src.indexOf('label: mT("menu.file")') < src.indexOf('label: mT("menu.settings")'), '"文件" 在 "设置" 之前 (最左侧)');
+  assert(/label: mT\("menu\.save"\), accelerator: acc\("save", "CmdOrCtrl\+S"\)/.test(src) && /"menu\.save": \{ en: "Save", "zh-CN": "保存"/.test(src) && /send\(\{ type: "save" \}\)/.test(src), '保存 (CmdOrCtrl+S) => menu-cmd save (v286: acc() 支持改键覆盖)');
+  assert(/label: mT\("menu\.open_difficulty"\)/.test(src) && /"menu\.open_difficulty": \{ en: "Open a Difficulty", "zh-CN": "打开一个难度"/.test(src) && /menuState\.difficulties\.map/.test(src) && /type: "open", folderRel: menuState\.folderRel, file: d\.file/.test(src), '打开一个难度 => 当前谱面难度子菜单');
+  assert(/label: mT\("menu\.open_recent"\)/.test(src) && /"menu\.open_recent": \{ en: "Open Recent Difficulty", "zh-CN": "打开最近的难度"/.test(src) && /readSettings\(\)\.recents/.test(src) && /type: "open", folderRel: r\.folderRel, file: r\.file/.test(src), '打开最近的难度 => settings.recents 子菜单');
   assert(/ipcMain\.on\("menu-state"/.test(src) && /writeSettings\(s\)/.test(src) && /pushRecent\(s\.recents/.test(src), 'menu-state 上报 => 最近列表持久化 settings.json');
   assert(/buildMenu\(\)/.test(src), 'menu-state 后重建菜单');
-  assert(/label: "打开歌曲文件夹"/.test(src) && /shell\.openPath\(curFolderAbs\)/.test(src), '打开歌曲文件夹 => shell.openPath');
-  assert(/在记事本中打开\.osu文件/.test(src) && /spawn\("notepad\.exe", \[curFileAbs\]/.test(src), '记事本打开 .osu => spawn notepad.exe');
+  assert(/label: mT\("menu\.open_song_folder"\)/.test(src) && /"menu\.open_song_folder": \{ en: "Open Song Folder", "zh-CN": "打开歌曲文件夹"/.test(src) && /shell\.openPath\(curFolderAbs\)/.test(src), '打开歌曲文件夹 => shell.openPath');
+  assert(/"menu\.open_osu_in_notepad": \{ en: "Open \.osu File in Notepad", "zh-CN": "在记事本中打开\.osu文件"/.test(src) && /spawn\("notepad\.exe", \[curFileAbs\]/.test(src), '记事本打开 .osu => spawn notepad.exe');
   assert(/enabled: !!curFolderAbs/.test(src) && /enabled: !!curFileAbs/.test(src), '无服务器来源时文件夹/记事本项禁用');
 }
 

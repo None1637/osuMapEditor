@@ -45,8 +45,12 @@ section('renderer.ts: 控制点手柄按 sliderPointStyle 分支');
 section('DisplayPanel.tsx: 「滑条控制点样式」下拉行');
 {
   const src = readSrc('src/components/DisplayPanel.tsx');
-  assert(/key: 'sliderPointStyle', name: '滑条控制点样式/.test(src), 'SELECT_ROWS 含滑条控制点样式行');
-  assert(/\['stable', 'stable 方格'\], \['lazer', 'lazer 圆点'\]/.test(src), '选项 stable 方格 / lazer 圆点');
+  const dict = readSrc('src/i18n/dicts/zh-CN/display.ts');
+  // v346 i18n: name/options 改 nameKey+nameEn / [value, key, en] 元组, zh-CN 译文在 display 词典分片
+  assert(/key: 'sliderPointStyle', nameKey: 'display\.slider_point_style_name'/.test(src), 'SELECT_ROWS 含滑条控制点样式行');
+  assert(/'display\.slider_point_style_name': '滑条控制点样式/.test(dict), '词典行名译文 = 滑条控制点样式');
+  assert(/\['stable', 'display\.slider_point_style_option_stable', 'stable squares'\], \['lazer', 'display\.slider_point_style_option_lazer', 'lazer dots'\]/.test(src), '选项 stable 方格 / lazer 圆点 (i18n key)');
+  assert(/'display\.slider_point_style_option_stable': 'stable 方格'/.test(dict) && /'display\.slider_point_style_option_lazer': 'lazer 圆点'/.test(dict), '词典选项译文 = stable 方格 / lazer 圆点');
   assert(/data-display-select=\{r\.key\}/.test(src), '下拉带 data-display-select (CDP 可测)');
   assert(/store\.setDisplayString\(r\.key, e\.target\.value as 'stable' \| 'lazer'\)/.test(src), '变更走 store.setDisplayString 持久化');
 }

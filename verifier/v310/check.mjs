@@ -17,11 +17,11 @@ const src = readSrc('src/osu/renderer.ts');
 
 section('drawSelectionRing: 线宽 75% + 中心线对齐圆圈边缘');
 {
-  const ring = src.match(/export function drawSelectionRing[\s\S]{0,500}?\n\}/);
+  const ring = src.match(/export function drawSelectionRing[\s\S]{0,2000}?\n\}/);
   assert(!!ring, 'drawSelectionRing 存在');
   assert(!!ring && /const lw = Math\.max\(1\.5, r \* 0\.115\);/.test(ring[0]), 'v311: 线宽 0.115r (= 滑条选中蓝边带宽), 保底 1.5');
-  assert(!!ring && /g\.arc\(x, y, r \* 0\.8675, 0, Math\.PI \* 2\)/.test(ring[0]), 'v314: 弧半径 0.8675r (环带恰 0.81..0.925r, 完全覆盖滑条选中蓝边)');
-  assert(!!ring && /g\.shadowBlur = lw \* 0\.6;/.test(ring[0]), '外发光保留并随线宽缩小');
+  assert(!!ring && /const rad = r \* 0\.8675;/.test(ring[0]) && /og\.arc\(0, 0, rad, 0, Math\.PI \* 2\)/.test(ring[0]), 'v314: 弧半径 0.8675r (环带恰 0.81..0.925r, 完全覆盖滑条选中蓝边)');
+  assert(!!ring && /og\.shadowBlur = lw \* 0\.6;/.test(ring[0]), '外发光保留并随线宽缩小');
 }
 
 section('drawSliderBodyOutline cover: 精确覆盖原白边带');

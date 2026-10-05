@@ -27,7 +27,7 @@ section('App.tsx: 网格间距输入自由输入 (输入中不钳制, 合法才�
   assert(/v >= 4 && v <= 256/.test(src), '提交时校验 lazer 范围 4..256 (输入中不钳制)');
   assert(!/Math\.max\(4, Math\.min\(256/.test(src), '移除逐键钳制 Math.max(4, Math.min(256, ...))');
   assert(/onBlur=\{\(\) => setText\(null\)\}/.test(src), '失焦还原为已提交值');
-  assert(/store\.beatmap\.editor\.gridSize = v/.test(src), '合法提交仍写回 [Editor] GridSize (lazer)');
+  assert(/setEditorField\('gridSize', v\)/.test(src), '合法提交仍写回 [Editor] GridSize (lazer; v345 经 setEditorField 入 undo)');
   assert(/<GridSpacingInput disabled=\{!bm\} \/>/.test(src), '工具栏使用 GridSpacingInput');
 }
 

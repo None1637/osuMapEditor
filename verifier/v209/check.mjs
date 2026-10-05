@@ -58,15 +58,17 @@ section('main.cjs: 编辑菜单 (快捷键仅显示不注册; 选中态置灰)')
 {
   const src = readSrc('electron/main.cjs');
   assert(/ipcMain\.on\("edit-menu-state"/.test(src), 'edit-menu-state IPC 监听');
-  assert(/label: "编辑",/.test(src), '编辑菜单存在');
+  // v346 i18n 适配: 菜单 label 走 mT("menu.edit")
+  assert(/label: mT\("menu\.edit"\)/.test(src) && /"menu\.edit": \{[^}]*"zh-CN": "编辑"/.test(src), '编辑菜单存在');
   for (const l of ['撤消', '重做', '剪切', '复制', '粘贴', '删除', '全选', '批量复制...', '反选', // v210: 「仿制 (批量复制)...」改名「批量复制...」
     '左右翻转', '上下翻转', '顺时针旋转90°', '逆时针旋转90°', '旋转...', '缩放...',
     '清除所选物件的音效', '清除所有音效', '重置combo组的颜色', '重置休息时段', '前移', '后移'])
     assert(src.includes(`"${l}"`), `菜单项「${l}」存在`);
   assert(/registerAccelerator: false/.test(src), '快捷键 registerAccelerator: false (不全局截获, 输入框不受影响)');
-  assert(/e\("edit-paste", "粘贴", "CmdOrCtrl\+V", clip\)/.test(src), '粘贴按剪贴板置灰');
-  assert(/e\("edit-cut", "剪切", "CmdOrCtrl\+X", sel\)/.test(src), '剪切按选中置灰');
-  assert(/e\("edit-select-all", "全选", "CmdOrCtrl\+A", map\)/.test(src), '全选按谱面加载置灰');
+  // v346 i18n 适配: 菜单 label 走 mT("menu.*"), 置灰参数位置不变
+  assert(/e\("edit-paste", mT\("menu\.paste"\), "CmdOrCtrl\+V", clip\)/.test(src), '粘贴按剪贴板置灰');
+  assert(/e\("edit-cut", mT\("menu\.cut"\), "CmdOrCtrl\+X", sel\)/.test(src), '剪切按选中置灰');
+  assert(/e\("edit-select-all", mT\("menu\.select_all"\), "CmdOrCtrl\+A", map\)/.test(src), '全选按谱面加载置灰');
 }
 
 section('electronMenu.ts: 编辑命令分发');

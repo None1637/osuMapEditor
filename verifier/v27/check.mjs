@@ -37,7 +37,7 @@ section('renderer.ts: 折返箭头 + 选中描边');
   assert(/sliderRepeatAlpha\(time, o\.time, span, preempt, s\)/.test(src), '箭头循环走 sliderRepeatAlpha');
   assert(/if \(a <= 0\) continue/.test(src), '不可见箭头跳过');
   assert(src.includes('function drawSliderBodyOutline'), 'drawSliderBodyOutline 已定义');
-  assert(/drawSliderBodyOutline\(g, p\.points, radius/.test(src), '选中滑条走外形描边 (v305 起带颜色参数)');
+  assert(/sliderOutlineSprite\(p\.points, radius/.test(src), '选中滑条走外形描边 (v305 起带颜色参数)');
   assert(/destination-out[\s\S]*?r \* 2 - 1\.5/.test(src), '离屏镂空出环');
 }
 

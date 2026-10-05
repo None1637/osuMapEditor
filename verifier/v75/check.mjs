@@ -76,7 +76,9 @@ section('App.tsx: lazer 键位 (Ctrl+G 反转 / Ctrl+,. 旋转)');
 section('Inspector.tsx: 快捷键提示文本同步');
 {
   const src = readSrc('src/components/Inspector.tsx');
-  assert(/hotkeyLabel\('reverse'\)\} 反转/.test(src) && /hotkeyLabel\('rot-ccw'\)\}\/\{hotkeyLabel\('rot-cw'\)\} 旋转90°/.test(src), '提示文本: 反转 + 旋转 (v321: hotkeyLabel 动态)');
+  // v346: 提示合并为单条 i18n (inspector.transform_hotkeys_hint), 热键仍经 hotkeyLabel 动态注入
+  assert(/t\('inspector\.transform_hotkeys_hint'/.test(src) && /ccw: hotkeyLabel\('rot-ccw'\)/.test(src) && /cw: hotkeyLabel\('rot-cw'\)/.test(src) && /reverse: hotkeyLabel\('reverse'\)/.test(src), '提示文本: 反转 + 旋转 (v321: hotkeyLabel 动态; v346: i18n key)');
+  assert(/'inspector\.transform_hotkeys_hint': '快捷键 \{ccw\}\/\{cw\} 旋转90°.*\{reverse\} 反转/.test(readSrc('src/i18n/dicts/zh-CN/inspector.ts')), '提示 zh-CN 译文含 旋转90° + 反转');
 }
 
 if (failures) { console.error(`\nVERIFIER_V75_FAILED: ${failures} 处失败`); process.exit(1); }

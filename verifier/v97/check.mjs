@@ -12,8 +12,9 @@ function readSrc(rel) { return fs.readFileSync(path.join(root, rel), 'utf8'); }
 
 {
   const app = readSrc('src/App.tsx');
-  assert(/Grid3x3 className[^>]*\/>网格吸附/.test(app), '按钮文案 = 网格吸附 (v181: ⊞ → lucide Grid3x3)');
+  assert(/Grid3x3 className[^>]*\/>\{t\('app\.grid_snap', 'Grid Snap'\)\}/.test(app), '按钮文案 = 网格吸附 (v181: ⊞ → lucide Grid3x3; v346: i18n key)');
   assert(!app.includes('⊞'), '旧文案 ⊞ 网格 已移除');
+  assert(/'app\.grid_snap': '网格吸附'/.test(readSrc('src/i18n/dicts/zh-CN/app.ts')), '网格吸附 zh-CN 译文');
 }
 
 if (failures) { console.error(`\nVERIFIER_V97_FAILED: ${failures} 处失败`); process.exit(1); }

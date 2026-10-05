@@ -45,7 +45,8 @@ section('菜单与桥接: 改名 + 对称项');
   const main = readSrc('electron/main.cjs');
   assert(main.includes('"批量复制..."'), '菜单项改名「批量复制...」');
   assert(!main.includes('仿制'), '「仿制」文案已移除');
-  assert(main.includes('e("edit-open-symmetry", "对称...", null, sel)'), '对称... 无快捷键, 按选中置灰');
+  // v346 i18n 适配: 菜单 label 走 mT("menu.symmetry"), 中文译文在 main.cjs 菜单词典
+  assert(main.includes('e("edit-open-symmetry", mT("menu.symmetry"), null, sel)') && /"menu\.symmetry": \{[^}]*"zh-CN": "对称\.\.\."/.test(main), '对称... 无快捷键, 按选中置灰');
   const bridge = readSrc('src/osu/electronBridge.ts');
   assert(bridge.includes("'edit-open-symmetry'"), 'ElectronMenuCommand 含 edit-open-symmetry');
   const menu = readSrc('src/osu/electronMenu.ts');

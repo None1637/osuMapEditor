@@ -28,8 +28,11 @@ assert(/useState\(\{ top: libraryCache\?\.scrollTop \?\? 0, height: 400 \}\)/.te
 
 // 缓存命中跳过扫描 (同目录才生效)
 assert(/libraryCache && libraryCache\.rootName === mem\.dir\.name/.test(sl), '缓存按目录名匹配才生效');
-assert(/已从会话缓存恢复列表 \(未重新扫描\)/.test(sl), '缓存命中日志');
-const hitIdx = sl.indexOf('已从会话缓存恢复列表 (未重新扫描)');
+// v346 适配: 日志文案改 i18n key (zh-CN 词典译文不变)
+const zhLib = read('src/i18n/dicts/zh-CN/library.ts');
+assert(/tNow\('library\.restored_list_from_cache', 'Restored list from session cache \(no rescan\)'\)/.test(sl)
+  && zhLib.includes("'library.restored_list_from_cache': '已从会话缓存恢复列表 (未重新扫描)'"), '缓存命中日志 (library.restored_list_from_cache)');
+const hitIdx = sl.indexOf("tNow('library.restored_list_from_cache'");
 const scanAfterHit = sl.indexOf('startScan(mem.dir'); // v297: 调用带 native 参数, 前缀匹配
 assert(hitIdx > 0 && scanAfterHit > hitIdx, '缓存命中分支在 startScan 之前 (命中即 return 不扫)');
 

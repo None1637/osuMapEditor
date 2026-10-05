@@ -3,6 +3,7 @@
 import { parseOsu, type Beatmap } from './parser';
 import { invalidatePath } from './renderer';
 import { SAMPLE_FILE_RE } from './clock/hitSounds';
+import { tNow } from '@/i18n'; // v346: 多语言
 
 // ---------- 浏览器能力检测 ----------
 export function isFileSystemAccessSupported(): boolean {
@@ -49,7 +50,7 @@ async function idbPut(key: string, value: unknown): Promise<void> {
 async function idbPutVerified(key: string, value: unknown): Promise<void> {
   await idbPut(key, value);
   const back = await idbGet<unknown>(key).catch(() => null);
-  if (!back) throw new Error('写入后读回校验失败 (句柄未真正落库)');
+  if (!back) throw new Error(tNow('fs.idb_verify_failed', 'Read-back verification failed after write (handle was not actually persisted)'));
 }
 
 async function idbGet<T>(key: string): Promise<T | null> {
@@ -88,13 +89,13 @@ export async function idbSelfTest(): Promise<string> {
         await idbPut('__selftest__', 1);
         const v = await idbGet<number>('__selftest__');
         await idbDel('__selftest__');
-        return v === 1 ? 'ok' : 'fail: 读回值不符';
+        return v === 1 ? 'ok' : tNow('fs.idb_selftest_mismatch', 'fail: read-back value mismatch');
       })(),
-      new Promise<string>(res => setTimeout(() => { timedOut = true; res('fail: 超时(当前环境 IndexedDB 挂起)'); }, 2500)),
+      new Promise<string>(res => setTimeout(() => { timedOut = true; res(tNow('fs.idb_selftest_timeout', 'fail: timeout (IndexedDB is hung in this environment)')); }, 2500)),
     ]);
-    return timedOut ? 'fail: 超时(当前环境 IndexedDB 挂起)' : result;
+    return timedOut ? tNow('fs.idb_selftest_timeout', 'fail: timeout (IndexedDB is hung in this environment)') : result;
   } catch (e) {
-    return 'fail: ' + (e instanceof Error ? `${e.name} ${e.message}` : String(e));
+    return tNow('fs.idb_selftest_error', 'fail: {error}', { error: e instanceof Error ? `${e.name} ${e.message}` : String(e) });
   }
 }
 
@@ -134,12 +135,12 @@ async function persistDirHandle(idbKey: string, handle: FileSystemDirectoryHandl
   try {
     await Promise.race([
       put,
-      new Promise<void>((_, rej) => setTimeout(() => { timedOut = true; rej(new Error('IndexedDB 写入超时')); }, 3000)),
+      new Promise<void>((_, rej) => setTimeout(() => { timedOut = true; rej(new Error(tNow('fs.idb_write_timeout', 'IndexedDB write timed out'))); }, 3000)),
     ]);
     lastPersistError = null;
   } catch (e) {
     const msg = e instanceof Error ? `${e.name} ${e.message}` : String(e);
-    lastPersistError = (timedOut ? 'IndexedDB 写入超时' : msg) + ' (本次会话内仍会记住, 但下次启动需重选)';
+    lastPersistError = tNow('fs.persist_session_note', '{reason} (still remembered for this session, but the folder will need to be picked again on next launch)', { reason: timedOut ? tNow('fs.idb_write_timeout', 'IndexedDB write timed out') : msg });
   }
 }
 
@@ -178,12 +179,12 @@ async function restoreDir(idbKey: string): Promise<{ handle: FileSystemDirectory
       idbGet<FileSystemDirectoryHandle>(idbKey),
       new Promise<null>(res => setTimeout(() => { timedOut = true; res(null); }, 2000)),
     ]);
-    if (timedOut) { lastRestoreReason = 'IndexedDB 读取超时 (当前环境可能不支持跨会话记忆)'; return null; }
-    if (!handle) { lastRestoreReason = lastPersistError ? `写入时失败: ${lastPersistError}` : 'IndexedDB 中无记录'; return null; }
+    if (timedOut) { lastRestoreReason = tNow('fs.idb_read_timeout', 'IndexedDB read timed out (this environment may not support cross-session persistence)'); return null; }
+    if (!handle) { lastRestoreReason = lastPersistError ? tNow('fs.restore_write_failed', 'Write failed earlier: {error}', { error: lastPersistError }) : tNow('fs.idb_no_record', 'No record in IndexedDB'); return null; }
     const h = handle as unknown as { queryPermission(o: { mode: string }): Promise<string> };
     return { handle, granted: (await withTimeout(h.queryPermission({ mode: 'read' }), 2000, 'denied')) === 'granted' };
   } catch (e) {
-    lastRestoreReason = 'IndexedDB 读取失败: ' + (e instanceof Error ? `${e.name} ${e.message}` : String(e));
+    lastRestoreReason = tNow('fs.idb_read_failed', 'IndexedDB read failed: {error}', { error: e instanceof Error ? `${e.name} ${e.message}` : String(e) });
     return null;
   }
 }

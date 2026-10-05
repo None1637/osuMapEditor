@@ -64,7 +64,10 @@ section('Timelines.tsx: 倍速控件提示');
 {
   const src = readSrc('src/components/Timelines.tsx');
   // v296: 变调切换按钮已移除, 倍速行恢复固定不变调 tooltip
-  assert(/变速不变调 signalsmith-stretch/.test(src) && !/data-speed-pitch/.test(src), '倍速 tooltip 标注不变调 (v296: 切换按钮移除)');
+  // v296: 变调切换按钮已移除, 倍速行恢复固定不变调 tooltip; v346: tooltip 走 i18n
+  assert(/timeline\.speed_title/.test(src) && !/data-speed-pitch/.test(src), '倍速 tooltip 标注不变调 (v296: 切换按钮移除, i18n key)');
+  const zhTimeline = readSrc('src/i18n/dicts/zh-CN/timeline.ts');
+  assert(/'timeline\.speed_title':\s*'播放速度 \(变速不变调 signalsmith-stretch/.test(zhTimeline), 'zh-CN 词典倍速 tooltip 译文');
 }
 
 if (failures) { console.error(`\nVERIFIER_V60_FAILED: ${failures} 处失败`); process.exit(1); }

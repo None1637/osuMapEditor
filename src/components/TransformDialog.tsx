@@ -6,11 +6,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { RotateCcw, RotateCw } from 'lucide-react';
 import { store, useEditor, type TransformOrigin } from '@/osu/store';
+import { useT } from '@/i18n';
 import { rotateObjects, scaleObjects } from '@/osu/transform';
 import { DraggableDialog, DraftNum, loadParams, useSaveParamsOnClose } from './DraggableDialog';
 
 export function TransformDialog({ mode }: { mode: 'rotate' | 'scale' | 'symmetry' }) {
   useEditor();
+  const t = useT();
   const [angle, setAngle] = useState(0); // v315: F17a — 默认角度 0 (原 90)
   const [factor, setFactor] = useState(1); // v315: F16 — 默认倍率 1 (原 1.1)
   const [factorY, setFactorY] = useState(1); // v282: 缩放支持仅X/仅Y (另一轴填 1)
@@ -20,7 +22,7 @@ export function TransformDialog({ mode }: { mode: 'rotate' | 'scale' | 'symmetry
   const originMode = store.originMode;
   const origin: TransformOrigin = store.currentOrigin();
   const selCount = store.selected.size;
-  const title = mode === 'rotate' ? '旋转' : mode === 'scale' ? '缩放' : '对称';
+  const title = mode === 'rotate' ? t('transform.rotate', 'Rotate') : mode === 'scale' ? t('transform.scale', 'Scale') : t('transform.symmetry', 'Symmetry');
   // v301: 实时预览 (F05a) — 首次改值后画布实时预览变换结果; 提交后回到已提交态, 关窗回滚到最后提交
   const previewOn = useRef(false);
 
@@ -71,13 +73,13 @@ export function TransformDialog({ mode }: { mode: 'rotate' | 'scale' | 'symmetry
   };
 
   return (
-    <DraggableDialog title={`${title} (${selCount} 个选中)`}
+    <DraggableDialog title={t('transform.dialog_title', '{mode} ({n} selected)', { mode: title, n: selCount })}
       testid={mode === 'rotate' ? 'rotate-dlg' : mode === 'scale' ? 'scale-dlg' : 'symmetry-dlg'} width={340}
       onClose={() => store.closeTransformDialog()}>
       {mode !== 'symmetry' && (
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-white/50">原点</span>
-          {([['selection', '选区'], ['playfield', '中心'], ['custom', '自定义']] as const).map(([m, label]) => (
+          <span className="text-white/50">{t('transform.origin', 'Origin')}</span>
+          {([['selection', t('transform.selection', 'Selection')], ['playfield', t('transform.center', 'Center')], ['custom', t('transform.custom', 'Custom')]] as const).map(([m, label]) => (
             <label key={m} className="flex items-center gap-0.5 text-white/70">
               <input type="radio" name="tfdlg-origin" checked={originMode === m} data-tf={`origin-${m}`}
                 onChange={() => store.setOriginMode(m)} />
@@ -94,44 +96,44 @@ export function TransformDialog({ mode }: { mode: 'rotate' | 'scale' | 'symmetry
       )}
       {mode === 'rotate' && (
         <div className="flex items-center gap-1 flex-wrap">
-          <span className="text-white/50">角度</span>
+          <span className="text-white/50">{t('transform.angle', 'Angle')}</span>
           <DraftNum value={angle} set={changeAngle} testid="angle" />
-          <button onClick={() => commit((objs, c) => rotateObjects(objs, c, angle))} title="按输入角度旋转 (正=顺时针, 负=逆时针)" data-tf="apply-rotate"
+          <button onClick={() => commit((objs, c) => rotateObjects(objs, c, angle))} title={t('transform.apply_rotate_title', 'Rotate by the entered angle (positive = clockwise, negative = counter-clockwise)')} data-tf="apply-rotate"
             className="px-1.5 py-1 rounded bg-white/10 hover:bg-white/20 border border-white/15 text-[11px]">
-            应用旋转
+            {t('transform.apply_rotate', 'Apply Rotation')}
           </button>
-          <button onClick={() => commit((objs, c) => rotateObjects(objs, c, -Math.abs(angle)))} title="按输入角度逆时针旋转"
+          <button onClick={() => commit((objs, c) => rotateObjects(objs, c, -Math.abs(angle)))} title={t('transform.ccw_title', 'Rotate counter-clockwise by the entered angle')}
             className="px-1.5 py-1 rounded bg-white/10 hover:bg-white/20 border border-white/15 text-[11px]">
-            <RotateCcw className="inline-block w-3.5 h-3.5 mr-0.5 -mt-0.5" />逆时针
+            <RotateCcw className="inline-block w-3.5 h-3.5 mr-0.5 -mt-0.5" />{t('transform.ccw', 'Counter-clockwise')}
           </button>
-          <button onClick={() => commit((objs, c) => rotateObjects(objs, c, Math.abs(angle)))} title="按输入角度顺时针旋转"
+          <button onClick={() => commit((objs, c) => rotateObjects(objs, c, Math.abs(angle)))} title={t('transform.cw_title', 'Rotate clockwise by the entered angle')}
             className="px-1.5 py-1 rounded bg-white/10 hover:bg-white/20 border border-white/15 text-[11px]">
-            <RotateCw className="inline-block w-3.5 h-3.5 mr-0.5 -mt-0.5" />顺时针
+            <RotateCw className="inline-block w-3.5 h-3.5 mr-0.5 -mt-0.5" />{t('transform.cw', 'Clockwise')}
           </button>
         </div>
       )}
       {mode === 'scale' && (
         <div className="flex items-center gap-1 flex-wrap">
-          <span className="text-white/50">倍率</span>
+          <span className="text-white/50">{t('transform.factor', 'Factor')}</span>
           <span className="text-white/40">x</span>
           <DraftNum value={factor} set={changeFactor} testid="factor" min={0.01} step={0.05} />
           <span className="text-white/40">y</span>
           <DraftNum value={factorY} set={changeFactorY} testid="factor-y" min={0.01} step={0.05} />
-          <label className="flex items-center gap-0.5 text-white/70" title="固定 x:y 比例 — 改任一轴, 另一轴按当前比例联动">
+          <label className="flex items-center gap-0.5 text-white/70" title={t('transform.lock_ratio_title', 'Lock x:y ratio — changing one axis scales the other at the current ratio')}>
             <input type="checkbox" checked={lockRatio} data-tf="lock-ratio" onChange={e => setLockRatio(e.target.checked)} />
-            x:y 固定
+            {t('transform.lock_ratio', 'Lock x:y')}
           </label>
-          <button onClick={() => commit((objs, c) => scaleObjects(objs, c, factor, factorY))} title="按输入倍率缩放 (仅X: y 填 1; 仅Y: x 填 1; 滑条长度同步)"
+          <button onClick={() => commit((objs, c) => scaleObjects(objs, c, factor, factorY))} title={t('transform.apply_scale_title', 'Scale by the entered factor (X only: set y to 1; Y only: set x to 1; slider length scales too)')}
             className="px-1.5 py-1 rounded bg-white/10 hover:bg-white/20 border border-white/15 text-[11px]">
-            应用倍率
+            {t('transform.apply_scale', 'Apply Scale')}
           </button>
         </div>
       )}
       {mode === 'symmetry' && (
         <>
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-white/50">对称轴</span>
-            {([['selection', '选区'], ['center', '中心'], ['custom', '自定义']] as const).map(([m, label]) => (
+            <span className="text-white/50">{t('transform.sym_axis', 'Symmetry Axis')}</span>
+            {([['selection', t('transform.selection', 'Selection')], ['center', t('transform.center', 'Center')], ['custom', t('transform.custom', 'Custom')]] as const).map(([m, label]) => (
               <label key={m} className="flex items-center gap-0.5 text-white/70">
                 <input type="radio" name="tfdlg-sym" checked={store.symAxisMode === m} data-sym={`axis-${m}`}
                   onChange={() => store.setSymAxisMode(m)} />
@@ -141,8 +143,8 @@ export function TransformDialog({ mode }: { mode: 'rotate' | 'scale' | 'symmetry
           </div>
           {store.symAxisMode !== 'custom' ? (
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-white/50">轴向</span>
-              {([['v', '竖直线 (左右镜像)'], ['h', '水平线 (上下镜像)']] as const).map(([d, label]) => (
+              <span className="text-white/50">{t('transform.sym_direction', 'Direction')}</span>
+              {([['v', t('transform.dir_vertical', 'Vertical line (mirror left-right)')], ['h', t('transform.dir_horizontal', 'Horizontal line (mirror up-down)')]] as const).map(([d, label]) => (
                 <label key={d} className="flex items-center gap-0.5 text-white/70">
                   <input type="radio" name="tfdlg-symdir" checked={store.symAxisDir === d} data-sym={`dir-${d}`}
                     onChange={() => store.setSymAxisDir(d)} />
@@ -153,27 +155,27 @@ export function TransformDialog({ mode }: { mode: 'rotate' | 'scale' | 'symmetry
           ) : (
             <div className="space-y-1">
               <div className="flex items-center gap-1 flex-wrap">
-                <span className="text-white/50 w-8">点 1</span>
+                <span className="text-white/50 w-8">{t('transform.point_1', 'Point 1')}</span>
                 <DraftNum value={store.symP1.x} set={v => store.setSymPoint(1, { x: v, y: store.symP1.y })} testid="sym-p1x" />
                 <DraftNum value={store.symP1.y} set={v => store.setSymPoint(1, { x: store.symP1.x, y: v })} testid="sym-p1y" />
               </div>
               <div className="flex items-center gap-1 flex-wrap">
-                <span className="text-white/50 w-8">点 2</span>
+                <span className="text-white/50 w-8">{t('transform.point_2', 'Point 2')}</span>
                 <DraftNum value={store.symP2.x} set={v => store.setSymPoint(2, { x: v, y: store.symP2.y })} testid="sym-p2x" />
                 <DraftNum value={store.symP2.y} set={v => store.setSymPoint(2, { x: store.symP2.x, y: v })} testid="sym-p2y" />
               </div>
-              <div className="text-white/35">对称轴 = 两点决定的直线; 可直接在游玩区拖拽两个紫色端点 (两点不会重合)</div>
+              <div className="text-white/35">{t('transform.custom_axis_hint', 'Symmetry axis = the line through the two points; drag the two purple endpoints directly on the playfield (points cannot overlap)')}</div>
             </div>
           )}
           <div>
-            <button onClick={() => store.reflectSelected()} title="选区关于对称轴镜像"
+            <button onClick={() => store.reflectSelected()} title={t('transform.apply_symmetry_title', 'Mirror the selection across the symmetry axis')}
               className="px-2 py-1 rounded bg-white/10 hover:bg-white/20 border border-white/15 text-[11px]">
-              应用对称
+              {t('transform.apply_symmetry', 'Apply Symmetry')}
             </button>
           </div>
         </>
       )}
-      <div className="text-white/35">{mode === 'symmetry' ? '画布虚线 = 当前对称轴预览; 每次应用一次撤销, 窗口保持打开可连续应用' : '改数值即时预览 (相对上次提交); 应用后窗口保持打开可连续应用, 每次应用一次撤销; 直接关窗回滚到最后提交'}</div>
+      <div className="text-white/35">{mode === 'symmetry' ? t('transform.sym_footer_hint', 'Dashed canvas line = preview of the current symmetry axis; each apply is one undo step, the window stays open for repeated applies') : t('transform.footer_hint', 'Changing values previews instantly (relative to the last commit); the window stays open after apply for repeated applies, each apply is one undo step; closing directly rolls back to the last commit')}</div>
     </DraggableDialog>
   );
 }

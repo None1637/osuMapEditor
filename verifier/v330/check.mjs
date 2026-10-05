@@ -24,6 +24,7 @@ const hk = readSrc('src/osu/hotkeys.ts');
 const ec = readSrc('src/components/EditorCanvas.tsx');
 const tl = readSrc('src/components/Timelines.tsx');
 const panel = readSrc('src/components/HotkeyPanel.tsx');
+const zhHotkey = readSrc('src/i18n/dicts/zh-CN/hotkey.ts'); // v346: UI 文本走 i18n, 断言 key + 词典译文
 
 section('hotkeys.ts: 滚轮组合支持');
 {
@@ -31,7 +32,7 @@ section('hotkeys.ts: 滚轮组合支持');
   assert(/export function isWheelCombo/.test(hk), 'isWheelCombo');
   assert(/export function matchesHotkeyWheel/.test(hk), 'matchesHotkeyWheel');
   assert(/isMouseCombo\(b\) \|\| isWheelCombo\(b\)/.test(hk), '菜单 accelerator 同步跳过鼠标+滚轮');
-  assert(/Wheel: '滚轮'/.test(hk), 'formatCombo 滚轮展示名');
+  assert(/Wheel: tNow\('hotkey\.key\.wheel', 'Wheel'\)/.test(hk) && /'hotkey\.key\.wheel': '滚轮'/.test(zhHotkey), 'formatCombo 滚轮展示名');
 }
 
 section('hotkeys.ts: 游玩区三个新动作 + 语境互斥豁免');
@@ -50,7 +51,7 @@ section('EditorCanvas: 绑定匹配 + 平移开关分流');
   assert(!!wheel && /if \(store\.playfieldPanEnabled && matchesHotkeyWheel\(e, 'playfield-zoom-wheel'\)\)/.test(wheel[0]), '开平移 → 缩放滚轮');
   assert(!!wheel && /if \(!store\.playfieldPanEnabled && bm && matchesHotkeyWheel\(e, 'distance-lock-wheel'\)\)/.test(wheel[0]), '未开平移 → 锁定间距滚轮');
   assert(!!wheel && wheel[0].indexOf('if (store.playfieldPanEnabled &&') < wheel[0].indexOf('if (!store.playfieldPanEnabled &&'), '缩放分支先于锁定间距分支');
-  assert(!!wheel && /distanceSpacing = Math\.max\(0\.1, Math\.min\(10,/.test(wheel[0]), '锁定间距钳 0.1..10');
+  assert(!!wheel && /setEditorField\('distanceSpacing', Math\.max\(0\.1, Math\.min\(10,/.test(wheel[0]), '锁定间距钳 0.1..10 (v345 经 setEditorField)');
   assert(!/if \(e\.altKey && store\.playfieldPanEnabled\)/.test(ec), '旧硬编码 Alt 分支移除');
 }
 
@@ -63,7 +64,7 @@ section('HotkeyPanel: 滚轮捕获 + 固定区更新');
 {
   assert(/comboFromWheelEvent/.test(panel), '导入 comboFromWheelEvent');
   assert(/window\.addEventListener\('wheel', onWheel, \{ capture: true, passive: false \}\)/.test(panel), 'wheel 捕获监听 (passive:false)');
-  assert(/按任意键\/鼠标键\/滚轮…/.test(panel), '捕获提示含滚轮');
+  assert(/t\('hotkey\.capture_hint', 'Press any key \/ mouse button \/ wheel…/.test(panel) && /'hotkey\.capture_hint': '按任意键\/鼠标键\/滚轮…/.test(zhHotkey), '捕获提示含滚轮');
   assert(!/中键拖动 — 平移游玩区/.test(panel) && !/Alt\+滚轮 — 缩放游玩区/.test(panel), '固定键位区移除已可改键条目');
 }
 

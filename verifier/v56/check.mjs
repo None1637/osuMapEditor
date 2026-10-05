@@ -57,7 +57,7 @@ section('App.tsx: 工具栏控件');
   const src = readSrc('src/App.tsx');
   assert(/store\.gridSnap = !store\.gridSnap/.test(src), '网格开关按钮');
   assert(/data-grid-input="type"/.test(src) && /data-grid-input="spacing"/.test(src) && /data-grid-input="rotation"/.test(src), '类型/间距/旋转输入');
-  assert(/store\.beatmap\.editor\.gridSize = v/.test(src), '间距写回 [Editor] GridSize (lazer)');
+  assert(/setEditorField\('gridSize', v\)/.test(src), '间距写回 [Editor] GridSize (lazer; v345 经 setEditorField 入 undo)');
   assert(/rotationPeriod\(store\.gridType\)/.test(src) && /normalizeRotation\(store\.gridRotation, period\)/.test(src), '切类型归一旋转');
   assert(/store\.gridType === 'circle'\}/.test(src) || /store\.gridType === 'circle'\}/.test(src) || /gridType === 'circle'/.test(src), '圆形禁用旋转');
 }

@@ -19,12 +19,16 @@ section('renderer.ts: F02 选中装饰层包围盒并入滑条控制点 (贝塞�
     'selLayer 内容包围盒 = 路径点 + 头 + 全部控制点');
 }
 
-section('EditorCanvas.tsx: F04 拖拽共享位移按全部被拖点 (头+控制点+滑条尾) 钳制');
+section('EditorCanvas.tsx: F04 拖拽共享位移钳制 (v352: 收窄为头/尾中心, 控制点不钳)');
 {
   const src = readSrc('src/components/EditorCanvas.tsx');
-  assert(/v302: F04 — 滑条尾\/控制点也受「限制物件在游玩区域内」约束/.test(src), 'F04 钳制块存在');
-  assert(/pts\.push\(path\.positionAt\(\(o\.slides \?\? 1\) % 2 === 0 \? 0 : \(o\.length \?\? path\.totalLength\)\)\)/.test(src),
-    '滑条尾 (路径终点) 纳入钳制点集');
+  assert(/v352: 钳制点集收窄为「头\/尾中心」/.test(src), 'F04 钳制块存在 (v352 语义注释)');
+  assert(/const pts = \[\{ x: orig\.x, y: orig\.y \}\]; \/\/ v352: 只钳头 \(\+尾\), 控制点不参与/.test(src)
+    && !/\.\.\.\(orig\.curve \?\? \[\]\)/.test(src.match(/v352: 钳制点集收窄[\s\S]*?yLo <= yHi\) dy = Math\.max/)?.[0] ?? ''),
+    '钳制点集 = 头 (+尾), 不再含控制点 (用户反馈: 滑条点不该被限制)');
+  assert(/d\.tails\.get\(id\)/.test(src) && /if \(tail\) pts\.push\(tail\);/.test(src)
+    && /path\.positionAt\(\(o\.slides \?\? 1\) % 2 === 0 \? 0 : \(o\.length \?\? path\.totalLength\)\)/.test(src),
+    '滑条尾 (路径终点) 纳入钳制点集 (v341: 尾点在拖拽起点预算进 tails)');
   assert(/if \(xLo <= xHi\) dx = Math\.max\(xLo, Math\.min\(xHi, dx\)\);/.test(src), '共享 delta 钳制应用');
 }
 

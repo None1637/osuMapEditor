@@ -37,8 +37,8 @@ section('EditorCanvas.tsx: 放置/拖拽吸附接线 (物件吸附 > 锁定间�
   const iNear = src.indexOf('snapToNearby(p, objectSnapPoints');
   const iLock = src.indexOf("if (!store.distanceLock || bm.editor.distanceSpacing <= 0) return gridSnapAt(bm, p);");
   assert(iNear > 0 && iLock > 0 && iNear < iLock, 'snapPlacement 先物件吸附后锁定间距');
-  assert(/snapDragDelta\(dragPts, targets, dx, dy\)/.test(src), '拖拽移动应用 snapDragDelta');
-  assert(/new SliderPath\(o\.curveType \?\? 'L', \[\{ x: orig\.x, y: orig\.y \}/.test(src), '拖拽滑条尾用快照几何');
+  assert(/snapDragDelta\(dragPts, objectSnapPoints/.test(src), '拖拽移动应用 snapDragDelta (v341: 目标点预算收进开关内)');
+  assert(/new SliderPath\(o\.curveType \?\? 'L', \[\{ x: o\.x, y: o\.y \}, \.\.\.o\.curvePoints\]/.test(src) && /tails/.test(src), '拖拽滑条尾用快照几何 (v341: 拖拽起点预算进 tails)');
   assert(/isVisibleAt\(bm, o, store\.currentTime\)/.test(src), '目标限可见物件 (lazer alive blueprints)');
 }
 

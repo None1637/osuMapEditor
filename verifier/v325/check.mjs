@@ -21,7 +21,7 @@ const app = readSrc('src/App.tsx');
 section('index.css: 任意值字号 --fs-comp 覆盖补全');
 {
   for (const px of [9, 10, 11, 12, 13, 15]) {
-    const re = new RegExp(`\\.ui-zoom-root \\.text-\\\\\\[${px}px\\\\\\]\\s+\\{ font-size: calc\\(${px}px\\s+\\* var\\(--fs-comp, 1\\)\\); \\}`);
+    const re = new RegExp(`\\.ui-zoom-root \\.text-\\\\\\[${px}px\\\\\\]\\s+\\{ font-size: max\\(calc\\(${px}px\\s+\\* var\\(--fs-comp, 1\\)\\), calc\\(12px \\/ var\\(--ui-zoom, 1\\)\\)\\); \\}`); // v339: max 包 12px 视觉下限
     assert(re.test(css), `text-[${px}px] 覆盖存在`);
   }
 }

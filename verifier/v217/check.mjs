@@ -52,7 +52,7 @@ section('EditorCanvas.tsx: 布局空间绘制/命中');
 section('Timelines.tsx: 布局空间绘制/命中');
 {
   const src = readSrc('src/components/Timelines.tsx');
-  assert(/import \{ zoomRect, zoomClientX, zoomClientY, fitCanvas \} from '@\/osu\/uiZoom';/.test(src), '导入适配工具 (v246: zoomDpr → fitCanvas)');
+  assert(/import \{ zoomRect, zoomClientX, zoomClientY, fitCanvas, textZoomComp, uiZoom \} from '@\/osu\/uiZoom';/.test(src), '导入适配工具 (v246: zoomDpr → fitCanvas; v351: textZoomComp/uiZoom 药丸字号补偿)');
   assert(!/getBoundingClientRect/.test(src), '不再直接用视觉 rect (物件大圆/药丸随整体缩放)');
   assert(!/window\.devicePixelRatio/.test(src), '光栅统一 zoomDpr');
   assert(!/(?<!zoomClientX\()e\.clientX/.test(src) && !/(?<!zoomClientY\()e\.clientY/.test(src), '事件坐标全部经 zoomClientX/Y');

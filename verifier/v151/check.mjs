@@ -59,7 +59,10 @@ section('④ 网格间距与旋转: 放一行');
   const rowEnd = src.indexOf('</div>', rotIdx);
   assert(rowStart > 0 && rowEnd > rotIdx, '间距与旋转在同一 flex 行容器内');
   const rowBlk = src.slice(rowStart, rowEnd);
-  assert(rowBlk.includes('间距') && rowBlk.includes('旋转') && rowBlk.includes('px') && rowBlk.includes('°'), '行内含 间距..px 与 旋转..°');
+  // v346 i18n 改造后: 标签走 t('app.grid_spacing'/'app.grid_rotation'), 中文译文在词典分片里
+  assert(rowBlk.includes("t('app.grid_spacing'") && rowBlk.includes("t('app.grid_rotation'") && rowBlk.includes('px') && rowBlk.includes('°'), '行内含 间距..px 与 旋转..° (i18n key)');
+  const appDict = fs.readFileSync(path.join(root, 'src/i18n/dicts/zh-CN/app.ts'), 'utf8');
+  assert(appDict.includes("'app.grid_spacing': '间距'") && appDict.includes("'app.grid_rotation': '旋转'"), '间距/旋转 zh-CN 译文正确');
   assert(!/<label[^>]*>\s*旋转/.test(src), '旧独立旋转行已移除');
 }
 

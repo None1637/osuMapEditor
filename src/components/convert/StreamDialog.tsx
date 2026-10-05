@@ -3,10 +3,16 @@ import { useEffect, useMemo, useState } from 'react';
 import { store, useEditor } from '@/osu/store';
 import { DraggableDialog, DraftNum, loadParams, saveParams, useSaveParamsOnClose } from '../DraggableDialog';
 import { computeStream, DEFAULT_STREAM_PARAMS, type StreamCurve, type StreamParams } from '@/osu/convert/stream';
+import { useT } from '@/i18n';
 
 // v40: 曲线简化 — 等距/线性变化/先加后减/先减后加; v222: + 指数变化 (带指数参数)
-const CURVES: [StreamCurve, string][] = [
-  ['equal', '等距'], ['linear', '线性变化'], ['bell', '先加后减'], ['bellInv', '先减后加'], ['expo', '指数变化'],
+// v346: i18n — 元组为 [曲线值, t() 键后缀, 英文原文], 渲染时 t(`convert.${key}`, en)
+const CURVES: [StreamCurve, string, string][] = [
+  ['equal', 'curve_equal', 'Constant'],
+  ['linear', 'curve_linear', 'Linear'],
+  ['bell', 'curve_bell', 'Up then down'],
+  ['bellInv', 'curve_bell_inv', 'Down then up'],
+  ['expo', 'curve_expo', 'Exponential'],
 ];
 
 // v41: 间距改节拍下拉框 (与节拍吸附同一组分母)
@@ -30,6 +36,7 @@ function loadStreamParams(): StreamParams {
 
 export function StreamDialog() {
   useEditor();
+  const t = useT();
   const [params, setParams] = useState<StreamParams>(loadStreamParams);
   useSaveParamsOnClose('stream', params); // v242: 关窗 (含取消/X) 也保存
   const bm = store.beatmap;
@@ -54,9 +61,9 @@ export function StreamDialog() {
   const variable = params.curve !== 'equal';
 
   return (
-    <DraggableDialog title={`滑条转连打 (${sliders.length} 条滑条)`} testid="stream" onClose={() => store.closeConversion()}>
-      <Row label="方式">
-        {([['spacing', '按间距'], ['count', '按数量']] as const).map(([m, label]) => (
+    <DraggableDialog title={t('convert.stream_title', 'Slider to Stream ({n} sliders)', { n: sliders.length })} testid="stream" onClose={() => store.closeConversion()}>
+      <Row label={t('convert.stream_method', 'Method')}>
+        {([['spacing', t('convert.stream_mode_spacing', 'By spacing')], ['count', t('convert.stream_mode_count', 'By count')]] as const).map(([m, label]) => (
           <label key={m} className="flex items-center gap-0.5">
             <input type="radio" name="stream-mode" checked={params.mode === m} data-conv={`mode-${m}`} onChange={() => upd({ mode: m })} />
             {label}
@@ -64,10 +71,10 @@ export function StreamDialog() {
         ))}
       </Row>
       {params.mode === 'count' && (
-        <Row label="数量"><DraftNum value={params.count} set={v => upd({ count: Math.max(1, Math.round(v)) })} testid="count" min={1} /></Row>
+        <Row label={t('convert.stream_count', 'Count')}><DraftNum value={params.count} set={v => upd({ count: Math.max(1, Math.round(v)) })} testid="count" min={1} /></Row>
       )}
       {/* v42: 两种模式都有间距 (拍) — 按间距 = 生成间隔; 按数量 = 时间吸附到此节拍网格 */}
-      <Row label="间距 (拍)">
+      <Row label={t('convert.stream_spacing', 'Spacing (beats)')}>
         <select value={String(params.spacingBeats)} data-conv="spacing"
           onChange={e => upd({ spacingBeats: parseFloat(e.target.value) })}
           className="bg-black/40 border border-white/15 rounded px-1 py-0.5 text-white">
@@ -76,36 +83,36 @@ export function StreamDialog() {
           {!SPACINGS.some(([v]) => Math.abs(v - params.spacingBeats) < 1e-9) &&
             <option value={String(params.spacingBeats)}>{params.spacingBeats}</option>}
         </select>
-        {params.mode === 'count' && <span className="text-white/40">时间对齐网格</span>}
+        {params.mode === 'count' && <span className="text-white/40">{t('convert.stream_snap_hint', 'Time snaps to grid')}</span>}
       </Row>
-      <Row label="间距曲线">
+      <Row label={t('convert.stream_curve', 'Spacing curve')}>
         <select value={params.curve} data-conv="curve" onChange={e => upd({ curve: e.target.value as StreamCurve })}
           className="bg-black/40 border border-white/15 rounded px-1 py-0.5 text-white">
-          {CURVES.map(([c, label]) => <option key={c} value={c}>{label}</option>)}
+          {CURVES.map(([c, k, en]) => <option key={c} value={c}>{t(`convert.${k}`, en)}</option>)}
         </select>
       </Row>
       {variable && (
-        <Row label="变化到 %">
+        <Row label={t('convert.stream_end_percent', 'Ramp to %')}>
           <DraftNum value={params.endPercent} set={v => upd({ endPercent: Math.max(0, Math.min(400, v)) })} testid="end-percent" min={0} max={400} />
-          <span className="text-white/40">100→{params.endPercent}% ({params.endPercent < 100 ? '变密' : params.endPercent > 100 ? '变疏' : '不变'})</span>
+          <span className="text-white/40">100→{params.endPercent}% ({params.endPercent < 100 ? t('convert.stream_denser', 'denser') : params.endPercent > 100 ? t('convert.stream_sparser', 'sparser') : t('convert.stream_unchanged', 'unchanged')})</span>
         </Row>
       )}
       {/* v222: 指数参数 (两位小数) — 仅指数变化曲线时显示; 1=同线性, >1 前慢后快, <1 前快后慢 */}
       {params.curve === 'expo' && (
-        <Row label="指数">
+        <Row label={t('convert.stream_exponent', 'Exponent')}>
           <DraftNum value={params.exponent} set={v => upd({ exponent: Math.round(Math.max(0.01, Math.min(10, v)) * 100) / 100 })} testid="exponent" min={0.01} max={10} step={0.01} />
-          <span className="text-white/40">{params.exponent === 1 ? '同线性' : params.exponent > 1 ? '前慢后快' : '前快后慢'}</span>
+          <span className="text-white/40">{params.exponent === 1 ? t('convert.stream_expo_linear', 'Same as linear') : params.exponent > 1 ? t('convert.stream_expo_slow_fast', 'Slow then fast') : t('convert.stream_expo_fast_slow', 'Fast then slow')}</span>
         </Row>
       )}
-      <div className="text-white/40">将生成 {result.length} 个单点 (预览已显示在游玩区)</div>
+      <div className="text-white/40">{t('convert.stream_summary', 'Will create {n} Hit Circles (preview shown on Playfield)', { n: result.length })}</div>
       <div className="flex gap-2 pt-1">
         <button data-conv="apply"
           onClick={() => { saveParams('stream', params); store.applyConversion(sliders.map(s => s.id), result); }}
           disabled={!result.length}
           className="px-3 py-1 rounded bg-pink-500 hover:bg-pink-400 disabled:opacity-40 text-white font-bold">
-          应用
+          {t('convert.apply', 'Apply')}
         </button>
-        <button onClick={() => store.closeConversion()} className="px-3 py-1 rounded bg-white/10 hover:bg-white/20">取消</button>
+        <button onClick={() => store.closeConversion()} className="px-3 py-1 rounded bg-white/10 hover:bg-white/20">{t('convert.cancel', 'Cancel')}</button>
       </div>
     </DraggableDialog>
   );

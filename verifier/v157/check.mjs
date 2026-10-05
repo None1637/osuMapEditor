@@ -41,7 +41,10 @@ section('TimingPanel.tsx: 绿线行首勾选 + 批量编辑栏');
   assert(/store\.toggleGreenLineSelected\(tp\.time\)/.test(src), '勾选切换选中');
   assert(/store\.selectedGreenLines\.has\(tp\.time\)/.test(src), '与上时间轴药丸选区共享同一集合');
   assert(/data-tp-batch/.test(src), '批量编辑栏 data-tp-batch');
-  assert(/已选 \{selGreens\.length\} 条绿线/.test(src), '显示已选数量');
+  // v346 i18n 改造后: 已选数量文案走 t('timing.green_selected', ...), 中文译文在词典分片里
+  assert(/t\('timing\.green_selected', '\{n\} inherited lines selected', \{ n: selGreens\.length \}\)/.test(src), '显示已选数量 (i18n key)');
+  const timingDict = readSrc('src/i18n/dicts/zh-CN/timing.ts');
+  assert(timingDict.includes("'timing.green_selected': '已选 {n} 条绿线'"), '已选数量 zh-CN 译文正确');
   assert(/store\.updateGreenLinesAt\(selGreens\.map\(g => g\.time\), patch\)/.test(src), '修改即时应用到所有选中绿线');
   for (const f of ['sv', 'sampleSet', 'sampleIndex', 'volume', 'kiai']) {
     assert(new RegExp(`data-tp-batch-input="${f}"`).test(src), `批量字段 ${f}`);

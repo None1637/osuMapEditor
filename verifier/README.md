@@ -3041,3 +3041,279 @@
   cdp-v336-electron.mjs (Electron 真实主进程链路, 4 条 — A1/B1 框选即时切换 + E1 只拦 keyUp)。
   注意: 需重打包 exe 后真实键盘实测确认 (CDP 注入事件与真实按键同走 before-input-event, 已尽力逼近)。
 - 回归: v332/v333/v328 通过。
+
+## v338 — 崩溃日志 (用户反馈 Ctrl+Shift+R/Ctrl+S 白屏, 本地无法复现)
+- 用户反馈 (soulten): 按 Ctrl+Shift+R 白屏, Ctrl+S 也会; 重开后能进编辑页, 但开旋转/缩放窗口就白。
+  本地无法复现 → 需要现场数据。
+- 修法 (全链路崩溃日志):
+  1) main.cjs: logCrash() 追加写 <userData>/crash.log (单条截 4KB, 文件超 1MB 重开);
+     "renderer-error" IPC 收渲染端上报; render-process-gone (reason: crashed/oom/...) 与
+     unresponsive 主进程直接落盘;
+  2) preload reportError(msg) → electronBridge ElectronAPI.reportError;
+  3) src/main.tsx 最早期装 window error + unhandledrejection 钩子 (仅 Electron),
+     同消息 5s 节流 (渲染循环每帧抛错不刷屏), 单条截 3500 字。
+- 用法: 让用户复现白屏后把 %APPDATA%/osu-map-editor/crash.log 发回来。
+- 验证: verifier/v338 (12 条 + tsc); Electron 端到端实测: 页面抛错/未处理 rejection 均落盘
+  (%APPDATA%/osu-map-editor/crash.log 拿到带堆栈的两条记录)。
+
+## v339 — 最小字号规则: 缩放后视觉字号不低于 12px
+- 用户规则: 即使窗口缩小 (v217 全局 zoom), 最小字号也不能低于 12px;
+  soulten 指出快捷键面板 / 底部时间 / 倍速按钮 / 检查器「未选中物件」字小。
+- 修法: index.css 的 v225 文本补偿规则全部改 `max(calc(原补偿), calc(12px / var(--ui-zoom,1)))`
+  — 布局字号下限 = 12px/zoom, 视觉恰 12px; App 根容器新增 `--ui-zoom` 变量;
+  独立窗口 (DraggableDialog/useCounterZoom) 反缩放后已是自然字号, 设 `--ui-zoom:1` 不参与换算。
+- 注意: zoom=0.6 时 12px 视觉 = 20px 布局, 小窗口下文本相对控件变大, 窄栏可能换行/截断 — 用户明确接受的取舍。
+- 验证: verifier/v339 (规则覆盖/数值断言 + tsc)。
+
+## v340 — 密集谱面交互帧数: 物件场景静态层 + 选中装饰 sprite 缓存
+- 用户反馈 (soulten): 框选到物件后一直拖曳帧数很低; 拖滑条甩动也低; 选滑条点拖曳稳 240。
+- profile (verifier/v340/profile-electron.mjs, Electron production 构建, 1000 物件同屏合成场景):
+  修复前 D1 物件框选/D2 拖滑条 renderPlayfield 每帧 ~20ms ≈ 21fps (D3 节点框选同场景也 20fps —
+  差异根因是「同屏可见物件数」而非操作类型), CPU 热点 = 逐物件 save/restore/drawImage +
+  选中装饰的 shadowBlur 弧/整层尺寸描边合成。
+- 修法:
+  1) renderer.ts 物件+followPoint 场景静态层 (sceneLayer): 键 = 时间+dataKey(dataVersion)+
+     谱面引用序号+皮肤内容序号(新增 skinContentSeq, 异步贴图逐张填充单例的问题)+变换+
+     显示设置+排除集签名; 命中时每帧 1 次 drawImage。播放/平移/幽灵预览 (bmRender!==bm) 走原路径。
+  2) 拖拽/变换中的物件 (EditorCanvas 传 staticExclude: 物件拖拽取 selected∪dragRef.ids,
+     节点拖拽取 selectedNodes 键集) 不进层, blit 后实时补画 (几何原地改动不 bump dataVersion)。
+  3) 选中滑条描边 sliderOutlineSprite 逐滑条缓存 (invalidatePath 联动失效; 原每物件整层离屏
+     清屏+双描边+shadowBlur); drawSelectionRing 改全局共享 sprite (原每物件 shadowBlur arc)。
+  4) 关键 bug: staticScene 门最初用 !store.canvasDragging — 该标记在框选/拖拽时也为 true,
+     恰好把需要缓存的场景全关了 (CDP __sceneDbg 键漂移计数定位)。
+- 调试设施: window.__perfScene/__perfSel (渲染器分段), __perfTlA/__perfTlB (上下时间轴),
+  __sceneDbg (静态层重建计数/键漂移); profile-electron.mjs 含 E0 静止对照。
+- 效果 (同机 Electron): D1/D2 renderPlayfield 20ms → 0.16ms, fps 21→50 (打平 E0 静止底噪,
+  剩余瓶颈是本测试环境软件光栅全幅合成, 真机 GPU 下上限更高); A/B/C 场景仍 240 满帧。
+- 验证: verifier/v340/check.mjs (渲染耗时阈值 + 静态层重建次数 + 物件仍渲染像素兜底 + tsc);
+  全量回归回到基线 (v28/v137/v138/v142 为既有失败); v225/v232/v27/v45/v305/v308/v310/v311/v314
+  的源码模式断言随重构更新 (语义断言保留)。
+
+## v341 — 全选物件掉帧到 1fps (大选区拖动)
+- 用户反馈 (soulten): 全选物件后掉帧到 1fps; 选取框拖曳/拖滑条甩动帧数低 (v340 已修框选静止态)。
+- profile (verifier/v341/repro.mjs, Electron production, 1000 物件同屏密集场景):
+  全选静止已被 v340 修好 (sel 0.25ms); 全选拖动仍 25fps — 剩三个热点:
+  1) 物件拖拽未做 rAF 节流 — CDP 以 250/s 灌 mousemove 时每事件全量 apply+emitSelection
+     (React 面板重渲染), 同帧重复执行; 2) 选中装饰层 selLayer 键含 getVersion (v250),
+     拖拽逐帧 bump → 千件装饰逐帧重建实测 40ms+/帧; 3) 拖拽应用循环逐 id find 是 O(n²),
+     滑条尾每 mousemove new SliderPath。
+- 修法:
+  1) 物件拖拽 rAF 节流 (同 v264 节点拖拽): mousemove 只记 dragRef.pending, 帧循环
+     applyObjectDrag 每帧最多应用一次; onMouseUp flush 末帧落点再 commitDrag。
+  2) 平移拖拽层 dragLayer (renderer.ts): 全体同 delta (uniform) 时被拖物件合成独立层,
+     每帧按 (当前位移-构建时位移) 仿射偏移 blit; follow point 两端都被拖的进层 ('both'),
+     恰好一端的实时补画 ('xor')。界外钳制分歧 (uniform=false) 回退 v340 实时补画。
+  3) 选中装饰层 selTranslate: 拖拽集覆盖整个选区时, 装饰层用稳定键 (dataVersion) 构建一次,
+     同位移差 blit (层结构 +bx/by 记录构建时位移)。
+  4) 按住未拖动 (moved=false) 不再排除重建 — 物件仍在原位, 静态层内容本就正确
+     (此前全选按住不动也每帧全量重画千件, 19ms/帧)。
+  5) 拖拽起点预算 objs 映射 (杀 O(n²) find) 与 tails 滑条尾点 (杀逐帧 new SliderPath);
+     objectSnapPoints 目标预算收进 objectSnapEnabled 开关内。
+- 效果 (同机 Electron, 1000 物件同屏全选拖动): renderPlayfield 20ms → 2ms, 装饰层 41ms → 1ms,
+  mousemove 处理 3.2ms → 0.37ms (节流); fps 2 → 40 (合成极端场景+CDP 事件 flood 下限,
+  真机更高)。稀疏 2000 物件全选静止稳 240fps。
+- 调试设施: window.__dragPath ('translate'/'live-exclude'), __dragState (moved/uniform/dx/dy/n),
+  __perfMove (拖拽应用分段)。
+- 验证: verifier/v341/check.mjs (全选静止 render<1.5ms / 未拖动不进排除层 / 拖动走 translate 层
+  且 render<4ms,sel<2ms); v55/v235/v245/v302 源码模式断言随重构更新 (语义保留); 全量回归。
+- 已知边界: 密集场景静止帧数上限 (~53fps) 由测试环境软件光栅全幅 blit + 上时间轴每帧重画
+  (tlA ~5ms, 暂停时也逐帧重绘) 决定, 非本次范围; 真机 GPU 下上限更高。
+- 环境敏感 (v349b 回归实测): v340/v341 是硬件/谱面依赖的性能断言 — GPU 被占 (如本地跑
+  LLM, 显存 43GB) 时 v341 全选静止 renderAvg 可到 150ms 级假失败; v340 重建计数依赖
+  测试基准谱面 (最近打开的谱面) 的 CS/边界钳制行为, 换谱面后拖到边缘可能走 live-exclude
+  实时变异路径 (dataKey 逐次 bump) 导致 rebuilds 4 > 2 假失败。判读时先确认 GPU 空闲
+  且基准谱面未变, 失败需用 v340 探针思路 (dump __sceneDbg diff 逐字段) 区分真假回归。
+
+## v342 — hover 滑条点预览消失时机对齐 stable
+- 用户反馈 (soulten): 00:16.861 结束的滑条到 00:17.639 还能看到控制点连线, stable 最后出现
+  在 00:17.083 (≈ end+222ms)。
+- 根因: hover 预览/Alt 锚点环的可见性走 isVisibleAt — 暂留模式 (打击动画关+点击特效开) 下
+  滑条残留窗是 HIT_LINGER(800ms), 预览跟着多挂 ~560ms。
+- 修法 (EditorCanvas): hover 滑条点预览与 F18a Alt 锚点环的结束侧门控收紧为
+  time <= hitObjectEndTime(bm, o) + HIT_FADE(240) (起始侧仍按 preempt), 选中滑条装饰不受影响。
+- 验证: verifier/v342/check.mjs (暂留模式单滑条: end+100ms hover 预览像素差存在,
+  end+500ms 消失; 旧门控下 end+500ms 断言必挂, 有判别力); v316 F20 源码断言同步更新。
+
+## v343 — Alt+Shift 节点框选改 toggle (可加可减)
+- 用户反馈 (soulten): alt+shift 框选碰到已选取的滑条点取消选取是对的, 但框到未选中的应该加入
+  — 「現在變成橡皮擦了只能減少不能增加」。
+- 修法 (EditorCanvas recomputeMarqueeSelection): subtract 分支从纯减选改对称差 —
+  框内已选剔除 + 框内未选加入 (base∪keepNodes 与框内集合 XOR)。
+- 验证: verifier/v343/check.mjs (Electron 功能: 预选 idx1, 框 idx1+idx2 → 得 {2}; 同框再来
+  一次 → 还原 {1}); verifier/v317 断言更新为 toggle 语义。
+
+## v344 — 旋转/缩放窗口对含单点的选区白屏
+- 用户反馈 (soulten): 「旋转...」窗口对单个单点旋转会白屏 (0.1.3 就有; 此前「Ctrl+Shift+R /
+  开启旋转或缩放视窗就白掉」同根因)。
+- 根因: store.beginTransformPreview 备份选中物件几何时 deepCopy(o.curvePoints) — 单点/转盘
+  curvePoints=undefined → JSON.stringify 得 "undefined" → JSON.parse 抛 SyntaxError;
+  异常发生在 TransformDialog 的 useEffect (开窗即触发) → 无 ErrorBoundary, React 整树卸载,
+  #root 清空 = 白屏。滑条有 curvePoints 数组不触发, 所以表象是「含单点才白屏」。
+- 修法: deepCopy 加 undefined 防御 (store.ts:39) + beginTransformPreview 缺省不拷贝。
+- 验证: verifier/v344/check.mjs (Electron: 单点选中开旋转窗/输入角度预览/应用/缩放窗同路径,
+  全程无异常 + #root 存活; 混合选区旋转 90° 位移符合手算; 另确认 DraftNum 选择器用
+  data-conv 而非 data-tf — data-tf 是左侧栏 Inspector NumIn 的)。
+
+## v345 — 不能撤销到上次保存 (undo 链卫生重构)
+- 用户反馈 (soulten): 「有時候會遇到不能撤銷到上次保存」(确认远未到 200 步上限)。
+- 调查结论 (对照本地 lazer 源码 D:\Projects\osuMapEditor\osu):
+  lazer 同样存完整谱面快照 (LegacyBeatmapEncoder 编码 .osu 文本 byte[], 上限 50, 回滚用
+  DiffPlex diff-patch 保留对象引用) — 差距不在快照粒度, 在漏记路径/去重/事务边界。
+  我们的三类真实根因:
+  - A 类 (主因): editor 段在快照/脏指纹内, 但 beatDivisor (set beatSnap, store.ts) /
+    timelineZoom (Timelines Ctrl+滚轮/+-按钮) / distanceSpacing (Alt+滚轮/左侧栏滑条/输入框)
+    / gridSize (App GridSpacingInput) 全部直写只 emit 不 pushUndo — 保存后任何一次这类高频
+    操作 → 栈底永远 ≠ 保存指纹, 脏标记永不消。
+  - B 类: 变换预览会话的洞 — v331 的 pushUndo 守卫只覆盖「选区变化」; 预览中按编辑快捷键
+    (App onKey 不屏蔽变换窗口) 或 Ctrl+S (save 存预览态指纹) 都会让撤销链错位。
+  - C 类: 空拖拽收尾 store.undo() 把当前态塞进 redoStack (垃圾 redo 项), 且拖拽按住期间
+    有快捷键入栈时会误弹别人的快照。
+- 修法:
+  1) store.setEditorField 统一入口 (4 个字段全部入 undo; 同字段 800ms 连写合并一条 —
+     滚轮/输入框连发不刷屏; App/Timelines/EditorCanvas 共 8 处调用点改造)。
+  2) pushUndo 无条件先 restoreTransformBackup (移除 v331 selKey 守卫, 选区不变也安全);
+     save() 同样先回滚预览再序列化。
+  3) App onKey: transformDialog 开着时屏蔽编辑类快捷键 (放行 save/窗口切换/Esc 关窗)。
+  4) store.cancelDragNoop: beginDrag 记录栈深, 空拖拽收尾仅当快照仍在栈顶才静默弹出
+     (不进 redoStack), 否则回退 undo(); EditorCanvas 11 处 + Timelines 4 处替换。
+  5) 备注: store.updateObject (无 pushUndo 无 emit) 确认为无调用方的死代码, 未启用, 保留待清理。
+- 注: 未做 lazer 式「入栈指纹去重」— 我们是 push-before-mutate 模式 (beginDrag 先快照后改),
+  入栈时无法知道操作是否有改动, 去重只能在操作后做, 而 emit 时机不统一风险大; 用
+  cancelDragNoop + 各方法 guard-先于-push 的定点清理达到同等效果。
+- 验证: verifier/v345/check.mjs (Electron: 改细分→放物件→撤销到底=干净基线; timelineZoom
+  连写合并一条; 预览中入栈不带预览态; 空拖拽不污染 redo; 预览中 Delete 被屏蔽)。
+- 旧断言同步: v32/v49/v117/v320 (空拖拽收尾 store.undo→cancelDragNoop)、v45/v56/v57/v321/v330
+  (distanceSpacing/gridSize 直写→setEditorField)、v331 (selKeyOf/tfSelKey 签名守卫段改断言
+  v345 无条件回滚+cancelDragNoop, 功能竞态链复测不变)。
+- 插曲: 本批编辑曾把 9 个文件整文件 CRLF 化, 导致读源码类 verifier 批量假失败 (详见
+  DEVELOPMENT.md 坑 #25); 已统一转回 LF 并加排查纪律。
+
+## v346 — 多语言模块 (简体中文/繁體中文/English)
+- 需求: 所有显示文本走多语言翻译, 先支持简中/繁中/英文三种。
+- 架构 (对齐本地 lazer 源码 osu.Framework.Localisation 的 TranslatableString 方案):
+  调用点携带「符号键 + 内联英文原文」`t('app.undo', 'Undo')`, 语言词典按符号键覆盖,
+  缺失回退英文原文; 符号键稳定, 改文案不破坏翻译, 加语言=加词典。
+  - src/i18n/index.ts: translate/tNow (非 React)/useT (useSyncExternalStore 订阅, 切换全树刷新);
+    持久化 localStorage 'i18n.lang'; 默认 ?lang= > 存储 > navigator.language 探测;
+    debug 语言 (?lang=debug) 渲染 [[key]] 暴露未接入文案 (lazer debug locale 同款)。
+  - zh-CN: dicts/zh-CN/ 15 个功能分片 (693 key), zhCN.ts 聚合。
+  - zh-TW: zhTW.ts 键级覆盖 → 否则对 zh-CN 译文做术语替换 (s2t.applyTwPhrases:
+    默认→預設/文件→檔案/鼠标→滑鼠/复制→複製 等) + 逐字转换 (s2t.S2T_TABLE 223 字映射
+    + S2T_SAME 同形字集, 覆盖词典全部 595 用字)。
+  - en: 无词典 (内联英文原文即译文, 同 lazer)。
+- 改造规模: 30+ 文件 ~5700 字 CJK 全部接入 (15 个并行批次, 各带分片); 动态文本域
+  (hotkeys 注册表 51 动作+9 分类/StreamDialog 5 曲线/VolumePanel 3 行) 采用「数据带英文
+  字段 + 显示处 t(前缀+id, en)」模式; 持久化数据名 ('默认皮肤'/'未分类') 数据不动、
+  显示时匹配翻译。
+- Electron 原生菜单: main.cjs 内嵌三语标签表 MENU_LABELS + 新增 menu-lang IPC
+  (preload menuLang / electronBridge 类型), electronMenu.ts onLangChange 订阅上报,
+  切换语言主进程重建菜单 (onMenuDefinition 推送, 自绘 MenuBar 自动刷新)。
+- UI: 页签栏右侧 LangSwitcher 下拉 (Globe 图标)。
+- 跨文件契约: App 用 startsWith(t('app.save_failed')) 判保存状态红/绿,
+  store.save_failed 译文必须以其开头 (en+zh 双语成立, verifier D 段断言)。
+- 验证: verifier/v346/check.mjs — A 静态 key⊆词典+英文原文一致; B 无闲置 key;
+  C src(i18n 外) 无 CJK 字符串残留 (白名单: hotkeys 注册表数据/持久化数据名);
+  D 动态前缀域+菜单 IPC+save_failed 契约; E s2t 覆盖率 100% + esbuild 转换抽样
+  + translate 回退链真跑; F tsc; G Electron CDP 四语言切换 DOM 断言+持久化+切换器跟随。
+- 旧断言同步 (59 个 verifier): 断言中文字面量的旧 verifier 批量失效, 全部改为
+  「源码存在 i18n key (+英文原文/插值参数) + zh-CN 词典分片译文正确」双重断言,
+  Electron 菜单类改为 mT("menu.*") + main.cjs MENU_LABELS 译文断言; 语言无关,
+  验证意图不变, 无真回归, 未动生产代码。v343 为并行负载下的 flaky (CDP 运行时类,
+  不断言文本)。
+
+## v347 — skin.ini SliderBorder 始终生效 (不再挂「使用皮肤颜色」开关)
+- 需求: 未选中滑条边框应读 skin.ini 的 SliderBorder (例:
+  F:\Backup\D\osu!\Skins\- (RX) Fantastical Evening Star\skin.ini 的 SliderBorder: 82,82,82),
+  此前始终纯白。
+- 根因: v132 起解析 (skin.ts parseSkinIniColours) 与渲染 (renderer.ts sliderBodyColors)
+  链路都在, 但 SliderBorder 的取用被包在 displaySettings.skinColors (显示设置「使用皮肤
+  颜色」, 默认关) 分支内 — 开关不开就读不到。
+- 决策 (对齐 osu! 行为): SliderBorder 移出开关分支始终生效 —
+  `skin.sliderBorder || bm.colors.sliderBorder || '#ffffff'`; 「使用皮肤颜色」开关现在
+  只管 combo 颜色与 SliderTrackOverride。DisplayPanel 该项描述文案同步
+  (descEn 注明 SliderBorder always applies regardless of this toggle;
+  zh-CN display.skin_colours_desc 同步)。
+- 验证: verifier/v347/check.mjs — 源码形态断言; esbuild 真跑 parseSkinIniColours 读
+  真实 F 盘 skin.ini 断言 #525252/#000000/Combo #ad3cbf,#599eff (文件不存在 soft-skip);
+  CDP 像素实测 (滑条体中点法线 0.87r 探针): skinColors=false 下 白(243,243,243) →
+  注入 sliderBorder='#525252' 重新 load → 灰(79,79,79) → 还原 → 白, 证明开关关闭时
+  也生效且滑条贴图缓存按 border 作 key 无残留; tsc。
+
+## v348 — SliderBorder 优先级随「使用皮肤颜色」开关翻转
+- 用户修订 (v347 规则的更正): 开「使用皮肤颜色」优先 skin.ini SliderBorder, 否则用谱面
+  sliderBorder, 谱面没有则用皮肤的, 皮肤没有则用默认 — 即开关是「谁优先」而非「是否生效」。
+- 修法:
+  1) renderer.ts sliderBodyColors: border 移回分支内并按开关翻转优先级 —
+     开: skin > bm > '#ffffff'; 关: bm > skin > '#ffffff' (track 逻辑不变)。
+  2) parser.ts 去除 `bm.colors.sliderBorder = '#FFFFFF'` 回填 — 回填会让关开关时谱面侧
+     永远非空, 皮肤回退轮不到; 留空 ('') 表示谱面未定义, 渲染层走回退链 (全 src 仅
+     renderer 消费该字段, 序列化器本就不写 SliderBorder, 无其他影响面)。
+  3) DisplayPanel/词典描述再次同步 (开: 皮肤优先; 关: 谱面优先; 未定义回退另一侧再默认)。
+- 验证: verifier/v347/check.mjs 修订 — CDP 像素补优先级段: 关+谱面红/皮肤灰 → 红;
+  开 → 灰; 开+皮肤 null → 红; 回退链原段保留。v19 断言同步为新关分支形态; v132/v346 复跑。
+
+## v349 — 默认英文 + 首次启动先选语言
+- 需求: 默认语言改英文; 首次启动最先选语言。
+- 修法:
+  1) i18n/index.ts: detect 链改 `?lang= > localStorage > navigator.language 探测 > 'en'`
+     (v349 初版去掉探测; v349b 应用户要求放回, 仅作存储之后的回退, 末位默认仍是 en);
+     新增 isLangUnset() (无 ?lang= 且无存储 = 首次); setLang 改为未变化也先落盘
+     (首启默认 en 时用户选 English 也必须持久化, 否则下次启动还弹浮层)。
+  2) 新组件 LangFirstRun.tsx: isLangUnset 时渲染 z-[9999] 全屏浮层 (盖 FirstRunWizard/曲库),
+     标题三语并列 (translate 强制三语言各渲染同一 key, 不依赖当前语言), 三个原生名按钮
+     (data-lang-pick 探针); 选后 setLang+关闭; onLangChange 订阅外部改语言也关闭
+     (LangSwitcher/verifier __osuSetLang 途径)。App.tsx 挂在 UnsavedDialog 之后。
+  3) zh-CN 词典 app 分片加 app.lang_first_title='选择语言' (繁體走 s2t 自动转换)。
+- 验证: verifier/v349/check.mjs — A 源码形态 (探测链顺序/setLang 先落盘/词典 key);
+  B CDP: Page.addScriptToEvaluateOnNewDocument 固定系统语言 (en-US → 界面英文; zh-TW →
+  探测生效界面繁體且浮层仍在), 点繁體 → 浮层消失+持久化, 再 reload → 浮层不再出现;
+  C tsc。注意 reload 等待用「旧页置标记, 新页标记消失」判定, 否则 waitReady 会命中
+  reload 前的旧页 DOM (本次踩过)。
+- 旧断言同步: v346 复跑通过 (新增词典 key 有 LangFirstRun 调用点, 非闲置)。
+
+## v350 — 右上角「刷新谱面」按钮 (外部修改后从磁盘重载)
+- 需求: 在 osu! 本体/记事本等外部修改 .osu 后, 一键重新加载当前谱面更新表现。
+- 修法 (App.tsx):
+  1) 页签栏右侧按钮 (RefreshCw 图标, data-reload-map-btn, 显示设置/语言切换旁);
+     store.mapSource (v67 记录的谱面磁盘来源: 目录+文件名) 为 null 或重载中时禁用。
+  2) reloadMap: guardUnsaved 确认 (未保存改动丢弃) → loadDifficulty(src.dir, src.fileName)
+     重读原文件 → store.load(..., src) (mapSource 不变, 保存仍写回原文件) →
+     seek(min(原当前时间, 末物件 endTime+5s)) 尽量保留编辑位置; 失败 alert。
+- 验证: verifier/v350/check.mjs — A 源码形态; B CDP: 按钮可用性、点击后 beatmap 对象
+  更换、当前时间保留 (60000→60000)、mapSource 不变; C tsc。无磁盘来源时断言禁用态
+  并 soft-skip 功能段。s2t 补同形字「刷」「磁」(v346 覆盖率), v346 复跑。
+
+## v351 — 左栏配色统一 + 时间轴药丸字号缩放补偿
+- 用户反馈 (soulten 两图): 图一左栏「颜色有点杂」; 图二分辨率缩小后上方时间轴样本药丸
+  ($xx)/SV 药丸 (0.00x) 文字超小。
+- 配色 (App.tsx, 按用户指定):
+  1) 曲库按钮平时无颜色 (bg-white/10, 跟皮肤一样) — 原 pink-500/30;
+  2) 工具激活态 (选择等) 改用曲库原颜色样式 bg-pink-500/30+border-pink-400/40 (保留 font-bold),
+     原亮粉 bg-pink-500;
+  3) 锁定间距高亮 cyan → amber (同锁定物件), 倍率滑条 accent-cyan-400 → accent-amber-400;
+  4) pattern 高亮 red → emerald (同波形)。
+- 字号 (Timelines.tsx): 新增 pillFont(base) = `bold ${max(base×textZoomComp, 12/uiZoom)}px`
+  — 与 CSS 文本同规则 (index.css v225/v339), 视觉字号 max(base×textZoom, 12px) 不低于 12px。
+  样本药丸 (原固定 10px) 与 timing 药丸 (原固定 9.5px) 的绘制与命中测试全部改走 pillFont
+  (命中不同字号会点不中); 药丸高度随字号下限撑高 (timing 13→max(13,12/z+2), 样本
+  14→max(14,12/z+2)), 撑高后 timing 药丸 py 上抬防裁出画布。文本/测宽缓存 key 含 font
+  字符串, 缩放换档自动分桶无串扰。
+- 验证: verifier/v351/check.mjs — A 源码形态 (四处配色类名 + pillFont 规则 + 绘制/命中
+  同式); B CDP DOM 类名实测 (曲库无粉/选择 pink-500/30/锁定间距 amber/pattern emerald,
+  按钮定位按文本正则三语兼容, 不依赖当前语言); C tsc。v149 断言同步 (accent-cyan→amber);
+  v108/v86/v191 复跑。
+
+## v352 — 滑条限界改「头/尾中心」+ 页签快捷键 F1/F2/F3
+- 用户反馈: 1) 开「限制物件在游玩区域内」时滑条限制的是滑条点, 应该只限制头尾的中心;
+  2) compose/timing/song setup 加快捷键 F1/F2/F3。
+- 限界 (EditorCanvas 物件拖拽共享 delta 钳制): 钳制点集从「头+全部控制点+滑条尾」
+  (v302/F04) 收窄为「头+滑条尾中心」— 控制点出界成形合法 (单节点拖拽 v29 起本就不钳);
+  已在界外的点不纳入钳制的规则不变。节点拖拽/节点组拖拽/缩放旋转变换路径本就不含
+  控制点钳制或走包围盒语义, 未动。
+- 快捷键: hotkeys 注册表导航组新增 tab-compose/tab-timing/tab-setup (F1/F2/F3, 可改键,
+  快捷键面板自动列出); App onKey 分发 setTab('edit'/'timing'/'setup'); 页签按钮加
+  hotkeyLabel 提示 (compose F1 / timing F2 / song setup F3); zh-CN 词典三个动作 key。
+- 验证: verifier/v352/check.mjs — A 源码形态; B CDP 按键实测 F2→timing/F3→song setup/
+  F1→compose (激活页签按 bg-[#2563eb] 判定); C tsc。v302 F04 断言同步为 v352 语义
+  (钳制块内不含 orig.curve); v53/v217 断言随 v351 药丸高度/导入同步; v302/v53/v217/
+  v346/v286 复跑。

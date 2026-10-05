@@ -19,7 +19,9 @@ section('SongLibrary.tsx: 字号/行高上调');
   assert(/px-3 flex items-center gap-2 text-sm cursor-pointer/.test(src), '列表行主文本 text-sm (原 text-xs)');
   assert(/text-xs text-slate-500 truncate/.test(src), '行次级文本 text-xs (原 10px)');
   assert(/text-base text-slate-100/.test(src), '详情标题 text-base (原 text-sm)');
-  assert(/搜索 \(支持 ar>8 bpm<180/.test(src) && /py-1\.5 text-sm outline-none/.test(src), '搜索框 text-sm');
+  assert(/t\('library\.search_placeholder', 'Search \(supports ar>8 bpm<180/.test(src)
+    && fs.readFileSync(path.join(root, 'src/i18n/dicts/zh-CN/library.ts'), 'utf8').includes("'library.search_placeholder': '搜索 (支持 ar>8 bpm<180")
+    && /py-1\.5 text-sm outline-none/.test(src), '搜索框 text-sm (v346: placeholder 走 i18n key library.search_placeholder + zh-CN 译文)');
 }
 
 section('编译');

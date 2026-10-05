@@ -5,6 +5,9 @@
 // 修法:
 //   1) store.pushUndo 守卫: 预览会话 (tfBackup) 中物件选区签名已变 → 快照前同步
 //      restoreTransformBackup (单点兜底, 覆盖所有选区变更路径, 不止 select());
+//      [v345 更新: 签名守卫误弹面太大 (选区不变的入栈路径也会把预览态混进快照),
+//       改为 pushUndo 无条件 restoreTransformBackup (回滚幂等) + selKeyOf/tfSelKey 移除;
+//       空拖拽收尾改 cancelDragNoop 按栈深静默弹栈]
 //   2) TransformDialog 选区切换时角度/倍率归零 (用户反馈: 选其他物件旋转角度不归零);
 //      对话框 effect 的 end/begin 保留作双保险。
 // 运行: node verifier/v331/check.mjs
@@ -23,18 +26,13 @@ function readSrc(rel) { return fs.readFileSync(path.join(root, rel), 'utf8'); }
 const store = readSrc('src/osu/store.ts');
 const dlg = readSrc('src/components/TransformDialog.tsx');
 
-section('store.ts: pushUndo 预览回滚守卫');
+section('store.ts: pushUndo 预览回滚守卫 (v345: 无条件回滚, 取代 v331 选区签名守卫)');
 {
-  assert(/function selKeyOf\(s: Set<number>\): string/.test(store), 'selKeyOf 选区签名助手');
-  assert(/private tfSelKey: string \| null = null/.test(store), 'tfSelKey 字段');
-  const begin = store.match(/beginTransformPreview\(\) \{[\s\S]{0,400}?\n  \}/);
-  assert(!!begin && /this\.tfSelKey = selKeyOf\(this\.selected\)/.test(begin[0]), 'begin 记录选区签名');
-  const end = store.match(/endTransformPreview\(\) \{[\s\S]{0,300}?\n  \}/);
-  assert(!!end && /this\.tfSelKey = null/.test(end[0]), 'end 清空签名');
+  assert(!/selKeyOf|tfSelKey/.test(store), 'v345: selKeyOf/tfSelKey 签名守卫已移除 (改无条件回滚)');
   const push = store.match(/pushUndo\(\) \{[\s\S]{0,600}?\n  \}/);
-  assert(!!push && /if \(this\.tfBackup && this\.tfSelKey !== null && selKeyOf\(this\.selected\) !== this\.tfSelKey\) this\.restoreTransformBackup\(\);/.test(push[0]),
-    'pushUndo: 选区已变 → 快照前同步回滚预览');
+  assert(!!push && /if \(this\.tfBackup\) this\.restoreTransformBackup\(\);/.test(push[0]), 'pushUndo: 预览会话中快照前无条件回滚到基准 (回滚幂等)');
   assert(!!push && push[0].indexOf('restoreTransformBackup') < push[0].indexOf('this.undoStack.push'), '回滚先于快照');
+  assert(/cancelDragNoop\(\) \{[\s\S]{0,300}?this\.dragUndoDepth/.test(store), 'v345: cancelDragNoop 空拖拽按栈深静默弹栈 (不进 redo)');
 }
 
 section('TransformDialog: 选区切换归零');

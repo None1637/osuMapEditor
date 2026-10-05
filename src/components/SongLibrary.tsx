@@ -11,6 +11,7 @@ import {
 } from '../osu/library';
 import { buildLibraryIndexAuto, enumerateDifficultySkeletons, type LibraryIndexEntry } from '../osu/libraryIndex'; // v290/v297 (worker 索引)/v299 (文件名骨架); v296: runStarQueue 移除 (全局星数计算太慢, 已屏蔽)
 import { matchLibraryEntry, parseLibraryQuery } from '../osu/librarySearch'; // v290
+import { tNow, useT } from '@/i18n'; // v346: 曲库面板 i18n
 
 type DirEntry = { name: string; handle: FsDirLike };
 
@@ -34,6 +35,7 @@ interface LibraryCache {
 let libraryCache: LibraryCache | null = null;
 
 export function SongLibrary({ onClose }: { onClose: () => void }) {
+  const t = useT(); // v346: i18n
   const supported = isFileSystemAccessSupported();
   const [root, setRoot] = useState<FsDirLike | null>(null);
   const [rootNative, setRootNative] = useState<FileSystemDirectoryHandle | null>(null); // 仅授权流程用
@@ -105,7 +107,7 @@ export function SongLibrary({ onClose }: { onClose: () => void }) {
     // v291: 重扫后选中回退到当前打开的谱面, 并重置自动定位 (条目出现后滚动到位)
     const ck = (() => { const s = store.mapSource; return s ? `${s.dir.name}/${s.fileName}` : null; })();
     setSelKey(ck); selKeyRef.current = ck; scrollToSelRef.current = true;
-    say('开始扫描…');
+    say(tNow('library.scan_started', 'Scan started…'));
     try {
       const ds = await collectDirs(h, myGen);
       if (ds === null) return;
@@ -133,7 +135,7 @@ export function SongLibrary({ onClose }: { onClose: () => void }) {
       const all: LibraryIndexEntry[] = [];
       if (cached?.length) {
         setEntries(cached);
-        say(`已从索引缓存恢复 ${cached.length} 难度, 后台校验更新…`);
+        say(tNow('library.restored_from_index_cache', 'Restored {n} difficulties from index cache, verifying in background…', { n: cached.length }));
         for await (const batch of buildLibraryIndexAuto(h, native, cached, null, () => scanGenRef.current !== myGen, prioDir, { trustNames: !thorough })) {
           if (scanGenRef.current !== myGen) return;
           all.push(...batch);
@@ -152,7 +154,7 @@ export function SongLibrary({ onClose }: { onClose: () => void }) {
           scheduleFlush();
         }
         flushNow([...all]);
-        say(`已列出 ${all.length} 个难度 (文件名解析), 后台解析详细参数…`);
+        say(tNow('library.listed_skeletons', 'Listed {n} difficulties (parsed from file names), parsing details in background…', { n: all.length }));
         for await (const batch of buildLibraryIndexAuto(h, native, null, null, () => scanGenRef.current !== myGen, prioDir, { trustNames: false })) {
           if (scanGenRef.current !== myGen) return;
           for (const e of batch) {
@@ -166,9 +168,9 @@ export function SongLibrary({ onClose }: { onClose: () => void }) {
       // v297: 终态立即刷新 (清节流定时器)
       flushNow([...all]);
       scanDoneRef.current = true; // v128: 扫描完成, 允许写会话缓存
-      say(`索引完成: ${all.length} 难度 / ${dirsRef.current.length} 目录`);
+      say(tNow('library.index_done', 'Indexing complete: {diffs} difficulties / {dirs} directories', { diffs: all.length, dirs: dirsRef.current.length }));
       // v299: 落库剔除骨架 (partial size=0 会导致下轮 reconcile 重解析; 损坏文件的骨架不入库)
-      try { await idbLibraryIndexPut(h.name, all.filter(e => !e.partial)); } catch { say('索引缓存写入失败 (不影响本次使用)'); }
+      try { await idbLibraryIndexPut(h.name, all.filter(e => !e.partial)); } catch { say(tNow('library.index_cache_write_failed', 'Failed to write index cache (does not affect this session)')); }
       // v296: 全局星数队列 (v290 runStarQueue) 已屏蔽 — 全库 parseOsu+computeStarRating 太慢且
       // 每张某处写回触发整表重排重渲染, 选中/滚动全被打断; 已缓存的星数仍随索引 reconcile 保留显示
     } catch (e) {
@@ -176,7 +178,7 @@ export function SongLibrary({ onClose }: { onClose: () => void }) {
       if (scanGenRef.current === myGen) {
         const msg = e instanceof Error ? `${e.name} ${e.message}` : String(e);
         setScanError(msg);
-        say('扫描出错: ' + msg);
+        say(tNow('library.scan_error', 'Scan error: {msg}', { msg }));
       }
     } finally {
       if (scanGenRef.current === myGen) setIndexing(false);
@@ -208,12 +210,12 @@ export function SongLibrary({ onClose }: { onClose: () => void }) {
       // 会话内记忆优先 (含服务器直读模式): 免浏览器权限, 直接开扫
       const mem = getRememberedSongsDir();
       if (mem) {
-        say(`已从会话记忆恢复「${mem.dir.name}」`);
+        say(tNow('library.restored_from_session', 'Restored "{name}" from session memory', { name: mem.dir.name }));
         setRootNative(mem.native);
         setRoot(mem.dir);
         // v128: 会话缓存命中 (同目录) → 免重扫, 列表/位置直接用挂载时的缓存初值
         if (libraryCache && libraryCache.rootName === mem.dir.name) {
-          say('已从会话缓存恢复列表 (未重新扫描)');
+          say(tNow('library.restored_list_from_cache', 'Restored list from session cache (no rescan)'));
           const myGen = ++scanGenRef.current;
           scanDoneRef.current = true;
           // 句柄不入缓存, 轻量重建目录表 + 补取选中难度背景
@@ -238,22 +240,25 @@ export function SongLibrary({ onClose }: { onClose: () => void }) {
       if (server?.songsDir) {
         const dir = serverDir('songs', '', server.songsName ?? 'Songs');
         rememberSongsDir(dir, null);
-        say(`已从服务器配置恢复「${dir.name}」`);
+        say(tNow('library.restored_from_server', 'Restored "{name}" from server configuration', { name: dir.name }));
         setRootNative(null);
         setRoot(dir);
         startScan(dir, null); // v297: 服务器直读模式无 native 句柄 → 主线程回退路径
         return;
       }
-      if (!supported) { say('不支持 File System Access API'); return; }
+      if (!supported) { say(tNow('library.fs_api_not_supported', 'File System Access API not supported')); return; }
       const r = await restoreSongsDir(); // IndexedDB 恢复
       if (cancelled) return;
       if (!r) {
         const reason = getLastRestoreReason();
-        say('无已保存的目录记录' + (reason ? ` (${reason})` : ''));
-        idbSelfTest().then(t => { if (!cancelled) say('IndexedDB 自检: ' + t); });
+        say(tNow('library.no_saved_dir', 'No saved directory record') + (reason ? ` (${reason})` : ''));
+        idbSelfTest().then(r => { if (!cancelled) say(tNow('library.idb_self_test', 'IndexedDB self-test: {result}', { result: r })); });
         return;
       }
-      say(`已恢复目录「${r.handle.name}」, 权限=${r.granted ? '已授权' : '待授权'}`);
+      say(tNow('library.dir_restored', 'Restored directory "{name}", permission={perm}', {
+        name: r.handle.name,
+        perm: r.granted ? tNow('library.perm_granted', 'granted') : tNow('library.perm_pending', 'pending'),
+      }));
       setRootNative(r.handle);
       setRoot(asDirLike(r.handle)); // 待授权也要设置: 授权按钮分支依赖 root 非空
       if (r.granted) {
@@ -358,32 +363,34 @@ export function SongLibrary({ onClose }: { onClose: () => void }) {
 
   const chooseDir = async () => {
     setUiError(null);
-    say('打开目录选择器…');
+    say(tNow('library.opening_picker', 'Opening directory picker…'));
     try {
       const h = await pickSongsDir();
       if (!h) {
-        say('选择器被取消或被当前环境阻止 → 请改用拖拽: 把 Songs 文件夹直接拖进本窗口');
+        say(tNow('library.picker_cancelled', 'Picker cancelled or blocked by the environment → please drag the Songs folder into this window instead'));
         return;
       }
-      say(`已选择: ${h.name}`);
+      say(tNow('library.selected', 'Selected: {name}', { name: h.name }));
       const perr = getLastPersistError();
-      say(perr ? '跨会话记忆写入失败: ' + perr : '目录已记住 (下次自动恢复)');
+      say(perr
+        ? tNow('library.persist_failed', 'Failed to remember directory across sessions: {err}', { err: perr })
+        : tNow('library.dir_remembered', 'Directory remembered (auto-restored next time)'));
       setRootNative(h);
       setRoot(asDirLike(h)); setPermNeeded(false);
       startScan(asDirLike(h), h);
     } catch (e) {
       console.error('打开目录选择器失败:', e);
       const msg = e instanceof Error ? `${e.name} ${e.message}` : String(e);
-      setUiError('打开目录选择器失败: ' + msg + ' —— 可改用拖拽导入');
-      say('选择器报错: ' + msg);
+      setUiError(tNow('library.picker_failed', 'Failed to open directory picker: {msg} — you can drag & drop to import instead', { msg }));
+      say(tNow('library.picker_error', 'Directory picker error: {msg}', { msg }));
     }
   };
 
   const grantPerm = async () => {
     if (!rootNative) return;
-    say('请求读取权限…');
+    say(tNow('library.requesting_permission', 'Requesting read permission…'));
     const ok = await requestReadPermission(rootNative);
-    say('权限结果: ' + (ok ? '已授权' : '被拒绝'));
+    say(tNow('library.perm_result', 'Permission: {result}', { result: ok ? tNow('library.perm_granted', 'granted') : tNow('library.perm_denied', 'denied') }));
     setPermNeeded(!ok);
     if (ok) {
       // 授权成功后写入会话记忆: 部分环境 queryPermission 同会话也反复返回未授权,
@@ -401,19 +408,21 @@ export function SongLibrary({ onClose }: { onClose: () => void }) {
     if (!item) return;
     const d = await dirHandleFromDropEx(item);
     if (!d) {
-      say('拖入内容不是文件夹');
-      setUiError('请拖入 Songs 文件夹本身（而不是文件）');
+      say(tNow('library.drop_not_folder', 'Dropped content is not a folder'));
+      setUiError(tNow('library.drop_folder_required', 'Please drag in the Songs folder itself (not a file)'));
       return;
     }
-    say(`拖入目录: ${d.dir.name}`);
+    say(tNow('library.dropped_dir', 'Dropped directory: {name}', { name: d.dir.name }));
     setUiError(null);
     if (d.native) {
       const ok = await persistSongsDirHandle(d.native);
-      say(ok ? '目录已记住 (下次自动恢复)' : '跨会话记忆写入失败: ' + (getLastPersistError() ?? '未知错误'));
+      say(ok
+        ? tNow('library.dir_remembered', 'Directory remembered (auto-restored next time)')
+        : tNow('library.persist_failed', 'Failed to remember directory across sessions: {err}', { err: getLastPersistError() ?? tNow('library.unknown_error', 'unknown error') }));
       setRootNative(d.native);
       rememberSongsDir(d.dir, d.native);
     } else {
-      say('当前浏览器不支持拖拽句柄持久化, 仅本次会话内记住');
+      say(tNow('library.persist_unsupported', 'This browser does not support persisting dropped handles; remembered for this session only'));
       setRootNative(null);
       rememberSongsDir(d.dir, null);
     }
@@ -432,20 +441,20 @@ export function SongLibrary({ onClose }: { onClose: () => void }) {
       // v291: 占位条目 (索引未建到该目录, fileName='') → 懒解析目录, 打开第一个难度
       if (!fileName) {
         const diffs = await listDifficulties(d.handle).catch(() => []);
-        if (!diffs.length) { say('该目录下没有 .osu 难度文件'); return; }
+        if (!diffs.length) { say(tNow('library.no_osu_files', 'No .osu difficulty files in this directory')); return; }
         fileName = diffs[0]!.fileName;
       }
       const r = await loadDifficulty(d.handle, fileName);
       if (!r) return;
       // v67: 记录谱面来源 (目录 + 原文件名), Ctrl+S 保存时写回该文件
       store.load(r.bm, r.audioUrl, r.bgUrl, r.samples, { dir: d.handle, fileName });
-      say(`已加载: ${fileName}`);
-      if (r.audioMissing) alert('已加载谱面，但未找到音频文件（将使用合成节拍音）。');
+      say(tNow('library.loaded', 'Loaded: {name}', { name: fileName }));
+      if (r.audioMissing) alert(tNow('library.audio_missing', 'Beatmap loaded, but no audio file was found (a synthesized metronome will be used).'));
       onClose();
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      say('加载失败: ' + msg);
-      alert('加载失败: ' + msg);
+      say(tNow('library.load_failed', 'Load failed: {msg}', { msg }));
+      alert(tNow('library.load_failed', 'Load failed: {msg}', { msg }));
     } finally { setLoadingBeatmap(false); }
   };
 
@@ -464,21 +473,22 @@ export function SongLibrary({ onClose }: { onClose: () => void }) {
            onDragLeave={e => { e.stopPropagation(); setDropActive(false); }}
            onDrop={onDropDir}>
         <div className="flex items-center gap-3 px-4 py-2.5 border-b border-[#2c2c38] shrink-0">
-          <span className="text-sm font-semibold flex items-center gap-1.5"><FolderOpen className="w-4 h-4" />歌曲库</span>
+          <span className="text-sm font-semibold flex items-center gap-1.5"><FolderOpen className="w-4 h-4" />{t('library.title', 'Song Library')}</span>
           {root && (
             <span className="text-sm text-slate-500 truncate">
-              {root.name} · {entries.length} 难度 / {dirCount} 目录{indexing && ' · 索引中…'}
-              {!rootNative && ' · 拖拽导入'}
+              {t('library.header_stats', '{root} · {diffs} difficulties / {dirs} directories', { root: root.name, diffs: entries.length, dirs: dirCount })}
+              {indexing && ` · ${t('library.indexing', 'Indexing…')}`}
+              {!rootNative && ` · ${t('library.drop_import', 'drag & drop import')}`}
             </span>
           )}
           <div className="flex-1" />
           <button className="text-sm px-2 py-1 rounded bg-[#2c2c38] hover:bg-[#3c3c4c]" onClick={chooseDir}>
-            {root ? '更换目录' : '选择 Songs 目录'}
+            {root ? t('library.change_dir', 'Change Folder') : t('library.choose_songs_dir', 'Choose Songs Folder')}
           </button>
           {root && (
             <button className="text-sm px-2 py-1 rounded bg-[#2c2c38] hover:bg-[#3c3c4c] disabled:opacity-40"
                     disabled={indexing} onClick={() => startScan(root, rootNative, true)}> {/* v297: 手动重扫 = 逐文件 stat 彻底校验 */}
-              重新扫描
+              {t('library.rescan', 'Rescan')}
             </button>
           )}
           <button className="text-sm px-2 py-1 rounded bg-[#2c2c38] hover:bg-[#3c3c4c] flex items-center" onClick={onClose}><X className="w-3.5 h-3.5" /></button>
@@ -491,30 +501,30 @@ export function SongLibrary({ onClose }: { onClose: () => void }) {
         <div className="flex-1 flex flex-col min-h-0 relative">
           {dropActive && (
             <div className="absolute inset-0 z-10 bg-[#e6437d]/15 border-2 border-dashed border-[#e6437d] flex items-center justify-center text-sm text-pink-200 pointer-events-none">
-              松开以导入 Songs 文件夹
+              {t('library.drop_to_import', 'Release to import the Songs folder')}
             </div>
           )}
 
         {!supported && !root ? (
           <div className="flex-1 flex flex-col items-center justify-center gap-2 text-sm text-slate-400 p-8 text-center">
-            <div className="text-lg flex items-center justify-center gap-2"><TriangleAlert className="w-5 h-5" />当前浏览器不支持目录选择器（File System Access API）</div>
-            <div>可以<strong className="text-pink-300">直接把 Songs 文件夹拖进这个窗口</strong>，或用 Chrome / Edge 打开。</div>
+            <div className="text-lg flex items-center justify-center gap-2"><TriangleAlert className="w-5 h-5" />{t('library.fs_api_unsupported', 'Your browser does not support the directory picker (File System Access API)')}</div>
+            <div>{t('library.fs_api_hint_prefix', 'You can ')}<strong className="text-pink-300">{t('library.drag_into_window', 'drag the Songs folder directly into this window')}</strong>{t('library.fs_api_hint_suffix', ', or open this page in Chrome / Edge.')}</div>
           </div>
         ) : !root ? (
           <div className="flex-1 flex flex-col items-center justify-center gap-3 p-8">
-            <div className="text-sm text-slate-400">选择 osu! 的 Songs 目录，即可浏览全部歌曲与难度</div>
+            <div className="text-sm text-slate-400">{t('library.choose_dir_hint', "Choose osu!'s Songs folder to browse all songs and difficulties")}</div>
             <button className="px-4 py-2 rounded bg-[#e6437d] hover:bg-[#f0558e] text-sm font-medium" onClick={chooseDir}>
-              选择 Songs 目录…
+              {t('library.choose_songs_dir_ellipsis', 'Choose Songs Folder…')}
             </button>
             <div className="text-sm text-slate-600 text-center">
-              通常位于 osu! 安装目录下的 Songs 文件夹；选择后会记住，下次自动恢复
-              <br />如果点了没反应，也可以<strong className="text-pink-300">直接把 Songs 文件夹拖进这个窗口</strong>
+              {t('library.dir_location_hint', 'Usually the Songs folder inside the osu! installation directory; it will be remembered and restored automatically next time')}
+              <br />{t('library.no_response_hint', 'If clicking does nothing, you can also ')}<strong className="text-pink-300">{t('library.drag_into_window', 'drag the Songs folder directly into this window')}</strong>
             </div>
           </div>
         ) : permNeeded ? (
           <div className="flex-1 flex flex-col items-center justify-center gap-3">
-            <div className="text-sm text-slate-400">已记住目录「{rootNative?.name ?? root.name}」，需要重新授权读取权限</div>
-            <button className="px-4 py-2 rounded bg-[#e6437d] hover:bg-[#f0558e] text-sm font-medium" onClick={grantPerm}>授权访问</button>
+            <div className="text-sm text-slate-400">{t('library.reauth_needed', 'Directory "{name}" remembered; read permission must be granted again', { name: rootNative?.name ?? root.name })}</div>
+            <button className="px-4 py-2 rounded bg-[#e6437d] hover:bg-[#f0558e] text-sm font-medium" onClick={grantPerm}>{t('library.grant_access', 'Grant Access')}</button>
           </div>
         ) : (
           <div className="flex-1 flex min-h-0">
@@ -522,30 +532,30 @@ export function SongLibrary({ onClose }: { onClose: () => void }) {
             <div className="flex-1 min-w-0 border-r border-[#2c2c38] flex flex-col min-h-0">
               <div className="p-2 border-b border-[#2c2c38] shrink-0 flex items-center gap-2">
                 <input value={filter} onChange={e => { setFilter(e.target.value); listRef.current?.scrollTo({ top: 0 }); setView(v => ({ ...v, top: 0 })); }}
-                       placeholder='搜索 (支持 ar>8 bpm<180 creator="短语")…'
+                       placeholder={t('library.search_placeholder', 'Search (supports ar>8 bpm<180 creator="phrase")…')}
                        className="flex-1 bg-[#0d0d12] border border-[#333] rounded px-2 py-1.5 text-sm outline-none focus:border-[#e6437d]" />
                 <select value={sortBy} onChange={e => setSortBy(e.target.value as SortBy)}
                         className="bg-[#0d0d12] border border-[#333] rounded px-1 py-1.5 text-sm outline-none shrink-0">
-                  <option value="dir">目录</option>
-                  <option value="title">标题</option>
-                  <option value="artist">艺术家</option>
-                  <option value="creator">谱师</option>
+                  <option value="dir">{t('library.sort_dir', 'Directory')}</option>
+                  <option value="title">{t('library.sort_title', 'Title')}</option>
+                  <option value="artist">{t('library.sort_artist', 'Artist')}</option>
+                  <option value="creator">{t('library.sort_creator', 'Mapper')}</option>
                   <option value="bpm">BPM</option>
-                  <option value="star">星级</option>
-                  <option value="length">时长</option>
-                  <option value="diffs">难度数</option>
+                  <option value="star">{t('library.sort_star', 'Star Rating')}</option>
+                  <option value="length">{t('library.sort_length', 'Length')}</option>
+                  <option value="diffs">{t('library.sort_diffs', 'Difficulties')}</option>
                 </select>
-                {indexing && <span className="text-xs text-slate-500 shrink-0 animate-pulse">索引中 {entries.length}</span>}
+                {indexing && <span className="text-xs text-slate-500 shrink-0 animate-pulse">{t('library.indexing_count', 'Indexing {n}', { n: entries.length })}</span>}
               </div>
               {needsIndexHint && ( // v291: 含条件的搜索依赖索引 — 建立中提示等待
                 <div className="px-3 py-1 text-xs text-amber-300/90 border-b border-[#2c2c38] shrink-0">
-                  索引建立中：含条件的搜索暂只覆盖已索引部分，完整结果请等索引完成…
+                  {t('library.indexing_search_hint', 'Indexing in progress: conditional search currently only covers indexed entries; full results available after indexing completes…')}
                 </div>
               )}
               {scanError ? (
                 <div className="flex-1 flex flex-col items-center justify-center gap-3 p-6 text-center">
-                  <div className="text-sm text-red-400">扫描失败: {scanError}</div>
-                  <button className="text-sm px-3 py-1.5 rounded bg-[#2c2c38] hover:bg-[#3c3c4c]" onClick={() => startScan(root, rootNative, true)}>重试</button>
+                  <div className="text-sm text-red-400">{t('library.scan_failed', 'Scan failed: {error}', { error: scanError })}</div>
+                  <button className="text-sm px-3 py-1.5 rounded bg-[#2c2c38] hover:bg-[#3c3c4c]" onClick={() => startScan(root, rootNative, true)}>{t('library.retry', 'Retry')}</button>
                 </div>
               ) : (
                 <div ref={listRef} className="flex-1 min-h-0 overflow-y-auto"
@@ -583,9 +593,9 @@ export function SongLibrary({ onClose }: { onClose: () => void }) {
                     })}
                   </div>
                   {!indexing && filtered.length === 0 && entries.length > 0 &&
-                    <div className="px-3 py-2 text-sm text-slate-500">无匹配难度</div>}
+                    <div className="px-3 py-2 text-sm text-slate-500">{t('library.no_match', 'No matching difficulties')}</div>}
                   {!indexing && entries.length === 0 &&
-                    <div className="px-3 py-2 text-sm text-slate-500">未发现歌曲目录（Songs 下每个子文件夹对应一首歌）</div>}
+                    <div className="px-3 py-2 text-sm text-slate-500">{t('library.no_song_dirs', 'No song folders found (each subfolder under Songs corresponds to one song)')}</div>}
                 </div>
               )}
             </div>
@@ -599,7 +609,7 @@ export function SongLibrary({ onClose }: { onClose: () => void }) {
                 </div>
               )}
               <div className="px-3 py-2 border-b border-[#2c2c38] text-sm text-slate-500 shrink-0 truncate">
-                {selEntry ? selEntry.dirName : '选择左侧难度查看详情 (双击直接打开)'}
+                {selEntry ? selEntry.dirName : t('library.select_hint', 'Select a difficulty on the left to view details (double-click to open directly)')}
               </div>
               {selEntry ? (
                 <div className="flex-1 min-h-0 overflow-y-auto px-3 py-2">
@@ -607,9 +617,9 @@ export function SongLibrary({ onClose }: { onClose: () => void }) {
                     <>
                       <div className="text-base text-slate-100">{selEntry.title || selEntry.fileName}</div>
                       {selEntry.artist && <div className="text-sm text-slate-300 mt-0.5">{selEntry.artist}</div>}
-                      <div className="text-sm mt-2 text-slate-400">难度: <span className="text-[#e6437d]">[{selEntry.version || '?'}]</span></div>
-                      <div className="text-sm mt-1 text-slate-400">谱师: {selEntry.creator || '?'}</div>
-                      <div className="text-sm mt-2 text-slate-500">详细参数 (BPM/CS/AR/时长…) 索引中，双击行或点「打开」可直接载入</div>
+                      <div className="text-sm mt-2 text-slate-400">{t('library.difficulty_label', 'Difficulty: ')}<span className="text-[#e6437d]">[{selEntry.version || '?'}]</span></div>
+                      <div className="text-sm mt-1 text-slate-400">{t('library.mapper_label', 'Mapper: ')}{selEntry.creator || '?'}</div>
+                      <div className="text-sm mt-2 text-slate-500">{t('library.partial_hint', 'Details (BPM/CS/AR/length…) are being indexed; double-click the row or press "Open" to load directly')}</div>
                     </>
                   ) : (
                     <>
@@ -620,16 +630,16 @@ export function SongLibrary({ onClose }: { onClose: () => void }) {
                       {selEntry.artistUnicode && selEntry.artist && selEntry.artist !== selEntry.artistUnicode &&
                         <div className="text-sm text-slate-500">{selEntry.artist}</div>}
                       <div className="text-sm mt-2 space-y-1 text-slate-400">
-                        <div>难度: <span className="text-[#e6437d]">[{selEntry.version || '?'}]</span>
+                        <div>{t('library.difficulty_label', 'Difficulty: ')}<span className="text-[#e6437d]">[{selEntry.version || '?'}]</span>
                           {modeBadge(selEntry.mode) && <span className="ml-1.5 text-xs px-1 rounded bg-[#2c2c38]">{modeBadge(selEntry.mode)}</span>}
                         </div>
-                        <div>谱师: {selEntry.creator || '?'}</div>
-                        <div>BPM: {Math.round(selEntry.bpm * 100) / 100 || '?'} · 时长: {fmtLen(selEntry.lengthMs)}
-                          {selEntry.star != null && <> · 星级: <span className="text-amber-300/90"><Star className="inline w-3 h-3 -mt-0.5 fill-current" />{selEntry.star.toFixed(2)}</span></>}
+                        <div>{t('library.mapper_label', 'Mapper: ')}{selEntry.creator || '?'}</div>
+                        <div>BPM: {Math.round(selEntry.bpm * 100) / 100 || '?'} · {t('library.length_label', 'Length: ')}{fmtLen(selEntry.lengthMs)}
+                          {selEntry.star != null && <> · {t('library.star_label', 'Star Rating: ')}<span className="text-amber-300/90"><Star className="inline w-3 h-3 -mt-0.5 fill-current" />{selEntry.star.toFixed(2)}</span></>}
                         </div>
                         <div>HP{selEntry.hp} · CS{selEntry.cs} · OD{selEntry.od} · AR{selEntry.ar}</div>
-                        {selEntry.source && <div className="truncate">来源: {selEntry.source}</div>}
-                        {selEntry.tags && <div className="truncate">标签: {selEntry.tags}</div>}
+                        {selEntry.source && <div className="truncate">{t('library.source_label', 'Source: ')}{selEntry.source}</div>}
+                        {selEntry.tags && <div className="truncate">{t('library.tags_label', 'Tags: ')}{selEntry.tags}</div>}
                         <div className="text-slate-600 truncate">{selEntry.fileName} · ID {selEntry.beatmapID}/{selEntry.beatmapSetID}</div>
                       </div>
                     </>
@@ -637,11 +647,11 @@ export function SongLibrary({ onClose }: { onClose: () => void }) {
                   <button className="mt-3 px-4 py-1.5 rounded bg-[#e6437d] hover:bg-[#f0558e] text-sm font-medium disabled:opacity-40"
                           disabled={loadingBeatmap}
                           onClick={() => void openDiff(selEntry.fileName)}>
-                    {loadingBeatmap ? '加载中…' : '打开'}
+                    {loadingBeatmap ? t('library.loading', 'Loading…') : t('library.open', 'Open')}
                   </button>
                 </div>
               ) : (
-                <div className="px-3 py-2 text-sm text-slate-500">单击行选中，双击行或点「打开」载入编辑器</div>
+                <div className="px-3 py-2 text-sm text-slate-500">{t('library.click_hint', 'Single-click a row to select; double-click the row or press "Open" to load it into the editor')}</div>
               )}
             </div>
           </div>
@@ -651,7 +661,7 @@ export function SongLibrary({ onClose }: { onClose: () => void }) {
         {/* 诊断日志: 帮助定位不同环境下的问题 */}
         <div className="shrink-0 border-t border-[#2c2c38] px-3 py-1 bg-[#101016]">
           {log.length === 0
-            ? <div className="text-xs text-slate-600">诊断日志</div>
+            ? <div className="text-xs text-slate-600">{t('library.diagnostic_log', 'Diagnostic Log')}</div>
             : log.map((l, i) => <div key={i} className="text-xs text-slate-500 font-mono truncate">{l}</div>)}
         </div>
       </div>

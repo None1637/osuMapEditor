@@ -2,6 +2,7 @@
 // 实现与 File System Access 相同的 FsDirLike 接口, 曲库扫描/皮肤加载等上层代码无感。
 // 与浏览器授权模式互斥: 配置了服务器目录时优先使用 (见 App.tsx 启动恢复逻辑)。
 import type { FsDirLike, FsFileLike } from './library';
+import { tNow } from '@/i18n'; // v346: 多语言
 
 export interface ServerDirs {
   songsDir: string | null;
@@ -27,7 +28,7 @@ function serverFile(root: 'songs' | 'skin', rel: string, name: string): FsFileLi
     kind: 'file', name,
     async getFile() {
       const res = await fetch(`api/local-fs/file?root=${root}&rel=${encodeURIComponent(rel)}`);
-      if (!res.ok) throw new Error(`读取失败 (${res.status}): ${rel}`);
+      if (!res.ok) throw new Error(tNow('fs.read_failed', 'Read failed ({status}): {path}', { status: res.status, path: rel }));
       return new File([await res.blob()], name);
     },
   };
@@ -41,7 +42,7 @@ export function serverDir(root: 'songs' | 'skin', rel: string, name: string): Fs
     serverRel: rel, // v77: Electron 菜单需要 Songs 内相对路径
     async *entries() {
       const res = await fetch(`api/local-fs/list?root=${root}&rel=${encodeURIComponent(rel)}`);
-      if (!res.ok) throw new Error(`目录读取失败 (${res.status}): ${rel || '/'}`);
+      if (!res.ok) throw new Error(tNow('fs.dir_read_failed', 'Failed to read directory ({status}): {path}', { status: res.status, path: rel || '/' }));
       const list = await res.json() as { name: string; kind: string }[];
       for (const e of list) {
         yield [e.name, e.kind === 'directory'
@@ -57,7 +58,7 @@ export function serverDir(root: 'songs' | 'skin', rel: string, name: string): Fs
     // v67: Ctrl+S 保存谱面写回 (POST /api/local-fs/write, 服务端做越界防护)
     async writeFile(n: string, content: string) {
       const res = await fetch(`api/local-fs/write?root=${root}&rel=${encodeURIComponent(childRel(n))}`, { method: 'POST', body: content });
-      if (!res.ok) throw new Error(`保存失败 (${res.status}): ${n}`);
+      if (!res.ok) throw new Error(tNow('fs.save_request_failed', 'Save failed ({status}): {file}', { status: res.status, file: n }));
     },
   };
 }

@@ -73,7 +73,10 @@ section('SymSliderDialog.tsx: 参数面板 + 预览/应用接线');
   assert(/\[bm, obj, params, sig\]/.test(src), 'useMemo 依赖节点内容签名 sig (节点就地编辑后预览重算, 避免无限循环)');
   assert(src.includes('对称滑条') && /data-conv="apply"/.test(src), '标题/应用按钮');
   // 二轮修正: 轴配置一行三选 (v/h/custom); custom 时两点坐标输入; point 无参数行
-  assert(/\[\['v', '竖直线'\], \['h', '水平线'\], \['custom', '自定义'\]\]/.test(src) && /data-conv=\{`dir-\$\{d\}`\}/.test(src), '对称轴三选 UI (dir-v/dir-h/dir-custom)');
+  // v346 i18n: 三选标签改 t() 调用 (convert.sym_axis_v/sym_axis_h/custom), zh-CN 译文 竖直线/水平线/自定义 在 convert 词典分片
+  const dict = readSrc('src/i18n/dicts/zh-CN/convert.ts');
+  assert(/\[\['v', t\('convert\.sym_axis_v', 'Vertical line'\)\], \['h', t\('convert\.sym_axis_h', 'Horizontal line'\)\], \['custom', t\('convert\.custom', 'Custom'\)\]\]/.test(src) && /data-conv=\{`dir-\$\{d\}`\}/.test(src), '对称轴三选 UI (dir-v/dir-h/dir-custom; i18n key)');
+  assert(/'convert\.sym_axis_v': '竖直线'/.test(dict) && /'convert\.sym_axis_h': '水平线'/.test(dict) && /'convert\.custom': '自定义'/.test(dict), '词典译文 = 竖直线/水平线/自定义');
   assert(/testid="axisP1x"/.test(src) && /testid="axisP2y"/.test(src), '自定义轴两点坐标输入');
   assert(!/axisMode/.test(src), 'axisMode UI 已移除');
   // 二轮修正: 锚点行只在 rotate/translate 显示 (axis/point 恒用拼接锚点)
@@ -132,7 +135,8 @@ section('electronMenu.ts: compose-sym-slider 分发');
 section('main.cjs: 作图菜单项 + editState');
 {
   const src = readSrc('electron/main.cjs');
-  assert(src.includes('e2("compose-sym-slider", "对称滑条...", null, editState.selSingleSlider)'), '作图菜单「对称滑条...」按 selSingleSlider 置灰');
+  // v346 i18n: 菜单标签改 mT("menu.sym_slider"), zh-CN 译文在 main.cjs 菜单词典表
+  assert(src.includes('e2("compose-sym-slider", mT("menu.sym_slider"), null, editState.selSingleSlider)') && src.includes('"menu.sym_slider": { en: "Symmetrical Slider...", "zh-CN": "对称滑条..."'), '作图菜单「对称滑条...」按 selSingleSlider 置灰 (i18n key menu.sym_slider)');
   assert(/selSingleSlider: false/.test(src), 'editState 初始含 selSingleSlider');
   assert(/selSingleSlider: !!s\?\.selSingleSlider/.test(src), 'edit-menu-state 接收 selSingleSlider');
 }

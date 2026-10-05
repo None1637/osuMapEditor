@@ -33,13 +33,13 @@ section('App.tsx: --fs-comp 挂载');
 section('index.css: 补偿规则');
 {
   const src = readSrc('src/index.css');
-  assert(/\.ui-zoom-root \{\s*font-size: calc\(16px \* var\(--fs-comp, 1\)\);/.test(src), '容器兜底字号 calc(16px * --fs-comp)');
+  assert(/\.ui-zoom-root \{\s*font-size: max\(calc\(16px \* var\(--fs-comp, 1\)\), calc\(12px \/ var\(--ui-zoom, 1\)\)\);/.test(src), '容器兜底字号 calc(16px * --fs-comp) (v339: max 包 12px 视觉下限)');
   for (const [cls, orig] of [['text-xs', '0.75rem'], ['text-sm', '0.875rem'], ['text-base', '1rem'], ['text-lg', '1.125rem'], ['text-xl', '1.25rem'], ['text-2xl', '1.5rem'], ['text-3xl', '1.875rem']]) {
     const o = orig.replace(/\./g, '\\.');
-    assert(new RegExp(`\\.ui-zoom-root \\.${cls}\\s*\\{\\s*font-size: calc\\(${o}\\s*\\*\\s*var\\(--fs-comp, 1\\)\\);`).test(src), `${cls} 覆盖 (${orig} × comp)`);
+    assert(new RegExp(`\\.ui-zoom-root \\.${cls}\\s*\\{\\s*font-size: max\\(calc\\(${o}\\s*\\*\\s*var\\(--fs-comp, 1\\)\\), calc\\(12px \\/ var\\(--ui-zoom, 1\\)\\)\\);`).test(src), `${cls} 覆盖 (${orig} × comp)`);
   }
   for (const px of [9, 10, 11]) {
-    assert(new RegExp(`\\.ui-zoom-root \\.text-\\\\\\[${px}px\\\\\\]\\s*\\{\\s*font-size: calc\\(${px}px\\s*\\*`).test(src), `text-[${px}px] 任意值覆盖`);
+    assert(new RegExp(`\\.ui-zoom-root \\.text-\\\\\\[${px}px\\\\\\]\\s*\\{\\s*font-size: max\\(calc\\(${px}px\\s*\\*`).test(src), `text-[${px}px] 任意值覆盖`);
   }
   assert(!/\.ui-zoom-root[^\n]*\{[^}]*line-height/.test(src), '补偿规则不动 line-height (防裁剪)');
 }

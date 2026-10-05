@@ -21,7 +21,9 @@ assert(/groups\.sort\(\(a, b\) => a\.time - b\.time\)/.test(src), '跨滑条按�
 assert(/const dist = \(c: \{ x: number; y: number \}\[\], a: number, b: number\) =>/.test(src) && /Math\.round\(Math\.hypot/.test(src), '距离 = 相邻点欧氏距离取整 px');
 assert(/prevDist: dist\(gf\.ctrl, firstIdx - 1, firstIdx\)/.test(src), '前距 = 最前选中节点与前一节点');
 assert(/nextDist: dist\(gl\.ctrl, lastIdx, lastIdx \+ 1\)/.test(src), '后距 = 最后选中节点与后一节点');
-assert(/前 #\{nodeInfo\.firstIdx\}←/.test(src) && /后 #\{nodeInfo\.lastIdx\}→/.test(src), 'UI 行: 前 #i← Npx / 后 #j→ Npx');
+assert(/t\('timeline\.node_first', 'First #\{i\} ←', \{ i: nodeInfo\.firstIdx \}\)/.test(src) && /t\('timeline\.node_last', 'Last #\{i\} →', \{ i: nodeInfo\.lastIdx \}\)/.test(src), 'UI 行: 前 #i← Npx / 后 #j→ Npx (v346: i18n key timeline.node_first/node_last)');
+const dictTimeline = fs.readFileSync(path.join(root, 'src/i18n/dicts/zh-CN/timeline.ts'), 'utf8');
+assert(dictTimeline.includes("'timeline.node_first': '前 #{i} ←'") && dictTimeline.includes("'timeline.node_last': '后 #{i} →'"), 'zh-CN 词典: 前 #{i} ← / 后 #{i} →');
 assert(/nodeInfo\.prevDist === null \? '—'/.test(src) && /nodeInfo\.nextDist === null \? '—'/.test(src), '无端点显示 —');
 assert(!/nodes\.slice\(0, 3\)/.test(src), 'v260 逐节点列表已移除');
 

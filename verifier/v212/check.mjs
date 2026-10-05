@@ -32,10 +32,11 @@ section('electronMenu.ts: compose 命令分发');
 section('main.cjs: 作图菜单');
 {
   const src = readSrc('electron/main.cjs');
-  assert(/label: "作图",/.test(src), '作图菜单存在');
-  assert(src.includes('e2("compose-polygon", "多边形生成...", "CmdOrCtrl+Shift+D", editState.hasMap)'), '多边形生成: 快捷键仅显示, 按谱面加载置灰');
-  assert(src.includes('e2("compose-stream", "滑条转连打...", null, editState.hasSlider)'), '滑条转连打: 按选中含滑条置灰');
-  assert(src.includes('e2("compose-merge", "合并滑条", null, editState.selMulti)'), '合并滑条: 按选中>=2 置灰');
+  // v346 i18n 适配: 菜单 label 走 mT("menu.*"), 中文译文在 main.cjs 菜单词典
+  assert(/label: mT\("menu\.compose"\)/.test(src) && /"menu\.compose": \{[^}]*"zh-CN": "作图"/.test(src), '作图菜单存在');
+  assert(src.includes('e2("compose-polygon", mT("menu.polygon"), "CmdOrCtrl+Shift+D", editState.hasMap)') && /"menu\.polygon": \{[^}]*"zh-CN": "多边形生成\.\.\."/.test(src), '多边形生成: 快捷键仅显示, 按谱面加载置灰');
+  assert(src.includes('e2("compose-stream", mT("menu.stream"), null, editState.hasSlider)') && /"menu\.stream": \{[^}]*"zh-CN": "滑条转连打\.\.\."/.test(src), '滑条转连打: 按选中含滑条置灰');
+  assert(src.includes('e2("compose-merge", mT("menu.merge"), null, editState.selMulti)') && /"menu\.merge": \{[^}]*"zh-CN": "合并滑条"/.test(src), '合并滑条: 按选中>=2 置灰');
   assert(/hasSlider: !!s\?\.hasSlider, selMulti: !!s\?\.selMulti/.test(src), 'edit-menu-state 接收新字段');
 }
 

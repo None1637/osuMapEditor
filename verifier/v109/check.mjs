@@ -28,8 +28,9 @@ assert(!/w-44 shrink-0 bg-\[#16161d\]/.test(app), '旧 w-44 侧栏已移除');
 assert(/<div className="flex-1 min-w-0 overflow-auto flex flex-col pointer-events-auto"><SetupPage \/><\/div>/.test(app), 'setup 页 flex-1 包裹');
 assert(/<div className="flex-1 min-w-0 overflow-auto flex flex-col pointer-events-auto"><TimingPage \/><\/div>/.test(app), 'timing 页 flex-1 包裹');
 
-// 「◎ 中心」→「◎ 网格中心」→ v181: lucide Crosshair
-assert(/Crosshair className[^>]*\/>网格中心/.test(app), '按钮文案 = 网格中心 (v181: ◎ → lucide Crosshair)');
+// 「◎ 中心」→「◎ 网格中心」→ v181: lucide Crosshair; v346 适配: 文案改 i18n key (zh-CN 词典=网格中心)
+const zhApp = read('src/i18n/dicts/zh-CN/app.ts');
+assert(/Crosshair className[^>]*\/>\{t\('app\.grid_origin', 'Grid Origin'\)\}/.test(app) && zhApp.includes("'app.grid_origin': '网格中心'"), '按钮文案 = 网格中心 (v181: ◎ → lucide Crosshair; v346: app.grid_origin)');
 assert(!/◎/.test(app), '旧「◎」符号已移除');
 
 console.log(failures ? `\nV109_CHECK_FAILED: ${failures}` : '\nV109_CHECK_PASSED');

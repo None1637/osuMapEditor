@@ -33,10 +33,13 @@ section('stream.ts: count 模式时间网格 (v43: head + i*div, 位置按数量
 section('StreamDialog: 两种模式都显示间距 (拍)');
 {
   const dlg = readSrc('src/components/convert/StreamDialog.tsx');
-  assert(/params\.mode === 'count' && <span[^>]*>时间对齐网格<\/span>/.test(dlg), 'count 模式显示「时间对齐网格」提示');
+  // v346 多语言改造: 标签走 t(convert.stream_*), 中文译文在 zh-CN 词典
+  assert(/params\.mode === 'count' && <span[^>]*>\{t\('convert\.stream_snap_hint', 'Time snaps to grid'\)\}<\/span>/.test(dlg), 'count 模式显示「时间对齐网格」提示 (i18n key)');
   // 间距 Row 不在条件分支内: mode 三元/条件里只有 数量 Row
-  assert(/params\.mode === 'count' && \(\s*<Row label="数量">/.test(dlg), '数量 Row 仅 count 模式');
-  assert(!/params\.mode === 'spacing'[\s\S]{0,80}间距 \(拍\)/.test(dlg), '间距 Row 不受模式限制');
+  assert(/params\.mode === 'count' && \(\s*<Row label=\{t\('convert\.stream_count', 'Count'\)\}>/.test(dlg), '数量 Row 仅 count 模式 (i18n key)');
+  assert(!/params\.mode === 'spacing'[\s\S]{0,120}convert\.stream_spacing/.test(dlg), '间距 Row 不受模式限制');
+  const zhConvert = readSrc('src/i18n/dicts/zh-CN/convert.ts');
+  assert(/'convert\.stream_snap_hint':\s*'时间对齐网格'/.test(zhConvert) && /'convert\.stream_count':\s*'数量'/.test(zhConvert), 'zh-CN 词典提示/数量译文');
 }
 
 if (failures) { console.error(`\nVERIFIER_V42_FAILED: ${failures} 处失败`); process.exit(1); }

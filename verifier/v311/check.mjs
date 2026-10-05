@@ -16,12 +16,12 @@ const src = readSrc('src/osu/renderer.ts');
 
 section('drawSelectionRing: 环带 = 滑条选中蓝边带');
 {
-  const ring = src.match(/export function drawSelectionRing[\s\S]{0,600}?\n\}/);
+  const ring = src.match(/export function drawSelectionRing[\s\S]{0,2000}?\n\}/);
   assert(!!ring, 'drawSelectionRing 存在');
   assert(!!ring && /const lw = Math\.max\(1\.5, r \* 0\.115\);/.test(ring[0]), '线宽 0.115r (= 蓝边带宽 0.925-0.81), 保底 1.5');
   // v314 修正: v311 的 r-0.5lw 是环中心线, 环带实为 [r-lw, r] = 0.885r..1.0r 整体偏外;
   //   蓝边带中心 = (0.81+0.925)/2 = 0.8675r, 弧半径改为 r*0.8675 后环带恰为 0.81r..0.925r
-  assert(!!ring && /g\.arc\(x, y, r \* 0\.8675, 0, Math\.PI \* 2\)/.test(ring[0]), '弧半径 0.8675r (v314 修正) → 环带 0.81r..0.925r, 与蓝边带完全重合');
+  assert(!!ring && /const rad = r \* 0\.8675;/.test(ring[0]) && /og\.arc\(0, 0, rad, 0, Math\.PI \* 2\)/.test(ring[0]), '弧半径 0.8675r (v314 修正) → 环带 0.81r..0.925r, 与蓝边带完全重合');
 }
 
 section('drawSliderBodyOutline cover: 蓝边带保持 0.81..0.925r (环的覆盖目标)');

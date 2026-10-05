@@ -29,7 +29,10 @@ assert(/distGuideSnap\(p, r \+ store\.geoDistValue, circles, paths\)/.test(ec), 
 assert(!/distGuideSnap\(p, r \+ store\.geoDistValue, r,/.test(ec), '旧四参调用已移除');
 
 // 3. 文案同步 (中心吸到环带线, 不再写边缘贴环带)
-assert(/物件中心吸附到环带线/.test(panel), '面板开关行: 物件中心吸附到环带线');
+// v346 i18n 改造后: 描述文案走 t('geo.dist_desc', ...), 简体中文译文在词典分片里
+assert(/t\('geo\.dist_desc',/.test(panel), '面板开关行走 i18n key geo.dist_desc');
+const geoDict = read('src/i18n/dicts/zh-CN/geo.ts');
+assert(geoDict.includes("'geo.dist_desc'") && geoDict.includes('物件中心吸附到环带线'), '面板开关行: 物件中心吸附到环带线 (zh-CN 译文)');
 assert(!/边缘吸附到环带/.test(panel) && !/边缘贴环带/.test(panel), '旧的"边缘贴环带"描述已移除');
 
 console.log(failures ? `\nV139_CHECK_FAILED: ${failures}` : '\nV139_CHECK_PASSED');

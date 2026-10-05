@@ -19,7 +19,7 @@ section('renderer.ts: stable 选中圆环/描边');
   assert(!/function drawSelectionBox/.test(src), 'v232 方框绘制已移除');
   assert(/export function drawSelectionRing[\s\S]{0,120}color = '#f5a623'/.test(src), '选中环默认橙黄 #f5a623');
   // v308: 环改为覆盖圆圈白边, 不再是圈外 1.06r; v314: 环带 = 滑条选中蓝边带 0.81..0.925r (lw=0.115r, 弧 0.8675r = 带中心)
-  assert(/g\.arc\(x, y, r \* 0\.8675, 0, Math\.PI \* 2\)/.test(src), 'v314: 圆环精确覆盖滑条选中描边带 (弧半径 0.8675r)');
+  assert(/const rad = r \* 0\.8675;/.test(src) && /og\.arc\(0, 0, rad, 0, Math\.PI \* 2\)/.test(src), 'v314: 圆环精确覆盖滑条选中描边带 (弧半径 0.8675r)');
   assert(/export function drawSliderBodyOutline\(g: CanvasRenderingContext2D, points: \{ x: number; y: number \}\[\], r: number, color = '#4df3ff', cover = false\)/.test(src),
     '滑条描边环支持颜色参数并导出 (v308: +cover 参数)');
   assert(/og\.strokeStyle = color;/.test(src), '描边环用传入颜色');

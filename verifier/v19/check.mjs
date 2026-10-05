@@ -55,7 +55,7 @@ section('renderer.ts: 离屏合成 + 缓存接线');
   const calls = src.match(/sliderBodySprite\(/g) ?? [];
   assert(calls.length === 3, `sliderBodySprite 一定义两调用 (drawSlider 带缓存 + drawPendingSlider 用 scratch), 实际 ${calls.length - 1} 处调用`);
   assert(src.includes('bm.colors.sliderTrackOverride || color'), '轨道色 SliderTrackOverride 优先于 combo 色');
-  assert(src.includes("bm.colors.sliderBorder || '#ffffff'"), '白边取 sliderBorder 皮肤色');
+  assert(src.includes("bm.colors.sliderBorder || skin.sliderBorder || '#ffffff'"), '白边: 关开关时谱面 sliderBorder 优先, 回退皮肤/默认 (v348)');
 }
 
 section('renderer.ts: 离屏超采样抗锯齿 (按主画布 dpr*scale 高分绘制)');

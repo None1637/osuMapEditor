@@ -33,7 +33,8 @@ section('timingEdit.ts: 克隆语义 + effects 位');
 section('TimingPanel.tsx: 绿行音效集/序号/kiai 编辑 + 插入克隆');
 {
   const src = readSrc('src/components/TimingPanel.tsx');
-  assert(/defaultNewPoint\(bm\.timingPoints, t, uninherited\)/.test(src), '插入走 defaultNewPoint (lazer addNew 克隆)');
+  // 变量名 t → time (重构), 语义不变: 插入走 defaultNewPoint 克隆生效点
+  assert(/defaultNewPoint\(bm\.timingPoints, time, uninherited\)/.test(src), '插入走 defaultNewPoint (lazer addNew 克隆)');
   assert(/data-tp-input="sampleSet"/.test(src), '音效集下拉 (Normal/Soft/Drum)');
   assert(/option value=\{1\}>Normal/.test(src) && /option value=\{2\}>Soft/.test(src) && /option value=\{3\}>Drum/.test(src), '音效集三选项');
   assert(/data-tp-input="sampleIndex"/.test(src), '自定义序号输入');

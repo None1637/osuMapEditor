@@ -35,7 +35,7 @@ section('b) 时间轴拖转盘右缘');
   assert(!!mm && /o\.time \+ red\.beatLength \/ store\.beatSnap/.test(mm[0]), '最短 1 tick (与放置同源)');
   assert(!!mm && /o\.endTime = end; sr\.moved = true; store\.emit\(\);/.test(mm[0]), '实时改 endTime + emit');
   const fin = tl.match(/const srz = spinnerResizeRef\.current;[\s\S]{0,400}?\n    \}/);
-  assert(!!fin && /srz\.moved\) \{ store\.commitDrag\(\); return; \}/.test(fin[0]) && /store\.undo\(\);/.test(fin[0]), '收尾: moved=commitDrag 一次 undo, 未移动弹空快照');
+  assert(!!fin && /srz\.moved\) \{ store\.commitDrag\(\); return; \}/.test(fin[0]) && /store\.cancelDragNoop\(\);/.test(fin[0]), '收尾: moved=commitDrag 一次 undo, 未移动弹空快照 (v345 cancelDragNoop)');
 }
 
 section('编译');

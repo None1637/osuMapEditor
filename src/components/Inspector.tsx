@@ -7,6 +7,7 @@ import { computeMerge } from '@/osu/convert/merge';
 import { sliderToBezierSegments, segmentsToPoints } from '@/osu/convert/bezierPath';
 import { genId, type HitObject } from '@/osu/parser';
 import { hotkeyLabel } from '@/osu/hotkeys'; // v321 (F21): 快捷键提示随改键同步
+import { useT } from '@/i18n';
 
 // 选中物件属性编辑
 
@@ -33,6 +34,7 @@ const NumIn = ({ value, set, w = 'w-16', testid }: { value: number; set: (v: num
 
 export function Inspector() {
   useEditor();
+  const t = useT();
   // v33: 变换面板状态 (任意角度/倍率 + 三种原点); v34: 原点模式/自定义点提升到 store (画布标记渲染+拖拽共用)
   const [angle, setAngle] = useState(90);
   const [factor, setFactor] = useState(1.1);
@@ -49,10 +51,10 @@ export function Inspector() {
   // v234: 右侧栏提示区 — 原画布内的 Alt 滑条节点控制提示 (v117) 移到此处; 并附游玩区平移操作说明 (v227/v229)
   const hints: string[] = [];
   if (store.tool === 'select' && !store.playing && !store.nodeSelectionCount && sel.some(o => o.type === 'slider')) {
-    hints.push('滑条节点控制：Alt+点选/框选，Shift+Alt 多选；按住 Alt 时可整体拖动 · 旋转 · 缩放（Esc 退出）');
+    hints.push(t('inspector.hint_slider_node_control', 'Slider node control: Alt+click/box select, Shift+Alt multi-select; while holding Alt you can drag / rotate / scale the whole selection (Esc to exit)'));
   }
   if (store.playfieldPanEnabled) {
-    hints.push('游玩区平移已开启：按住鼠标中键拖动游玩区，Alt+滚轮缩放游玩区大小');
+    hints.push(t('inspector.hint_playfield_pan', 'Playfield panning enabled: hold the middle mouse button to drag the playfield, Alt+wheel to zoom the playfield'));
   }
   const HintsBlock = hints.length > 0 && (
     <div className="space-y-1 border-t border-white/10 pt-2 mt-2 text-white/40 leading-relaxed">
@@ -64,10 +66,10 @@ export function Inspector() {
   // v146: 以普通函数调用渲染 ({TransformPanel()}), 不作为 JSX 组件 — 否则每次重渲染新组件类型, 子树重建失焦
   const TransformPanel = () => (
     <div className="space-y-1.5">
-      <div className="font-bold text-white/60">变换 (选区)</div>
+      <div className="font-bold text-white/60">{t('inspector.transform_title', 'Transform (Selection)')}</div>
       <div className="flex items-center gap-2 flex-wrap">
-        <span className="text-white/50">原点</span>
-        {([['selection', '选区'], ['playfield', '中心'], ['custom', '自定义']] as const).map(([m, label]) => (
+        <span className="text-white/50">{t('inspector.origin', 'Origin')}</span>
+        {([['selection', t('inspector.origin_selection', 'Selection')], ['playfield', t('inspector.origin_playfield', 'Center')], ['custom', t('inspector.origin_custom', 'Custom')]] as const).map(([m, label]) => (
           <label key={m} className="flex items-center gap-0.5 text-white/70">
             <input type="radio" name="tf-origin" checked={originMode === m} data-tf={`origin-${m}`}
               onChange={() => store.setOriginMode(m)} />
@@ -82,25 +84,25 @@ export function Inspector() {
         )}
       </div>
       <div className="flex items-center gap-1 flex-wrap">
-        <span className="text-white/50">旋转</span>
+        <span className="text-white/50">{t('inspector.rotate', 'Rotate')}</span>
         <NumIn value={angle} set={setAngle} testid="angle" />
-        <Btn label={<><RotateCcw className="inline-block w-3.5 h-3.5 mr-0.5 -mt-0.5" />逆时针</>} title="按输入角度逆时针旋转" onClick={() => store.rotateSelected(-Math.abs(angle), origin)} />
-        <Btn label={<><RotateCw className="inline-block w-3.5 h-3.5 mr-0.5 -mt-0.5" />顺时针</>} title="按输入角度顺时针旋转" onClick={() => store.rotateSelected(Math.abs(angle), origin)} />
+        <Btn label={<><RotateCcw className="inline-block w-3.5 h-3.5 mr-0.5 -mt-0.5" />{t('inspector.rotate_ccw', 'Counterclockwise')}</>} title={t('inspector.rotate_ccw_tip', 'Rotate counterclockwise by the entered angle')} onClick={() => store.rotateSelected(-Math.abs(angle), origin)} />
+        <Btn label={<><RotateCw className="inline-block w-3.5 h-3.5 mr-0.5 -mt-0.5" />{t('inspector.rotate_cw', 'Clockwise')}</>} title={t('inspector.rotate_cw_tip', 'Rotate clockwise by the entered angle')} onClick={() => store.rotateSelected(Math.abs(angle), origin)} />
       </div>
       <div className="flex items-center gap-1 flex-wrap">
-        <span className="text-white/50">缩放</span>
+        <span className="text-white/50">{t('inspector.scale', 'Scale')}</span>
         <span className="text-white/40">x</span>
         <NumIn value={factor} set={setFactor} testid="factor" w="w-14" />
         <span className="text-white/40">y</span>
         <NumIn value={factorY} set={setFactorY} testid="factor-y" w="w-14" />
-        <Btn label="应用倍率" title="按输入倍率缩放 (仅X: y 填 1; 仅Y: x 填 1; 滑条长度同步)" onClick={() => store.scaleSelected(factor, factorY, origin)} />
+        <Btn label={t('inspector.apply_scale', 'Apply Factor')} title={t('inspector.apply_scale_tip', 'Scale by the entered factors (X only: set y to 1; Y only: set x to 1; slider length scales too)')} onClick={() => store.scaleSelected(factor, factorY, origin)} />
       </div>
       <div className="flex items-center gap-1 flex-wrap">
-        <span className="text-white/50">镜像</span>
-        <Btn label={<><FlipHorizontal2 className="inline-block w-3.5 h-3.5 mr-0.5 -mt-0.5" />水平 ({hotkeyLabel('flip-h')})</>} title="水平镜像" onClick={() => store.flipSelected('h', origin)} />
-        <Btn label={<><FlipVertical2 className="inline-block w-3.5 h-3.5 mr-0.5 -mt-0.5" />垂直 ({hotkeyLabel('flip-v')})</>} title="垂直镜像" onClick={() => store.flipSelected('v', origin)} />
+        <span className="text-white/50">{t('inspector.flip', 'Flip')}</span>
+        <Btn label={<><FlipHorizontal2 className="inline-block w-3.5 h-3.5 mr-0.5 -mt-0.5" />{t('inspector.flip_h', 'Horizontal ({key})', { key: hotkeyLabel('flip-h') })}</>} title={t('inspector.flip_h_tip', 'Flip horizontally')} onClick={() => store.flipSelected('h', origin)} />
+        <Btn label={<><FlipVertical2 className="inline-block w-3.5 h-3.5 mr-0.5 -mt-0.5" />{t('inspector.flip_v', 'Vertical ({key})', { key: hotkeyLabel('flip-v') })}</>} title={t('inspector.flip_v_tip', 'Flip vertically')} onClick={() => store.flipSelected('v', origin)} />
       </div>
-      <div className="text-white/35">快捷键 {hotkeyLabel('rot-ccw')}/{hotkeyLabel('rot-cw')} 旋转90°, {hotkeyLabel('flip-h')}/{hotkeyLabel('flip-v')} 镜像, 围绕游玩区中心 (stable 同款); 上方按钮用所选原点; {hotkeyLabel('reverse')} 反转 (lazer 同款)</div>
+      <div className="text-white/35">{t('inspector.transform_hotkeys_hint', 'Hotkeys {ccw}/{cw} rotate 90°, {flipH}/{flipV} flip around the playfield center (same as stable); the buttons above use the selected origin; {reverse} reverses (same as lazer)', { ccw: hotkeyLabel('rot-ccw'), cw: hotkeyLabel('rot-cw'), flipH: hotkeyLabel('flip-h'), flipV: hotkeyLabel('flip-v'), reverse: hotkeyLabel('reverse') })}</div>
     </div>
   );
 
@@ -128,8 +130,8 @@ export function Inspector() {
           <select value={v === undefined ? '' : String(v)} data-hs={testid}
             onChange={e => { if (e.target.value !== '') store.applyHitSampleToSelected({ [field]: parseInt(e.target.value) }); }}
             className="bg-black/40 border border-white/15 rounded px-1 py-0.5 text-white">
-            {v === undefined && <option value="">混合</option>}
-            <option value="0">Auto 继承</option>
+            {v === undefined && <option value="">{t('inspector.mixed', 'Mixed')}</option>}
+            <option value="0">{t('inspector.auto_inherit', 'Auto / Inherit')}</option>
             <option value="1">Normal</option>
             <option value="2">Soft</option>
             <option value="3">Drum</option>
@@ -142,7 +144,7 @@ export function Inspector() {
       return (
         <label className="flex items-center gap-1 text-white/70">
           <span className="w-14">{label}</span>
-          <input type="number" value={v === undefined ? '' : v} placeholder="混合" data-hs={testid}
+          <input type="number" value={v === undefined ? '' : v} placeholder={t('inspector.mixed', 'Mixed')} data-hs={testid}
             onChange={e => { if (e.target.value !== '') store.applyHitSampleToSelected({ [field]: clamp(parseInt(e.target.value) || 0) }); }}
             className="w-20 bg-black/40 border border-white/15 rounded px-1 py-0.5 text-white" />
         </label>
@@ -153,15 +155,15 @@ export function Inspector() {
       <div className="space-y-1 border-t border-white/10 pt-2">
         <div className="font-bold text-white/60">Hitsound (Q/W/E/R)</div>
         <div className="flex flex-wrap gap-x-3 gap-y-1">
-          <BitChk bit={2} label="Whistle" title="口哨音 (W)" />
-          <BitChk bit={4} label="Finish" title="Finish 音 (E)" />
-          <BitChk bit={8} label="Clap" title="拍手音 (R)" />
+          <BitChk bit={2} label="Whistle" title={t('inspector.whistle_tip', 'Whistle sound (W)')} />
+          <BitChk bit={4} label="Finish" title={t('inspector.finish_tip', 'Finish sound (E)')} />
+          <BitChk bit={8} label="Clap" title={t('inspector.clap_tip', 'Clap sound (R)')} />
         </div>
         <SetSel label="NormalSet" field="normalSet" testid="normalSet" />
         <SetSel label="AddSet" field="additionSet" testid="additionSet" />
-        <SampleNum label="采样序号" field="customIndex" testid="customIndex" clamp={v => Math.max(0, Math.round(v))} />
-        <SampleNum label="音量" field="volume" testid="volume" clamp={v => v <= 0 ? 0 : Math.min(100, Math.max(5, Math.round(v)))} />
-        {filename ? <div className="text-white/40">采样文件: {filename}</div> : null}
+        <SampleNum label={t('inspector.sample_index', 'Sample Index')} field="customIndex" testid="customIndex" clamp={v => Math.max(0, Math.round(v))} />
+        <SampleNum label={t('inspector.volume', 'Volume')} field="volume" testid="volume" clamp={v => v <= 0 ? 0 : Math.min(100, Math.max(5, Math.round(v)))} />
+        {filename ? <div className="text-white/40">{t('inspector.sample_file', 'Sample File: {filename}', { filename })}</div> : null}
       </div>
     );
   };
@@ -185,12 +187,12 @@ export function Inspector() {
       <>
         {sliders.length > 0 && (
           <button data-conv-open="stream" onClick={() => store.openConversion('stream')} className={cls}>
-            滑条转连打 ({sliders.length} 条)
+            {t('inspector.sliders_to_stream', 'Sliders to Stream ({n})', { n: sliders.length })}
           </button>
         )}
         {selP.length > 0 && (
           <button data-conv-apply="p2b" onClick={onP2B} className={cls}>
-            圆弧→贝塞尔 ({selP.length} 条)
+            {t('inspector.arc_to_bezier', 'Arc → Bezier ({n})', { n: selP.length })}
           </button>
         )}
       </>
@@ -206,33 +208,33 @@ export function Inspector() {
     };
     return (
       <div className="p-3 text-xs text-white/50 space-y-3">
-        <div>{sel.length > 1 ? `已选中 ${sel.length} 个物件` : '未选中物件'}</div>
+        <div>{sel.length > 1 ? t('inspector.selected_n', '{n} objects selected', { n: sel.length }) : t('inspector.no_selection', 'No object selected')}</div>
         {sel.length > 1 && <HitSoundPanel objs={sel} />}
         {sel.length > 1 && TransformPanel()}
         {sel.length > 1 && (
           <div className="space-y-1.5 border-t border-white/10 pt-2">
-            <div className="font-bold text-white/60">转换</div>
+            <div className="font-bold text-white/60">{t('inspector.convert_title', 'Convert')}</div>
             <div className="flex gap-1.5 flex-wrap">
               <SliderConvertButtons sliders={selSliders} />
               <button data-conv-apply="merge" onClick={onMerge}
                 className="px-2 py-1 rounded bg-white/10 hover:bg-white/20 border border-white/15">
-                合并为滑条
+                {t('inspector.merge_to_slider', 'Merge into Slider')}
               </button>
             </div>
           </div>
         )}
         {/* v64/v65: 多边形生成 (无需选区; Ctrl+Shift+D) + 批量复制 (需选区) */}
         <div className="space-y-1.5 border-t border-white/10 pt-2">
-          <div className="font-bold text-white/60">生成</div>
+          <div className="font-bold text-white/60">{t('inspector.generate_title', 'Generate')}</div>
           <div className="flex gap-1.5 flex-wrap">
             <button data-conv-open="polygon" onClick={() => store.openConversion('polygon')}
               className="px-2 py-1 rounded bg-white/10 hover:bg-white/20 border border-white/15">
-              多边形生成 ({hotkeyLabel('polygon')})
+              {t('inspector.polygon_generate', 'Polygon Generator ({key})', { key: hotkeyLabel('polygon') })}
             </button>
             <button data-conv-open="duplicate" onClick={() => store.openConversion('duplicate')}
               disabled={!sel.length}
               className="px-2 py-1 rounded bg-white/10 hover:bg-white/20 border border-white/15 disabled:opacity-40">
-              批量复制{sel.length ? ` (${sel.length} 个)` : ''}
+              {sel.length ? t('inspector.duplicate_count', 'Duplicate ({n})', { n: sel.length }) : t('inspector.duplicate', 'Duplicate')}
             </button>
           </div>
         </div>
@@ -260,66 +262,66 @@ export function Inspector() {
   return (
     <div className="p-3 space-y-1.5 text-xs">
       <div className="font-bold text-white/90 mb-2">
-        {o.type === 'circle' ? '单点 Circle' : o.type === 'slider' ? '滑条 Slider' : '转盘 Spinner'}
+        {o.type === 'circle' ? t('inspector.type_circle', 'Hit Circle') : o.type === 'slider' ? t('inspector.type_slider', 'Slider') : t('inspector.type_spinner', 'Spinner')}
       </div>
-      <Num label="时间" value={Math.round(o.time)} onChange={v => upd({ time: v })} />
+      <Num label={t('inspector.time', 'Time')} value={Math.round(o.time)} onChange={v => upd({ time: v })} />
       {o.type !== 'spinner' && <>
         <Num label="X" value={Math.round(o.x)} onChange={v => upd({ x: v })} />
         <Num label="Y" value={Math.round(o.y)} onChange={v => upd({ y: v })} />
       </>}
       {o.type === 'slider' && <>
         <label className="flex items-center gap-1 text-white/70">
-          <span className="w-14">曲线类型</span>
+          <span className="w-14">{t('inspector.curve_type', 'Curve Type')}</span>
           <select value={o.curveType} onChange={e => upd({ curveType: e.target.value })}
             className="bg-black/40 border border-white/15 rounded px-1 py-0.5 text-white">
-            <option value="L">L 直线</option>
-            <option value="P">P 圆弧</option>
-            <option value="B">B 贝塞尔</option>
-            <option value="C">C 卡特姆</option>
+            <option value="L">{t('inspector.curve_linear', 'L Linear')}</option>
+            <option value="P">{t('inspector.curve_perfect', 'P Perfect')}</option>
+            <option value="B">{t('inspector.curve_bezier', 'B Bezier')}</option>
+            <option value="C">{t('inspector.curve_catmull', 'C Catmull')}</option>
           </select>
         </label>
-        <Num label="长度" value={Math.round(o.length ?? 0)} onChange={v => upd({ length: v })} />
-        <Num label="折返" value={o.slides ?? 1} onChange={v => upd({ slides: Math.max(1, Math.round(v)) })} />
+        <Num label={t('inspector.length', 'Length')} value={Math.round(o.length ?? 0)} onChange={v => upd({ length: v })} />
+        <Num label={t('inspector.repeats', 'Repeats')} value={o.slides ?? 1} onChange={v => upd({ slides: Math.max(1, Math.round(v)) })} />
       </>}
-      {o.type === 'spinner' && <Num label="结束时间" value={Math.round(o.endTime ?? 0)} onChange={v => upd({ endTime: v })} />}
+      {o.type === 'spinner' && <Num label={t('inspector.end_time', 'End Time')} value={Math.round(o.endTime ?? 0)} onChange={v => upd({ endTime: v })} />}
       <label className="flex items-center gap-2 text-white/70 pt-1">
         <input type="checkbox" checked={!!o.newCombo} onChange={e => upd({ newCombo: e.target.checked })} />
-        新 Combo
+        {t('inspector.new_combo', 'New Combo')}
       </label>
       <HitSoundPanel objs={sel} />
-      <div className="text-white/40 pt-1">控制点: {o.type === 'slider' ? (o.curvePoints?.length ?? 0) + 1 : '-'}</div>
+      <div className="text-white/40 pt-1">{t('inspector.control_points', 'Control Points: {n}', { n: o.type === 'slider' ? (o.curvePoints?.length ?? 0) + 1 : '-' })}</div>
       {TransformPanel()}
       {o.type === 'slider' && (
         <div className="space-y-1.5 border-t border-white/10 pt-2">
-          <div className="font-bold text-white/60">转换</div>
+          <div className="font-bold text-white/60">{t('inspector.convert_title', 'Convert')}</div>
           <div className="flex gap-1.5 flex-wrap">
             <button data-conv-open="split" onClick={() => store.openConversion('split')}
               className="px-2 py-1 rounded bg-white/10 hover:bg-white/20 border border-white/15">
-              拆分滑条 (等时间)
+              {t('inspector.split_slider', 'Split Slider (Equal Time)')}
             </button>
             {/* v236: 对称滑条 (轴/中心对称, 旋转/平移 n 次, 可拼头尾) */}
             <button data-conv-open="symSlider" onClick={() => store.openConversion('symSlider')}
               className="px-2 py-1 rounded bg-white/10 hover:bg-white/20 border border-white/15">
-              对称滑条
+              {t('inspector.symmetric_slider', 'Symmetric Slider')}
             </button>
             <SliderConvertButtons sliders={[o]} />
           </div>
         </div>
       )}
       <button onClick={() => store.deleteSelected()} className="mt-2 px-2 py-1 rounded bg-red-500/30 hover:bg-red-500/50 border border-red-400/40 text-red-200">
-        删除 (Del)
+        {t('inspector.delete', 'Delete (Del)')}
       </button>
       {/* v64/v65: 多边形生成 + 批量复制 (与未选中分支同一入口) */}
       <div className="space-y-1.5 border-t border-white/10 pt-2">
-        <div className="font-bold text-white/60">生成</div>
+        <div className="font-bold text-white/60">{t('inspector.generate_title', 'Generate')}</div>
         <div className="flex gap-1.5 flex-wrap">
           <button data-conv-open="polygon" onClick={() => store.openConversion('polygon')}
             className="px-2 py-1 rounded bg-white/10 hover:bg-white/20 border border-white/15">
-            多边形生成 ({hotkeyLabel('polygon')})
+            {t('inspector.polygon_generate', 'Polygon Generator ({key})', { key: hotkeyLabel('polygon') })}
           </button>
           <button data-conv-open="duplicate" onClick={() => store.openConversion('duplicate')}
             className="px-2 py-1 rounded bg-white/10 hover:bg-white/20 border border-white/15">
-            批量复制 (1 个)
+            {t('inspector.duplicate_count', 'Duplicate ({n})', { n: 1 })}
           </button>
         </div>
       </div>

@@ -54,7 +54,10 @@ section('EditorCanvas.tsx: 吸附接线');
 section('GeoSnapPanel.tsx: 描述同步 (不再写"不参与吸附")');
 {
   const src = readSrc('src/components/GeoSnapPanel.tsx');
-  assert(/吸附到环带/.test(src), '开关行描述含吸附说明 (v139: 物件中心吸附到环带线)');
+  // v346 i18n 改造后: 描述文案走 t('geo.dist_desc', ...), 简体中文译文在词典分片里
+  assert(/t\('geo\.dist_desc',/.test(src), '开关行描述走 i18n key geo.dist_desc');
+  const dict = readSrc('src/i18n/dicts/zh-CN/geo.ts');
+  assert(dict.includes("'geo.dist_desc'") && dict.includes('吸附到环带'), '开关行描述含吸附说明 (v139: 物件中心吸附到环带线, zh-CN 译文)');
   assert(!/仅显示, 不参与吸附/.test(src) && !/不提供吸附/.test(src), '旧的"不参与吸附"描述已移除');
 }
 

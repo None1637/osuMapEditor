@@ -24,6 +24,7 @@ import { dirtyFingerprint } from './dirtyFingerprint'; // v140: 脏标记内容�
 import { seekByBeats, wheelSteps, playingWheelStepMs, type WheelAccum } from './seekSnapping'; // v193: 滚轮 seek
 import { beginLifecycleFrame } from './lifecycle'; // v197: 每帧推进滑条时长 memo 帧号
 import { toggleEdgesHitSound, setEdgeSoundBitAll } from './edgeSounds'; // v213: 滑条 per-edge hitsound
+import { tNow } from '@/i18n'; // v346: 多语言
 
 interface Snapshot {
   hitObjects: HitObject[];
@@ -36,9 +37,7 @@ interface Snapshot {
   rawSections?: Record<string, string[]>;
 }
 
-function deepCopy<T>(v: T): T { return JSON.parse(JSON.stringify(v)); }
-/** v331: 物件选区签名 (顺序无关) — 变换预览 pushUndo 守卫比对用 */
-function selKeyOf(s: Set<number>): string { return [...s].sort((a, b) => a - b).join(','); }
+function deepCopy<T>(v: T): T { return v === undefined ? v : JSON.parse(JSON.stringify(v)); } // v344: undefined 防御 (JSON.parse("undefined") 会抛)
 
 /** 变换原点: 'selection' 选区包围盒中心 / 'playfield' 游玩区中心 (256,192) / {x,y} 自定义位置 */
 export type TransformOrigin = 'selection' | 'playfield' | Pt;
@@ -302,7 +301,22 @@ class EditorStore {
     this.emit();
   }
   get beatSnap(): number { return this.beatmap?.editor.beatDivisor ?? 4; }
-  set beatSnap(v: number) { if (this.beatmap) { this.beatmap.editor.beatDivisor = v; } }
+  set beatSnap(v: number) { this.setEditorField('beatDivisor', v); }
+
+  // ---- v345: editor 字段写入统一入口 (修复「不能撤销到上次保存」) ----
+  // editor 段在快照/脏指纹六段之内, 直写不入栈 = 改动前的值永远不进任何快照 → Ctrl+Z 到底
+  //   栈底 ≠ 保存态 (soulten 反馈; 高频触发: 改节拍细分/Ctrl+滚轮时间轴缩放/Alt+滚轮间距/GridSize)。
+  // 同字段 800ms 内连写 (滚轮/输入框逐字符) 合并为一条撤销 — 栈顶已保留连写前的值, 不重复入栈。
+  private lastEditorPush: { field: string; t: number } | null = null;
+  setEditorField(field: 'beatDivisor' | 'timelineZoom' | 'distanceSpacing' | 'gridSize', v: number) {
+    const bm = this.beatmap; if (!bm) return;
+    if (bm.editor[field] === v) return;
+    const now = performance.now();
+    if (!this.lastEditorPush || this.lastEditorPush.field !== field || now - this.lastEditorPush.t > 800) this.pushUndo();
+    this.lastEditorPush = { field, t: now };
+    bm.editor[field] = v;
+    this.emit();
+  }
   // 正在绘制的滑条控制点
   pendingSlider: { x: number; y: number; redAnchor: boolean }[] = [];
   /** v180: 转盘放置中状态 — 已提交的起点时间 (ms); null = 未在放置 (lazer SpinnerPlacementBlueprint isPlacingEnd) */
@@ -418,10 +432,15 @@ class EditorStore {
   /** Ctrl+S (lazer Editor Save): 序列化写回来源文件; 无来源时兜底下载 .osu; 返回是否成功 (v120: 保存后清脏标记) */
   async save(): Promise<boolean> {
     if (!this.beatmap) return false;
+    // v345: 变换预览会话中先回滚到基准再保存 — 否则 savedFingerprint 存成预览态,
+    //   关窗回滚后当前态永远 ≠ 保存指纹 (「不能撤销到上次保存」+ 脏标记卡死)
+    if (this.tfBackup) this.restoreTransformBackup();
     try {
       const r = await saveBeatmap(this.beatmap, this.mapSource);
       this.lastSave = r;
-      this.saveMessage = r.route === 'download' ? `已导出: ${r.fileName}` : `已保存: ${r.fileName}`;
+      this.saveMessage = r.route === 'download'
+        ? tNow('store.save_exported', 'Exported: {file}', { file: r.fileName })
+        : tNow('store.save_saved', 'Saved: {file}', { file: r.fileName });
       this.setDirty(false); // v120
       this.savedFingerprint = this.fingerprint(); // v140: 保存内容成为新的干净基准
       this.emit();
@@ -429,7 +448,7 @@ class EditorStore {
       void this.backupNow('save', r.text); // v185: 每次 Ctrl+S 备份一次 (异步, 不阻塞保存反馈)
       return true;
     } catch (e) {
-      this.saveMessage = '保存失败: ' + (e instanceof Error ? e.message : String(e));
+      this.saveMessage = tNow('store.save_failed', 'Save failed: {error}', { error: e instanceof Error ? e.message : String(e) });
       this.emit();
       setTimeout(() => { this.saveMessage = null; this.emitPlayback(); }, 2600);
       return false;
@@ -945,10 +964,10 @@ class EditorStore {
   }
 
   pushUndo() {
-    // v331: 变换预览会话中选区已变 (TransformDialog 的 React effect 未及回滚) — 快照前同步回滚预览,
-    // 否则快照带着预览态: 画布 mousedown beginDrag(pushUndo) 先于 effect 运行, mouseup 空拖拽
-    // store.undo() 会把预览态顶回 (用户反馈: 旋转窗口预览后直接点选其他滑条, 旧滑条不复原且不能撤销)
-    if (this.tfBackup && this.tfSelKey !== null && selKeyOf(this.selected) !== this.tfSelKey) this.restoreTransformBackup();
+    // v345: 预览会话中任何快照前先无条件回滚到基准 (原 v331 只在选区变化时回滚 — 选区不变的
+    //   入栈路径, 如预览中改节拍细分/按编辑快捷键, 会把预览态混进快照 = 撤销链错位,
+    //   「不能撤销到上次保存」的 B 类根因); 回滚幂等 (commitTransformPreview 已先回滚一次)
+    if (this.tfBackup) this.restoreTransformBackup();
     this.undoStack.push(this.snapshot());
     if (this.undoStack.length > 200) this.undoStack.shift();
     this.redoStack = [];
@@ -1206,8 +1225,17 @@ class EditorStore {
   }
 
   // 拖拽结束时调用(拖拽过程中直接改对象不存undo)
-  commitDrag() { this.emit(); }
-  beginDrag() { this.pushUndo(); }
+  commitDrag() { this.dragUndoDepth = null; this.emit(); }
+  beginDrag() { this.pushUndo(); this.dragUndoDepth = this.undoStack.length; }
+  /** v345: 空拖拽收尾 (mousedown 压栈后无任何改动) — 若 beginDrag 的快照仍在栈顶则静默弹出,
+   *  不污染 redoStack (原 undo() 会把当前态塞进 redo, 且拖拽按住期间有快捷键入栈时会误弹
+   *  别人的快照吞掉一步合法撤销); 栈深不匹配 (期间有其他入栈) 回退 undo() 保持旧语义 */
+  private dragUndoDepth: number | null = null;
+  cancelDragNoop() {
+    if (this.dragUndoDepth !== null && this.undoStack.length === this.dragUndoDepth && this.undoStack.length) this.undoStack.pop();
+    else this.undo();
+    this.dragUndoDepth = null;
+  }
 
   /** 画布拖拽进行中 (节点/物件移动/框选): 时间轴等外部组件此时应忽略鼠标交互, 避免拖动经过时误触 seek (非响应式标志, 不 emit) */
   canvasDragging = false;
@@ -1531,12 +1559,12 @@ class EditorStore {
   //   (预览相对基准不叠加, 原点也从备份态解析) → commit 回滚+pushUndo(预览前)+正式应用并重置基准
   //   → end(false) 回滚到最后提交态。预览全程不碰 undo 栈。
   private tfBackup: Map<number, { x: number; y: number; length?: number; curvePoints?: HitObject['curvePoints'] }> | null = null;
-  private tfSelKey: string | null = null; // v331: 备份时的物件选区签名 (pushUndo 守卫比对用)
 
   beginTransformPreview() {
+    // v344: curvePoints 缺省 (单点/转盘) 时 deepCopy(undefined) → JSON.parse("undefined") 抛异常,
+    //   在 useEffect 里炸掉整棵 React 树 = soulten 反馈的「单点旋转白屏」(v301 起就有)
     this.tfBackup = new Map(this.selectedObjects().map(o => [o.id,
-      { x: o.x, y: o.y, length: o.length, curvePoints: deepCopy(o.curvePoints) }]));
-    this.tfSelKey = selKeyOf(this.selected); // v331
+      { x: o.x, y: o.y, length: o.length, curvePoints: o.curvePoints ? deepCopy(o.curvePoints) : undefined }]));
   }
 
   private restoreTransformBackup() {
@@ -1577,7 +1605,6 @@ class EditorStore {
     if (!this.tfBackup) return;
     this.restoreTransformBackup();
     this.tfBackup = null;
-    this.tfSelKey = null; // v331
     this.emit();
   }
 

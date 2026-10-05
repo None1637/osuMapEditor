@@ -123,7 +123,7 @@ ipcMain.handle("get-recents", () => readSettings().recents ?? [])
 
 ipcMain.handle("pick-osu-dir", async (_e, defaultPath) => {
   const r = await dialog.showOpenDialog(win, {
-    title: "选择 osu! 安装目录 (含 Songs / Skins 文件夹)",
+    title: mT("menu.pick_osu_dir"),
     defaultPath: defaultPath || undefined,
     properties: ["openDirectory"],
   })
@@ -140,9 +140,9 @@ ipcMain.handle("list-skin-dirs", (_e, osuPath) => {
 
 ipcMain.handle("save-settings", (_e, { osuPath, skinName }) => {
   const songsDir = path.join(osuPath, "Songs")
-  if (!dirExists(songsDir)) throw new Error("Songs 目录不存在: " + songsDir)
+  if (!dirExists(songsDir)) throw new Error(mT("menu.songs_dir_missing", { path: songsDir }))
   const skinDir = skinName ? path.join(osuPath, "Skins", skinName) : null
-  if (skinDir && !dirExists(skinDir)) throw new Error("皮肤目录不存在: " + skinDir)
+  if (skinDir && !dirExists(skinDir)) throw new Error(mT("menu.skin_dir_missing", { path: skinDir }))
   writeSettings({ ...readSettings(), osuPath, songsDir, skinDir })
   return { songsDir, skinDir, skinName }
 })
@@ -153,6 +153,19 @@ ipcMain.handle("save-settings", (_e, { osuPath, skinName }) => {
 let isDirty = false
 ipcMain.on("dirty-state", (_e, b) => { isDirty = !!b }) // v123: 不再重建菜单 (指示器移入应用内顶栏)
 ipcMain.on("close-confirmed", () => { isDirty = false; win?.close() })
+
+// v338: 崩溃日志 — 远程用户反馈白屏但本地无法复现, 需要现场数据。
+//   渲染端 window error/unhandledrejection 经 "renderer-error" 上报; 渲染进程崩溃/无响应在此直接落盘。
+//   日志写 <userData>/crash.log (追加, 截断单条 4KB; 文件超 1MB 时重开), 反馈时让用户发此文件。
+const crashLogFile = () => path.join(app.getPath("userData"), "crash.log")
+function logCrash(kind, payload) {
+  try {
+    const f = crashLogFile()
+    try { if (fs.statSync(f).size > 1024 * 1024) fs.writeFileSync(f, "") } catch { /* 不存在则忽略 */ }
+    fs.appendFileSync(f, `[${new Date().toISOString()}] ${kind}: ${String(payload).slice(0, 4096)}\n`, "utf-8")
+  } catch { /* 日志失败不影响主流程 */ }
+}
+ipcMain.on("renderer-error", (_e, payload) => logCrash("renderer-error", payload))
 
 async function createWindow() {
   const port = await startServer()
@@ -195,6 +208,9 @@ async function createWindow() {
       if (!win.isDestroyed()) win.webContents.send("alt-key", input.type !== "keyUp")
     }
   })
+  // v338: 渲染进程崩溃/无响应落盘 (白屏现场 — render-process-gone 的 reason: crashed/oom/killed 等)
+  win.webContents.on("render-process-gone", (_e, details) => logCrash("render-process-gone", JSON.stringify(details)))
+  win.webContents.on("unresponsive", () => logCrash("unresponsive", "webContents 无响应"))
   win.on("closed", () => { win = null })
   win.maximize() // 启动默认最大化
   win.loadURL(`http://127.0.0.1:${port}/`)
@@ -276,7 +292,7 @@ ipcMain.handle("backup-beatmap", (_e, p) => {
 ipcMain.handle("open-backup-folder", (_e, p) => {
   try {
     const folder = path.join(BACKUP_ROOT(), backupCore.backupFolderName(p && p.artist, p && p.title))
-    if (!fs.existsSync(folder)) return { ok: false, error: "尚无备份" }
+    if (!fs.existsSync(folder)) return { ok: false, error: mT("menu.no_backups") }
     shell.openPath(folder)
     return { ok: true }
   } catch (e) { return { ok: false, error: String((e && e.message) || e) } }
@@ -320,6 +336,87 @@ let accelOverrides = {}
 ipcMain.on("menu-accelerator-overrides", (_e, map) => { accelOverrides = map || {}; buildMenu() })
 const acc = (id, def) => accelOverrides[id] ?? def
 
+// v346: 菜单多语言 — 主进程 CJS 不能 import src/i18n, 内嵌三语标签表 (en 默认 + zh-CN + zh-TW);
+// 渲染端经 "menu-lang" 上报当前语言 (electronMenu.ts: 启动一次 + onLangChange 订阅), 收到即 buildMenu 重建,
+// 应用内菜单条经现有 onMenuDefinition 推送链路自动刷新
+const MENU_LABELS = {
+  "menu.file": { en: "File", "zh-CN": "文件", "zh-TW": "檔案" },
+  "menu.save": { en: "Save", "zh-CN": "保存", "zh-TW": "儲存" },
+  "menu.open_difficulty": { en: "Open a Difficulty", "zh-CN": "打开一个难度", "zh-TW": "開啟一個難度" },
+  "menu.no_beatmap": { en: "(no beatmap loaded)", "zh-CN": "(未加载谱面)", "zh-TW": "(未載入譜面)" },
+  "menu.open_recent": { en: "Open Recent Difficulty", "zh-CN": "打开最近的难度", "zh-TW": "開啟最近的難度" },
+  "menu.none": { en: "(none)", "zh-CN": "(无)", "zh-TW": "(無)" },
+  "menu.open_song_folder": { en: "Open Song Folder", "zh-CN": "打开歌曲文件夹", "zh-TW": "開啟歌曲資料夾" },
+  "menu.view_backups": { en: "View Backups", "zh-CN": "查看备份", "zh-TW": "檢視備份" },
+  "menu.open_osu_in_notepad": { en: "Open .osu File in Notepad", "zh-CN": "在记事本中打开.osu文件", "zh-TW": "在記事本中開啟 .osu 檔案" },
+  "menu.edit": { en: "Edit", "zh-CN": "编辑", "zh-TW": "編輯" },
+  "menu.undo": { en: "Undo", "zh-CN": "撤消", "zh-TW": "復原" },
+  "menu.redo": { en: "Redo", "zh-CN": "重做", "zh-TW": "重做" },
+  "menu.cut": { en: "Cut", "zh-CN": "剪切", "zh-TW": "剪下" },
+  "menu.copy": { en: "Copy", "zh-CN": "复制", "zh-TW": "複製" },
+  "menu.paste": { en: "Paste", "zh-CN": "粘贴", "zh-TW": "貼上" },
+  "menu.delete": { en: "Delete", "zh-CN": "删除", "zh-TW": "刪除" },
+  "menu.select_all": { en: "Select All", "zh-CN": "全选", "zh-TW": "全選" },
+  "menu.duplicate": { en: "Duplicate...", "zh-CN": "批量复制...", "zh-TW": "批次複製..." },
+  "menu.reverse": { en: "Reverse Selection", "zh-CN": "反选", "zh-TW": "反轉選取" },
+  "menu.flip_h": { en: "Flip Horizontally", "zh-CN": "左右翻转", "zh-TW": "水平翻轉" },
+  "menu.flip_v": { en: "Flip Vertically", "zh-CN": "上下翻转", "zh-TW": "垂直翻轉" },
+  "menu.rot_cw": { en: "Rotate 90° Clockwise", "zh-CN": "顺时针旋转90°", "zh-TW": "順時針旋轉90°" },
+  "menu.rot_ccw": { en: "Rotate 90° Counter-Clockwise", "zh-CN": "逆时针旋转90°", "zh-TW": "逆時針旋轉90°" },
+  "menu.rotate": { en: "Rotate...", "zh-CN": "旋转...", "zh-TW": "旋轉..." },
+  "menu.scale": { en: "Scale...", "zh-CN": "缩放...", "zh-TW": "縮放..." },
+  "menu.symmetry": { en: "Symmetry...", "zh-CN": "对称...", "zh-TW": "對稱..." },
+  "menu.clear_hs_selected": { en: "Clear Hit Sounds of Selected Objects", "zh-CN": "清除所选物件的音效", "zh-TW": "清除所選物件的音效" },
+  "menu.clear_hs_all": { en: "Clear All Hit Sounds", "zh-CN": "清除所有音效", "zh-TW": "清除所有音效" },
+  "menu.reset_combo": { en: "Reset Combo Colours", "zh-CN": "重置combo组的颜色", "zh-TW": "重置combo組的顏色" },
+  "menu.reset_breaks": { en: "Reset Breaks", "zh-CN": "重置休息时段", "zh-TW": "重置休息時段" },
+  "menu.nudge_prev": { en: "Nudge Backward", "zh-CN": "前移", "zh-TW": "前移" },
+  "menu.nudge_next": { en: "Nudge Forward", "zh-CN": "后移", "zh-TW": "後移" },
+  "menu.compose": { en: "Compose", "zh-CN": "作图", "zh-TW": "作圖" },
+  "menu.polygon": { en: "Create Polygon...", "zh-CN": "多边形生成...", "zh-TW": "多邊形生成..." },
+  "menu.stream": { en: "Convert Slider to Stream...", "zh-CN": "滑条转连打...", "zh-TW": "滑條轉連打..." },
+  "menu.merge": { en: "Merge Sliders", "zh-CN": "合并滑条", "zh-TW": "合併滑條" },
+  "menu.sym_slider": { en: "Symmetrical Slider...", "zh-CN": "对称滑条...", "zh-TW": "對稱滑條..." },
+  "menu.meter": { en: "Time Signature", "zh-CN": "节拍类型", "zh-TW": "節拍類型" },
+  "menu.meter_common": { en: "4/4 (common)", "zh-CN": "4/4 (普通/四拍子)", "zh-TW": "4/4 (普通/四拍子)" },
+  "menu.meter_waltz": { en: "3/4 (waltz)", "zh-CN": "3/4 (华尔兹/三拍子)", "zh-TW": "3/4 (華爾滋/三拍子)" },
+  "menu.metronome": { en: "Metronome", "zh-CN": "节拍器", "zh-TW": "節拍器" },
+  "menu.add_timing": { en: "Add Timing Point (red line)", "zh-CN": "添加Timing区间 (即红线)", "zh-TW": "新增Timing區間 (即紅線)" },
+  "menu.add_inherited": { en: "Add Inherited Timing Point (green line)", "zh-CN": "添加继承区间 (即绿线)", "zh-TW": "新增繼承區間 (即綠線)" },
+  "menu.reset_current": { en: "Reset Current Section", "zh-CN": "重置当前区间", "zh-TW": "重置當前區間" },
+  "menu.delete_timing": { en: "Delete Timing Point", "zh-CN": "删除Timing区间", "zh-TW": "刪除Timing區間" },
+  "menu.resnap_current": { en: "Resnap Current Timing Point", "zh-CN": "重新对齐当前Timing区间", "zh-TW": "重新對齊當前Timing區間" },
+  "menu.timing_setup": { en: "Timing Setup...", "zh-CN": "Timing设置...", "zh-TW": "Timing設置..." },
+  "menu.resnap_all": { en: "Resnap All Objects", "zh-CN": "全部重新对齐", "zh-TW": "全部重新對齊" },
+  "menu.shift_all": { en: "Shift All Objects' Time...", "zh-CN": "整体平移所有物件的时间...", "zh-TW": "整體平移所有物件的時間..." },
+  "menu.recalc_sliders": { en: "Recalculate Slider Lengths", "zh-CN": "重新计算滑条长度", "zh-TW": "重新計算滑條長度" },
+  "menu.delete_all_timing": { en: "Delete All Timing Points", "zh-CN": "删除所有Timing区间", "zh-TW": "刪除所有Timing區間" },
+  "menu.set_preview": { en: "Set Current Position as Preview Point", "zh-CN": "把当前位置设为预览点", "zh-TW": "把當前位置設為預覽點" },
+  "menu.settings": { en: "Settings", "zh-CN": "设置", "zh-TW": "設置" },
+  "menu.reconfigure": { en: "Reconfigure osu! Folder & Skin", "zh-CN": "重新配置 osu! 目录与皮肤", "zh-TW": "重新配置 osu! 目錄與皮膚" },
+  "menu.reload": { en: "Reload", "zh-CN": "刷新", "zh-TW": "重新整理" },
+  "menu.devtools": { en: "Developer Tools", "zh-CN": "开发者工具", "zh-TW": "開發者工具" },
+  "menu.quit": { en: "Quit", "zh-CN": "退出", "zh-TW": "結束" },
+  "menu.about": { en: "About", "zh-CN": "关于", "zh-TW": "關於" },
+  "menu.about_app": { en: "About osu! Map Editor (v{v})", "zh-CN": "关于 osu! Map Editor (v{v})", "zh-TW": "關於 osu! Map Editor (v{v})" },
+  "menu.pick_osu_dir": { en: "Select osu! install folder (containing Songs / Skins)", "zh-CN": "选择 osu! 安装目录 (含 Songs / Skins 文件夹)", "zh-TW": "選擇 osu! 安裝目錄 (含 Songs / Skins 資料夾)" },
+  "menu.songs_dir_missing": { en: "Songs folder does not exist: {path}", "zh-CN": "Songs 目录不存在: {path}", "zh-TW": "Songs 目錄不存在: {path}" },
+  "menu.skin_dir_missing": { en: "Skin folder does not exist: {path}", "zh-CN": "皮肤目录不存在: {path}", "zh-TW": "皮膚目錄不存在: {path}" },
+  "menu.no_backups": { en: "No backups yet", "zh-CN": "尚无备份", "zh-TW": "尚無備份" },
+}
+// 渲染端上报前默认 zh-CN (保持既有行为); "debug" 等未识别值同样回退 zh-CN
+let menuLang = "zh-CN"
+ipcMain.on("menu-lang", (_e, l) => {
+  menuLang = l === "en" || l === "zh-TW" ? l : "zh-CN"
+  buildMenu()
+})
+function mT(key, vars) {
+  const e = MENU_LABELS[key]
+  let s = (e && (e[menuLang] ?? e.en)) ?? key
+  if (vars) s = s.replace(/\{(\w+)\}/g, (m, k) => (k in vars ? String(vars[k]) : m))
+  return s
+}
+
 function buildMenu() {
   const songsDir = readSettings().songsDir
   const curFolderAbs = menuState?.folderRel && songsDir ? path.join(songsDir, menuState.folderRel) : null
@@ -328,38 +425,38 @@ function buildMenu() {
   const send = (cmd) => win?.webContents.send("menu-cmd", cmd)
   const template = [
     {
-      label: "文件",
+      label: mT("menu.file"),
       submenu: [
-        { label: "保存", accelerator: acc("save", "CmdOrCtrl+S"), enabled: !!menuState, click: () => send({ type: "save" }) },
+        { label: mT("menu.save"), accelerator: acc("save", "CmdOrCtrl+S"), enabled: !!menuState, click: () => send({ type: "save" }) },
         { type: "separator" },
         {
-          label: "打开一个难度",
+          label: mT("menu.open_difficulty"),
           submenu: menuState?.difficulties?.length
             ? menuState.difficulties.map((d) => ({
                 label: (d.file === menuState.file ? "✓ " : "") + d.label,
                 click: () => send({ type: "open", folderRel: menuState.folderRel, file: d.file }),
               }))
-            : [{ label: "(未加载谱面)", enabled: false }],
+            : [{ label: mT("menu.no_beatmap"), enabled: false }],
         },
         {
-          label: "打开最近的难度",
+          label: mT("menu.open_recent"),
           submenu: recents.length
             ? recents.map((r) => ({
                 label: r.label ?? r.file,
                 click: () => send({ type: "open", folderRel: r.folderRel, file: r.file }),
               }))
-            : [{ label: "(无)", enabled: false }],
+            : [{ label: mT("menu.none"), enabled: false }],
         },
         { type: "separator" },
         {
-          label: "打开歌曲文件夹",
+          label: mT("menu.open_song_folder"),
           enabled: !!curFolderAbs,
           click: () => { if (curFolderAbs) shell.openPath(curFolderAbs) },
         },
         // v185: 打开当前谱面的备份文件夹 (exe 同目录 backup_beatmaps/<艺术家_歌曲名>)
-        { label: "查看备份", enabled: !!menuState, click: () => send({ type: "open-backups" }) },
+        { label: mT("menu.view_backups"), enabled: !!menuState, click: () => send({ type: "open-backups" }) },
         {
-          label: "在记事本中打开.osu文件",
+          label: mT("menu.open_osu_in_notepad"),
           enabled: !!curFileAbs,
           click: () => {
             if (!curFileAbs) return
@@ -371,7 +468,7 @@ function buildMenu() {
     // v209: 原生 "编辑" 菜单 (stable 同款; 快捷键 accelerator 仅作显示 registerAccelerator:false,
     // 实际按键仍走渲染进程 App.tsx keydown — 避免全局截获 Ctrl+C/V/X/A/Z/Y 破坏输入框编辑)
     {
-      label: "编辑",
+      label: mT("menu.edit"),
       submenu: (() => {
         const e = (type, label, accelerator, enabled) => ({
           label, enabled, click: () => send({ type }),
@@ -379,49 +476,49 @@ function buildMenu() {
         })
         const map = editState.hasMap, sel = editState.hasSelection, clip = editState.hasClipboard
         return [
-          e("edit-undo", "撤消", "CmdOrCtrl+Z", map),
-          e("edit-redo", "重做", "CmdOrCtrl+Y", map),
+          e("edit-undo", mT("menu.undo"), "CmdOrCtrl+Z", map),
+          e("edit-redo", mT("menu.redo"), "CmdOrCtrl+Y", map),
           { type: "separator" },
-          e("edit-cut", "剪切", "CmdOrCtrl+X", sel),
-          e("edit-copy", "复制", "CmdOrCtrl+C", sel),
-          e("edit-paste", "粘贴", "CmdOrCtrl+V", clip),
-          e("edit-delete", "删除", "Delete", sel),
+          e("edit-cut", mT("menu.cut"), "CmdOrCtrl+X", sel),
+          e("edit-copy", mT("menu.copy"), "CmdOrCtrl+C", sel),
+          e("edit-paste", mT("menu.paste"), "CmdOrCtrl+V", clip),
+          e("edit-delete", mT("menu.delete"), "Delete", sel),
           { type: "separator" },
-          e("edit-select-all", "全选", "CmdOrCtrl+A", map),
-          e("edit-duplicate", "批量复制...", "CmdOrCtrl+D", sel),
+          e("edit-select-all", mT("menu.select_all"), "CmdOrCtrl+A", map),
+          e("edit-duplicate", mT("menu.duplicate"), "CmdOrCtrl+D", sel),
           { type: "separator" },
-          e("edit-reverse", "反选", "CmdOrCtrl+G", sel),
-          e("edit-flip-h", "左右翻转", "CmdOrCtrl+H", sel),
-          e("edit-flip-v", "上下翻转", "CmdOrCtrl+J", sel),
-          e("edit-rot-cw", "顺时针旋转90°", "CmdOrCtrl+.", sel),
-          e("edit-rot-ccw", "逆时针旋转90°", "CmdOrCtrl+,", sel),
-          e("edit-open-rotate", "旋转...", "CmdOrCtrl+Shift+R", sel),
-          e("edit-open-scale", "缩放...", "CmdOrCtrl+Shift+S", sel),
-          e("edit-open-symmetry", "对称...", null, sel), // v210: 无快捷键
+          e("edit-reverse", mT("menu.reverse"), "CmdOrCtrl+G", sel),
+          e("edit-flip-h", mT("menu.flip_h"), "CmdOrCtrl+H", sel),
+          e("edit-flip-v", mT("menu.flip_v"), "CmdOrCtrl+J", sel),
+          e("edit-rot-cw", mT("menu.rot_cw"), "CmdOrCtrl+.", sel),
+          e("edit-rot-ccw", mT("menu.rot_ccw"), "CmdOrCtrl+,", sel),
+          e("edit-open-rotate", mT("menu.rotate"), "CmdOrCtrl+Shift+R", sel),
+          e("edit-open-scale", mT("menu.scale"), "CmdOrCtrl+Shift+S", sel),
+          e("edit-open-symmetry", mT("menu.symmetry"), null, sel), // v210: 无快捷键
           { type: "separator" },
-          e("edit-clear-hs-selected", "清除所选物件的音效", null, sel),
-          e("edit-clear-hs-all", "清除所有音效", null, map),
-          e("edit-reset-combo", "重置combo组的颜色", null, map),
-          e("edit-reset-breaks", "重置休息时段", null, map),
+          e("edit-clear-hs-selected", mT("menu.clear_hs_selected"), null, sel),
+          e("edit-clear-hs-all", mT("menu.clear_hs_all"), null, map),
+          e("edit-reset-combo", mT("menu.reset_combo"), null, map),
+          e("edit-reset-breaks", mT("menu.reset_breaks"), null, map),
           { type: "separator" },
-          e("edit-nudge-prev", "前移", "J", sel),
-          e("edit-nudge-next", "后移", "K", sel),
+          e("edit-nudge-prev", mT("menu.nudge_prev"), "J", sel),
+          e("edit-nudge-next", mT("menu.nudge_next"), "K", sel),
         ]
       })(),
     },
     // v212: 原生 "作图" 菜单 (stable 同款; 转连打需选中滑条, 合并需 >=2 选中, 多边形只需已加载谱面)
     {
-      label: "作图",
+      label: mT("menu.compose"),
       submenu: (() => {
         const e2 = (type, label, accelerator, enabled) => ({
           label, enabled, click: () => send({ type }),
           ...(accelerator ? { accelerator: acc(type, accelerator), registerAccelerator: false } : {}), // v286: acc() 改键后菜单文字同步
         })
         return [
-          e2("compose-polygon", "多边形生成...", "CmdOrCtrl+Shift+D", editState.hasMap),
-          e2("compose-stream", "滑条转连打...", null, editState.hasSlider),
-          e2("compose-merge", "合并滑条", null, editState.selMulti),
-          e2("compose-sym-slider", "对称滑条...", null, editState.selSingleSlider), // v236
+          e2("compose-polygon", mT("menu.polygon"), "CmdOrCtrl+Shift+D", editState.hasMap),
+          e2("compose-stream", mT("menu.stream"), null, editState.hasSlider),
+          e2("compose-merge", mT("menu.merge"), null, editState.selMulti),
+          e2("compose-sym-slider", mT("menu.sym_slider"), null, editState.selSingleSlider), // v236
         ]
       })(),
     },
@@ -430,48 +527,48 @@ function buildMenu() {
       label: "Timing",
       submenu: [
         {
-          label: "节拍类型",
+          label: mT("menu.meter"),
           submenu: [2, 3, 4, 5, 6, 7].map((m) => ({
-            label: m === 4 ? "4/4 (普通/四拍子)" : m === 3 ? "3/4 (华尔兹/三拍子)" : `${m}/4`,
+            label: m === 4 ? mT("menu.meter_common") : m === 3 ? mT("menu.meter_waltz") : `${m}/4`,
             type: "radio",
             checked: timingState.meter === m,
             enabled: !!menuState,
             click: () => send({ type: "timing-set-meter", meter: m }),
           })),
         },
-        { label: "节拍器", type: "checkbox", checked: timingState.metronome, enabled: !!menuState, click: () => send({ type: "timing-toggle-metronome" }) },
+        { label: mT("menu.metronome"), type: "checkbox", checked: timingState.metronome, enabled: !!menuState, click: () => send({ type: "timing-toggle-metronome" }) },
         { type: "separator" },
-        { label: "添加Timing区间 (即红线)", accelerator: acc("timing-add-red", "CmdOrCtrl+P"), enabled: !!menuState, click: () => send({ type: "timing-add-red" }) },
-        { label: "添加继承区间 (即绿线)", accelerator: acc("timing-add-green", "CmdOrCtrl+Shift+P"), enabled: !!menuState, click: () => send({ type: "timing-add-green" }) },
-        { label: "重置当前区间", enabled: !!menuState, click: () => send({ type: "timing-reset-current" }) },
-        { label: "删除Timing区间", accelerator: acc("timing-delete-current", "CmdOrCtrl+I"), enabled: !!menuState, click: () => send({ type: "timing-delete-current" }) },
-        { label: "重新对齐当前Timing区间", enabled: !!menuState, click: () => send({ type: "timing-resnap-current" }) },
-        { label: "Timing设置...", accelerator: acc("timing-open-settings", "F6"), click: () => send({ type: "timing-open-settings" }) },
+        { label: mT("menu.add_timing"), accelerator: acc("timing-add-red", "CmdOrCtrl+P"), enabled: !!menuState, click: () => send({ type: "timing-add-red" }) },
+        { label: mT("menu.add_inherited"), accelerator: acc("timing-add-green", "CmdOrCtrl+Shift+P"), enabled: !!menuState, click: () => send({ type: "timing-add-green" }) },
+        { label: mT("menu.reset_current"), enabled: !!menuState, click: () => send({ type: "timing-reset-current" }) },
+        { label: mT("menu.delete_timing"), accelerator: acc("timing-delete-current", "CmdOrCtrl+I"), enabled: !!menuState, click: () => send({ type: "timing-delete-current" }) },
+        { label: mT("menu.resnap_current"), enabled: !!menuState, click: () => send({ type: "timing-resnap-current" }) },
+        { label: mT("menu.timing_setup"), accelerator: acc("timing-open-settings", "F6"), click: () => send({ type: "timing-open-settings" }) },
         { type: "separator" },
-        { label: "全部重新对齐", enabled: !!menuState, click: () => send({ type: "timing-resnap-all" }) },
-        { label: "整体平移所有物件的时间...", enabled: !!menuState, click: () => send({ type: "timing-shift-all" }) },
-        { label: "重新计算滑条长度", enabled: !!menuState, click: () => send({ type: "timing-recalc-sliders" }) },
-        { label: "删除所有Timing区间", enabled: !!menuState, click: () => send({ type: "timing-delete-all" }) },
+        { label: mT("menu.resnap_all"), enabled: !!menuState, click: () => send({ type: "timing-resnap-all" }) },
+        { label: mT("menu.shift_all"), enabled: !!menuState, click: () => send({ type: "timing-shift-all" }) },
+        { label: mT("menu.recalc_sliders"), enabled: !!menuState, click: () => send({ type: "timing-recalc-sliders" }) },
+        { label: mT("menu.delete_all_timing"), enabled: !!menuState, click: () => send({ type: "timing-delete-all" }) },
         { type: "separator" },
-        { label: "把当前位置设为预览点", enabled: !!menuState, click: () => send({ type: "timing-set-preview" }) },
+        { label: mT("menu.set_preview"), enabled: !!menuState, click: () => send({ type: "timing-set-preview" }) },
       ],
     },
     {
-      label: "设置",
+      label: mT("menu.settings"),
       submenu: [
-        { label: "重新配置 osu! 目录与皮肤", click: () => win?.webContents.send("open-setup") },
+        { label: mT("menu.reconfigure"), click: () => win?.webContents.send("open-setup") },
         { type: "separator" },
-        { role: "reload", label: "刷新" },
-        { role: "toggleDevTools", label: "开发者工具" },
+        { role: "reload", label: mT("menu.reload") },
+        { role: "toggleDevTools", label: mT("menu.devtools") },
         { type: "separator" },
-        { role: "quit", label: "退出" },
+        { role: "quit", label: mT("menu.quit") },
       ],
     },
     // v215: 关于窗口 (版本/声明 + GitHub 源码与 Releases 链接)
     {
-      label: "关于",
+      label: mT("menu.about"),
       submenu: [
-        { label: `关于 osu! Map Editor (v${APP_VERSION})`, click: openAboutWindow },
+        { label: mT("menu.about_app", { v: APP_VERSION }), click: openAboutWindow },
       ],
     },
     // (v123: v121 的菜单栏指示器已移除 — 原生菜单项无法右对齐, 改为应用内顶栏最右侧浮层)

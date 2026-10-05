@@ -21,7 +21,9 @@ assert(/gridType: 'square' \| 'triangle' \| 'circle' \| 'none' = persistedGrid\.
 assert(/if \(gs0 > 0 && store\.gridType !== 'none'\) \{/.test(cv), '渲染: 无网格时不画网格线 (v245: 网格并入静态层缓存, gs 改名 gs0)');
 assert(/if \(store\.gridOriginCustom && store\.gridType !== 'none'\) \{/.test(cv), '渲染: 无网格时网格中心标记不显示');
 assert(/if \(store\.gridOriginCustom && store\.gridType !== 'none' && Math\.hypot/.test(cv), '交互: 无网格时网格中心标记不可拖');
-assert(/<option value="none">无网格<\/option>/.test(app), 'App: 网格类型下拉里加「无网格」');
+// v346 适配: 选项文案改 i18n key (zh-CN 词典=无网格)
+const zhApp = read('src/i18n/dicts/zh-CN/app.ts');
+assert(/<option value="none">\{t\('app\.grid_none', 'No Grid'\)\}<\/option>/.test(app) && zhApp.includes("'app.grid_none': '无网格'"), 'App: 网格类型下拉里加「无网格」 (app.grid_none)');
 assert(/as 'square' \| 'triangle' \| 'circle' \| 'none'/.test(app), 'App: onChange 类型联合 +none');
 assert(/store\.gridType === 'circle' \|\| store\.gridType === 'none'/.test(app), 'App: 无网格时旋转输入禁用');
 

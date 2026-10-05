@@ -54,17 +54,19 @@ assert(/store\.setSelectedNodes\(\[\.\.\.nmq\.base, \.\.\.keepNodes, \.\.\.inRec
 assert(/transformNodesFromSnapshot\(bm, nmd\.orig, pt => \(\{ x: pt\.x \+ dx, y: pt\.y \+ dy \}\)\)/.test(cv), 'mousemove: 节点整体平移');
 
 // EditorCanvas: 收尾 (canvas mouseup + window mouseup)
-assert((cv.match(/if \(nodeScaleDragRef\.current\.moved\) store\.commitDrag\(\); else store\.undo\(\);/g) || []).length === 2, 'nodeScaleDrag 收尾 x2 (canvas + window)');
-assert((cv.match(/if \(nodeRotateDragRef\.current\.moved\) store\.commitDrag\(\); else store\.undo\(\);/g) || []).length === 2, 'nodeRotateDrag 收尾 x2 (canvas + window)');
-assert(/if \(nmd\.moved\) store\.commitDrag\(\); else store\.undo\(\);/.test(cv), 'nodesMoveDrag 收尾 (未拖动弹空快照)'); // v264 适配: 落点补齐后取局部 nmd
+assert((cv.match(/if \(nodeScaleDragRef\.current\.moved\) store\.commitDrag\(\); else store\.cancelDragNoop\(\);/g) || []).length === 2, 'nodeScaleDrag 收尾 x2 (canvas + window)');
+assert((cv.match(/if \(nodeRotateDragRef\.current\.moved\) store\.commitDrag\(\); else store\.cancelDragNoop\(\);/g) || []).length === 2, 'nodeRotateDrag 收尾 x2 (canvas + window)');
+assert(/if \(nmd\.moved\) store\.commitDrag\(\); else store\.cancelDragNoop\(\);/.test(cv), 'nodesMoveDrag 收尾 (未拖动弹空快照)'); // v264 适配: 落点补齐后取局部 nmd
 
 // EditorCanvas: 渲染 (高亮环 / 框选矩形 / 提示)
 assert(/if \(store\.nodeSelectionCount\) \{\s*const offs = getStackOffsets\(bm\);\s*const rr = 10 \/ scale;/.test(cv), '渲染: 选中节点黄环');
 assert(/const nmq = nodeMarqueeRef\.current;[\s\S]{0,400}rgba\(242,181,68,0\.9\)/.test(cv), '渲染: 节点框选黄色矩形');
 // v234: 画布内提示已移除, 移至右侧栏 Inspector HintsBlock (原 63/64 行断言改写)
 assert(!cv.includes("fillText('滑条节点控制"), '渲染: 画布不再绘制节点控制提示 (v234 移至右侧栏)');
-assert(/滑条节点控制：Alt\+点选\/框选/.test(insp) && /!store\.nodeSelectionCount && sel\.some\(o => o\.type === 'slider'\)/.test(insp),
-  '提示迁移: Inspector 同条件显示节点控制文案 (选中滑条且节点层未激活)');
+// v346 适配: 提示文案改 i18n key (zh-CN 词典保留原中文)
+const zhInsp = read('src/i18n/dicts/zh-CN/inspector.ts');
+assert(insp.includes("t('inspector.hint_slider_node_control', 'Slider node control: Alt+click/box select") && zhInsp.includes('滑条节点控制：Alt+点选/框选') && /!store\.nodeSelectionCount && sel\.some\(o => o\.type === 'slider'\)/.test(insp),
+  '提示迁移: Inspector 同条件显示节点控制文案 (选中滑条且节点层未激活; inspector.hint_slider_node_control)');
 
 // App: ESC 联动
 assert(/if \(store\.selectedNodes\.size\) \{ store\.clearNodeSelection\(\); return; \}/.test(app), 'App: ESC 先退出节点层');

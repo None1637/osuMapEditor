@@ -94,6 +94,7 @@ node verifier/vN/cdp-*.mjs        # CDP 端到端（需 7100 dev server）
 22. **vite 打包配置是 ESM，内联的 CJS 会炸**：vite.config.ts import 本地 `.cjs` 时，esbuild 把配置打成 ESM 并内联该 CJS，其中 `require("node:fs")` 变成 "Dynamic require is not supported"。共享给 vite 配置的模块必须写 ESM（`.mjs`）；Electron 主进程（CJS）用动态 `import()` 加载它（CJS 无顶层 await，要在异步入口里做）。
 23. **electron-builder 对含 `!`/非 ASCII 字符的项目路径 EPERM**：解压 Electron zip 后 rename `win-unpacked.tmp` 失败。与权限无关，用纯 ASCII 短路径输出再拷回：`-c.directories.output="D:/eb-release"`。另外便携 exe 运行时解包到 Temp 并驻留进程，替换 exe 前要先 `Stop-Process` 残留实例，否则 "Device or resource busy"。
 24. **bat 两个隐蔽坑**（`打包编辑器.bat` 实踩）：① `EnableDelayedExpansion` 下 `for %%f in (*.exe) do copy "%%f"`，文件名含 `!`（产物 `osu! Map Editor 0.0.0.exe` 就是）会静默拷贝失败、随后清理把暂存产物删掉——build 成功但 release 为空，用 `xcopy "dir\*.exe" dest\`（通配符由 xcopy 自己解析，不经过变量展开）；② cmd 按 ANSI 代码页（GBK）解析 bat，**UTF-8 中文注释会把行解析撕裂**（报 `'stalling' 不是内部或外部命令` 之类错位错误）——bat 内容必须纯 ASCII，文件名可以是中文。
+25. **编辑工具在本 Windows 主机偶发整文件 CRLF 化**：仓库约定 LF（HEAD blob 全 LF），但 Edit/Write 重写文件时偶尔把整个文件写成 CRLF（v345 一批 9 个文件中招）。症状极具迷惑性：① 读源码类 verifier 的 `.`-正则垮行匹配批量假失败（`.` 不匹配 `\r`），一次回归冒出十几个"新失败"；② v181 emoji 扫描的行注释剥离正则 `//.*$` 在 CRLF 行上失配（`$` 只锚字符串尾、`.` 吃不下 `\r`），把注释里的图标误判为残留。排查纪律：回归异常失败数突增时**先用 node 查 `git diff --name-only` 的文件是否含 `\r`**（Git Bash 的 `grep -c $'\r'` 在管道循环里会莫名退化成空模式匹配全行，别信它，用 `buf.includes(13)`）；修复 `buf.toString().replace(/\r\n/g,"\n")` 写回。每次编辑会话收尾顺手扫一遍。
 
 ## 5. 渲染着色规则备忘（osu! 标准）
 

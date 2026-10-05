@@ -323,24 +323,25 @@ function loadDefaultFilesInto(skin: Skin) {
     if (--pending === 0) {
       resolveSliderCircleFallback(skin, k => loadedKeys.has(k)); // v100
       skin.filesLoaded = true;
+      bumpSkinContentSeq(); // v340: 回退解析也改内容
     }
   };
   for (const [key, file] of SKIN_FILES) {
     const img = new Image();
-    img.onload = () => { (skin[key] as SkinImage) = img; loadedKeys.add(key); done(); };
+    img.onload = () => { (skin[key] as SkinImage) = img; loadedKeys.add(key); bumpSkinContentSeq(); done(); };
     img.onerror = done;
     img.src = `${base}skin/${file}`;
   }
   for (let i = 0; i < 10; i++) {
     const img = new Image();
-    img.onload = () => { skin.default0[i] = img; done(); };
+    img.onload = () => { skin.default0[i] = img; bumpSkinContentSeq(); done(); };
     img.onerror = done;
     img.src = `${base}skin/default-${i}.png`;
   }
   // v298: score-0..9 (分数/combo 数字; 默认皮肤通常没有 → 保留 null 回退文字)
   for (let i = 0; i < 10; i++) {
     const img = new Image();
-    img.onload = () => { skin.scoreDigits[i] = img; done(); };
+    img.onload = () => { skin.scoreDigits[i] = img; bumpSkinContentSeq(); done(); };
     img.onerror = done;
     img.src = `${base}skin/score-${i}.png`;
   }
@@ -352,6 +353,12 @@ export function getSkin(): Skin {
   if (!singleton) singleton = createSkin();
   return singleton;
 }
+
+// v340: 皮肤内容序号 — 贴图是异步逐张填进单例的 (对象引用不变), 渲染静态层缓存需要一个
+//   随每次贴图赋值/换肤/恢复默认而变的键, 否则启动/换肤窗口期会缓存到未加载完的贴图
+let skinContentSeq = 0;
+export function getSkinContentSeq(): number { return skinContentSeq; }
+function bumpSkinContentSeq() { skinContentSeq++; }
 
 // ---------- 用户皮肤文件夹 (osu! 皮肤目录: hitcircle.png / normal-hitnormal.wav 等) ----------
 import type { FsDirLike } from './library';
@@ -410,6 +417,7 @@ function resetToProcedural() {
   for (const u of skinObjectUrls) URL.revokeObjectURL(u);
   skinObjectUrls = [];
   Object.assign(skin, makeProceduralBase());
+  bumpSkinContentSeq(); // v340
 }
 
 /**
@@ -434,6 +442,7 @@ export async function applySkinFromDir(dir: FsDirLike, sourceName: string): Prom
       const img = await loadImage(url);
       skinObjectUrls.push(url);
       assign(img);
+      bumpSkinContentSeq(); // v340
       if (name.toLowerCase().endsWith('@2x.png')) skinScaleAdjust.set(img, 2); // 高清贴图按半尺寸绘制
       return true;
     } catch { return false; }
@@ -519,6 +528,7 @@ export async function applySkinFromDir(dir: FsDirLike, sourceName: string): Prom
   resolveSliderCircleFallback(skin, k => loadedKeys.has(k)); // v100: 缺失 sliderstart/endcircle 整组回退 hitcircle
   skin.filesLoaded = true;
   skinSourceName = sourceName;
+  bumpSkinContentSeq(); // v340: comboColors/hitCircleOverlap/滑条头尾回退等非 loadName 赋值统一兜底
   return { loaded, total };
 }
 

@@ -65,6 +65,10 @@ export interface ElectronAPI {
   setAcceleratorOverrides(map: Record<string, string>): void;
   /** v336: 订阅主进程转发的 Alt 按下/松开态 (Alt 被 before-input-event 拦截, DOM 收不到); 返回退订函数 */
   onAltKey(cb: (down: boolean) => void): () => void;
+  /** v338: 渲染端错误上报 (主进程写 <userData>/crash.log) */
+  reportError(msg: string): void;
+  /** v346: 上报当前界面语言 (主进程据此重建菜单标签; 启动一次 + 切换时) */
+  menuLang(lang: string): void;
 }
 
 /** v280: 序列化菜单节点 (主进程 buildMenu 模板 → 渲染端自绘菜单条) */

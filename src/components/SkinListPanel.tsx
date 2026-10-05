@@ -4,6 +4,7 @@ import { getElectronAPI, ipcErrorMessage } from '../osu/electronBridge';
 import { applyServerSkin } from '../osu/serverSkin';
 import { skinSourceName } from '../osu/skin';
 import { useCounterZoom } from '../osu/uiZoom';
+import { useT } from '@/i18n';
 
 /**
  * exe 皮肤面板: 列出 <osu!>/Skins 下的全部皮肤, 点击即应用并保存到 settings.json。
@@ -30,6 +31,7 @@ function Row({ name, label, current, busy, onChoose }: {
 }
 
 export function SkinListPanel({ onClose }: { onClose: () => void }) {
+  const t = useT();
   const cz = useCounterZoom(); // v249: 抗全局缩放
   const api = getElectronAPI();
   const [osuPath, setOsuPath] = useState<string | null>(null);
@@ -80,8 +82,8 @@ export function SkinListPanel({ onClose }: { onClose: () => void }) {
       <div ref={cz.ref} style={cz.style} className="w-[480px] max-w-[92vw] bg-[#16161d] border border-[#333] rounded-lg flex flex-col overflow-hidden"
            onClick={e => e.stopPropagation()}>
         <div className="flex items-center gap-3 px-4 py-2.5 border-b border-[#2c2c38]">
-          <span className="text-sm font-semibold flex items-center gap-1.5"><Palette className="w-4 h-4" />皮肤</span>
-          <span className="text-xs text-slate-500 truncate">当前: {skinSourceName}</span>
+          <span className="text-sm font-semibold flex items-center gap-1.5"><Palette className="w-4 h-4" />{t('skin.title', 'Skin')}</span>
+          <span className="text-xs text-slate-500 truncate">{t('skin.current', 'Current: {name}', { name: skinSourceName === '默认皮肤' ? t('skin.defaultSkinName', 'Default Skin') : skinSourceName })}</span>
           <div className="flex-1" />
           <button className="text-xs px-2 py-1 rounded bg-[#2c2c38] hover:bg-[#3c3c4c] flex items-center" onClick={onClose}><X className="w-3.5 h-3.5" /></button>
         </div>
@@ -89,15 +91,15 @@ export function SkinListPanel({ onClose }: { onClose: () => void }) {
         <div className="p-3 flex flex-col gap-2">
           {error && <div className="text-xs text-red-400 px-1">{error}</div>}
           {!osuPath && !error && (
-            <div className="text-xs text-slate-400 p-3 text-center">未配置 osu! 目录 (菜单: 设置 → 重新配置 osu! 目录与皮肤)</div>
+            <div className="text-xs text-slate-400 p-3 text-center">{t('skin.no_osu_path', 'osu! folder not configured (menu: Settings → Reconfigure osu! folder & skin)')}</div>
           )}
           {osuPath && (
             <>
-              <div className="text-[11px] text-slate-500 px-1 truncate">{osuPath}/Skins · 点击即应用 (贴图 + hitsound)</div>
+              <div className="text-[11px] text-slate-500 px-1 truncate">{t('skin.click_to_apply', '{path}/Skins · click to apply (textures + hitsound)', { path: osuPath })}</div>
               <div ref={listRef} className="max-h-80 overflow-y-auto border border-[#2c2c38] rounded">
-                <Row name={null} label="默认皮肤 (内置)" current={current} busy={busy} onChoose={choose} />
+                <Row name={null} label={t('skin.default_skin_builtin', 'Default Skin (built-in)')} current={current} busy={busy} onChoose={choose} />
                 {skins.map(name => <Row key={name} name={name} label={name} current={current} busy={busy} onChoose={choose} />)}
-                {skins.length === 0 && <div className="px-3 py-2 text-xs text-slate-500">Skins 目录为空</div>}
+                {skins.length === 0 && <div className="px-3 py-2 text-xs text-slate-500">{t('skin.skins_dir_empty', 'Skins folder is empty')}</div>}
               </div>
             </>
           )}

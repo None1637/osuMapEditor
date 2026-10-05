@@ -24,12 +24,12 @@ section('renderer.ts: 选中装饰离屏层 + followPoint 缓存');
 {
   const src = readSrc('src/osu/renderer.ts');
   assert(/function drawSelectionLayer\(rc: RenderCtx, radius: number\)/.test(src), 'drawSelectionLayer 存在');
-  assert(/let selLayer: \{ key: string; c: HTMLCanvasElement; x: number; y: number; empty: boolean \} \| null = null/.test(src), '层缓存单例 (v246: +层原点/空标记, 层裁剪到选区包围盒)');
+  assert(/let selLayer: \{ key: string; c: HTMLCanvasElement; x: number; y: number; bx: number; by: number; empty: boolean \} \| null = null/.test(src), '层缓存单例 (v246: +层原点/空标记, 层裁剪到选区包围盒; v341: +构建时位移 bx/by)');
   assert(/rc\.cacheKey \?\? ''/.test(src) && /displaySettings\.selectionStyle, displaySettings\.sliderPointStyle/.test(src)
     && /m\.a\.toFixed\(4\)/.test(src), '键 = 数据版本+选区+变换+样式');
   assert(/for \(const o of bm\.hitObjects\) if \(rc\.selected\.has\(o\.id\)\) drawSelectionDecor\(lrc, o, radius\);/.test(src),
     '层构建覆盖全部选中物件 (v40 语义)');
-  assert(/g\.drawImage\(selLayer\.c, selLayer\.x, selLayer\.y\);/.test(src), '整层一次 drawImage 贴回 (v246: 带层原点偏移)');
+  assert(/g\.drawImage\(selLayer\.c, selLayer\.x \+ ox, selLayer\.y \+ oy\);/.test(src), '整层一次 drawImage 贴回 (v246: 带层原点偏移; v341: +拖拽位移差 blit)');
   assert(!/if \(rc\.selected\.has\(o\.id\)\) drawSelectionDecor\(rc, o, radius\);/.test(src), '物件循环内逐物件装饰已移除');
   assert(/function followPointPairsMemo\(rc: RenderCtx\)/.test(src) && /fpPairsCache = new WeakMap/.test(src), 'followPointPairs 按谱面+键缓存');
   assert(/cacheKey\?: string;/.test(src), 'RenderCtx.cacheKey 字段');
