@@ -445,9 +445,10 @@ export interface PendingPathResult {
   raw: Vec2[];
   /** 几何全长 (px) */
   length: number;
-  /** 导出用单字母类型 (stable 规则: 无红点 2点L/3点P/4+B, 有红点 B) */
+  /** 导出用单字母类型 (stable 规则: 无红点 2点L/3点P/4+B, 有红点 B); v362: 点数含 cursor 幻影点 */
   curveType: string;
-  /** 含红点加倍的控制点 (pend, 不含 cursor) */
+  /** 含红点加倍的控制点; v362: 并入 cursor 幻影点 (放置幽灵按 头→…→光标 渲染滑条身,
+   *  此前只含 pend — 仅头点时幽灵退化为 1 控制点, 路径零长, 滑条身完全不渲染) */
   controlPoints: Vec2[];
 }
 
@@ -498,12 +499,14 @@ export function computePendingPath(pend: PendingPoint[], cursor: Vec2 | null): P
   }
 
   const hasRed = pend.some(p => p.redAnchor);
+  // v362: 控制点列并入 cursor 幻影点 (pts = pend + 幻影) — 幽灵滑条身随光标延伸, 与落盘同形;
+  //   红点只在非末位加倍, 幻影点永远是末位普通点 (finishSlider 传 cursor=null, 行为不变)
   const controlPoints: Vec2[] = [];
-  for (let i = 0; i < pend.length; i++) {
-    controlPoints.push({ x: pend[i].x, y: pend[i].y });
-    if (pend[i].redAnchor && i < pend.length - 1) controlPoints.push({ x: pend[i].x, y: pend[i].y });
+  for (let i = 0; i < pts.length; i++) {
+    controlPoints.push({ x: pts[i].x, y: pts[i].y });
+    if (pts[i].redAnchor && i < pts.length - 1) controlPoints.push({ x: pts[i].x, y: pts[i].y });
   }
-  const curveType = hasRed ? 'B' : inferSegmentType(Math.max(2, pend.length));
+  const curveType = hasRed ? 'B' : inferSegmentType(Math.max(2, pts.length));
   return { raw, length, curveType, controlPoints };
 }
 
@@ -570,7 +573,7 @@ export function spinnerPlacementEnd(points: TimingPoint[], startTime: number, cu
 }
 
 /**
- * v83: 放置长度规则 — 几何全长 -> 锁定间距吸整拍 / v95: 非锁定走 snapSliderLength 节拍吸附 (lazer updateSlider 的
+ * v83: 放置长度规则 — 几何全长 -> 锁定间距吸细分网格×倍率 / v95: 非锁定走 snapSliderLength 节拍吸附 (lazer updateSlider 的
  * FindSnappedDistance: 尾端落在节拍 tick 上且不超几何全长; v218 起 tick 细分 = 当前细分的 1/2) -> 下限 20px
  * (finishSlider/finishFreehand/时间轴预览共用)
  * v160: 长度永不超几何全长 (末控制点位置) — lazer SliderPlacementBlueprint.updateSlider:
@@ -578,6 +581,10 @@ export function spinnerPlacementEnd(points: TimingPoint[], startTime: number, cu
  *   超出 1ms 行程退一格 (ComposerDistanceSnapProvider.cs:298); 最后硬钳到几何全长。
  *   锁定间距分支原 Math.round 直接向上入 (可超几何近半拍, 触发 v148 末端切线延长), 现同样退一格+钳制。
  * v219 例外: 几何不足 1 个长度细分 tick 时对齐到 1 tick (允许超几何全长, 否则永远无法对齐)。
+ * v365: 锁定间距 (distanceLock) 不再粗暴吸整拍 — 用户确认症状后要求统一按节拍细分吸附:
+ *   网格 = distanceSpacing × 细分步长 (normal 分支同一 sliderLengthSnapDivisor 网格; lazer
+ *   DistanceSnapProvider.GetBeatSnapDistance 与倍率无关、由消费方自乘倍率, 即此语义)。
+ *   spacing=1.0 时与关闭锁定间距完全一致; v218/v219 规则 (退一格/亚步长对齐 1 步) 同样适用。
  */
 export function placementLength(
   points: TimingPoint[], currentTime: number, sliderMultiplier: number,
@@ -585,18 +592,21 @@ export function placementLength(
 ): number {
   const { red } = timingAt(points, currentTime);
   const vel = sliderVelocityAt(points, currentTime, sliderMultiplier);
-  const beatPx = vel * red.beatLength;
+  const tickPx = vel * red.beatLength / sliderLengthSnapDivisor(beatSnap);
   const geoCap = Math.max(1, Math.floor(geometryLength)); // v160: floor — round 会四舍五入回超几何全长
-  if (distanceLock && distanceSpacing > 0 && beatPx > 0) {
-    // 整拍一定落在 tick 网格上 (1 拍 = beatSnap 个 tick), 无需再走 snapSliderLength
-    let beats = Math.round(geometryLength / beatPx);
-    if (beats * beatPx > geometryLength + vel * 1) beats -= 1; // lazer: 超出 1ms 行程退一拍
-    beats = Math.max(1, beats);
-    return Math.min(Math.max(20, Math.round(beats * beatPx)), geoCap);
+  if (distanceLock && distanceSpacing > 0 && tickPx > 0) {
+    // v365: 步长 = 间距倍率 × 细分 tick (spacing=1.0 时 = normal 分支网格; 用户: 锁定间距也不按整拍吸附)
+    const stepPx = tickPx * distanceSpacing;
+    let steps = Math.round(geometryLength / stepPx);
+    if (steps * stepPx > geometryLength + vel * 1) steps -= 1; // lazer: 超出 1ms 行程退一格
+    steps = Math.max(1, steps);
+    const snapped = Math.round(steps * stepPx);
+    // v219 同款例外: 几何不足 1 步 — 仍对齐 1 步, 允许超几何全长 (否则亚步长长度退化为不对齐的 floor(几何))
+    if (steps === 1 && stepPx > geometryLength + vel * 1) return Math.max(1, snapped);
+    return Math.min(Math.max(20, snapped), geoCap);
   }
   const snapped = snapSliderLength(points, currentTime, sliderMultiplier, geometryLength, beatSnap);
   // v219: 亚 tick (几何不足 1 个长度细分 tick) — snapped 已对齐 1 tick, 不再受 20px 下限/geoCap 钳制 (否则预览/落盘长度退化为不对齐的 floor(几何))
-  const tickPx = vel * red.beatLength / sliderLengthSnapDivisor(beatSnap);
   if (tickPx > geometryLength + vel * 1) return snapped;
   return Math.min(Math.max(20, snapped), geoCap);
 }

@@ -24,6 +24,9 @@ export interface DisplaySettings {
   showFps: boolean;
   /** v254: 选中物件的黄色包围框 + 缩放/旋转手柄 (关 = 只显示选中效果, 不画黄框) */
   selectionBounds: boolean;
+  /** v353: 滑条渐变轨道 (开 = 中心亮/边缘暗的径向渐变轨道, lazer LegacySliderBody 同款;
+      关 = 纯黑轨道, v19 起的 stable 观感实验样式) */
+  sliderGradientTrack: boolean;
   // v284: timelineTransparent 开关移除 — 时间轴半透明成为唯一行为 (用户要求: 默认就是半透明, 不要开关)
 }
 
@@ -47,6 +50,7 @@ function loadDisplaySettings(): DisplaySettings {
     selectionStyle: 'stable',   // v232: 默认 stable hitcircleselect 选框
     showFps: true,              // v253: 默认显示帧数 (v220 起的行为)
     selectionBounds: true,      // v254: 默认画黄框 (v49 起的行为)
+    sliderGradientTrack: false, // v353: 默认纯黑轨道 (保持 v19 起观感, 渐变轨道为可选)
     // v284: timelineTransparent 移除 (半透明为唯一行为)
   };
   try {
@@ -67,6 +71,7 @@ function loadDisplaySettings(): DisplaySettings {
       selectionStyle: p.selectionStyle === 'stable' || p.selectionStyle === 'lazer' ? p.selectionStyle : def.selectionStyle,
       showFps: p.showFps !== false,
       selectionBounds: p.selectionBounds !== false,
+      sliderGradientTrack: !!p.sliderGradientTrack, // v353
       // v284: timelineTransparent 移除 (localStorage 残留键忽略)
     };
   } catch { return def; }

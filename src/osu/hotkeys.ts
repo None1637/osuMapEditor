@@ -3,7 +3,8 @@
 //  - 组合键规范格式: "Ctrl+Shift+S" / "Q" / "Delete" / "ArrowLeft" / "Space" / "," (修饰序 Ctrl→Alt→Shift);
 //  - 匹配规则: 带修饰的绑定精确相等; 无修饰的绑定忽略 Shift (保持旧行为: Shift+Q 与 Q 等效);
 //  - 覆盖语义: 用户改键替换该动作全部默认键 (如 delete 改键后 Backspace 不再删除);
-//  - 持久化 localStorage 'osu-editor:hotkeys' (Record<actionId, combo>);
+//    v358: 覆盖值为组合键数组 — 自定义也可绑多个键 (面板逐键改绑/添加/删除);
+//  - 持久化 localStorage 'osu-editor:hotkeys' (Record<actionId, combo[]>; 兼容读取旧的单串格式);
 //  - Electron: menuId 非空的动作同步原生菜单 accelerator (经 preload setAcceleratorOverrides →
 //    main.cjs buildMenu acc()), 注册的 (save/timing 4 项) 真改键, 其余仅菜单显示文字同步。
 import { getElectronAPI } from './electronBridge';
@@ -100,10 +101,12 @@ export const HOTKEY_ACTIONS: HotkeyAction[] = [
   { id: 'timing-delete-current', label: '删除当前Timing区间', en: 'Delete Current Timing Section', category: 'Timing', defaults: ['Ctrl+I'], menuId: 'timing-delete-current' },
   { id: 'timing-open-settings', label: 'Timing设置', en: 'Timing Settings', category: 'Timing', defaults: ['F6'], menuId: 'timing-open-settings' },
   // 游玩区 (v330: 原固定键位改可改键; 滚轮组合方向不入键, 增减由动作内部按 deltaY 决定。
-  // 两个 Alt+Wheel 动作语境互斥 — 缩放仅平移开启时生效, 锁定间距仅未开平移 (游玩区) / 时间轴生效, 故允许同键)
+  // v358: Alt+Wheel 三动作语境互斥 — 游玩区平移开=缩放游玩区 / 平移关=锁定间距 / 上方时间轴=缩放时间轴, 故允许同键)
   { id: 'playfield-pan-drag', label: '平移游玩区 (按住拖动, 需开启平移)', en: 'Pan Playfield (Hold & Drag, Pan Mode Required)', category: '游玩区', defaults: ['MouseMiddle'] },
-  { id: 'playfield-zoom-wheel', label: '缩放游玩区 (滚轮, 需开启平移)', en: 'Zoom Playfield (Wheel, Pan Mode Required)', category: '游玩区', defaults: ['Alt+Wheel'], conflictOk: ['distance-lock-wheel'] },
-  { id: 'distance-lock-wheel', label: '锁定间距调整 (滚轮, 未开平移/时间轴)', en: 'Adjust Distance Snap (Wheel, Pan Off / Timeline)', category: '游玩区', defaults: ['Alt+Wheel'], conflictOk: ['playfield-zoom-wheel'] },
+  { id: 'playfield-zoom-wheel', label: '缩放游玩区 (滚轮, 需开启平移)', en: 'Zoom Playfield (Wheel, Pan Mode Required)', category: '游玩区', defaults: ['Alt+Wheel'], conflictOk: ['distance-lock-wheel', 'timeline-zoom-wheel'] },
+  { id: 'distance-lock-wheel', label: '锁定间距调整 (滚轮, 未开平移的游玩区)', en: 'Adjust Distance Snap (Wheel, Playfield with Pan Off)', category: '游玩区', defaults: ['Alt+Wheel'], conflictOk: ['playfield-zoom-wheel', 'timeline-zoom-wheel'] },
+  // v358: 上方时间轴缩放 (stable 同款 Alt+滚轮; Ctrl+滚轮保留为第二默认键)
+  { id: 'timeline-zoom-wheel', label: '缩放上方时间轴 (滚轮)', en: 'Zoom Upper Timeline (Wheel)', category: '导航', defaults: ['Alt+Wheel', 'Ctrl+Wheel'], conflictOk: ['distance-lock-wheel', 'playfield-zoom-wheel'] },
 ];
 
 const LS_KEY = 'osu-editor:hotkeys';
@@ -152,20 +155,24 @@ export function isWheelCombo(combo: string): boolean {
 
 const hasModifier = (combo: string) => /^(Ctrl|Alt|Shift)\+/.test(combo);
 
-// ---- 覆盖持久化 ----
-function loadOverrides(): Record<string, string> {
+// ---- 覆盖持久化 (v358: 值为组合键数组; 兼容读取 v286 旧的单串格式) ----
+function loadOverrides(): Record<string, string[]> {
   try {
     if (typeof localStorage === 'undefined') return {};
     const raw = localStorage.getItem(LS_KEY);
     if (!raw) return {};
     const p = JSON.parse(raw);
-    const out: Record<string, string> = {};
-    for (const a of HOTKEY_ACTIONS) if (typeof p[a.id] === 'string' && p[a.id]) out[a.id] = p[a.id];
+    const out: Record<string, string[]> = {};
+    for (const a of HOTKEY_ACTIONS) {
+      const v = p[a.id];
+      if (typeof v === 'string' && v) out[a.id] = [v]; // 旧格式: 单串
+      else if (Array.isArray(v) && v.every(s => typeof s === 'string' && s)) out[a.id] = v;
+    }
     return out;
   } catch { return {}; }
 }
 
-let overrides: Record<string, string> = loadOverrides();
+let overrides: Record<string, string[]> = loadOverrides();
 
 function persist() {
   try { if (typeof localStorage !== 'undefined') localStorage.setItem(LS_KEY, JSON.stringify(overrides)); } catch { /* 忽略 */ }
@@ -182,21 +189,21 @@ function pushMenuAccels() {
   for (const a of HOTKEY_ACTIONS) {
     if (!a.menuId) continue;
     const b = effectiveBindings(a.id)[0];
-    if (isMouseCombo(b) || isWheelCombo(b)) continue; // v289/v330: 鼠标/滚轮不是合法 Electron accelerator, 跳过 (保留默认显示)
+    if (!b || isMouseCombo(b) || isWheelCombo(b)) continue; // v289/v330: 鼠标/滚轮不是合法 Electron accelerator, 跳过 (保留默认显示)
     map[a.menuId] = toElectronAccel(b);
   }
   try { getElectronAPI()?.setAcceleratorOverrides(map); } catch { /* 非 Electron */ }
 }
 
-/** 生效绑定: 有覆盖 = 仅覆盖键; 否则全部默认键 */
+/** 生效绑定: 有覆盖 = 仅覆盖键 (v358: 数组, 自定义也可多键); 否则全部默认键 */
 export function effectiveBindings(id: string): string[] {
   const a = HOTKEY_ACTIONS.find(x => x.id === id);
   if (!a) return [];
   const o = overrides[id];
-  return o ? [o] : a.defaults;
+  return o ? o : a.defaults;
 }
 
-export function getOverride(id: string): string | null { return overrides[id] ?? null; }
+export function getOverride(id: string): string[] | null { return overrides[id] ?? null; }
 
 /** 该动作是否被用户改过键 (面板显示重置按钮用) */
 export function isHotkeyOverridden(id: string): boolean { return overrides[id] != null; }
@@ -266,8 +273,9 @@ export function findConflict(combo: string, excludeId: string): string | null {
   return null;
 }
 
-export function setHotkeyOverride(id: string, combo: string | null) {
-  if (combo) overrides[id] = combo; else delete overrides[id];
+/** 设置/清除覆盖 (v358: 接受单串或数组 — 单串等价单元素数组, 数组支持自定义多键; null 恢复默认) */
+export function setHotkeyOverride(id: string, combo: string | string[] | null) {
+  if (combo) overrides[id] = Array.isArray(combo) ? combo : [combo]; else delete overrides[id];
   persist();
   pushMenuAccels();
 }

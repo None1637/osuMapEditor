@@ -9,6 +9,10 @@
   - 纯图标按钮：`<Icon className="w-4 h-4" fill="currentColor" />`（播放控制类实心图标用 `fill="currentColor"`）
 - 常用映射：音量 Volume2、显示 Eye、曲库 FolderOpen、皮肤 Palette、锁定间距 Ruler、锁定物件 Lock/LockOpen、网格中心 Crosshair、限制游玩区 Box、辅助线 Magnet、配置 Settings2、pattern Package、波形 AudioWaveform、星数/收藏 Star、撤销/重做 Undo2/Redo2、关闭 X、确认 Check、音乐 Music、警告 TriangleAlert、播放控制 Rewind/Play/Pause/Square/FastForward、网格吸附 Grid3x3、旋转 RotateCcw/RotateCw、镜像 FlipHorizontal2/FlipVertical2。
 
+## 参考 osu! 源码
+
+- 本地已检出 lazer 源码：`D:\Projects\osuMapEditor\osu`（osu.Game / osu.Game.Rulesets.Osu 等）。查 lazer 实现一律直接读本地文件，**不要用 WebSearch/FetchURL 去 GitHub 抓源码**（网络代理对 github 域名不稳定，且本地版本才是基准）。
+
 ## 版本号与验证
 
 - 每个需求对应一个版本号 vNNN，代码注释带 `// vNNN:` 前缀。

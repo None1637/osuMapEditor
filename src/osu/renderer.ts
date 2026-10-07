@@ -10,28 +10,28 @@ import { tintedSprite, skinScaleAdjust, skinSpriteWidth, hitcircleSpriteWidth, g
 import { displaySettings } from './displaySettings'; // v132: 显示设置 (皮肤颜色/轨迹线/缩圈/渐出/点击特效)
 import type { GameplayObjRender } from './gameplay/testPlaySession'; // v287: 测试游玩渲染数据
 
-// lazer Colour4.Lighten/Darken: amount 先乘 0.5, 再 c*(1+0.5a)+a (clamp 0..255); Darken(n) = Lighten(-n)
-// 当前轨道为纯黑实验样式, 渐变公式暂时不用, 整函数注释备查 (恢复渐变时取消注释即可)
-// function lazerLighten(color: string, amount: number): string {
-//   let r = 0, gg = 0, b = 0;
-//   let m = color.match(/^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i);
-//   if (m) { r = parseInt(m[1], 16); gg = parseInt(m[2], 16); b = parseInt(m[3], 16); }
-//   else {
-//     m = color.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/);
-//     if (!m) return color;
-//     r = +m[1]; gg = +m[2]; b = +m[3];
-//   }
-//   const a = amount * 0.5;
-//   const f = (c: number) => Math.round(Math.min(255, Math.max(0, c * (1 + 0.5 * a) + 255 * a)));
-//   return `rgb(${f(r)},${f(gg)},${f(b)})`;
-// }
+// v353: lazer 滑条身颜色公式 (本地检出 D:/Projects/osuMapEditor/osu/.../LegacySliderBody.cs)
+// framework Color4.Lighten/Darken: c*(1+0.5a)+a (clamp 0..255), Darken(n) = Lighten(-n)
+// LegacySliderBody 私有 lighten ("对深色更友好"): amount 先 *=0.5 再套同一公式 → lighten(c, 0.5) ≡ framework Lighten(c, 0.25)
+function parseTrackRgb(color: string): [number, number, number] {
+  let m = color.match(/^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i);
+  if (m) return [parseInt(m[1], 16), parseInt(m[2], 16), parseInt(m[3], 16)];
+  m = color.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/);
+  if (m) return [+m[1], +m[2], +m[3]];
+  return [255, 255, 255];
+}
+function lazerLighten(c: [number, number, number], amount: number): [number, number, number] {
+  const f = (v: number) => Math.round(Math.min(255, Math.max(0, v * (1 + 0.5 * amount) + 255 * amount)));
+  return [f(c[0]), f(c[1]), f(c[2])];
+}
 
 // lazer LegacySliderBody.ColourAt 经典皮肤滑条身分层 (position: 0=最外缘 -> 1=圆心):
-// 总半径 = r (与单点同宽); [0, 0.078] 外缘阴影, [0.078, 0.1875] 白边, 内部轨道 darken(0.1)->lighten(0.5) 径向渐变
+// 总半径 = r (与单点同宽); [0, 0.078] 外缘阴影, [0.078, 0.1875] 白边,
+// 内部轨道 InterpolateNonLinear(easing=None 即线性): 外缘 Darken(0.1) -> 圆心 lighten(0.5)
 // 必须在离屏 canvas 上合成: 白边整条描边后镂空内部成环, 轨道用 destination-over 垫进镂空 (窄->宽不透明渐变),
 // 最后 destination-out 0.3 把轨道区域统一降到 0.7 alpha (lazer Opacity(0.7)) —— 内部透出深色游玩区背景,
 // 直接画在主画布上白边会衬在轨道下把内部洗白
-function paintSliderBody(g: CanvasRenderingContext2D, points: { x: number; y: number }[], r: number, border: string, _track: string) {
+function paintSliderBody(g: CanvasRenderingContext2D, points: { x: number; y: number }[], r: number, border: string, track: string) {
   const stroke = (width: number, style: string) => {
     g.strokeStyle = style; g.lineWidth = width; g.lineCap = 'round'; g.lineJoin = 'round';
     g.beginPath();
@@ -43,12 +43,26 @@ function paintSliderBody(g: CanvasRenderingContext2D, points: { x: number; y: nu
   stroke(r * 2 * 0.922, border);                           // 白边环 (sliderBorder)
   g.globalCompositeOperation = 'destination-out';
   stroke(r * 2 * 0.8125, '#000');
-  // 2) 轨道垫进镂空: 实验性对齐 stable 观感 —— 基色纯黑, 无渐变 (lazer 原版是三级离散渐变, 已注释备查)
+  // 2) 轨道垫进镂空
   g.globalCompositeOperation = 'destination-over';
-  stroke(r * 2 * 0.8125, '#000');
-  // stroke(r * 2 * 0.3, lazerLighten(track, 0.5));   // lazer 渐变: 中心 Lighten(0.5)
-  // stroke(r * 2 * 0.55, lazerLighten(track, 0.2));  //         中间 Lighten(0.2)
-  // stroke(r * 2 * 0.8125, lazerLighten(track, -0.1)); //       外圈 Darken(0.1)
+  if (displaySettings.sliderGradientTrack) {
+    // v353: 渐变轨道 (lazer 同款) — destination-over 后画的垫底下, 故先画中心最亮层, 逐层加宽变暗;
+    // 24 层离散逼近线性渐变, 只发生在离屏贴图构建 (bodyCache 按物件缓存), 逐帧零成本
+    const N = 24;
+    const base = parseTrackRgb(track);
+    const inner = lazerLighten(base, 0.25);  // 圆心 = legacy lighten(accent, 0.5)
+    const outer = lazerLighten(base, -0.1);  // 外缘 = framework Darken(accent, 0.1)
+    for (let i = 0; i < N; i++) {
+      const t = (i + 0.5) / N; // 层中点半径比 (0=圆心, 1=轨道外缘)
+      const cr = Math.round(inner[0] + t * (outer[0] - inner[0]));
+      const cg = Math.round(inner[1] + t * (outer[1] - inner[1]));
+      const cb = Math.round(inner[2] + t * (outer[2] - inner[2]));
+      stroke(r * 2 * 0.8125 * (i + 1) / N, `rgb(${cr},${cg},${cb})`);
+    }
+  } else {
+    // 纯黑轨道 — 实验性对齐 stable 观感 (v19 起默认)
+    stroke(r * 2 * 0.8125, '#000');
+  }
   // 3) 轨道区域 alpha 统一 x0.7 (白边环不受影响)
   g.globalCompositeOperation = 'destination-out';
   stroke(r * 2 * 0.8125, 'rgba(0,0,0,0.3)');
@@ -78,7 +92,7 @@ function sliderBodySprite(points: { x: number; y: number }[], r: number, border:
   const MAX_DIM = 8192, MAX_AREA = 8192 * 4096;
   // 目标分辨率 (至少 1x, 跟随超采样, 下限 0.005 防除零) 与尺寸上限取 min — 上限永远优先
   const q = Math.min(4, Math.max(1, ss, 0.005), MAX_DIM / w, MAX_DIM / h, Math.sqrt(MAX_AREA / (w * h)));
-  const key = `${r.toFixed(2)}|${q.toFixed(3)}|${border}|${track}`;
+  const key = `${r.toFixed(2)}|${q.toFixed(3)}|${border}|${track}|${displaySettings.sliderGradientTrack ? 'G' : ''}`; // v353: 渐变轨道开关进 key
   const hit = cacheId !== undefined ? bodyCache.get(cacheId) : undefined;
   if (hit && hit.key === key) return hit.sprite;
   const c = cacheId !== undefined ? document.createElement('canvas') : (scratchBody ??= document.createElement('canvas'));
@@ -196,6 +210,8 @@ export function comboColor(bm: Beatmap, combo: number, override?: string[]): str
 // v347: SliderBorder 解析进 skin 渲染链路 (此前开关关闭时读不到)
 // v348: SliderBorder 优先级随开关翻转 — 开: 皮肤 > 谱面 > 默认; 关: 谱面 > 皮肤 > 默认
 //   (缺省互相回退, 都没有才纯白)
+// v354: SliderTrackOverride 走同一套翻转逻辑 — 开: 皮肤 > 谱面 > combo 色; 关: 谱面 > 皮肤 > combo 色
+//   (此前关开关时完全不查皮肤的 SliderTrackOverride)
 function sliderBodyColors(bm: Beatmap, skin: Skin, color: string): { border: string; track: string } {
   if (displaySettings.skinColors) {
     return {
@@ -205,7 +221,7 @@ function sliderBodyColors(bm: Beatmap, skin: Skin, color: string): { border: str
   }
   return {
     border: bm.colors.sliderBorder || skin.sliderBorder || '#ffffff',
-    track: bm.colors.sliderTrackOverride || color,
+    track: bm.colors.sliderTrackOverride || skin.sliderTrackOverride || color, // v354: 缺省回退皮肤
   };
 }
 
@@ -333,6 +349,7 @@ function drawStaticScene(rc: RenderCtx, visible: HitObject[], radius: number, pr
     m.a.toFixed(4), m.b.toFixed(4), m.c.toFixed(4), m.d.toFixed(4), m.e.toFixed(2), m.f.toFixed(2),
     displaySettings.skinColors, displaySettings.sliderPathLine, displaySettings.approachCircle,
     displaySettings.sliderFadeOut, displaySettings.hitExplosion, displaySettings.hitAnimation,
+    displaySettings.sliderGradientTrack, // v353: 渐变轨道开关影响滑条身贴图, 静态层需联动失效
     exclSize, exclSum].join('|');
   // v340 调试: 页面置 window.__sceneDbg = { rebuilds: 0 } 后统计重建次数/键漂移 (profile 脚本用)
   const dbg = (window as unknown as { __sceneDbg?: { rebuilds: number; prevKey: string; diff: string } }).__sceneDbg;

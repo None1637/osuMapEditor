@@ -39,7 +39,7 @@ section('timingEdit.ts: 格式化 + 生效绿线');
 section('TimingPanel.tsx: 紧凑窗口 + 四项');
 {
   const src = readSrc('src/components/TimingPanel.tsx');
-  assert(/w-fit max-w-\[96%\] mx-auto my-4/.test(src), '独立窗口 (w-fit 居中)');
+  assert(/w-fit max-w-\[96%\] mx-auto my-2/.test(src), '独立窗口 (w-fit 居中; v359: my-2 垂直满版配套)');
   assert(/formatMsTime\(tp\.time\)/.test(src) && /data-tp-fmt/.test(src), '时间输入框后时分秒显示');
   assert(/text-center whitespace-nowrap/.test(src) && /mx-auto/.test(src), '属性连续排版居中');
   assert(/data-hover-tp={isHover/.test(src) && /tp === store\.timelineHoverTp/.test(src), '悬停时间轴红/绿线行高亮');

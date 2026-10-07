@@ -20,22 +20,25 @@ export function TimingPanel({ full = false }: { full?: boolean }) {
   // v157: All/红线/绿线 页签过滤 (仅 full 窗口; 过滤不影响全局索引 i, updateTp/滚动定位不变)
   const [filter, setFilter] = useState<'all' | 'red' | 'green'>('all');
 
-  // v71: 页签切换 => 组件重挂载, 挂载后滚到生效绿线行 (居中)
-  useEffect(() => {
-    if (!full) return;
-    const bm0 = store.beatmap;
-    if (!bm0 || !bm0.timingPoints.length) return;
-    const raf = requestAnimationFrame(() => {
+  // v359: 滚动定位复用 (挂载自动滚到生效绿线 / 加新线后滚到新行 — soulten: 加新線不在畫面中要自己滾下去)
+  const scrollRowToCenter = (idx: number) => {
+    requestAnimationFrame(() => {
       const container = scrollRef.current;
       if (!container) return;
-      const idx = scrollTargetIndex(bm0.timingPoints, store.currentTime);
-      if (idx < 0) return;
       const row = container.querySelector<HTMLElement>(`[data-tp-row="${idx}"]`);
       if (!row) return;
       const delta = row.getBoundingClientRect().top - container.getBoundingClientRect().top;
       container.scrollTop += delta - container.clientHeight / 2 + row.clientHeight / 2;
     });
-    return () => cancelAnimationFrame(raf);
+  };
+
+  // v71: 页签切换 => 组件重挂载, 挂载后滚到生效绿线行 (居中)
+  useEffect(() => {
+    if (!full) return;
+    const bm0 = store.beatmap;
+    if (!bm0 || !bm0.timingPoints.length) return;
+    const idx = scrollTargetIndex(bm0.timingPoints, store.currentTime);
+    if (idx >= 0) scrollRowToCenter(idx);
   }, [full]);
 
   const bm = store.beatmap;
@@ -45,9 +48,13 @@ export function TimingPanel({ full = false }: { full?: boolean }) {
     store.pushUndo();
     const time = Math.round(store.currentTime);
     // v62 (lazer ControlPointList.addNew): 克隆当前生效同类点的全部字段 (含音效集/序号/音量/kiai)
-    bm.timingPoints.push(defaultNewPoint(bm.timingPoints, time, uninherited));
+    const np = defaultNewPoint(bm.timingPoints, time, uninherited);
+    bm.timingPoints.push(np);
     bm.timingPoints.sort((a, b) => a.time - b.time);
+    // v359: 新线可能被页签过滤隐藏 — 切到能显示它的页签, 并滚动定位到当前新行
+    if (full && filter !== 'all' && (filter === 'red') !== uninherited) setFilter(uninherited ? 'red' : 'green');
     store.emit();
+    if (full) scrollRowToCenter(bm.timingPoints.indexOf(np));
   };
 
   const updateTp = (i: number, patch: Partial<TimingPoint>) => {
@@ -83,7 +90,7 @@ export function TimingPanel({ full = false }: { full?: boolean }) {
 
   return (
     <div className={`bg-[#16161d] text-sm text-white/80 ${full
-      ? 'w-fit max-w-[96%] mx-auto my-4 border border-white/15 rounded-lg shadow-xl overflow-hidden'
+      ? 'w-fit max-w-[96%] mx-auto my-2 border border-white/15 rounded-lg shadow-xl overflow-hidden flex-1 min-h-0 flex flex-col' // v359: 垂直满版 (撑满页签高度, 表格区内滚)
       : 'border-t border-white/10'}`}>
       {!full && <div className="px-3 py-1.5 font-bold text-white/90">{t('timing.panel_title', 'Timing Settings (BPM / SV / Difficulty)')}</div>}
       {/* v71: 顶部控制栏固定在窗口内, 不随表格滚动 */}
@@ -148,8 +155,8 @@ export function TimingPanel({ full = false }: { full?: boolean }) {
             className="px-2 py-0.5 rounded bg-red-500/30 hover:bg-red-500/50 border border-red-400/40">{t('timing.delete_selected', 'Delete Selected')}</button>
         </div>
       )}
-      {/* v71: 滚动条在窗口内部 (表格区独立滚动) */}
-      <div ref={scrollRef} data-tp-scroll className={`px-3 pb-2 overflow-auto ${full ? 'max-h-[65vh]' : 'max-h-44'}`}>
+      {/* v71: 滚动条在窗口内部 (表格区独立滚动); v359: full 模式 flex-1 撑满垂直空间 */}
+      <div ref={scrollRef} data-tp-scroll className={`px-3 pb-2 overflow-auto ${full ? 'flex-1 min-h-0' : 'max-h-44'}`}>
         <table className="border-collapse mx-auto">
           {/* v72: 表头固定在窗口内不随表格滚动 (sticky + 底色遮挡) */}
           <thead className="sticky top-0 z-10" data-tp-thead>
@@ -239,8 +246,13 @@ export function TimingPanel({ full = false }: { full?: boolean }) {
                     </span>
                   </td>
                   <td className={td}>
-                    <button onClick={() => removeTp(i)} className="text-red-400 hover:text-red-300 px-1 flex items-center"><X className="w-3.5 h-3.5" /></button>
-                    <button onClick={() => store.seek(tp.time)} className="text-sky-400 hover:text-sky-300 px-1">→</button>
+                    {/* v359: 按钮放大并排 (soulten/None1637: 这两个按钮太小了; 转到时间轴与删除横向分开) */}
+                    <span className="inline-flex items-center gap-1.5">
+                      <button onClick={() => store.seek(tp.time)} title={t('timing.seek_title', 'Jump to this point on the timeline')}
+                        className="px-2 py-1 rounded text-base leading-none text-sky-400 hover:text-sky-300 hover:bg-white/10">→</button>
+                      <button onClick={() => removeTp(i)} title={t('timing.delete_title', 'Delete this point')}
+                        className="px-2 py-1 rounded text-red-400 hover:text-red-300 hover:bg-white/10 flex items-center"><X className="w-4 h-4" /></button>
+                    </span>
                   </td>
                 </tr>
               );
@@ -256,8 +268,8 @@ export function TimingPage() {
   const t = useT();
   return (
     <div className="flex-1 flex min-h-0 bg-[#101016] overflow-auto">
-      {/* v70: 原本内容改为居中独立窗口 (原全宽表格每排隔得太远) */}
-      <div className="flex-1 min-w-0">
+      {/* v70: 原本内容改为居中独立窗口 (原全宽表格每排隔得太远); v359: flex-col 让窗口垂直满版 */}
+      <div className="flex-1 min-w-0 flex flex-col">
         <TimingPanel full />
       </div>
       <div className="w-72 shrink-0 border-l border-white/10 p-4 text-sm text-white/50 space-y-2"> {/* v321 (F23): xs→sm */}

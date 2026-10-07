@@ -27,6 +27,7 @@ export const zhCN: Record<string, string> = {
   'transform.point_1': '点 1',
   'transform.point_2': '点 2',
   'transform.custom_axis_hint': '对称轴 = 两点决定的直线; 可直接在游玩区拖拽两个紫色端点 (两点不会重合)',
+  'transform.node_mode_hint': '作用于选中的滑条锚点 (原点 = 锚点包围盒中心)',
   'transform.apply_symmetry': '应用对称',
   'transform.apply_symmetry_title': '选区关于对称轴镜像',
   'transform.sym_footer_hint': '画布虚线 = 当前对称轴预览; 每次应用一次撤销, 窗口保持打开可连续应用',

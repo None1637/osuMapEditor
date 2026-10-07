@@ -17,6 +17,8 @@ export const zhCN: Record<string, string> = {
   'timing.effects': '效果',
   'timing.omit_barline': '省略小节线',
   'timing.omit_barline_title': '省略首条小节线 (effects bit3, lazer OmitFirstBarLine)',
+  'timing.seek_title': '跳转到时间轴上的该点',
+  'timing.delete_title': '删除该点',
   'timing.help_title': '说明',
   'timing.help_red': '继承时间点 (uninherited), 定义 BPM 与拍号。BPM = 60000 / beatLength。',
   'timing.help_green': '非继承时间点, 定义滑条速度倍率 (SV)。1.0x = 基础速度。绿行同时携带音效集 (Normal/Soft/Drum) / 自定义序号 / 音量 / kiai (.osu 绿行全字段)。',

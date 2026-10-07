@@ -7,6 +7,8 @@ export const zhCN: Record<string, string> = {
   'display.skin_colours_desc': '物件/滑条颜色优先用皮肤 skin.ini [Colours] 而非谱面自带 (开: 皮肤优先; 关: 谱面优先; 未定义的项回退另一侧, 都没有用默认)',
   'display.slider_path_line_name': '滑条轨迹线 (Slider Path Line)',
   'display.slider_path_line_desc': '滑条身正中画一条细实线, 方便确认滑条轨迹',
+  'display.slider_gradient_track_name': '滑条渐变轨道 (Gradient Slider Track)',
+  'display.slider_gradient_track_desc': '滑条轨道用中心亮、边缘暗的径向渐变 (lazer LegacySliderBody 同款); 关闭则纯黑轨道 (v19 起 stable 观感实验样式)',
   'display.approach_circle_name': '缩圈 (Approach Circles)',
   'display.approach_circle_desc': '物件出现时从 4 倍大小收缩的缩圈动画',
   'display.slider_fade_out_name': '滑条渐出 (Slider Fade Out)',

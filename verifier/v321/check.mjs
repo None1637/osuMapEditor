@@ -56,8 +56,8 @@ section('F26: 吸附快捷键');
   // v330: Alt 分支改绑定匹配 (matchesHotkeyWheel), Ctrl 分支仍最先
   assert(!!wheel && wheel[0].indexOf('e.ctrlKey') > 0 && wheel[0].indexOf('e.ctrlKey') < wheel[0].indexOf('matchesHotkeyWheel'), 'Ctrl 分支先于滚轮绑定分支');
   const topWheel = timelines.match(/onWheel=\{\(e\) => \{\s*const bm = store\.beatmap;[\s\S]{0,1500}?\}\} \/>/);
-  assert(!!topWheel && /if \(matchesHotkeyWheel\(e, 'distance-lock-wheel'\)\) \{[\s\S]{0,400}?setEditorField\('distanceSpacing', Math\.max\(0\.1, Math\.min\(10,/.test(topWheel[0]), '上时间轴滚轮调锁定间距 (v330: 可改键, 默认 Alt+滚轮; 钳 0.1..10; v345 经 setEditorField)');
-  assert(!!topWheel && topWheel[0].indexOf('distance-lock-wheel') < topWheel[0].indexOf('e.ctrlKey'), '锁定间距分支优先于 Ctrl 缩放');
+  assert(!!topWheel && /if \(matchesHotkeyWheel\(e, 'timeline-zoom-wheel'\)\) \{[\s\S]{0,400}?adjustTimelineZoom\(units\)/.test(topWheel[0]), '上时间轴滚轮缩放时间轴 (v358: 可改键, 默认 Alt+滚轮; lazer 加性步进)');
+  assert(!!topWheel && topWheel[0].indexOf('timeline-zoom-wheel') < topWheel[0].indexOf('wheelSeek'), '缩放分支优先于 wheelSeek');
   const altCount = (timelines.match(/e\.altKey/g) || []).length;
   assert(altCount === 0, `时间轴不再直读 e.altKey (v330 改绑定匹配; 实际 ${altCount} 次)`);
 }
@@ -71,7 +71,7 @@ section('F18c: 固定键位分区');
   assert(!/中键拖动 — 平移游玩区/.test(hkPanel), '中键拖动移出固定区 (v330 可改键)');
   assert(!/Alt\+滚轮 — 缩放游玩区/.test(hkPanel), 'Alt+滚轮移出固定区 (v330 可改键)');
   assert(/t\('hotkey\.fixed\.shift_number_snap', 'Shift\+1-8 — Set Beat Snap Divisor'\)/.test(hkPanel) && /'hotkey\.fixed\.shift_number_snap': 'Shift\+数字1-8 — 设节拍细分'/.test(zhHotkey), 'Shift+数字 条目 (F26 联动)');
-  assert(/t\('hotkey\.fixed\.ctrl_wheel', 'Ctrl\+Wheel — Cycle Beat Snap Divisor \(Playfield\) \/ Zoom \(Timeline\)'\)/.test(hkPanel) && /'hotkey\.fixed\.ctrl_wheel': 'Ctrl\+滚轮 — 游玩区循环节拍细分 \/ 时间轴上缩放'/.test(zhHotkey), 'Ctrl+滚轮 条目 (F26 联动)');
+  assert(/t\('hotkey\.fixed\.ctrl_wheel', 'Ctrl\+Wheel — Cycle Beat Snap Divisor \(Playfield\)'\)/.test(hkPanel) && /'hotkey\.fixed\.ctrl_wheel': 'Ctrl\+滚轮 — 游玩区循环节拍细分'/.test(zhHotkey), 'Ctrl+滚轮 条目 (F26 联动; v358: 时间轴缩放入可改键)');
   assert(hkPanel.indexOf('hotkey-fixed-section') > hkPanel.indexOf('hotkey-list'), '分区在可改键列表之后');
 }
 
@@ -88,7 +88,7 @@ section('F21: 快捷键提示动态化');
   assert(!/多边形生成 \(Ctrl\+Shift\+D\)/.test(inspector) && /t\('inspector\.polygon_generate', 'Polygon Generator \(\{key\}\)', \{ key: hotkeyLabel\('polygon'\) \}\)/.test(inspector)
     && /'inspector\.polygon_generate': '多边形生成 \(\{key\}\)'/.test(zhInspector), 'Inspector 多边形按钮动态');
   assert(!/支持 Ctrl\+Z 撤销, 并通过 Ctrl\+S 保存/.test(timingPanel) && /hotkeyLabel\('undo'\)/.test(timingPanel), 'TimingPanel 说明动态');
-  const settle = hkPanel.match(/setHotkeyOverride\(capture, combo\);[\s\S]{0,300}?store\.emit\(\)/);
+  const settle = hkPanel.match(/setHotkeyOverride\(capture\.id, next\);[\s\S]{0,300}?store\.emit\(\)/);
   assert(!!settle, '改键 settle 后 store.emit() (订阅组件重渲染)');
   assert((hkPanel.match(/store\.emit\(\); \/\/ v321 \(F21\)/g) || []).length >= 2, '单键重置也 emit');
 }

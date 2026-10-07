@@ -40,7 +40,7 @@ section('F18a 渲染: Alt 层锚点高亮环');
 
 section('F18b: Alt+点击候选修正');
 {
-  const altLayer = ec.match(/if \(e\.altKey && !store\.lockNotes\) \{[\s\S]{0,2600}?\n      \}/);
+  const altLayer = ec.match(/const nodeAltPress = \(p: Pt[\s\S]{0,2600}?\n  \};/);
   assert(!!altLayer, 'Alt 分支存在');
   assert(!!altLayer && /F18b/.test(altLayer[0]) && /\|\| store\.selected\.has\(o\.id\) \|\| store\.selectedNodes\.has\(o\.id\)/.test(altLayer[0]), '候选含选中/已选节点滑条');
   assert(!!altLayer && altLayer[0].indexOf('nearestNode(sliders, offs, p)') < altLayer[0].indexOf('store.selected.clear()'), '候选先于清空物件选区');

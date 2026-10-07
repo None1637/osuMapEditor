@@ -33,7 +33,7 @@ assert(/export function comboFromMouseEvent/.test(hk), 'comboFromMouseEvent 导�
 assert(/export function isMouseCombo/.test(hk), 'isMouseCombo 导出');
 assert(/export function matchesHotkeyMouse/.test(hk), 'matchesHotkeyMouse 导出');
 assert(/id: 'test-exit'[\s\S]*?defaults: \['Escape'\]/.test(hk), 'test-exit 注册 (默认 Escape)');
-assert(/if \(isMouseCombo\(b\) \|\| isWheelCombo\(b\)\) continue/.test(hk), 'pushMenuAccels 跳过鼠标组合 (非法 Electron accelerator; v330: 滚轮同跳)');
+assert(/if \(!b \|\| isMouseCombo\(b\) \|\| isWheelCombo\(b\)\) continue/.test(hk), 'pushMenuAccels 跳过鼠标组合 (非法 Electron accelerator; v330: 滚轮同跳; v358: 空绑定守卫)');
 assert(/MouseLeft: tNow\('hotkey\.key\.mouse_left', 'Mouse Left'\)/.test(hk)
   && readSrc('src/i18n/dicts/zh-CN/hotkey.ts').includes("'hotkey.key.mouse_left': '鼠标左键'"),
   'formatCombo 鼠标中文名 (v346: i18n key hotkey.key.mouse_left + zh-CN 译文)');

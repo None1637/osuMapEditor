@@ -19,8 +19,8 @@ const ec = readSrc('src/components/EditorCanvas.tsx');
 section('F19: Alt+Shift 框选 toggle (v343)');
 {
   assert(/subtract\?: boolean/.test(ec), 'nodeMarqueeRef 带 subtract 标记');
-  const altLayer = ec.match(/if \(e\.altKey && !store\.lockNotes\) \{[\s\S]{0,2600}?\n      \}/);
-  assert(!!altLayer && /subtract: e\.shiftKey && !e\.ctrlKey && !e\.metaKey/.test(altLayer[0]), '起手: 仅 Shift = toggle (Ctrl/Meta 仍加选)');
+  const altLayer = ec.match(/const nodeAltPress = \(p: Pt[\s\S]{0,2600}?\n  \};/);
+  assert(!!altLayer && /subtract: mods\.shiftKey && !mods\.ctrlKey && !mods\.metaKey/.test(altLayer[0]), '起手: 仅 Shift = toggle (Ctrl/Meta 仍加选)');
   const mm = ec.match(/const inRect = nodesInRect[\s\S]{0,900}?\n      \}/);
   assert(!!mm, 'mousemove 框选应用分支存在');
   assert(!!mm && /if \(nmq\.subtract\)/.test(mm[0]), 'toggle 分支存在');

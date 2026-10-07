@@ -386,6 +386,7 @@ const MENU_LABELS = {
   "menu.reset_current": { en: "Reset Current Section", "zh-CN": "重置当前区间", "zh-TW": "重置當前區間" },
   "menu.delete_timing": { en: "Delete Timing Point", "zh-CN": "删除Timing区间", "zh-TW": "刪除Timing區間" },
   "menu.resnap_current": { en: "Resnap Current Timing Point", "zh-CN": "重新对齐当前Timing区间", "zh-TW": "重新對齊當前Timing區間" },
+  "menu.resnap_bookmarks": { en: "Resnap Current Bookmark Section", "zh-CN": "重新对齐Bookmark区间", "zh-TW": "重新對齊Bookmark區間" }, // v355
   "menu.timing_setup": { en: "Timing Setup...", "zh-CN": "Timing设置...", "zh-TW": "Timing設置..." },
   "menu.resnap_all": { en: "Resnap All Objects", "zh-CN": "全部重新对齐", "zh-TW": "全部重新對齊" },
   "menu.shift_all": { en: "Shift All Objects' Time...", "zh-CN": "整体平移所有物件的时间...", "zh-TW": "整體平移所有物件的時間..." },
@@ -543,6 +544,7 @@ function buildMenu() {
         { label: mT("menu.reset_current"), enabled: !!menuState, click: () => send({ type: "timing-reset-current" }) },
         { label: mT("menu.delete_timing"), accelerator: acc("timing-delete-current", "CmdOrCtrl+I"), enabled: !!menuState, click: () => send({ type: "timing-delete-current" }) },
         { label: mT("menu.resnap_current"), enabled: !!menuState, click: () => send({ type: "timing-resnap-current" }) },
+        { label: mT("menu.resnap_bookmarks"), enabled: !!menuState, click: () => send({ type: "timing-resnap-bookmarks" }) }, // v355
         { label: mT("menu.timing_setup"), accelerator: acc("timing-open-settings", "F6"), click: () => send({ type: "timing-open-settings" }) },
         { type: "separator" },
         { label: mT("menu.resnap_all"), enabled: !!menuState, click: () => send({ type: "timing-resnap-all" }) },

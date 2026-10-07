@@ -123,6 +123,17 @@ function fillTextCached(g: CanvasRenderingContext2D, text: string, x: number, y:
 //   (用户反馈: 分辨率缩小后样本药丸 $xx / SV 药丸 0.00x 文字超小; 绘制与命中测试必须用同一字号)
 const pillFont = (base: number) => `bold ${Math.max(base * textZoomComp(), 12 / uiZoom())}px sans-serif`;
 
+// v358: 上方时间轴缩放 — lazer ZoomableScrollContainer.AdjustZoomRelatively 同款加性步进:
+//   每滚动刻度步进 = (max-min) × 0.02 (相对 TimelineZoom 空间), 替代旧 ×1.25 乘性档位 —
+//   高倍放大下相对步进更细 (用户反馈: 缩放粒度太粗)。units 正 = 放大, 支持触控板小数值连续缩放。
+const TL_ZOOM_MIN = 0.25, TL_ZOOM_MAX = 8;
+function adjustTimelineZoom(units: number) {
+  const bm = store.beatmap;
+  if (!bm) return;
+  const z = bm.editor.timelineZoom || 1;
+  store.setEditorField('timelineZoom', Math.max(TL_ZOOM_MIN, Math.min(TL_ZOOM_MAX, z + units * (TL_ZOOM_MAX - TL_ZOOM_MIN) * 0.02))); // v345: 入 undo (滚轮连写自动合并)
+}
+
 /** combo 色半透明: 滑条连体条填充 */
 const alphaOf = (hex: string, a: number) => {  const [r, g, b] = hexRgb(hex);
   return `rgba(${r},${g},${b},${a})`;
@@ -462,6 +473,17 @@ export function TopTimeline() {
             g.fill();
           }
         }
+        // v355: 书签细蓝线 — 全高 (与上方时间轴同高), 画在物件圆之下; 下方时间轴中线下方同款蓝线 (v155)
+        {
+          g.fillStyle = 'rgba(80,160,255,0.9)';
+          g.beginPath();
+          for (const b of bm.editor.bookmarks) {
+            const bx = x(b);
+            if (bx < -2 || bx > r.width + 2) continue;
+            g.rect(bx - 0.5, 0, 1, r.height);
+          }
+          g.fill();
+        }
         // 分隔线
         g.strokeStyle = 'rgba(255,255,255,0.12)';
         g.beginPath(); g.moveTo(0, OBJ_H + 0.5); g.lineTo(r.width, OBJ_H + 0.5); g.stroke();
@@ -780,6 +802,9 @@ export function TopTimeline() {
         onMouseDown={(e) => {
           if (e.button !== 0) return; // 右键交给 onContextMenu (删除物件), 不能走选中/拖拽预备 (会置 canvasDragging 挡住删除)
           if (store.canvasDragging) return; // 画布拖拽经过 (如拖控制点) 时不响应
+          // v360: 锚点穿透 — 时间轴覆盖游玩区预留带, select 工具下按到滑条锚点/节点黄框时让给游玩区处理
+          //   (soulten: 重疊到時間軸的滑條點不能點擊取消/拖動; EditorCanvas 注册的 playfieldNodePress 返回 true 即已处理)
+          if (store.playfieldNodePress?.(e.clientX, e.clientY, e)) return;
           // v35: 拖滑条尾端 -> 改折返次数 (优先于物件拖拽; 尾端在物件时长范围内); v115: 锁定物件禁用
           const tailId = store.lockNotes ? null : hitTestTail(e);
           if (tailId !== null) {
@@ -1014,15 +1039,11 @@ export function TopTimeline() {
         onWheel={(e) => {
           const bm = store.beatmap;
           if (!bm) return;
-          if (matchesHotkeyWheel(e, 'distance-lock-wheel')) {
-            // v321 (F26) / v330: 滚轮调锁定间距倍率 (上方时间轴; 可改键, 默认 Alt+滚轮;
-            // 游玩区未开平移时同一动作生效, 开平移时游玩区 Alt+滚轮 = 缩放)
-            const d = e.deltaY > 0 ? -0.1 : 0.1;
-            store.setEditorField('distanceSpacing', Math.max(0.1, Math.min(10, Math.round(((bm.editor.distanceSpacing || 1) + d) * 100) / 100))); // v345: 入 undo
-          } else if (e.ctrlKey) {
-            // Ctrl+滚轮: 缩放时间轴 (TimelineZoom)
-            const f = e.deltaY > 0 ? 1 / 1.25 : 1.25;
-            store.setEditorField('timelineZoom', Math.max(0.25, Math.min(8, (bm.editor.timelineZoom || 1) * f))); // v345: 入 undo (滚轮连写自动合并)
+          if (matchesHotkeyWheel(e, 'timeline-zoom-wheel')) {
+            // v358: 缩放时间轴 (stable 同款默认 Alt+滚轮, Ctrl+滚轮为第二默认键; 可改键)。
+            // 滚轮量 → 刻度: 像素模式 100/刻度, 行模式 3 行/刻度; 上滚 (deltaY<0) = 放大
+            const units = -(e.deltaMode === 1 ? e.deltaY / 3 : e.deltaY / 100);
+            adjustTimelineZoom(units);
           } else {
             // v193: 滚轮走 store.wheelSeek (lazer 对齐: 刻度累积; 播放中不吸附大步长 + 轻量重定位, 暂停吸附 1/beatSnap)
             store.wheelSeek(e.deltaY, e.deltaMode);
@@ -1051,10 +1072,10 @@ export function TopTimeline() {
           onClick={() => { const bm = store.beatmap; if (bm) store.openTimingPointDialog('add', -1, defaultNewPoint(bm.timingPoints, Math.round(store.currentTime), true)); }}>{t('timeline.add_red', '+Red')}</button>
         <button data-tp-add="green" className="px-1.5 text-xs rounded bg-green-500/40 text-white/85 hover:bg-green-500/60" title={t('timeline.add_green_title', 'Insert an Inherited Timing Point at the current time (clones the active point defaults)')}
           onClick={() => { const bm = store.beatmap; if (bm) store.openTimingPointDialog('add', -1, defaultNewPoint(bm.timingPoints, Math.round(store.currentTime), false)); }}>{t('timeline.add_green', '+Green')}</button>
-        <button className="px-1.5 text-xs rounded bg-black/50 text-white/70 hover:text-white" title={t('timeline.zoom_in_title', 'Zoom In (Ctrl+Wheel)')}
-          onClick={() => { const bm = store.beatmap; if (bm) store.setEditorField('timelineZoom', Math.min(8, (bm.editor.timelineZoom || 1) * 1.25)); }}>+</button>
-        <button className="px-1.5 text-xs rounded bg-black/50 text-white/70 hover:text-white" title={t('timeline.zoom_out_title', 'Zoom Out (Ctrl+Wheel)')}
-          onClick={() => { const bm = store.beatmap; if (bm) store.setEditorField('timelineZoom', Math.max(0.25, (bm.editor.timelineZoom || 1) / 1.25)); }}>−</button>
+        <button className="px-1.5 text-xs rounded bg-black/50 text-white/70 hover:text-white" title={t('timeline.zoom_in_title', 'Zoom In (wheel binding: see Hotkey Settings)')}
+          onClick={() => adjustTimelineZoom(2)}>+</button>
+        <button className="px-1.5 text-xs rounded bg-black/50 text-white/70 hover:text-white" title={t('timeline.zoom_out_title', 'Zoom Out (wheel binding: see Hotkey Settings)')}
+          onClick={() => adjustTimelineZoom(-2)}>−</button>
       </div>
     </div>
   );

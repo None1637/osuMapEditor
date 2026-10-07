@@ -37,7 +37,7 @@ section('store.ts: pushUndo 预览回滚守卫 (v345: 无条件回滚, 取代 v3
 
 section('TransformDialog: 选区切换归零');
 {
-  const eff = dlg.match(/prevSelKey\.current = selKey;[\s\S]{0,300}?\}, \[selKey, mode\]\);/);
+  const eff = dlg.match(/prevSelKey\.current = selKey;[\s\S]{0,400}?\}, \[selKey, mode, nodeMode\]\);/);
   assert(!!eff && /setAngle\(0\)/.test(eff[0]), '切换选区 → 角度归零');
   assert(!!eff && /setFactor\(1\); setFactorY\(1\)/.test(eff[0]), '切换选区 → 缩放倍率归 1 (v331 同批用户反馈: 缩放不预设1倍)');
   assert(!!eff && /store\.endTransformPreview\(\);[\s\S]{0,100}?store\.beginTransformPreview\(\);/.test(eff[0]), 'effect 回滚+重开保留 (双保险)');

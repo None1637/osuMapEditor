@@ -9,6 +9,8 @@ import { useT } from '@/i18n';
 const ROWS: { key: BoolDisplayKey; nameKey: string; nameEn: string; descKey: string; descEn: string }[] = [
   { key: 'skinColors', nameKey: 'display.skin_colours_name', nameEn: 'Skin Colours', descKey: 'display.skin_colours_desc', descEn: "Prefer the skin's skin.ini [Colours] over the beatmap's own object/slider colours (on: skin first, off: beatmap first; undefined entries fall back to the other side, then defaults)" },
   { key: 'sliderPathLine', nameKey: 'display.slider_path_line_name', nameEn: 'Slider Path Line', descKey: 'display.slider_path_line_desc', descEn: 'Draw a thin solid line along the centre of slider bodies, making the slider path easy to confirm' },
+  // v353
+  { key: 'sliderGradientTrack', nameKey: 'display.slider_gradient_track_name', nameEn: 'Gradient Slider Track', descKey: 'display.slider_gradient_track_desc', descEn: 'Slider track with a radial gradient (bright centre fading to dark edges, same as lazer LegacySliderBody); when off, a flat black track (stable-style experimental look since v19)' },
   { key: 'approachCircle', nameKey: 'display.approach_circle_name', nameEn: 'Approach Circles', descKey: 'display.approach_circle_desc', descEn: 'Approach circle animation that shrinks from 4x size when objects appear' },
   { key: 'sliderFadeOut', nameKey: 'display.slider_fade_out_name', nameEn: 'Slider Fade Out', descKey: 'display.slider_fade_out_desc', descEn: 'Fades out over 240ms after the slider ends; when off, it disappears immediately at the end' },
   { key: 'hitExplosion', nameKey: 'display.hit_explosion_name', nameEn: 'Hit Explosion', descKey: 'display.hit_explosion_desc', descEn: 'Hit circles linger briefly and scale-fade after being hit; when off, they disappear immediately on hit' },

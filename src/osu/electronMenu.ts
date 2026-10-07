@@ -77,6 +77,7 @@ export async function handleMenuCommand(cmd: ElectronMenuCommand): Promise<void>
     case 'timing-reset-current': store.timingResetCurrent(); return;
     case 'timing-delete-current': store.timingDeleteCurrent(); return;
     case 'timing-resnap-current': store.timingResnap('current'); return;
+    case 'timing-resnap-bookmarks': store.timingResnap('bookmarks'); return; // v355
     case 'timing-resnap-all': store.timingResnap('all'); return;
     case 'timing-recalc-sliders': store.timingRecalcSliders(); return;
     case 'timing-delete-all': store.timingDeleteAll(); return;

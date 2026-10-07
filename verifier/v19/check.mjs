@@ -31,14 +31,14 @@ section('renderer.ts: 滑条身宽度对齐 lazer (总宽 2r, 不再 2.1r)');
   assert(src.includes('r * 2 * 0.8125'), '轨道外径 = 1.625r (1 - border_portion 0.1875)');
 }
 
-section('renderer.ts: 轨道 = 纯黑实验样式 (lazer 渐变注释备查) + 离屏统一 0.7 alpha (内部不透白)');
+section('renderer.ts: 轨道默认纯黑实验样式 + 离屏统一 0.7 alpha (内部不透白); v353: lazer 渐变为可选开关');
 {
   const src = readSrc('src/osu/renderer.ts');
-  assert(src.includes('// function lazerLighten(color: string, amount: number): string {'), 'lazerLighten 公式整段注释备查 (恢复渐变时取消注释)');
-  assert(src.includes('//   const a = amount * 0.5'), 'Lighten 公式保留在注释中 (amount 先乘 0.5)');
+  // v353 适配: 注释备查的 lazer 公式已实装为「滑条渐变轨道」开关 (默认关), 原 4 条注释断言改为开关语义
+  assert(src.includes('function lazerLighten('), 'lazer Lighten/Darken 公式已实装 (v353 渐变轨道分支使用)');
+  assert(src.includes('if (displaySettings.sliderGradientTrack)'), 'lazer 渐变轨道为可选开关分支 (非默认)');
+  assert(readSrc('src/osu/displaySettings.ts').includes('sliderGradientTrack: false,'), 'v19 纯黑轨道仍为默认 (渐变轨道默认关)');
   assert(src.includes("stroke(r * 2 * 0.8125, '#000')"), '轨道基色纯黑填充 (对齐 stable 观感试看)');
-  assert(src.includes('// stroke(r * 2 * 0.3, lazerLighten(track, 0.5));'), 'lazer 中心 Lighten(0.5) 渐变行已注释');
-  assert(src.includes('// stroke(r * 2 * 0.8125, lazerLighten(track, -0.1));'), 'lazer 外圈 Darken(0.1) 渐变行已注释');
   assert(src.includes("'destination-over'"), '轨道用 destination-over 垫进镂空 (不与白边相叠)');
   assert(src.includes("stroke(r * 2 * 0.8125, 'rgba(0,0,0,0.3)')"), '轨道区域 alpha 统一 x0.7 (Opacity(0.7))');
   assert(src.indexOf('r * 2 * 0.922') < src.indexOf("'destination-out'"), '白边整条描边后才镂空内部成环');

@@ -3317,3 +3317,226 @@
   F1→compose (激活页签按 bg-[#2563eb] 判定); C tsc。v302 F04 断言同步为 v352 语义
   (钳制块内不含 orig.curve); v53/v217 断言随 v351 药丸高度/导入同步; v302/v53/v217/
   v346/v286 复跑。
+
+## v353 — 显示设置「滑条渐变轨道」开关
+- 用户需求: 显示设置加开关, 滑条轨道中心亮、边缘暗的径向渐变 (附 lazer/stable 截图);
+  不叠多层 mesh, 可用 shader — 本项目渲染器为 Canvas2D, 改为离屏贴图构建时多层描边实现,
+  bodyCache (v19) 按物件缓存, 逐帧零成本。
+- 公式 (本地检出 D:/Projects/osuMapEditor/osu/.../LegacySliderBody.cs + LegacyUtils.cs,
+  InterpolateNonLinear 默认 Easing.None 即线性): 轨道 [border 内缘 0.8125r, 圆心] 线性渐变,
+  外缘 = framework Darken(accent, 0.1) (c*0.95-25.5), 圆心 = legacy 私有 lighten(accent, 0.5)
+  (amount 先 *0.5, 即 framework Lighten 0.25: c*1.125+63.75); accent = SliderTrackOverride
+  ?? combo 色; 轨道整体 Opacity(0.7) 沿用既有 destination-out 0.3 步骤。
+- 实现 (renderer.paintSliderBody): 开关开时轨道改 24 层 destination-over 描边离散逼近渐变
+  (先窄/亮后宽/暗 — destination-over 后画垫底); 关时保持 v19 纯黑轨道 (默认)。
+  滑条身贴图缓存 key 与静态场景层 key 均含开关位, 翻转即时生效。
+- displaySettings 加 sliderGradientTrack (默认 false) + DisplayPanel 开关行 + zh-CN 词典
+  (AGENTS.md 同期新增「参考 osu! 源码」节: lazer 本地检出路径, 禁抓 GitHub)。
+- 验证: verifier/v353/check.mjs — A 源码形态; B CDP 像素实测 (红轨道: 关时中心/边缘
+  亮度差 0; 开时中心 168,37,38 vs 边缘 156,15,16, 中心 G 通道与亮度显著更高); C tsc。
+  v346/v132/v19/v340-342 复跑。
+
+## v354 — 滑条轨道色走边框同款优先级翻转
+- 用户反馈: v353 渐变轨道效果不错, 但轨道颜色需要走类似滑条边框的逻辑 (v348)。
+- sliderBodyColors 的 track 此前: 开 = 皮肤 > 谱面 > combo 色; 关 = 谱面 > combo 色
+  (完全不查皮肤 SliderTrackOverride)。改为与 border 同一套翻转:
+  开: 皮肤 > 谱面 > combo 色; 关: 谱面 > 皮肤 > combo 色 (缺省互相回退, 都没有才 combo 色)。
+- 验证: verifier/v354/check.mjs — A 源码形态; B CDP 像素 (渐变轨道开, 探滑条体中心:
+  关+谱面红/皮肤蓝 -> 红; 关+谱面无 -> 蓝 (新增回退); 开+两边都有 -> 蓝; 开+皮肤无 -> 红);
+  C tsc。v347/v353/v132/v346 复跑。
+
+## v355 — 重新对齐Bookmark区间 + 上方时间轴书签细蓝线
+- 用户需求: 1) Timing 菜单「重新对齐当前Timing区间」下面加「重新对齐Bookmark区间」;
+  2) 上方时间轴补充 bookmark 显示 — 位于 note 下方的细蓝线, 高度与上方时间轴相同。
+- resnap (store.timingResnap scope + 'bookmarks'): 区间 = 最后一个 <= 当前时间的书签 ->
+  下一个书签 (之前无书签从头起, 之后无书签到尾; 无书签不动作), 物件 time/endTime 吸附
+  生效红线节拍网格 (复用原主体, 含 v285 跨红线就近规则), 一次 undo。
+  链路: main.cjs 菜单项 (resnap_current 之下, 三语文案) -> bridge timing-resnap-bookmarks
+  -> electronMenu 路由 -> store。
+- 时间轴 (Timelines 上方时间轴绘制段): 书签全高 1px 蓝线 rgba(80,160,255,0.9) (与下方
+  时间轴 v155 同款), 合批一次 fill, 画在物件行之前 (压于 note 圆之下), 视口外剔除。
+- 验证: verifier/v355/check.mjs — A 源码形态 (链路 + 菜单位置 + 绘制顺序); B CDP:
+  区间内物件吸附网格/区间外不动/一次 undo; 蓝线像素实测 (书签处找到蓝主导像素,
+  无书签同位置无; 中心列有微蓝色时间针, 对照须避开); C tsc。
+  v156/v155/v53/v217/v285/v61/v159/v346 复跑。
+
+## v356 — 滑条球渲染健康性验证 (「有些時間點可以顯示sliderball 有些不行」)
+- 用户反馈 (soulten 两图): 有些时间点能显示 sliderball 有些不行。
+- 调查结论: 渲染器无 bug — 合成直滑条 slides=1/3 各 5 个分数点 (0.05~0.95) 探针,
+  球+跟随圈全部渲染 (亮度差 60+); 球绘制门控仅 dt ∈ [0, duration]。
+  用户看到的「没球」是物件落点时间错误的表象 (见 v357): 在音乐正确时刻,
+  写错时间的滑条还没开始, 自然没有球。
+- 验证: verifier/v356/check.mjs — A 源码门控; B CDP slides=1/3 各 5 点可见性
+  (球在时 vs approach 无球亮度差 > 12); C tsc。
+
+## v357 — 粘贴目标时间吸附节拍网格
+- 用户反馈 (soulten/None1637): 预览时间轴 52786 物件却放在 56787 (差 4001ms),
+  重新对齐能救回; 「用这个编辑器做出来的图得到 stable 重新对齐一遍」。
+- 定位: 放置/拖拽/resnap 全部走同一 snapPlacementTime 公式 (逐一排查), 唯一不走
+  吸附的物件时间写入是 paste — atTime 直接用未吸附的 currentTime; lazer 源码
+  (本地检出 ComposeScreen.cs:158) = beatSnapProvider.SnapTime(clock.CurrentTime)
+  - Min(StartTime), 锚点先吸附。播放中/节拍间暂停时粘贴, 物件全部落在网格外,
+  正好解释「stable 里要重新对齐」的系统性反馈。
+- 修复 (store.paste): 锚点 at = snapPlacementTime(timingPoints, atTime, beatSnap),
+  物件与绿线同一锚点; v196 floor 语义不变。
+- 验证: verifier/v357/check.mjs — A 源码形态; B CDP: 离网格 29.7ms 粘贴 ->
+  落点 = floor(吸附时刻), 选中副本, 一次 undo; C tsc。v113 断言同步 atTime→at;
+  v196/v102/v83/v285/v335/v322 复跑。
+- 备注: 若用户后续仍复现「放置 (非粘贴) 落点漂移」, 需要该 .osu 文件进一步排查
+  (谱面不在本机曲库; 已排除吸附公式/红线查找/时间显示链路)。
+
+## v358 — 自定义多键绑定 + 上方时间轴 lazer 加性缩放 (stable Alt+滚轮)
+- 需求 (soulten): 1) 预设可绑两键但自定义只能绑一键; 2) 物件时间轴缩放 stable
+  快捷键是 Alt+滚轮 (快捷键面板改不了), 且缩放倍率粒度太粗。
+- 多键绑定 (hotkeys.ts): 覆盖值 Record<actionId, combo> → combo[], setHotkeyOverride
+  兼容单串/数组, loadOverrides 兼容读取旧单串持久化; HotkeyPanel 点击键位=改绑该
+  下标, 「+」追加绑定, 「×」删单个绑定 (删光恢复默认); 每个绑定键都参与匹配/冲突检测。
+- 时间轴缩放 (Timelines.tsx): 新可改键动作 timeline-zoom-wheel (导航分类, 默认
+  Alt+Wheel + Ctrl+Wheel, 与游玩区两 Alt+Wheel 动作 conflictOk 语境互斥); 缩放改
+  lazer ZoomableScrollContainer.AdjustZoomRelatively 同款加性步进 — 每刻度
+  (max-min)×0.02 = 0.155 (相对 TimelineZoom), 高倍放大下相对步进更细, 替代旧
+  ×1.25 乘性档位; +/− 按钮 ±2 刻度同步。上时间轴 Alt+滚轮不再调锁定间距
+  (stable 语义; 锁定间距滚轮仅游玩区未开平移时生效)。
+- 配套: v321/v330 断言同步; s2t S2T_SAME 补「光」; i18n zh-CN 补键。
+- 验证: verifier/v358/check.mjs — A tests.ts 数据层 (数组覆盖/匹配/冲突/豁免);
+  B 源码形态; C CDP: Alt/Ctrl+滚轮 ±0.155 加性缩放, 数组覆盖 F9/F10 双键删除,
+  旧单串 F8 兼容; D tsc。回归: v286/v288/v289/v321/v330/v193/v334/v345/v346。
+
+## v359 — Timing 界面: 行尾按钮放大并排 + 垂直满版 + 加线自动滚动
+- 需求 (soulten/None1637): 「這兩個按鈕太小了」「轉到時間軸跟刪除橫向分開」
+  「應該垂直滿版」「如果加新線不在現在的畫面中要自己滾輪滾下去」。
+- 按钮 (TimingPanel 行尾): → 跳转与 × 删除放入 inline-flex gap-1.5 并排分开,
+  跳转在前 (破坏性操作靠后), 统一 px-2 py-1 rounded hover 底; → 字号 text-base,
+  X 图标 w-3.5→w-4; 补 title (timing.seek_title / timing.delete_title)。
+- 垂直满版: full 窗口根加 flex-1 min-h-0 flex flex-col (my-4→my-2), TimingPage
+  包裹改 flex flex-col 传导高度, 表格滚动区 max-h-[65vh] → flex-1 min-h-0 —
+  窗口撑满页签内容区高度 (下方全局时间轴不遮挡), 嵌入模式仍 max-h-44。
+- 加线自动滚动: 抽出 scrollRowToCenter (v71 挂载定位复用); addTimingPoint 记录
+  新点引用, 排序后 indexOf 取全局下标滚动居中; 新线被 All/红线/绿线页签过滤
+  隐藏时先切到对应页签再滚。
+- 验证: verifier/v359/check.mjs — A 源码形态; B CDP: 窗口填充页签区 >90% 且
+  底边距 <16px, 歌尾加绿线新行自动滚入视野; C tsc。v70/v71 断言同步;
+  回归 v62/v70/v71/v72/v81/v157/v245/v252/v321/v346。
+
+## v360 — 多滑条点快捷键旋转/缩放 + 时间轴覆盖区锚点穿透
+- 需求 (soulten): 1) 讓多個滑條點也能快捷鍵縮放旋轉; 2) 重疊到時間軸的滑條點
+  不能點擊取消, 而且也不能拖動 (stable 也不能, 修成可以拖動的看看)。
+- 节点变换窗口 (需求 1): Ctrl+Shift+R/S 旋转/缩放窗口在有选中滑条锚点时进入
+  节点模式 — 原点恒 = 锚点包围盒中心 (F08), 隐藏原点选择行并显示提示;
+  store 新增节点预览会话 begin/preview/commit/endNodeTransformPreview (与物件版
+  v301 同构: 备份节点坐标+滑条长度, 预览回滚后按参数变换不入 undo, commit
+  undo 快照取预览前, 关窗回滚到最后提交); 实时预览随改值刷新。修复
+  openTransformDialog 守卫: 仅锚点选区 (无物件选中) 时旋转/缩放窗口也可打开
+  (对称仍需物件选区)。
+- 穿透 (需求 2): 画布全幅垫底 (v129), 上/下时间轴半透明覆盖预留带, 带内锚点
+  此前被时间轴 DOM 挡住无法点击/拖拽。EditorCanvas 把 onMouseDown 的 Alt 节点
+  切换/框选与整组拖拽分支抽为 nodeAltPress/nodeGroupDragPress, 并注册
+  store.playfieldNodePress; TopTimeline mousedown 最先询问 — 命中锚点/节点黄框
+  即按画布同一逻辑处理 (Alt = 切换选中/框选, 无修饰 = 整组拖), 时间轴不再
+  seek/选物件。拖拽走 window 级 mousemove, 经过 UI 区不断线。
+- 配套: v266/v309/v316/v317 断言同步到抽函数形态; v209/v301/v315/v331 断言
+  同步节点模式分支; s2t S2T_SAME 补「盒」。
+- 验证: verifier/v360/check.mjs — A 源码形态; B CDP: 反解 client→osu 坐标造
+  覆盖带锚点滑条, 时间轴上按下=穿透拖拽 (位移 = 60/缩放), Alt+点击=取消选中
+  且时间轴不 seek; 节点预览改参数相对基准不叠加/关窗回滚/提交一次 undo;
+  仅锚点选区可开缩放窗口且隐藏原点行; C tsc。回归: v117/v209/v228/v233/v266/
+  v273/v301/v302/v304/v309/v313/v315/v316/v317/v331/v333/v344/v129/v346。
+
+## v361 — 四侧 UI 覆盖区锚点优先 (v360 穿透扩展)
+- 用户反馈: 「第二个需求是四侧UI下都要优先与滑条锚点交互, 现在实测仍然交互不了」
+  — v360 只挂了 TopTimeline canvas; 实际上四侧面板 (上/下时间轴 + 左/右侧栏)
+  全是盖在全幅画布上的 pointer-events-auto 浮层 (App v129), 逐个挂钩不可行。
+- 方案: EditorCanvas 注册 window 捕获阶段 mousedown 统一拦截 — 目标非游玩区
+  画布且非交互控件 (button/input/select/textarea/a/label/[role=button]/[data-dialog]
+  保持控件优先) 时先试 store.playfieldNodePress (v360 同一节点按下逻辑: Alt =
+  切换选中/框选, 无修饰 = 整组拖拽), 命中则 preventDefault+stopPropagation
+  (捕获阶段先于 React 根监听, 面板/时间轴收不到事件); 未命中照常放行。
+- 验证: verifier/v361/check.mjs — A 源码形态; B CDP: 反解坐标造下时间轴带/左侧栏
+  覆盖区锚点, 穿透拖拽 (事件被吞 + 锚点移动 + 下时间轴不 seek), 无锚点处下时间轴
+  点击仍正常 seek, 侧栏按钮 mousedown 不被吞 (控件优先); C tsc。
+  回归: v360/v266/v309/v316/v317/v273/v129。
+
+## v362 — 放置滑条幽灵身消失 + 四侧穿透补全单锚点拖拽
+- 回归 A (用户实测: 放置滑条放头点后只剩控制骨架, 幽灵滑条身/头部 note 外观不渲染):
+  根因不在 v353-v361 — 像素对照证实 v352 与 v361 渲染逐像素一致 (v353 渐变轨道/
+  v354 轨道色优先级均无辜)。根因是 v318 (afcfed3, 幽灵注入渲染管线) 起幽灵滑条的
+  控制点列取自 computePendingPath().controlPoints — 只含已落锚点 pend, 不含 cursor
+  幻影点; 只放头点时幽灵退化为 1 控制点零长路径, drawSlider 正常被调 (alpha=1)
+  但路径零长 → 滑条身无任何可画内容。修复: computePendingPath 控制点列与类型推断
+  并入幻影点 (pts = pend + 幻影; 红点仍只在非末位加倍), 幽灵身随光标延伸, 与落盘
+  同形; finishSlider 传 cursor=null 行为不变, drawPendingSlider 只用 raw/length 不受影响。
+- 回归 B (用户实测: 四侧 UI 覆盖下滑条锚点仍无法交互): v361 的 window 捕获拦截只
+  覆盖 Alt 切换/框选与已选节点整组拖拽; 画布最常见的「选中单个滑条直接拖锚点」
+  (onMouseDown 的 nodeDragRef 单节点拖拽, 含红锚点成对) 与 Ctrl 加锚点未走穿透,
+  覆盖区点锚点被时间轴/侧栏吞成 seek。修复: onMouseDown 单滑条节点按下抽为
+  singleSliderNodePress (锚点命中 → nodeDragRef 拖拽含 pairWith 红对/toggleRed;
+  Ctrl → 光标处插点), playfieldNodePress 按 onMouseDown 同序补上 (Alt → 整组拖 →
+  单滑条节点按下), 两边共用同一函数无逻辑分叉; 拖拽 mousemove/mouseup 走既有
+  window 兜底 (v228/v313), 上时间轴穿透 (v360) 同步受益。
+- 验证: verifier/v362/check.mjs — A 源码形态; B CDP: 下时间轴/左侧栏覆盖区
+  选中单滑条 (仅物件选区) 直接拖锚点位移精确 (60/缩放 ±8) 且不 seek, Alt+点击
+  切换节点选中, 无锚点处点击仍正常 seek, Ctrl+点击穿透加锚点, 侧栏按钮控件优先,
+  空谱面放头点后幽灵滑条身管身横截亮度 255 ≫ 修复前仅骨架线 ≈136; C tsc。
+  回归: v361/v360/v266/v309/v316/v317/v318/v353。
+
+## v363 — 手绘拖拽预览头部光秃/错色 + 过去节拍吸附幽灵头淡出
+- 修复 A (用户实测: 按住左键手绘拖拽滑条, 预览头圈黄褐色实心、无 combo 数字、颜色不对):
+  候选按下即置 canvasDragging=true (EditorCanvas onMouseDown), 幽灵块被 !store.canvasDragging
+  跳过 → 全程走 drawPendingSlider 光秃头分支 (sliderstartcircle 着色+overlay, 无 drawNumber),
+  且颜色误取全谱最大 combo 索引+1 而非插入点 combo。修复: 幽灵块门控放行 placingDrag
+  (drawCandRef/freehandRef 任一进行中都渲染幽灵; 拖出游玩区同样保持), 幽灵在渲染序上
+  后画且先铺不透明底, 光秃头被完全覆盖, renderer 零改动; 手绘拟合点带 bspline 标记时
+  幽灵直接按 'B4' 渲染控制点列 (与落盘 finishFreehandSlider 同源, 跳过 preserveArcsForBezier
+  不转圆预设贝塞尔); store.pendingSlider 类型补 bspline 可选字段。
+- 修复 B (普通点击放置同样有问题): 幽灵 time 就近吸附可落到过去节拍 → dt>=0 →
+  sliderHeadHitState/alphaAt 把幽灵头当"刚命中"在 240ms 内淡出 (慢 BPM + 1/1 吸附时头
+  整个消失)。修复: 幽灵 time 钳制不早于当前时间 (ghostTime = max(snap, now)), 预览
+  永不按已命中渲染; 落盘 time 公式不动 (稳定吸附语义, 用户未抱怨落盘)。已知小代价:
+  吸附到过去时幽灵排序位置与落盘可能差一格, combo 数字边缘情况差 1, 可接受。
+- 验证: verifier/v363/check.mjs — 源码形态 (placingDrag 门控/ghostTime 钳制/B4 分支);
+  CDP: 手绘拖拽进行中头圈白色数字笔画 408 ≈ 点击放置对照 409 (逐像素均值差 1.7,
+  修复前光秃头 ≈0), 拟合点 bspline 标记走 B4; beatSnap=1 seek 到拍后 0.45 拍
+  (dt≈159ms, 过去拍吸附) 圆圈/滑条幽灵头圈亮度 255 不淡出, 与整拍参照一致; tsc。
+  回归: v362/v318/v353/v361/v266 (v318 幽灵块提取窗口 2600→3400, 块因注释变长)。
+
+## v364 — 滑条尾长"只吸 1/1"调查: 当前构建吸附正确, 全路径行为锁定
+- 用户反馈: 拉滑条 (按住左键 freehand 拖拉 / 点击放点后移动光标) 尾长只吸附 1/1 整拍,
+  不吸当前节拍细分 (截图框出上方时间轴细分刻度处尾吸不上去)。
+- CDP 逐路径实测结论 (测试谱该段 SV=4, beatPx=1120):
+  落盘 (finishSlider/finishFreehandSlider) 与两处预览 (v318 幽灵滑条 length / v82 顶部时间轴
+  pendingSliderTimeline 幻影条) 共用 placementLength → snapSliderLength, tick 网格 =
+  sliderLengthSnapDivisor(beatSnap) = 当前细分的 1/2 (v218 规则, ×2 在配置内时, 否则退回当前细分)。
+  beatSnap 1/1~1/12 六档 × 几何扫描全部落在对应细分网格且存在非整拍结果; 真实鼠标交互
+  (点击放头+幻影) 预览时长与落盘 length/vel 逐 ms 一致 (88.2/58.9/44.1ms 全对),
+  freehand 拖动中与落盘后均在 1/8 网格; 游玩区幽灵管身截图证实 geo=300px 时管身截到
+  280px=2 tick (骨架线到幻影点, 管身到吸附尾)。**"只吸 1/1" 在当前构建不复现, 无代码修复。**
+- 症状最可能来源 (供用户排查): ① distanceLock (锁定间距) 开启 — 该分支设计上吸附整拍
+  (v145/v160, 验证器断言其语义不变: 亚拍几何钳几何全长, 超拍几何吸整拍), 表现与反馈完全一致;
+  ② v362 之前的旧构建 — 当时放置幽灵滑条身不渲染 (v362 已修), 看不到吸附效果。
+  遗留观察 (未改动): distanceLock 分支的 distanceSpacing 参数只参与 >0 判断, 吸附目标恒为
+  整拍 (不乘 spacing, 也不除 beatSnap) — 与 lazer DistanceSnapProvider 的细分距离网格不同,
+  如需对齐 lazer 另行评估。
+- 附带改动: store.ts 调试暴露新增 __osuSnap (placementLength/snapPlacementTime/
+  pendingSliderTimeline/sliderLengthSnapDivisor/snapSliderLength 纯函数), 与既有
+  __osuStore/__osuToClient 同模式, 供验证器直接断言吸附网格。
+- 验证: verifier/v364/check.mjs — 源码形态 (v218/v219 规则与四处调用链); CDP:
+  六档 beatSnap 网格扫描 / 三档交互预览=落盘 / freehand 拖动中与落盘网格 / distanceLock
+  语义不变; tsc。回归: v363/v362/v318/v219。
+
+## v365 — 锁定间距 (distanceLock) 滑条尾长统一按节拍细分吸附
+- 用户确认 v364 的"只吸 1/1"症状时锁定间距确实开着, 并要求锁定间距也不按整拍吸附、
+  统一按节拍细分吸附。修改: placementLength 的 distanceLock 分支吸附网格由"整拍"
+  (v145/v160 旧语义, distanceSpacing 只参与 >0 判断) 改为 distanceSpacing × 细分步长
+  (与非锁定分支同一 sliderLengthSnapDivisor 网格; lazer DistanceSnapProvider.
+  GetBeatSnapDistance 与倍率无关、由消费方自乘倍率 — 本地检出 osu.Game/Rulesets/Edit/
+  IDistanceSnapProvider.cs:32 注释证实, 即此语义)。spacing=1.0 与关闭锁定间距逐值相等;
+  spacing=1.5 每步为细分刻度 1.5 倍; v218 (×2 细分) / v219 (亚步长对齐 1 步允许超几何) /
+  v160 (超几何 1ms 退一格 + 硬钳) 规则在该分支同款适用。影响面 = placementLength 全部
+  调用方 (v318 幽灵滑条 / finishSlider / finishFreehandSlider / v82 时间轴幻影), 预览=落盘
+  自动一致; 圆圈/物件放置间距不走此函数, 不受影响。
+- 验证: verifier/v365/check.mjs — 源码形态 (stepPx 公式/退一格/v219 例外/旧整拍公式移除);
+  CDP: spacing 1.0/1.5 × beatSnap 1/2、1/4 矩阵扫描 32 几何全落 spacing×细分网格且不超几何,
+  spacing=1.0 与非锁定逐值相等, 亚步长几何对齐 1 步 (v219), 真实交互 (distanceLock 开)
+  预览时长=落盘时长 (88.2/132.4/44.1/66.2ms 全对) 且尾端在步网格; tsc。
+  verifier/v364 D 段同步更新为 v365 新语义 (注明有意变更)。
+  回归: v364/v363/v362/v318/v219。

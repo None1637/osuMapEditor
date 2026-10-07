@@ -34,7 +34,7 @@ section('TimingPanel.tsx: 窗口内滚动条');
 {
   const src = readSrc('src/components/TimingPanel.tsx');
   assert(/data-tp-scroll/.test(src), '滚动容器挂钩');
-  assert(/max-h-\[65vh\]/.test(src) && /overflow-auto/.test(src), 'full 模式表格区限高滚动 (滚动条在窗口内)');
+  assert(/flex-1 min-h-0/.test(src) && /overflow-auto/.test(src), 'full 模式表格区撑高滚动 (v359: 垂直满版, 滚动条在窗口内)');
   assert(/ref={scrollRef}/.test(src), 'scrollRef 挂在滚动容器');
   // 控制栏 (cs/ar/od/hp + 按钮) 在滚动容器之外 (v346: 按钮文案走 i18n key timing.add_red)
   const ctrlIdx = src.indexOf("t('timing.add_red'");

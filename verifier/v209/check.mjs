@@ -32,7 +32,7 @@ section('store.ts: 编辑菜单配套方法');
   assert(/resetComboFlags\(\)/.test(src) && /o\.newCombo = false; o\.comboSkip = 0;/.test(src), 'resetComboFlags 存在');
   assert(/resetBreaks\(\)/.test(src) && /!\/\^\\s\*\(2\|Break\)\\s\*,\/\.test\(l\)/.test(src), 'resetBreaks 过滤 break 行');
   assert(/transformDialog: 'rotate' \| 'scale' \| 'symmetry' \| null/.test(src), 'transformDialog 字段存在 (v210 扩 symmetry)');
-  assert(/openTransformDialog\(m: 'rotate' \| 'scale' \| 'symmetry'\) \{ if \(!this\.selected\.size\) return;/.test(src), '无选区不开窗');
+  assert(/if \(!this\.selected\.size && !\(m !== 'symmetry' && this\.nodeSelectionCount\)\) return;/.test(src), '无选区不开窗 (v360: 旋转/缩放允许仅锚点选区)');
   // 撤销支持: rawSections 入快照
   assert(/rawSections\?: Record<string, string\[\]>/.test(src), 'Snapshot 含 rawSections');
   assert(/bm\.rawSections = deepCopy\(s\.rawSections \?\? \{\}\)/.test(src), 'restore 恢复 rawSections');

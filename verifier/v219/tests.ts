@@ -31,7 +31,8 @@ section('placementLength: 亚 tick 不受 20px 下限 / geoCap 钳制; 常规路
   assert(placementLength(TPS, 2000, 1, 0, false, 1, 4) === 13, '几何 0 -> 13 (不被 20px 下限/geoCap 钳)');
   assert(placementLength(TPS, 2000, 1, 100, false, 1, 4) === 100, '常规: 100 -> 8 tick 100 不变');
   assert(placementLength(TPS, 2000, 1, 110, false, 1, 4) === 100, '常规: 110 -> 100 (退一格 + ≤ 几何 不变)');
-  assert(placementLength(TPS, 2000, 1, 30, true, 1, 4) === 30, '锁定间距分支不变 (亚 tick 仍钳 geoCap=30)');
+  // v365 有意变更: distanceLock 不再吸整拍, 统一按 间距倍率×细分 网格 (旧语义钳 geoCap=30 已废弃; 详见 verifier/v365)
+  assert(placementLength(TPS, 2000, 1, 30, true, 1, 4) === 25, '锁定间距 spacing=1 (v365): 30 -> 2 步 25 (=非锁定同网格)');
 }
 
 section('truncatePathAtLength: 折线按弧长截断');

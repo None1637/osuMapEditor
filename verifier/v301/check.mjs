@@ -53,7 +53,7 @@ section('store.ts: F05a 变换预览会话 API');
 section('TransformDialog.tsx: 实时预览接线');
 {
   const src = readSrc('src/components/TransformDialog.tsx');
-  assert(/store\.beginTransformPreview\(\);\s*\n\s*return \(\) => store\.endTransformPreview\(\);/.test(src), '开窗 begin / 关窗 end');
+  assert(/if \(nodeMode\) store\.beginNodeTransformPreview\(\); else store\.beginTransformPreview\(\);[\s\S]{0,120}?if \(nodeMode\) store\.endNodeTransformPreview\(\); else store\.endTransformPreview\(\);/.test(src), '开窗 begin / 关窗 end (v360: 节点模式分支)');
   assert(/store\.previewTransform\(\(objs, c\) => rotateObjects\(objs, c, angle\), origin\)/.test(src), '角度变化实时预览旋转');
   assert(/store\.previewTransform\(\(objs, c\) => scaleObjects\(objs, c, factor, factorY\), origin\)/.test(src), '倍率变化实时预览缩放');
   assert(/commit\(\(objs, c\) => rotateObjects\(objs, c, Math\.abs\(angle\)\)\)/.test(src), '顺时针按钮走 commit');

@@ -34,8 +34,8 @@ section('F17a/b: 旋转默认 0° + 应用旋转按钮');
 
 section('F17c: 选区切换跟随');
 {
-  assert(/const selKey = \[\.\.\.store\.selected\]/.test(src), '监听选区成员签名');
-  const eff = src.match(/v315: F17c[\s\S]{0,900}?\}, \[selKey, mode\]\);/);
+  assert(/const selKey = nodeMode[\s\S]{0,200}?: \[\.\.\.store\.selected\]/.test(src), '监听选区成员签名 (v360: 节点模式监听节点选区)');
+  const eff = src.match(/v315: F17c[\s\S]{0,1100}?\}, \[selKey, mode, nodeMode\]\);/);
   assert(!!eff, '选区切换 effect 存在');
   assert(!!eff && /endTransformPreview\(\)/.test(eff[0]) && /beginTransformPreview\(\)/.test(eff[0]), '切换时回滚旧预览并以新选区重开');
   assert(!!eff && /prevSelKey\.current === selKey\) return/.test(eff[0]), '签名未变不动 (挂载时不重复 begin)');

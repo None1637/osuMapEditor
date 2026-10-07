@@ -38,8 +38,8 @@ section('hotkeys.ts: 滚轮组合支持');
 section('hotkeys.ts: 游玩区三个新动作 + 语境互斥豁免');
 {
   assert(/\{ id: 'playfield-pan-drag'[\s\S]{0,120}defaults: \['MouseMiddle'\]/.test(hk), '平移拖拽 (默认 MouseMiddle)');
-  assert(/\{ id: 'playfield-zoom-wheel'[\s\S]{0,160}defaults: \['Alt\+Wheel'\], conflictOk: \['distance-lock-wheel'\]/.test(hk), '缩放滚轮 (默认 Alt+Wheel, 豁免锁定间距)');
-  assert(/\{ id: 'distance-lock-wheel'[\s\S]{0,160}defaults: \['Alt\+Wheel'\], conflictOk: \['playfield-zoom-wheel'\]/.test(hk), '锁定间距滚轮 (默认 Alt+Wheel, 豁免缩放)');
+  assert(/\{ id: 'playfield-zoom-wheel'[\s\S]{0,200}defaults: \['Alt\+Wheel'\], conflictOk: \['distance-lock-wheel', 'timeline-zoom-wheel'\]/.test(hk), '缩放滚轮 (默认 Alt+Wheel, 豁免锁定间距+时间轴缩放)');
+  assert(/\{ id: 'distance-lock-wheel'[\s\S]{0,200}defaults: \['Alt\+Wheel'\], conflictOk: \['playfield-zoom-wheel', 'timeline-zoom-wheel'\]/.test(hk), '锁定间距滚轮 (默认 Alt+Wheel, 豁免缩放+时间轴缩放)');
   assert(/conflictOk\?: string\[\]/.test(hk) && /if \(a\.conflictOk\?\.includes\(excludeId\)\) continue;/.test(hk), 'findConflict 豁免逻辑');
 }
 
@@ -55,9 +55,10 @@ section('EditorCanvas: 绑定匹配 + 平移开关分流');
   assert(!/if \(e\.altKey && store\.playfieldPanEnabled\)/.test(ec), '旧硬编码 Alt 分支移除');
 }
 
-section('Timelines: 上时间轴锁定间距走绑定');
+section('Timelines: 上时间轴 Alt+滚轮 = 缩放时间轴 (v358 起, 锁定间距仅游玩区)');
 {
-  assert(/if \(matchesHotkeyWheel\(e, 'distance-lock-wheel'\)\)/.test(tl), '上时间轴 distance-lock-wheel 绑定匹配');
+  assert(/if \(matchesHotkeyWheel\(e, 'timeline-zoom-wheel'\)\)/.test(tl), '上时间轴 timeline-zoom-wheel 绑定匹配');
+  assert(!/matchesHotkeyWheel\(e, 'distance-lock-wheel'\)/.test(tl), '上时间轴不再调锁定间距 (stable 语义)');
 }
 
 section('HotkeyPanel: 滚轮捕获 + 固定区更新');

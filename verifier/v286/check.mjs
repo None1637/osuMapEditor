@@ -43,7 +43,7 @@ assert(/testid="hotkey-panel"/.test(panel), 'HotkeyPanel: 对话框');
 assert(/t\('hotkey\.capture_hint', 'Press any key \/ mouse button \/ wheel… Esc to cancel'\)/.test(panel)
   && readSrc('src/i18n/dicts/zh-CN/hotkey.ts').includes("'hotkey.capture_hint': '按任意键/鼠标键/滚轮… Esc取消'"),
   'HotkeyPanel: 捕获态提示 (v289: 含鼠标键; v330: 含滚轮; v346: i18n key hotkey.capture_hint + zh-CN 译文)');
-assert(/findConflict\(combo, capture\)/.test(panel), 'HotkeyPanel: 冲突检测');
+assert(/findConflict\(combo, capture\.id\)/.test(panel), 'HotkeyPanel: 冲突检测');
 assert(/resetAllHotkeys/.test(panel), 'HotkeyPanel: 全部恢复默认');
 assert(/setHotkeyCapture\(true\)/.test(panel), 'HotkeyPanel: 捕获期屏蔽全局派发');
 

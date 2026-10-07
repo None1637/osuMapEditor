@@ -36,12 +36,12 @@ section('bug2: 红锚点 Alt+单击整对切换');
 
 section('bug3: 节点黄框内部按下 = 整组拖');
 {
-  const i266 = src.indexOf('v266: 普通拖拽已选滑条点');
+  const i266 = src.indexOf('const nodeGroupDragPress'); // v360: 抽函数 (穿透共用)
   const iHit = src.indexOf('const hit = hitTest(p.x, p.y);');
   const blk = i266 > 0 && iHit > i266 ? src.slice(i266, iHit) : '';
   assert(blk.length > 0, '节点整组拖分支在 hitTest 之前');
   assert(/currentQuads\(bm\)/.test(blk) && /nbox\.dq\.x/.test(blk), '按下点在节点黄框 dq 内 → 整组拖');
-  assert(/insideNode \|\| insideBox/.test(blk), '命中已选节点 或 框内 均触发');
+  assert(/!insideNode && !insideBox/.test(blk), '命中已选节点 或 框内 均触发 (v360 早返形态)');
   assert(/距按下点最近的已选节点/.test(blk), '框内按下时吸附锚 = 最近已选节点');
 }
 

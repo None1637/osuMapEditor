@@ -30,7 +30,7 @@ section('renderer: drawPendingSlider 骨架模式');
 section('F24a: 放置幽灵注入渲染管线');
 {
   assert(/ghostViewRef = useRef<\{ key: string; src: Beatmap; bmV: Beatmap \} \| null>\(null\)/.test(ec), 'ghostViewRef 合并视图缓存');
-  const gh = ec.match(/F24a — 放置幽灵注入正常渲染管线[\s\S]{0,2600}?pendingSkeleton = true;[^\n]*\n/);
+  const gh = ec.match(/F24a — 放置幽灵注入正常渲染管线[\s\S]{0,3400}?pendingSkeleton = true;[^\n]*\n/); // v363: 幽灵块加注释/钳制行变长, 窗口 2600→3400
   assert(!!gh, '幽灵构建块存在');
   assert(!!gh && /id: -1, type: 'circle'/.test(gh[0]) && /newCombo: store\.placeNewCombo/.test(gh[0]), '单点/滑条头幽灵 (id -1, 带放置态 NC/音效)');
   assert(!!gh && /id: -2, type: 'slider'/.test(gh[0]) && /computePendingPath\(store\.pendingSlider/.test(gh[0]), '滑条幽灵 (id -2, 与 finishSlider 同源路径)');

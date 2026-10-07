@@ -16,7 +16,7 @@ import { DEFAULT_GROUP, instantiatePattern, loadPatternGroups, loadPatterns, mak
 import { reportMenuState, reportDirtyState } from './electronMenu';
 import { getElectronAPI } from './electronBridge'; // v185: 谱面备份 IPC
 import { defaultNewPoint, effectivePointAt, activePointAt, snapTimeToRedBeat, metronomeBeats } from './timingEdit'; // v156
-import { resnapSliderLength } from './sliderPath'; // v156: 重新计算滑条长度
+import { resnapSliderLength, snapPlacementTime, placementLength, pendingSliderTimeline, sliderLengthSnapDivisor, snapSliderLength } from './sliderPath'; // v156: 重新计算滑条长度; v357: 粘贴锚点节拍吸附; v364: 调试暴露吸附纯函数
 import { snapshotNodes, withRedPartners, transformNodesFromSnapshot } from './nodeSelection'; // v304: F08 节点选区快捷键变换
 import { setDisplayFlag as applyDisplayFlag, setDisplayNumber as applyDisplayNumber, setDisplayString as applyDisplayString, type BoolDisplayKey, type DisplaySettings, type StrDisplayKey } from './displaySettings'; // v132: 显示设置
 import { setVolume as applyVolume, musicGain, effectsGain, type VolumeSettings } from './volumeSettings'; // v144: 音量设置
@@ -318,7 +318,7 @@ class EditorStore {
     this.emit();
   }
   // 正在绘制的滑条控制点
-  pendingSlider: { x: number; y: number; redAnchor: boolean }[] = [];
+  pendingSlider: { x: number; y: number; redAnchor: boolean; bspline?: boolean }[] = [];
   /** v180: 转盘放置中状态 — 已提交的起点时间 (ms); null = 未在放置 (lazer SpinnerPlacementBlueprint isPlacingEnd) */
   pendingSpinner: number | null = null;
   /** v82: 放置中光标 (osu 坐标, EditorCanvas mousemove 维护; 上方时间轴滑条预览用, 与画布预览同源) */
@@ -1109,9 +1109,10 @@ class EditorStore {
     this.emit();
   }
 
-  /** 重新对齐 (stable Resnap): 'current' = 当前红线段内物件, 'all' = 全部物件;
+  /** 重新对齐 (stable Resnap): 'current' = 当前红线段内物件, 'all' = 全部物件,
+   *  'bookmarks' = 当前书签区间内物件 (v355: 最后一个 <= 当前时间的书签 -> 下一个书签);
    *  time/endTime 吸附到物件生效红线的节拍网格 (当前节拍吸附细分), 一次 undo */
-  timingResnap(scope: 'current' | 'all') {
+  timingResnap(scope: 'current' | 'all' | 'bookmarks') {
     const bm = this.beatmap; if (!bm || !bm.hitObjects.length) return;
     const snap = this.beatSnap;
     let lo = -Infinity, hi = Infinity;
@@ -1120,6 +1121,11 @@ class EditorStore {
       if (!red) return;
       lo = red.time;
       hi = bm.timingPoints.find(p => p.uninherited && p.time > red.time)?.time ?? Infinity;
+    } else if (scope === 'bookmarks') {
+      // v355: 书签区间 — 无书签时不动作; 当前时间之前无书签则从头起, 之后无书签则到尾
+      const marks = bm.editor.bookmarks;
+      if (!marks.length) return;
+      for (const b of marks) { if (b <= this.currentTime) lo = b; else { hi = b; break; } }
     }
     this.pushUndo();
     let n = 0;
@@ -1261,6 +1267,10 @@ class EditorStore {
   symSliderAxisView: { p1: { x: number; y: number }; p2: { x: number; y: number } } | null = null;
   /** 拖动对称轴端点时回写弹窗参数 (由 SymSliderDialog 注册, which = 端点序号 1/2) */
   symSliderAxisDragHandler: ((which: 1 | 2, x: number, y: number) => void) | null = null;
+  /** v360: 时间轴覆盖区锚点穿透 (soulten: 重疊到時間軸的滑條點不能點擊取消/拖動) —
+      EditorCanvas 注册, TopTimeline mousedown 先询问; 返回 true = 已按画布节点按下逻辑处理
+      (Alt 切换/框选, 整组拖拽; v362: + 选中单滑条拖锚点含红锚点成对 / Ctrl 加锚点), 时间轴不再响应 */
+  playfieldNodePress: ((clientX: number, clientY: number, mods: { altKey: boolean; shiftKey: boolean; ctrlKey: boolean; metaKey: boolean }) => boolean) | null = null;
 
   openConversion(d: NonNullable<EditorStore['conversionDialog']>) { this.conversionDialog = d; this.emitSelection(); }
   /** 关闭转换窗口 (清除预览; 不应用) */
@@ -1347,6 +1357,9 @@ class EditorStore {
     this.pushUndo();
     this.selected.clear();
     this.selectedGreenLines.clear();
+    // v357: 粘贴锚点先吸附节拍网格 (lazer ComposeScreen.Paste: SnapTime(clock.CurrentTime) - Min(StartTime)) —
+    //   此前直接用未吸附的当前时刻, 播放中/节拍间暂停时粘贴的物件落在网格外, 需要重新对齐才能救回
+    const at = snapPlacementTime(this.beatmap.timingPoints, atTime, this.beatSnap);
     // v196: 取整 round → floor — 底部时间戳 fmt 用 floor 显示, 用户按显示时刻粘贴 (如节拍吸附产生
     // 的 55749.507 显示 0:55.749, round 会落到 55750 与显示/既有线不符); floor 后粘贴时刻 == 显示时刻。
     // 与放置 (round 吸附) 的关系: round(f) ≥ floor(f), 物件恒不早于同刻粘贴的绿线, timingAt 不会取错 SV。
@@ -1354,14 +1367,14 @@ class EditorStore {
       const o = deepCopy(c);
       o.id = genId();
       // v113: 物件时间与绿线同一路径取整 (v196 统一为 floor, 见上)
-      o.time = Math.floor(c.time + atTime);
-      if (o.endTime !== undefined && c.endTime !== undefined) o.endTime = Math.floor(c.endTime + atTime);
+      o.time = Math.floor(c.time + at);
+      if (o.endTime !== undefined && c.endTime !== undefined) o.endTime = Math.floor(c.endTime + at);
       this.beatmap.hitObjects.push(o);
       this.selected.add(o.id);
     }
     // v102: 绿线粘贴 — 目标时刻已有绿线则覆盖其参数 (与拖入新线替换语义一致), 否则插入
     for (const c of this.clipboardGreens) {
-      const t = Math.floor(c.time + atTime);
+      const t = Math.floor(c.time + at); // v357: 与物件同一吸附锚点
       const existing = this.beatmap.timingPoints.find(tp => !tp.uninherited && Math.round(tp.time) === t);
       if (existing) Object.assign(existing, deepCopy(c), { time: t });
       else this.beatmap.timingPoints.push({ ...deepCopy(c), time: t });
@@ -1608,6 +1621,86 @@ class EditorStore {
     this.emit();
   }
 
+  // ---- v360: 节点选区旋转/缩放窗口预览 (soulten: 多個滑條點也能快捷鍵縮放旋轉) ----
+  // 与物件版 (v301) 同构: begin 备份选中节点坐标+滑条长度 → preview 回滚后按当前参数变换
+  //   (原点恒 = 锚点包围盒中心, F08 语义) → commit 回滚+pushUndo(预览前)+正式应用并重置基准
+  //   → end 回滚到最后提交态。预览全程不碰 undo 栈。
+  private tfNodeBackup: { snap: Map<number, Map<number, Pt>>; lens: Map<number, number | undefined> } | null = null;
+
+  beginNodeTransformPreview() {
+    const bm = this.beatmap;
+    if (!bm || !this.selectedNodes.size) { this.tfNodeBackup = null; return; }
+    const snap = snapshotNodes(bm, withRedPartners(bm, this.selectedNodes));
+    this.tfNodeBackup = { snap, lens: new Map([...snap.keys()].map(id => [id, bm.hitObjects.find(o => o.id === id)?.length])) };
+  }
+
+  private restoreNodeTransformBackup() {
+    const bm = this.beatmap, b = this.tfNodeBackup;
+    if (!bm || !b) return;
+    const ids = transformNodesFromSnapshot(bm, b.snap, p => p);
+    for (const id of ids) {
+      const o = bm.hitObjects.find(x => x.id === id);
+      if (o) o.length = b.lens.get(id);
+      invalidatePath(id);
+    }
+  }
+
+  /** 备份态锚点包围盒中心 (F08 原点; 预览全程按备份态解析, 与物件版 resolveOrigin 同款稳定基准) */
+  private nodeBackupCenter(): Pt | null {
+    const b = this.tfNodeBackup;
+    if (!b) return null;
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity, n = 0;
+    for (const m of b.snap.values()) for (const p of m.values()) {
+      if (p.x < x0) x0 = p.x; if (p.y < y0) y0 = p.y;
+      if (p.x > x1) x1 = p.x; if (p.y > y1) y1 = p.y;
+      n++;
+    }
+    return n ? { x: (x0 + x1) / 2, y: (y0 + y1) / 2 } : null;
+  }
+
+  /** 节点版实时预览: 回滚到基准后按当前参数变换 (不入 undo); 需在 beginNodeTransformPreview 之后调用 */
+  previewNodeTransform(fn: (p: Pt, c: Pt) => Pt) {
+    const bm = this.beatmap;
+    if (this.lockNotes || !bm || !this.tfNodeBackup) return;
+    this.restoreNodeTransformBackup();
+    const c = this.nodeBackupCenter();
+    if (!c) return;
+    const ids = transformNodesFromSnapshot(bm, this.tfNodeBackup.snap, p => fn(p, c));
+    for (const id of ids) {
+      const o = bm.hitObjects.find(x => x.id === id);
+      if (o) resnapSliderLength(bm, o, this.beatSnap); // 长度随预览几何 (回滚时由 lens 还原)
+      invalidatePath(id);
+    }
+    this.emit();
+  }
+
+  /** 节点版提交: undo 快照取预览前状态 (一次应用一次 undo), 随后以已提交态为新基准继续预览 */
+  commitNodeTransform(fn: (p: Pt, c: Pt) => Pt) {
+    const bm = this.beatmap;
+    if (this.lockNotes || !bm || !this.tfNodeBackup) { this.applyNodeTransform(fn); return; }
+    this.restoreNodeTransformBackup();
+    this.pushUndo(); // 快照 = 预览前
+    const c = this.nodeBackupCenter();
+    if (c) {
+      const ids = transformNodesFromSnapshot(bm, this.tfNodeBackup.snap, p => fn(p, c));
+      for (const id of ids) {
+        const o = bm.hitObjects.find(x => x.id === id);
+        if (o) resnapSliderLength(bm, o, this.beatSnap);
+        invalidatePath(id);
+      }
+    }
+    this.emit();
+    this.beginNodeTransformPreview();
+  }
+
+  /** 节点版结束预览: 回滚到最后一次提交 (或开窗时) 的状态并清空备份 */
+  endNodeTransformPreview() {
+    if (!this.tfNodeBackup) return;
+    this.restoreNodeTransformBackup();
+    this.tfNodeBackup = null;
+    this.emit();
+  }
+
   // ---- v304: F08 节点选区快捷键变换 (多选滑条锚点; 原点 = 选中锚点包围盒中心; 一次操作一次 undo) ----
   private applyNodeTransform(fn: (p: Pt, c: Pt) => Pt) {
     if (this.lockNotes || !this.beatmap || !this.selectedNodes.size) return;
@@ -1773,7 +1866,11 @@ class EditorStore {
 
   /** 旋转/缩放独立窗口 (编辑菜单「旋转...」「缩放...」; 功能复制自左侧栏变换面板, 左侧栏保留) */
   transformDialog: 'rotate' | 'scale' | 'symmetry' | null = null;
-  openTransformDialog(m: 'rotate' | 'scale' | 'symmetry') { if (!this.selected.size) return; this.transformDialog = m; this.emitSelection(); }
+  openTransformDialog(m: 'rotate' | 'scale' | 'symmetry') {
+    // v360: 旋转/缩放支持仅选中滑条锚点 (节点模式); 对称仍需物件选区
+    if (!this.selected.size && !(m !== 'symmetry' && this.nodeSelectionCount)) return;
+    this.transformDialog = m; this.emitSelection();
+  }
   closeTransformDialog() { if (this.transformDialog) { this.transformDialog = null; this.emitSelection(); } }
 
   // ---- v210: 对称窗口 (编辑菜单「对称...」, 无快捷键): 选区关于一条直线镜像 ----
@@ -2103,6 +2200,8 @@ export const store = new EditorStore();
 // 调试暴露 (CDP 验证器/排查用)
 if (typeof window !== 'undefined') {
   (window as unknown as { __osuStore: EditorStore }).__osuStore = store;
+  // v364: 放置吸附纯函数暴露 (验证器直接断言 预览(pendingSliderTimeline)=落盘(placementLength) 同一吸附网格)
+  (window as unknown as { __osuSnap: unknown }).__osuSnap = { placementLength, snapPlacementTime, pendingSliderTimeline, sliderLengthSnapDivisor, snapSliderLength };
 }
 
 export function useEditor(): EditorStore {

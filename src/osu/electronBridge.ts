@@ -108,6 +108,7 @@ export type ElectronMenuCommand =
   | { type: 'timing-reset-current' }
   | { type: 'timing-delete-current' }
   | { type: 'timing-resnap-current' }
+  | { type: 'timing-resnap-bookmarks' } // v355
   | { type: 'timing-resnap-all' }
   | { type: 'timing-open-settings' }
   | { type: 'timing-shift-all' }
