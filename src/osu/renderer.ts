@@ -269,8 +269,15 @@ function drawSceneObjects(rc: RenderCtx, visible: HitObject[], radius: number, p
     const o = visible[i];
     if (skip?.has(o.id)) continue;
     if (only && !only.has(o.id)) continue;
-    const dt = time - o.time;
-    const alpha = alphaAt(bm, o, time);
+    // v366: 放置幽灵 (id<0, EditorCanvas 注入的预览物件) 恒按"即将到来"渲染 — 幽灵 time = 落盘时间公式
+    //   (就近吸附可落到当前时间之前), dt>=0 时 sliderHeadHitState/alphaAt 会把头圈当"刚命中"在 240ms
+    //   内淡出 (慢 BPM+1/1 吸附时头整个不见, 原 v363 症状); 钳 dt<0 + alpha 强制 1 取代 v363 的
+    //   ghostTime 钳制, 不改变幽灵的 timing 身份 (SV/combo 排序与落盘一致)。仅 id<0 生效,
+    //   转换预览/图案预览物件均为 genId 正 id, 不受影响
+    const dtRaw = time - o.time;
+    const ghost = o.id < 0;
+    const dt = ghost ? Math.min(dtRaw, -0.001) : dtRaw;
+    const alpha = ghost && dtRaw >= 0 ? 1 : alphaAt(bm, o, time);
     // v215: 暂留模式 (打击动画关) 滑条头/尾圈有独立残留期 — 滑条身 alpha 归零后仍要画头/尾, 不剔除
     const sliderNodeLinger = o.type === 'slider' && displaySettings.hitExplosion && !displaySettings.hitAnimation;
     if (alpha <= 0 && !sliderNodeLinger) continue;

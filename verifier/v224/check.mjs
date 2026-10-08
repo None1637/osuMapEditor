@@ -25,8 +25,9 @@ section('App.tsx: 开关半宽 + 缩放同行');
   assert(/data-pan-input="toggle"\s*\n?\s*className=\{`flex-1 min-w-0 text-left/.test(src), '开关按钮 flex-1 (约半宽, 不再 w-full)');
   assert(!/data-pan-input="toggle"\s*\n?\s*className=\{`w-full/.test(src), '开关不再整行宽');
   // v346 i18n: 缩放输入框 label 改英文原文 'Zoom' + labelKey 'app.playfield_zoom'
-  assert(/<\/button>\s*\n\s*<PanNumInput label="Zoom" labelKey="app\.playfield_zoom"/.test(src), '缩放输入框紧跟开关按钮 (同一 flex 行)');
-  assert(/label="Zoom" labelKey="app\.playfield_zoom" value=\{Math\.round\(store\.playfieldScale \* 100\) \/ 100\} step=\{0\.1\} min=\{0\.1\} max=\{10\}/.test(src), '缩放 = 原 scale 输入 (倍率, 钳 0.1..10)');
+  assert(/<\/button>\s*\n\s*(?:\{[^\n]*\n\s*)?<PanNumInput label="Zoom" labelKey="app\.playfield_zoom"/.test(src), '缩放输入框紧跟开关按钮 (同一 flex 行)');
+  // v367 修订: 缩放精细度 ×10 — 步进 0.1→0.01, 显示 2 位→3 位小数 (注明有意变更)
+  assert(/label="Zoom" labelKey="app\.playfield_zoom" value=\{Math\.round\(store\.playfieldScale \* 1000\) \/ 1000\} step=\{0\.01\} min=\{0\.1\} max=\{10\} digits=\{3\}/.test(src), '缩放 = 原 scale 输入 (倍率, 钳 0.1..10; v367: 步进 0.01 + 3 位小数)');
 }
 
 section('App.tsx: x/y 平分一行');

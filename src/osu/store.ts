@@ -17,6 +17,7 @@ import { reportMenuState, reportDirtyState } from './electronMenu';
 import { getElectronAPI } from './electronBridge'; // v185: 谱面备份 IPC
 import { defaultNewPoint, effectivePointAt, activePointAt, snapTimeToRedBeat, metronomeBeats } from './timingEdit'; // v156
 import { resnapSliderLength, snapPlacementTime, placementLength, pendingSliderTimeline, sliderLengthSnapDivisor, snapSliderLength } from './sliderPath'; // v156: 重新计算滑条长度; v357: 粘贴锚点节拍吸附; v364: 调试暴露吸附纯函数
+import { sliderVelocityAt, svPointAt } from './parser'; // v366: 调试暴露 (SV 绿线边界验证)
 import { snapshotNodes, withRedPartners, transformNodesFromSnapshot } from './nodeSelection'; // v304: F08 节点选区快捷键变换
 import { setDisplayFlag as applyDisplayFlag, setDisplayNumber as applyDisplayNumber, setDisplayString as applyDisplayString, type BoolDisplayKey, type DisplaySettings, type StrDisplayKey } from './displaySettings'; // v132: 显示设置
 import { setVolume as applyVolume, musicGain, effectsGain, type VolumeSettings } from './volumeSettings'; // v144: 音量设置
@@ -546,6 +547,7 @@ class EditorStore {
     this.setDirty(false); // v120: 载入即干净状态
     this.savedFingerprint = this.fingerprint(); // v140: 载入内容成为干净基准 (脏标记按内容指纹对比)
     this.selected.clear();
+    this.altPickSliders = new Set(); // v371: 换谱清空 Alt 点选滑条
     this.undoStack = []; this.redoStack = [];
     this.currentTime = bm.general.previewTime > 0 ? bm.general.previewTime : (bm.hitObjects[0]?.time ?? 0) - 1000;
     if (this.currentTime < 0) this.currentTime = 0;
@@ -1442,6 +1444,23 @@ class EditorStore {
     this.emitSelection();
   }
 
+  // ---- v371: Alt 点选滑条 (可复选; soulten 反馈) — 存在点选滑条时,
+  //   Alt/Shift+Alt 节点框选只框这些滑条的锚点; Alt+点击滑条本体切换点选, 换谱自动清空 ----
+  altPickSliders = new Set<number>();
+
+  toggleAltPickSlider(id: number) {
+    const s = new Set(this.altPickSliders);
+    if (s.has(id)) s.delete(id); else s.add(id);
+    this.altPickSliders = s;
+    this.emitSelection();
+  }
+
+  clearAltPickSliders() {
+    if (!this.altPickSliders.size) return;
+    this.altPickSliders = new Set();
+    this.emitSelection();
+  }
+
   clearNodeSelection() {
     if (!this.selectedNodes.size) return;
     this.selectedNodes.clear();
@@ -2201,7 +2220,8 @@ export const store = new EditorStore();
 if (typeof window !== 'undefined') {
   (window as unknown as { __osuStore: EditorStore }).__osuStore = store;
   // v364: 放置吸附纯函数暴露 (验证器直接断言 预览(pendingSliderTimeline)=落盘(placementLength) 同一吸附网格)
-  (window as unknown as { __osuSnap: unknown }).__osuSnap = { placementLength, snapPlacementTime, pendingSliderTimeline, sliderLengthSnapDivisor, snapSliderLength };
+  // v366: + sliderVelocityAt/svPointAt/timingAt (SV 绿线边界复现: seek 到绿线精确时间对比预览/落盘速度)
+  (window as unknown as { __osuSnap: unknown }).__osuSnap = { placementLength, snapPlacementTime, pendingSliderTimeline, sliderLengthSnapDivisor, snapSliderLength, sliderVelocityAt, svPointAt, timingAt };
 }
 
 export function useEditor(): EditorStore {

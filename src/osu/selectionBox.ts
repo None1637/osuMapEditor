@@ -137,7 +137,10 @@ export function hitScaleHandle(gateQ: Quad, dispQ: Quad, p: Pt, tol: number): Sc
   return best;
 }
 
-const isCorner = (a: ScaleAnchor) => a.length === 2 && a[1] !== 'c';
+// v370: 修正为「两轴都不居中才是真角」— 旧判断只查第二字符, cl/cr (左右边中点) 被误判为角,
+// Shift 锁比对左右边手柄错误生效: sy 已清零, 锁比取 (sx+1)/2 同赋两轴 → X 倍率减半 (手柄脱离
+// 游标) 且 Y 凭空缩放; 多物件扁框下最明显。lazer: !anchor.HasFlag(x1) && !anchor.HasFlag(y1)。
+const isCorner = (a: ScaleAnchor) => a.length === 2 && a[0] !== 'c' && a[1] !== 'c';
 
 /** 手柄对应的缩放轴 (lazer getAdjustAxis): 上下边 -> Y, 左右边 -> X, 角 -> Both */
 export function anchorAxis(a: ScaleAnchor): Axis {

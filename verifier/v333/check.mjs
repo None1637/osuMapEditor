@@ -22,7 +22,7 @@ const ec = readSrc('src/components/EditorCanvas.tsx');
 section('recomputeMarqueeSelection 抽出共用');
 {
   assert(/const recomputeMarqueeSelection = \(\) => \{/.test(ec), 'recomputeMarqueeSelection 定义');
-  const fn = ec.match(/const recomputeMarqueeSelection = \(\) => \{[\s\S]{0,2600}?\n  \};/);
+  const fn = ec.match(/const recomputeMarqueeSelection = \(\) => \{[\s\S]{0,3400}?\n  \};/); // v371: 框选收窄逻辑插入, 窗口 2600→3400
   assert(!!fn && /const cp = cursorRef\.current;/.test(fn[0]), '光标取 cursorRef (非事件参数)');
   assert(!!fn && /nodesInRect\(sliders, getStackOffsets\(bm\), r\)/.test(fn[0]), '节点框选重算保留');
   assert(!!fn && /store\.select\(\[\.\.\.mq\.base, \.\.\.keepHidden, \.\.\.objectsInRect/.test(fn[0]), '物件框选重算保留 (v277 保留隐藏物件)');

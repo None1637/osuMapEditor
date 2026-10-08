@@ -47,6 +47,19 @@ export function nodesInRect(sliders: HitObject[], offsets: Offsets, r: { minX: n
   return out;
 }
 
+/** v371: 框到多条滑条时只保留「第一个框到的」— 距框选起点 (ox,oy) 最近的框内节点所在滑条
+ *  (soulten 反馈: 一次几乎不会同时动两条滑条; Alt/Shift+Alt 框选只取第一条, 避免误选邻条锚点) */
+export function firstFramedSliderId(entries: NodeEntry[], posOf: (objId: number, idx: number) => Pt | null, ox: number, oy: number): number | null {
+  let best: number | null = null, bestD = Infinity;
+  for (const [objId, idx] of entries) {
+    const p = posOf(objId, idx);
+    if (!p) continue;
+    const d = Math.hypot(p.x - ox, p.y - oy);
+    if (d < bestD) { bestD = d; best = objId; }
+  }
+  return best;
+}
+
 /** 节点选区包围盒: q = 点集轴对齐盒 (变换数学用), dq = 外扩 pad (显示盒, 与物件框 q/dq 分离同款) */
 export function nodeBounds(bm: Beatmap, sel: NodeSel, offsets: Offsets, pad = 8): { q: Quad; dq: Quad } | null {
   let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity, n = 0;

@@ -585,13 +585,18 @@ export function spinnerPlacementEnd(points: TimingPoint[], startTime: number, cu
  *   网格 = distanceSpacing × 细分步长 (normal 分支同一 sliderLengthSnapDivisor 网格; lazer
  *   DistanceSnapProvider.GetBeatSnapDistance 与倍率无关、由消费方自乘倍率, 即此语义)。
  *   spacing=1.0 时与关闭锁定间距完全一致; v218/v219 规则 (退一格/亚步长对齐 1 步) 同样适用。
+ * v366: 基准时间先吸附+取整 (t = 落盘 o.time 同公式) — SV/timing/长度吸附全部以落盘时刻为准;
+ *   修复前用 currentTime 取 SV, 绿线/红线落在吸附 tick 与 currentTime 之间时预览 ≠ 落盘
+ *   (用户反馈: 当前时间正好在改变 SV 的绿线上时, 预览异常使用上一根绿线的 SV)。
  */
 export function placementLength(
   points: TimingPoint[], currentTime: number, sliderMultiplier: number,
   geometryLength: number, distanceLock: boolean, distanceSpacing: number, beatSnap: number,
 ): number {
-  const { red } = timingAt(points, currentTime);
-  const vel = sliderVelocityAt(points, currentTime, sliderMultiplier);
+  // v366: 与 finishSlider/finishFreehandSlider 落盘时刻同一公式 (就近吸附可落到 currentTime 之前)
+  const t = Math.round(snapPlacementTime(points, currentTime, beatSnap));
+  const { red } = timingAt(points, t);
+  const vel = sliderVelocityAt(points, t, sliderMultiplier);
   const tickPx = vel * red.beatLength / sliderLengthSnapDivisor(beatSnap);
   const geoCap = Math.max(1, Math.floor(geometryLength)); // v160: floor — round 会四舍五入回超几何全长
   if (distanceLock && distanceSpacing > 0 && tickPx > 0) {
@@ -605,7 +610,7 @@ export function placementLength(
     if (steps === 1 && stepPx > geometryLength + vel * 1) return Math.max(1, snapped);
     return Math.min(Math.max(20, snapped), geoCap);
   }
-  const snapped = snapSliderLength(points, currentTime, sliderMultiplier, geometryLength, beatSnap);
+  const snapped = snapSliderLength(points, t, sliderMultiplier, geometryLength, beatSnap);
   // v219: 亚 tick (几何不足 1 个长度细分 tick) — snapped 已对齐 1 tick, 不再受 20px 下限/geoCap 钳制 (否则预览/落盘长度退化为不对齐的 floor(几何))
   if (tickPx > geometryLength + vel * 1) return snapped;
   return Math.min(Math.max(20, snapped), geoCap);
@@ -613,7 +618,9 @@ export function placementLength(
 
 /**
  * v82: 放置中滑条的时间轴预览区间 (与 EditorCanvas finishSlider 落盘同规则; v83 起共用上面两个纯函数)
- * - 时间 = snapPlacementTime; 长度 = computePendingPath 几何全长 (含幻影光标点) 过 placementLength
+ * - 时间 = round(snapPlacementTime) (= 落盘 o.time; v366 起取整且 vel 也用该时刻 — 修复前用 currentTime
+ *   取 SV, 绿线/红线落在吸附 tick 与 currentTime 之间时预览时长 ≠ 落盘时长)
+ * - 长度 = computePendingPath 几何全长 (含幻影光标点) 过 placementLength (v366 起内部同一吸附基准)
  * - end = time + len / vel (slides 恒 1)
  */
 export function pendingSliderTimeline(
@@ -621,8 +628,8 @@ export function pendingSliderTimeline(
   pend: PendingPoint[], cursor: Vec2 | null, currentTime: number, beatSnap: number,
   distanceLock: boolean, distanceSpacing: number,
 ): { time: number; end: number } {
-  const time = snapPlacementTime(points, currentTime, beatSnap);
-  const vel = sliderVelocityAt(points, currentTime, sliderMultiplier);
+  const time = Math.round(snapPlacementTime(points, currentTime, beatSnap));
+  const vel = sliderVelocityAt(points, time, sliderMultiplier);
   const len = placementLength(points, currentTime, sliderMultiplier,
     computePendingPath(pend, cursor).length, distanceLock, distanceSpacing, beatSnap);
   return { time, end: time + len / vel };

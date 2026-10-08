@@ -174,7 +174,7 @@ export function SymSliderDialog() {
       )}
       {/* v236: 每份递增缩放 (v116 同款语义) — 第 i 份变换后绕缩放锚点 (axis/point = 拼接锚点) 再缩放 1 + i×此值 */}
       <Row label={t('convert.scale_per_copy', 'Scale/copy')}>
-        <DraftNum value={params.scalePerCopy} testid="scalePerCopy" min={-0.99} max={5} step={0.05}
+        <DraftNum value={params.scalePerCopy} testid="scalePerCopy" min={-0.99} max={5} step={0.005} digits={3}
           set={v => upd({ scalePerCopy: v })} />
         <span className="text-white/40">{t('convert.scale_formula_anchor', 'copy i = 1 + i×this (around anchor)')}</span>
       </Row>

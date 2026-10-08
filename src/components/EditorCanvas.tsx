@@ -11,7 +11,7 @@ import { computeStackOffsets } from '@/osu/stacking';
 import { objectsInRect } from '@/osu/transform';
 import { pickTimeNearestHit } from '@/osu/hitPick'; // v154: 重叠命中挑离当前时间最近者
 import { selectionScaleQuad, scaleHandleAnchors, anchorPoint, hitScaleHandle, anchorAxis, dragToScale, anchorOpposite, minimumEnclosingCircleCenter, movablePoints, snapshotScaleStates, applyScaleDrag, selectionBoxVisible, selectionDisplayQuad, hitRotationHandle, rotationHandlePoints, angleDeltaDeg, snapRotation, rotationOrigin, applyRotateDrag, scaledPosition, type ScaleAnchor, type RotateCorner, type ScaleObjectState, type Quad } from '@/osu/selectionBox';
-import { ctrlPoints, nodeEntries, nearestNode, nodesInRect, nodeBounds, withRedPartners, snapshotNodes, transformNodesFromSnapshot } from '@/osu/nodeSelection';
+import { ctrlPoints, nodeEntries, nearestNode, nodesInRect, nodeBounds, withRedPartners, snapshotNodes, transformNodesFromSnapshot, firstFramedSliderId } from '@/osu/nodeSelection';
 import { isVisibleAt, hitObjectEndTime, HIT_FADE } from '@/osu/lifecycle';
 import { uiZoom, zoomRect, zoomClientX, zoomClientY, fitCanvas } from '@/osu/uiZoom'; // v217; v246: fitCanvas
 import { displaySettings } from '@/osu/displaySettings'; // v168: 背景图亮度
@@ -784,14 +784,13 @@ export function EditorCanvas() {
         if (!store.playing && (!store.canvasDragging || placingDrag) && !store.patternDrag && store.tool !== 'select'
           && (cur.inside || !store.limitToPlayfield || placingDrag)) { // v163: 关「限制物件在游玩区域内」后区外同样预览
           const ghosts: HitObject[] = [];
-          // v363: 幽灵 time 钳制不早于当前时间 — 就近吸附落到过去节拍合法 (落盘同公式), 但预览
-          //   应按"即将到来的物件"渲染 (正确 combo 色+数字+不透明), 不按已命中淡出 (dt>=0 时
-          //   sliderHeadHitState/alphaAt 会让头圈在 240ms 内消隐, 慢 BPM+1/1 吸附时头整个不见)
-          const ghostTime = (snapFn: () => number) => Math.max(Math.round(snapFn()), Math.round(store.currentTime));
+          // v366: 幽灵 time = 落盘时间公式 (与 finishSlider/finishCircle 同源) — v363 的"不早于当前时间"
+          //   钳制已撤销: 它让幽灵渲染时间与落盘时间不同源 (SV 绿线夹在两时刻之间时幽灵 SV/长度基准
+          //   分裂, 预览≠落盘); 抗淡出改由 renderer 对放置幽灵 (id<0) 钳 dt/强制 alpha 处理
           if (store.tool === 'circle' || (store.tool === 'slider' && store.pendingSlider.length === 0)) {
             const sp = snapPlacement({ x: cur.x, y: cur.y });
             ghosts.push({ id: -1, type: 'circle', x: Math.round(sp.x), y: Math.round(sp.y),
-              time: ghostTime(() => snapTime(store.currentTime)), newCombo: store.placeNewCombo, comboSkip: 0, hitSound: store.placeHitSound }); // v241: 放置态 (与落盘同源)
+              time: Math.round(snapTime(store.currentTime)), newCombo: store.placeNewCombo, comboSkip: 0, hitSound: store.placeHitSound }); // v241: 放置态 (与落盘同源)
           } else if (store.tool === 'slider') {
             // 与 finishSlider 同源: 路径/长度/起点时间同一公式 (预览=落盘); 幻影点只在光标在画布内时并入
             const computed = computePendingPath(store.pendingSlider, cur.inside ? store.pendingCursor : null);
@@ -800,7 +799,7 @@ export function EditorCanvas() {
             const bspline = store.pendingSlider.some(pt => pt.bspline);
             const finalCtrl = bspline ? computed.controlPoints : preserveArcsForBezier(computed.curveType, computed.controlPoints);
             ghosts.push({ id: -2, type: 'slider', x: finalCtrl[0].x, y: finalCtrl[0].y,
-              time: ghostTime(() => snapPlacementTime(bm.timingPoints, store.currentTime, store.beatSnap)),
+              time: Math.round(snapPlacementTime(bm.timingPoints, store.currentTime, store.beatSnap)), // v366: = 落盘时间公式 (v363 钳制撤销)
               curveType: bspline ? 'B4' : computed.curveType, curvePoints: finalCtrl.slice(1), slides: 1,
               length: placementLength(bm.timingPoints, store.currentTime, bm.difficulty.sliderMultiplier,
                 computed.length, store.distanceLock, bm.editor.distanceSpacing, store.beatSnap),
@@ -1018,6 +1017,28 @@ export function EditorCanvas() {
               if (!pt) continue;
               g.beginPath(); g.arc(pt.x, pt.y, rr, 0, Math.PI * 2); g.stroke();
             }
+          }
+          g.restore();
+        }
+        // v371: Alt 点选滑条高亮 — 青色虚线控制多边形 + 节点圆点 (提示「框选只框这些滑条」);
+        //   独立块: 点选后尚未框选节点 (nodeSelectionCount=0) 时也要显示
+        if (store.altPickSliders.size) {
+          const offs = getStackOffsets(bm);
+          g.save();
+          for (const objId of store.altPickSliders) {
+            const o = bm.hitObjects.find(x => x.id === objId);
+            if (!o || o.type !== 'slider') continue;
+            const ctrl = ctrlPoints(o, offs.get(objId));
+            if (ctrl.length < 2) continue;
+            g.strokeStyle = '#4df3ff';
+            g.lineWidth = 1.5 / scale;
+            g.setLineDash([6 / scale, 4 / scale]);
+            g.beginPath();
+            ctrl.forEach((pt, i) => { if (i) g.lineTo(pt.x, pt.y); else g.moveTo(pt.x, pt.y); });
+            g.stroke();
+            g.setLineDash([]);
+            g.fillStyle = '#4df3ff';
+            for (const pt of ctrl) { g.beginPath(); g.arc(pt.x, pt.y, 4 / scale, 0, Math.PI * 2); g.fill(); }
           }
           g.restore();
         }
@@ -1315,6 +1336,12 @@ export function EditorCanvas() {
         if (partner !== null) store.toggleSelectedNode(hitNode.objId, partner);
       }
       return;
+    }
+    // v371: Alt+点击滑条本体 (未命中锚点) = 点选该滑条 (可复选; 再点取消) —
+    //   存在点选滑条时, 节点框选只框被点选滑条的锚点
+    {
+      const hitObj = hitTest(p.x, p.y);
+      if (hitObj && hitObj.type === 'slider') { store.toggleAltPickSlider(hitObj.id); return; }
     }
     // Alt+空白: 节点框选 (Shift/Ctrl 在现有节点选区上追加; v317: F19 — Shift 单独 = 减选, 框到已选锚点取消)
     nodeMarqueeRef.current = {
@@ -1834,7 +1861,21 @@ export function EditorCanvas() {
         const o = bm.hitObjects.find(x => x.id === objId);
         return !!o && !isVisibleAt(bm, o, store.currentTime);
       });
-      const inRect = nodesInRect(sliders, getStackOffsets(bm), r);
+      const inRect0 = nodesInRect(sliders, getStackOffsets(bm), r);
+      // v371: 框选范围收窄 —
+      //   a) 存在 Alt 点选滑条时只框这些滑条的锚点;
+      //   b) 否则框到多条滑条时只保留「第一个框到的」(距框选起点最近的框内节点所在滑条)
+      let inRect = inRect0;
+      if (store.altPickSliders.size) {
+        inRect = inRect0.filter(([objId]) => store.altPickSliders.has(objId));
+      } else if (inRect0.length && inRect0.some(([a]) => a !== inRect0[0][0])) {
+        const offs3 = getStackOffsets(bm);
+        const first = firstFramedSliderId(inRect0, (oid, i) => {
+          const o = bm.hitObjects.find(x => x.id === oid);
+          return o?.type === 'slider' ? ctrlPoints(o, offs3.get(oid))[i] ?? null : null;
+        }, nmq.x0, nmq.y0);
+        if (first !== null) inRect = inRect0.filter(([objId]) => objId === first);
+      }
       if (nmq.subtract) { // v343: Alt+Shift 减选改对称差 (toggle) — 框内已选的剔除、未选的加入
         //   (v317 原纯减选 = 只能减不能加, soulten 反馈「变成橡皮擦了」; stable 同款 toggle 语义)
         const baseArr = [...nmq.base, ...keepNodes];
@@ -1869,10 +1910,13 @@ export function EditorCanvas() {
   // v316: F18a — hover 目标集中重算: onMouseMove 与 Alt keydown/keyup/blur 共用。
   // 普通层: 未选中滑条的控制点预览 (v259); Alt 层: 跨滑条最近锚点 (与 mousedown Alt 点选同候选,
   // 含 v273 例外: 选中/有已选节点的滑条即使当前时间不可见也参与) + 该锚点高亮环
+  // v368: 去掉 `!cp.inside` 门控 — 游玩区外 (x>512/y>384) 的滑条 hover 同样出控制点预览/Alt 锚点环
+  //   (用户反馈区外滑条不预览; hitTest/nearestNode 本就无边界裁剪, v163 起区外物件可渲染,
+  //   出画布清空由 onMouseLeave 负责, 此处无需再按游玩区矩形拦截)
   const refreshHover = () => {
     const bm = store.beatmap;
     const cp = cursorRef.current;
-    if (store.tool !== 'select' || !bm || store.canvasDragging || store.conversionDialog || !cp.inside) {
+    if (store.tool !== 'select' || !bm || store.canvasDragging || store.conversionDialog) {
       hoverSliderRef.current = null; hoverNodeRef.current = null; return;
     }
     if (altHeldRef.current && !store.lockNotes) {
@@ -2100,11 +2144,13 @@ export function EditorCanvas() {
         dx = Math.round(snapped.x - orig.x); dy = Math.round(snapped.y - orig.y);
       }
     }
-    // v302: F04 — 滑条尾也受「限制物件在游玩区域内」约束: 共享 delta 按被拖物件的头/尾中心
-    // 钳到界内 (原只钳头部, 滑条尾可拖出界); 已在界外的点不纳入
-    // (否则 Begin 即越界的物件会被强制拉回/卡死 — 与 F09 缩放钳制同款规则)
-    // v352: 钳制点集收窄为「头/尾中心」— 原连控制点一起钳 (v302), 用户反馈滑条点不该被限制,
-    //   只有头尾的中心要被限制 (控制点可出界成形)
+    // v369: 限界钳制改按当前帧实时位置计算 (修复: 原按拖拽起始 orig 判定「界内才纳入钳制」,
+    //   起始在界外的头/尾整段拖拽被排除在钳制点集外 — 拖回界内后再出界也不钳, 必须停拖
+    //   下次才正常; 且下方逐件头部钳会把起始界外的头强制拉回界内)。
+    //   规则: 当前在界内的点保持界内; 当前在界外的点不许比起始 orig 更往外 (不压回),
+    //   可向界内移动, 一旦进入界内即按界内点钳制 — 全程与拖拽起始状态无关。
+    // v302: F04 — 滑条尾也受约束: 共享 delta 按被拖物件的头/尾中心钳到界内 (原只钳头部)
+    // v352: 钳制点集收窄为「头/尾中心」— 控制点出界成形合法, 不参与钳制
     if (store.limitToPlayfield && d.ids.length) {
       let xLo = -Infinity, xHi = Infinity, yLo = -Infinity, yHi = Infinity;
       for (const id of d.ids) {
@@ -2114,24 +2160,37 @@ export function EditorCanvas() {
         const tail = d.tails.get(id); // v341: 预算尾点 (同上)
         if (tail) pts.push(tail);
         for (const p of pts) {
-          if (p.x >= 0 && p.x <= PW) { xLo = Math.max(xLo, -p.x); xHi = Math.min(xHi, PW - p.x); }
-          if (p.y >= 0 && p.y <= PH) { yLo = Math.max(yLo, -p.y); yHi = Math.min(yHi, PH - p.y); }
+          const cx = p.x + d.deltaX, cy = p.y + d.deltaY; // v369: 上一帧应用后的当前位置
+          // 每点给出本帧允许的 dx 区间 (各区间恒含 0 → 交集非空):
+          //   界内 [-p.x, PW-p.x] (保持界内); 界外左 [0, PW-p.x] / 界外右 [-p.x, 0]
+          //   (不许比起始更往外, 可向界内移动直到穿入界内; 不压回)
+          let x0: number, x1: number;
+          if (cx < 0) { x0 = 0; x1 = PW - p.x; }
+          else if (cx > PW) { x0 = -p.x; x1 = 0; }
+          else { x0 = -p.x; x1 = PW - p.x; }
+          xLo = Math.max(xLo, x0); xHi = Math.min(xHi, x1);
+          let y0: number, y1: number;
+          if (cy < 0) { y0 = 0; y1 = PH - p.y; }
+          else if (cy > PH) { y0 = -p.y; y1 = 0; }
+          else { y0 = -p.y; y1 = PH - p.y; }
+          yLo = Math.max(yLo, y0); yHi = Math.min(yHi, y1);
         }
       }
       if (xLo <= xHi) dx = Math.max(xLo, Math.min(xHi, dx));
       if (yLo <= yHi) dy = Math.max(yLo, Math.min(yHi, dy));
     }
-    // v341: 记录本帧实际位移与全体一致性 (界外物件逐件钳制会产生分歧 → 非平移, 渲染回退实时补画)
+    // v341: 记录本帧实际位移与全体一致性; v369: 逐件不再各自钳制 (位移恒一致,
+    //   uniform 恒 true, 字段保留供渲染路径判断)
     d.deltaX = dx; d.deltaY = dy; d.uniform = true;
     let firstAx: number | null = null, firstAy: number | null = null;
     for (const id of d.ids) {
       const o = d.objs.get(id); // v341: 预算映射, 原逐 id find 是 O(n²)
       const orig = d.orig.get(id);
       if (o && orig) {
-        // 头部钳制后的实际位移, 滑条控制点整体同步平移 (否则只动头会把滑条拉变形)
-        // v163: 关闭"限制物件在游玩区域内"时不钳制, 物件可拖出游玩区
-        const ax = (store.limitToPlayfield ? Math.max(0, Math.min(PW, orig.x + dx)) : orig.x + dx) - orig.x;
-        const ay = (store.limitToPlayfield ? Math.max(0, Math.min(PH, orig.y + dy)) : orig.y + dy) - orig.y;
+        // 共享 delta 已按全部头/尾实时位置钳好 (v369), 逐件直接应用;
+        // 滑条控制点整体同步平移 (否则只动头会把滑条拉变形)
+        // v163: 关闭"限制物件在游玩区域内"时上方钳制块跳过, dx/dy 原样 → 物件可拖出游玩区
+        const ax = dx, ay = dy;
         if (firstAx === null) { firstAx = ax; firstAy = ay; }
         else if (ax !== firstAx || ay !== firstAy) d.uniform = false;
         const changed = o.x !== orig.x + ax || o.y !== orig.y + ay;

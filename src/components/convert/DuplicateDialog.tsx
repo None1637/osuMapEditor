@@ -125,7 +125,7 @@ export function DuplicateDialog() {
       </Row>
       {/* v116: 每份递增缩放 — 第 i 份 = 1 + i×缩放/份; 勾选后滑条参与缩放并加补偿绿线 (头 SV×s / 尾还原, 时长不变) */}
       <Row label={t('convert.scale_per_copy', 'Scale/copy')}>
-        <DraftNum value={params.scalePerCopy} testid="scalePerCopy" min={-0.99} max={5} step={0.05}
+        <DraftNum value={params.scalePerCopy} testid="scalePerCopy" min={-0.99} max={5} step={0.005} digits={3}
           set={v => upd({ scalePerCopy: v })} />
         <span className="text-white/40">{t('convert.scale_formula', 'copy i = 1 + i×this')}</span>
       </Row>

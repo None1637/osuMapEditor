@@ -10,6 +10,10 @@
 //     把幽灵头当"刚命中"在 240ms 内淡出 (慢 BPM + 1/1 吸附时头整个消失)。
 //     修复: 幽灵 time 钳制不早于当前时间 (ghostTime = max(snap, now)); 仅影响预览,
 //     落盘 time 公式不动 (稳定吸附语义)。
+//  v366 修订: B 的 ghostTime 钳制撤销 (它让幽灵渲染时间与落盘时间不同源, SV 绿线夹在两时刻
+//     之间时幽灵 SV/长度基准分裂, 预览≠落盘) — 幽灵 time 改回落盘时间公式, 抗淡出改由
+//     renderer drawSceneObjects 对放置幽灵 (id<0) 钳 dt<0 + dtRaw>=0 时 alpha 强制 1 实现。
+//     以下 CDP B 段 (过去节拍吸附不淡出) 语义不变, 继续验证新机制。
 // 运行: npm run build 后 node verifier/v363/check.mjs  (CDP 段会短暂弹出编辑器窗口)
 import { fileURLToPath } from 'url';
 import path from 'path';
@@ -35,12 +39,15 @@ section('源码: 手绘拖拽中幽灵不抑制 (Bug A)');
   assert(/pendingSlider: \{ x: number; y: number; redAnchor: boolean; bspline\?: boolean \}\[\]/.test(st), 'pendingSlider 类型含 bspline 可选标记');
 }
 
-section('源码: 幽灵 time 钳制不早于当前时间 (Bug B)');
+section('源码: 幽灵抗淡出 (Bug B; v366 起由 renderer 实现, 幽灵 time = 落盘公式)');
 {
   const ec = read('src/components/EditorCanvas.tsx');
-  assert(/const ghostTime = \(snapFn: \(\) => number\) => Math\.max\(Math\.round\(snapFn\(\)\), Math\.round\(store\.currentTime\)\);/.test(ec), 'ghostTime = max(吸附结果, 当前时间)');
-  assert(/time: ghostTime\(\(\) => snapTime\(store\.currentTime\)\)/.test(ec), '圆圈幽灵走钳制');
-  assert(/time: ghostTime\(\(\) => snapPlacementTime\(bm\.timingPoints, store\.currentTime, store\.beatSnap\)\)/.test(ec), '滑条幽灵走钳制 (落盘公式不动)');
+  assert(!/ghostTime/.test(ec), 'v366: ghostTime 钳制已撤销 (幽灵与落盘同时间源)');
+  assert(/time: Math\.round\(snapTime\(store\.currentTime\)\), newCombo: store\.placeNewCombo/.test(ec), '圆圈幽灵 time = 落盘公式');
+  assert(/time: Math\.round\(snapPlacementTime\(bm\.timingPoints, store\.currentTime, store\.beatSnap\)\),/.test(ec), '滑条幽灵 time = 落盘公式');
+  const rd = read('src/osu/renderer.ts');
+  assert(/const ghost = o\.id < 0;/.test(rd) && /const dt = ghost \? Math\.min\(dtRaw, -0\.001\) : dtRaw;/.test(rd), 'renderer: 放置幽灵 (id<0) dt 钳到 <0 (按即将到来渲染)');
+  assert(/const alpha = ghost && dtRaw >= 0 \? 1 : alphaAt\(bm, o, time\);/.test(rd), 'renderer: 幽灵吸附到过去 tick 时 alpha 强制 1 (不吃命中淡出)');
 }
 
 section('CDP: 手绘拖拽预览头部 (数字+颜色) / 过去节拍吸附不淡出');

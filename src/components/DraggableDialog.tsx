@@ -94,8 +94,9 @@ export function useSaveParamsOnClose<T>(key: string, v: T) {
  *  Shift ×10, Alt ×0.1); 超过 3px 阈值才进入拖动 (不影响点击聚焦/正常选字), 拖动期间阻止文本选择 */
 /** v276: 已聚焦的输入框内按下拖动 = 原生文本框选, 不触发调值 (用户反馈「框选输入框中数字时
  *  不要触发左右拖动数值」); 调值只在未聚焦的输入框上按下拖动 (= 点击即聚焦的那次交互) */
-export function DraftNum({ value, set, testid, min, max, step = 1 }: {
+export function DraftNum({ value, set, testid, min, max, step = 1, digits }: {
   value: number; set: (v: number) => void; testid: string; min?: number; max?: number; step?: number;
+  digits?: number; // v367: 非草稿态显示小数位 (缩放类框 3 位, 如 0.590; 缺省 = 原始值字符串)
 }) {
   const [draft, setDraft] = useState<string | null>(null);
   const dragRef = useRef<{ x0: number; v0: number; active: boolean } | null>(null);
@@ -121,7 +122,7 @@ export function DraftNum({ value, set, testid, min, max, step = 1 }: {
     return () => el.removeEventListener('wheel', onWheel);
   });
   return (
-    <input ref={inputRef} type="number" value={draft ?? value} min={min} max={max} step={step} data-conv={testid}
+    <input ref={inputRef} type="number" value={draft ?? (digits !== undefined ? value.toFixed(digits) : value)} min={min} max={max} step={step} data-conv={testid}
       onFocus={() => setDraft(String(value))}
       onChange={e => {
         setDraft(e.target.value);

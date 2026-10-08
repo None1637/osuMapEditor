@@ -141,9 +141,9 @@ export function TransformDialog({ mode }: { mode: 'rotate' | 'scale' | 'symmetry
         <div className="flex items-center gap-1 flex-wrap">
           <span className="text-white/50">{t('transform.factor', 'Factor')}</span>
           <span className="text-white/40">x</span>
-          <DraftNum value={factor} set={changeFactor} testid="factor" min={0.01} step={0.05} />
+          <DraftNum value={factor} set={changeFactor} testid="factor" min={0.01} step={0.005} digits={3} /> {/* v367: 步进 0.05→0.005 (精细度×10), 显示 3 位小数 */}
           <span className="text-white/40">y</span>
-          <DraftNum value={factorY} set={changeFactorY} testid="factor-y" min={0.01} step={0.05} />
+          <DraftNum value={factorY} set={changeFactorY} testid="factor-y" min={0.01} step={0.005} digits={3} /> {/* v367: 同上 */}
           <label className="flex items-center gap-0.5 text-white/70" title={t('transform.lock_ratio_title', 'Lock x:y ratio — changing one axis scales the other at the current ratio')}>
             <input type="checkbox" checked={lockRatio} data-tf="lock-ratio" onChange={e => setLockRatio(e.target.checked)} />
             {t('transform.lock_ratio', 'Lock x:y')}

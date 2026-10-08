@@ -57,8 +57,10 @@ const TOOLS: { id: Tool; labelKey: string; label: string; action: string; icon: 
 // v223: 游玩区平移/缩放数值输入 — 局部文本态 (同 GridSpacingInput): 未聚焦显示 store 值 (中键拖动时实时刷新),
 // 聚焦后编辑原文 (可输负号/小数中间态), 仅有限值提交 (scale 钳 0.1..10), 失焦还原
 // v224: grow = 平分父行宽度 (x/y 行); 默认固定宽 (开关行的缩放)
-function PanNumInput({ label, labelKey, value, step, min, max, grow, onCommit }: {
-  label: string; labelKey?: string; value: number; step: number; min?: number; max?: number; grow?: boolean; onCommit: (v: number) => void;
+// v367: digits = 非聚焦态显示小数位 (Zoom 缩放框 3 位, 如 1.000; 缺省 = 原始值字符串)
+function PanNumInput({ label, labelKey, value, step, min, max, grow, digits, onCommit }: {
+  label: string; labelKey?: string; value: number; step: number; min?: number; max?: number; grow?: boolean;
+  digits?: number; onCommit: (v: number) => void;
 }) {
   const t = useT(); // v346
   const [text, setText] = useState<string | null>(null);
@@ -66,7 +68,7 @@ function PanNumInput({ label, labelKey, value, step, min, max, grow, onCommit }:
     <span className={`flex items-center gap-0.5 ${grow ? 'flex-1 min-w-0' : 'shrink-0'}`}>
       <span className="text-white/50 shrink-0">{labelKey ? t(labelKey, label) : label}</span>
       <input type="number" step={step} data-pan-input={label}
-        value={text ?? String(value)}
+        value={text ?? (digits !== undefined ? value.toFixed(digits) : String(value))}
         onFocus={() => setText(String(value))}
         onBlur={() => setText(null)}
         onChange={e => {
@@ -640,7 +642,8 @@ export default function App() {
               title={t('app.playfield_pan_title', 'Playfield pan: hold the middle mouse button to drag the playfield; x/y = offset (osu px), zoom = scale (default 1.0); turning off restores the default view (values are kept)')}>
               <Move className="inline-block w-4 h-4 mr-1 -mt-0.5" />{t('app.playfield_pan', 'Playfield Pan')}
             </button>
-            <PanNumInput label="Zoom" labelKey="app.playfield_zoom" value={Math.round(store.playfieldScale * 100) / 100} step={0.1} min={0.1} max={10}
+            {/* v367: 缩放精细度 ×10 — 步进 0.1→0.01, 显示 2 位→3 位小数 (用户反馈调整精细度不够) */}
+            <PanNumInput label="Zoom" labelKey="app.playfield_zoom" value={Math.round(store.playfieldScale * 1000) / 1000} step={0.01} min={0.1} max={10} digits={3}
               onCommit={v => { store.playfieldScale = v; store.emit(); }} />
           </div>
           <div className="flex items-center gap-1.5 text-sm text-white/70 px-1">

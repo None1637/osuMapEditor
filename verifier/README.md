@@ -3540,3 +3540,97 @@
   预览时长=落盘时长 (88.2/132.4/44.1/66.2ms 全对) 且尾端在步网格; tsc。
   verifier/v364 D 段同步更新为 v365 新语义 (注明有意变更)。
   回归: v364/v363/v362/v318/v219。
+
+## v366 — SV 绿线/红线边界处放置预览与落盘统一时间基准 (预览≠落盘修复)
+- 用户反馈: 当前时间正好位于改变 SV 的绿线上时, 放置预览异常使用上一根绿线的 SV,
+  预览 ≠ 落盘。排查确认边界比较本身没错 — 共用 SV 查询 svPointAt/timingAt (parser.ts)
+  本来就是包含式 (绿线精确时间上该绿线生效, 对齐 osu 规则, = 落盘正确语义); 根因是
+  【时间基准分裂】: 预览各路径 (v318 幽灵滑条 length / pendingSliderTimeline 时间轴幻影 /
+  renderer drawPendingSlider 截断) 全部用 store.currentTime 取 SV/算长度, 落盘物件却是
+  o.time = round(snapPlacementTime(...)) (就近吸附, 可落到 currentTime 之前), 渲染/实际行为
+  用 sliderVelocityAt(o.time) — 绿线/红线落在吸附 tick 与 currentTime 之间时两侧 SV/BPM
+  不同, seek 到边界 ±1ms 即可复现, 预览与落盘时长差一整倍。
+- 修复 (统一为落盘语义 — 物件恰在绿线上时该绿线生效):
+  1. placementLength (sliderPath.ts) 内部先把基准时间吸附+取整
+     (t = round(snapPlacementTime(...)) = 落盘 o.time 同公式), timingAt/vel/tickPx/
+     snapSliderLength 全部以 t 为准; 所有调用方 (幽灵/finishSlider/finishFreehandSlider/
+     renderer 截断/pendingSliderTimeline) 自动一致。红线 (BPM) 同类问题由同一机制覆盖
+     (snapAcrossRedLine 吸到下一红线起点时 vel/tick 用新红线 beatLength, 与落盘同源)。
+  2. pendingSliderTimeline: time = round(snapPlacementTime(...)), vel 用该时刻 (= 落盘时刻)。
+  3. EditorCanvas 幽灵: 撤销 v363 的 ghostTime = max(snap, now) 钳制 (它让幽灵渲染时间与
+     落盘时间不同源, 反而加重分裂), 幽灵 time 改回落盘时间公式。
+  4. renderer drawSceneObjects: 放置幽灵 (id<0) 抗淡出 — dt 钳到 <0 (按"即将到来"渲染),
+     dtRaw>=0 时 alpha 强制 1 且在 alpha<=0 剔除之前生效; 取代 v363 钳制的抗淡出作用,
+     且不改变幽灵 timing 身份 (SV/combo 排序与落盘一致)。转换/图案预览物件均为 genId 正 id,
+     不受影响。
+- 验证: verifier/v366/check.mjs — 源码形态 (四处修复点); CDP 实测: seek 到 SV 绿线精确
+  时间 ±0ms/±1ms 三组 (T_g 在 1/4 网格, SV 1.0x→2.0x) + off-grid 绿线两组 (吸附落绿线前/
+  跨过绿线) + 红线 BPM 减半一组 (红线前 1ms 吸到红线起点), 真实鼠标放滑条, 逐组断言
+  预览(pendingSliderTimeline) 时刻/velocity/时长 = 落盘 (length/sliderVelocityAt(o.time));
+  tsc。修复前同脚本复现 12 处失败 (时长差 2 倍), 修复后全过。
+  verifier/v363 源码断言同步更新 (ghostTime 钳制 → renderer 抗淡出, 注明有意变更),
+  其 CDP B 段 (过去节拍吸附不淡出) 语义不变继续通过。
+  回归: v365/v364/v363/v219。
+
+## v367 — 缩放类数值框精细度 ×10 (步进 ÷10 + 显示 3 位小数)
+- 用户反馈「缩放(1个选中)」变换窗口 (TransformDialog) 倍率 x/y 输入框调整精细度不够 (拖动/
+  滚轮/步进太大, 显示 2 位小数 0.59), 要求所有缩放相关 UI 数值精度增加一位。修改:
+  1. TransformDialog 缩放窗口 倍率 x/y (testid factor/factor-y): step 0.05 → 0.005 + digits=3
+     — 滚轮 (v304) 与拖动调值 (v258/v269, 5px=1step) 共用 step prop, 步进自动同步 ÷10;
+     xy固定 (lockRatio) 联动另一轴逻辑不动 (round4 保留)。
+  2. DuplicateDialog / SymSliderDialog 每份递增缩放 (scalePerCopy): step 0.05 → 0.005 + digits=3。
+  3. App.tsx 游玩区平移 Zoom 框 (v223/v224 左侧栏): 显示取整 ×100 → ×1000, step 0.1 → 0.01,
+     digits=3 (Alt+滚轮 ×1.1/刻度 手势灵敏度不动, 仅数值框)。
+  4. 显示机制: DraftNum (DraggableDialog) 与 PanNumInput (App) 新增 digits prop — 非草稿/
+     非聚焦态 value.toFixed(digits) 显示 (1 → "1.000"), 聚焦/拖动/滚轮时仍显示原始编辑文本。
+  内部存储本来就是浮点不动。刻意不改: BPM/SV 框 (TimingPointDialog step 0.01)、锁定间距倍率
+  (DistanceSpacing step 0.05, 间距语义非缩放)、Inspector 变换面板 NumIn (step="any" 无步进,
+  任意精度输入)。
+- 验证: verifier/v367/check.mjs — 源码断言四处缩放框新 step/digits + digits 机制 + 非缩放框
+  精度不变; CDP 实测: 缩放窗口 factor 框 step=0.005 / 初始显示 "1.000" / 滚轮一格 +0.005
+  (= 原 0.05 的 1/10) 显示 "1.005", 游玩区 Zoom step=0.01 / playfieldScale=1.23456 显示
+  "1.235" (原 2 位只到 "1.23"), Duplicate/SymSlider 两窗口 scalePerCopy step=0.005 显示
+  "0.000"; tsc。verifier/v224 的 Zoom 行源码断言同步更新为 v367 新值 (注明有意变更)。
+  回归: v366/v331/v224。
+
+## v368 — 游玩区外滑条 hover 不预览控制点修复 (refreshHover 去掉游玩区边界门控)
+- 用户反馈: 游标放在游玩区外 (x>512/y>384) 的滑条上时不显示控制点连线/手柄预览
+  (区内 hover 正常, v259 功能; v316 收敛到 refreshHover, v342 收紧过结束侧门控)。
+- 根因: refreshHover (src/components/EditorCanvas.tsx) 早退门控含 `!cp.inside` —
+  cp.inside = onMouseMove 算的「光标在游玩区矩形 (0..512×0..384) 内」; 悬停区外滑条时
+  inside=false → hoverSliderRef (普通层控制点预览) 与 hoverNodeRef (Alt 层锚点高亮环,
+  v316) 一并清空。hitTest/nearestNode 本身都没有游玩区边界裁剪 (纯按 osu 坐标距离命中),
+  该门控是唯一拦截点; v163 起区外物件本就可渲染/放置预览, hover 预览应同样不受边界限制
+  (出画布清空由 onMouseLeave 负责, v259 原有逻辑不变)。
+- 修复: refreshHover 门控去掉 `|| !cp.inside` 一处 — 普通层与 Alt 层 (同一门控) 同时恢复;
+  v342 时间门控 (滑条身消失时机 end+HIT_FADE 后预览消失) 与 v316 Alt 层候选逻辑均未动。
+- 验证: verifier/v368/check.mjs — 源码断言 (门控不含 cp.inside/其余门控与 v259 出画布清空/
+  v342 时间门控不变); CDP 实测 (双滑条场景: 区内 200,192 + 区外 560,250): A 区内 hover
+  预览正常 (差异像素 72), B 区外 hover 出控制点预览 (82, 修复前=0), C Alt 层区外叠加渲染
+  (50, 修复前=0), D 区外滑条 end+500ms 预览消失 (0, v342 时间门控不变); tsc。
+  verifier/v366 场景执行器顺带加固 (幻影-头距离 ≈160 osu px 偏差 >40 时重算 tail 再悬停,
+  消除偶发首跑布局未稳导致的 flaky)。
+  回归: v366/v363/v342/v316/v259。
+
+## v369 — 「限制物件在游玩区域内」拖曳钳制改实时判定 (区外起拖全程失效修复)
+- 用户反馈: 拖曳开始时滑条头/尾有一端在游玩区外, 这次拖曳全程限界钳制失效 (即使两端拖回区内也不再钳; 必须先把头尾放回区内并停拖, 下次拖曳才正常)。期望: 拖曳全程按当前实时位置持续钳制, 与拖曳起始状态无关。
+- 根因: applyObjectDrag (EditorCanvas.tsx) 共享 delta 钳制按拖拽起始 orig 位置判定「界内才纳入钳制」(v302/F04 规则), 起始在界外的头/尾整段拖拽被排除在钳制点集外; 且逐件头部钳 (v163) 会把起始界外的头强制拉回界内 (与 v302「越界点不压回」冲突)。
+- 修复: 钳制按上一帧应用后的当前位置 (orig + d.deltaX/d.deltaY) 逐点给出本帧 dx/dy 允许区间 — 界内点保持界内; 界外点不许比起始更往外、可向界内移动, 一旦进界即按界内点钳制; 逐件应用处不再各自钳头部 (共享 delta 已钳好, 位移恒一致, uniform 恒 true)。
+- 验证: verifier/v369 (源码断言 + CDP 实测: a 尾区外起拖更外拖整件钳住/拖回入区跟随/再出界尾钳 512; b 头区外起拖不压回/往界内尾钳 512; c 区内起拖行为不变; d 多选共享 delta 三组场景)。
+- 回归: v352/v364/v365/v366/v367/v368 全绿; tsc 通过。
+
+## v370 — Shift 锁比只对 4 个斜角手柄生效 (isCorner 误判修复)
+- 用户反馈: 黄色 8 手柄包围框按住 Shift — 单物件时 4 角 + 左右边中点都锁比缩放 (上下边无反应); 多物件时左右边中点按 Shift 拖曳会脱离游标而不是等比缩放。
+- 根因: selectionBox.ts isCorner = `a.length === 2 && a[1] !== 'c'` 只查第二字符, cl/cr (左右边中点) 被误判为角 → Shift 锁比对其错误生效: 边手柄 sy 已清零, 锁比取 (sx+1)/2 同赋两轴 → X 倍率减半 (手柄跟不上游标) 且 Y 凭空缩放; 多物件扁框下最明显。tc/bc 因 a[1]==='c' 恰好被排除, 故上下边表现"正常"。
+- 修复: isCorner 改为 `a[0] !== 'c' && a[1] !== 'c'` (两轴都不居中才是真角), 与 lazer `!anchor.HasFlag(x1) && !anchor.HasFlag(y1)` 逐字对应; Shift 只在 tl/tr/bl/br 锁 1:1, 四条边一律单轴缩放且 Shift 无效果。
+- 验证: verifier/v370 (纯函数: 8 手柄无 Shift 基线 + Shift 仅角锁比/边不变 + anchorAxis 回归; 源码断言)。
+- 回归: v49/v50/v117/v209/v212/v369 全绿; tsc 通过。
+
+## v371 — Alt 节点框选收窄: 只框第一条滑条 + Alt 点选滑条限定框选范围
+- 用户需求 (soulten): 一次几乎不会同时动两条滑条 — a) Alt/Shift+Alt 框选改成只框选「第一个框到的滑条」的锚点; b) 新增 Alt 点选滑条 (可复选), 存在被点选滑条时框选就只能框这些滑条的锚点。
+- 实现:
+  - nodeSelection.ts: 新增 firstFramedSliderId — 距框选起点最近的框内节点所在滑条;
+  - store.ts: altPickSliders 状态 (toggleAltPickSlider/clearAltPickSliders, 换谱清空);
+  - EditorCanvas: nodeAltPress 未命中锚点时命中滑条本体 → 切换点选 (不再落成空白框选); 节点框选重算时 — 有点选滑条则只框点选集, 否则框到多条滑条只保留第一条 (subtract/toggle 语义不变); 点选滑条画青色虚线控制多边形+节点圆点高亮 (独立于 nodeSelectionCount 门控)。
+- 适配: v333 (recomputeMarqueeSelection 提取窗口 2600→3400); v343 初跑失败为 CDP 实测 flaky, 新构建复跑通过。
+- 验证: verifier/v371 (firstFramedSliderId 纯函数 6 项 + 源码断言); 回归 v309/v333/v343/v360/v369/v370 全绿; tsc + vite build 通过。
