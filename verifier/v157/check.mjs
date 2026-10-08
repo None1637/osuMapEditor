@@ -47,7 +47,11 @@ section('TimingPanel.tsx: 绿线行首勾选 + 批量编辑栏');
   assert(timingDict.includes("'timing.green_selected': '已选 {n} 条绿线'"), '已选数量 zh-CN 译文正确');
   assert(/store\.updateGreenLinesAt\(selGreens\.map\(g => g\.time\), patch\)/.test(src), '修改即时应用到所有选中绿线');
   for (const f of ['sv', 'sampleSet', 'sampleIndex', 'volume', 'kiai']) {
-    assert(new RegExp(`data-tp-batch-input="${f}"`).test(src), `批量字段 ${f}`);
+    // v372: sv 改走 PreciseInput 属性透传 (dataAttr + dataValue), 其余字段保持原样
+    const ok = f === 'sv'
+      ? /dataAttr="data-tp-batch-input" dataValue="sv"/.test(src)
+      : new RegExp(`data-tp-batch-input="${f}"`).test(src);
+    assert(ok, `批量字段 ${f}`);
   }
   assert(/data-tp-batch-delete/.test(src) && /store\.deleteGreenLinesAt\(selGreens/.test(src), '删除所选按钮');
 }

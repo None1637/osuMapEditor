@@ -3634,3 +3634,14 @@
   - EditorCanvas: nodeAltPress 未命中锚点时命中滑条本体 → 切换点选 (不再落成空白框选); 节点框选重算时 — 有点选滑条则只框点选集, 否则框到多条滑条只保留第一条 (subtract/toggle 语义不变); 点选滑条画青色虚线控制多边形+节点圆点高亮 (独立于 nodeSelectionCount 门控)。
 - 适配: v333 (recomputeMarqueeSelection 提取窗口 2600→3400); v343 初跑失败为 CDP 实测 flaky, 新构建复跑通过。
 - 验证: verifier/v371 (firstFramedSliderId 纯函数 6 项 + 源码断言); 回归 v309/v333/v343/v360/v369/v370 全绿; tsc + vite build 通过。
+
+## v372 — Timing 窗口对齐 stable F6 反馈批 (精度/拍号/圆点/音量%/音效集合并/Ctrl+Shift 多选)
+- 用户反馈 (soulten, 附 stable F6 截图): 6 项 —
+  1) BPM/SV 输入精度太低 (stable 允许 13 位小数): 新增 PreciseInput — 聚焦期间保留用户原文 (controlled 值重算会吞掉 "."), 失焦回规范显示; fmtTpPrec = 13 位有效数字去尾零防浮点噪声; 行 BPM/SV 与绿线批量 SV 全部换用;
+  2) 绿线不显示拍号, 红线拍号显示为 n/4 (meter 输入 + "/4" 后缀, 绿行该列留空);
+  3) 线型改左侧红 (#eb4747) /绿 (#b2ff66) 小圆点区分 (data-tp-dot), Type 列文字移除;
+  4) 音量显示为 n% (行与批量栏均加 % 后缀);
+  5) 音效集+序号合并显示 (sampleSetCode: Soft+0→S, Soft+1→S:C1, Soft+2→S:C2; Normal→N, Drum→D), 表头并为 Sample 单列, 编辑控件同列保留;
+  6) 行点击文件管理器式多选 (点在输入控件上不触发): 单击=单选, Ctrl=切换, Shift=锚点范围 (rangeTimes 按可见行序); 红绿线通用 — store.clickTimingLine + tpSelAnchor, 集合复用 selectedGreenLines (语义扩为选中 timing 点); 新增红线批量编辑栏 (音效集/序号/音量/kiai/删除, updateTimingPointsAt/deleteTimingPointsAt 红绿通用)。
+- 适配: v157 (sv 批量字段改 PreciseInput 属性透传断言)。
+- 验证: verifier/v372 (sampleSetCode/rangeTimes/fmtTpPrec 纯函数 + 源码断言 + v157 结构回归); 回归 v157/v62/v359/v371 全绿; tsc + vite build 通过。

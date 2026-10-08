@@ -95,3 +95,22 @@ export function metronomeBeats(points: TimingPoint[], songLength: number): { t: 
   }
   return out;
 }
+
+/** v372: 音效集+序号合并显示 (stable F6 样式): Soft+0 → S, Soft+1 → S:C1, Soft+2 → S:C2; Normal → N, Drum → D */
+export function sampleSetCode(sampleSet: number, sampleIndex: number): string {
+  const L = sampleSet === 2 ? 'S' : sampleSet === 3 ? 'D' : 'N';
+  return sampleIndex > 0 ? `${L}:C${sampleIndex}` : L;
+}
+
+/** v372: Shift 范围选择 — 锚点到目标在可见行序内的全部 time (文件管理器语义; 锚点不可见返回 null) */
+export function rangeTimes(visibleTimes: number[], anchor: number, target: number): number[] | null {
+  const a = visibleTimes.indexOf(anchor), b = visibleTimes.indexOf(target);
+  if (a < 0 || b < 0) return null;
+  return visibleTimes.slice(Math.min(a, b), Math.max(a, b) + 1);
+}
+
+/** v372: BPM/SV 高精度显示 — 13 位有效数字 (stable 输入精度), toPrecision 去尾零防浮点噪声 */
+export function fmtTpPrec(v: number): string {
+  if (!isFinite(v)) return '0';
+  return String(+v.toPrecision(13));
+}

@@ -15,7 +15,7 @@ import { saveBeatmap, mapFileName, type MapSource, type SaveOutcome } from './sa
 import { DEFAULT_GROUP, instantiatePattern, loadPatternGroups, loadPatterns, makePattern, newPatternId, savePatternGroups, savePatterns, type StoredPattern } from './patternLibrary';
 import { reportMenuState, reportDirtyState } from './electronMenu';
 import { getElectronAPI } from './electronBridge'; // v185: 谱面备份 IPC
-import { defaultNewPoint, effectivePointAt, activePointAt, snapTimeToRedBeat, metronomeBeats } from './timingEdit'; // v156
+import { defaultNewPoint, effectivePointAt, activePointAt, snapTimeToRedBeat, metronomeBeats, rangeTimes } from './timingEdit'; // v156; v372: rangeTimes
 import { resnapSliderLength, snapPlacementTime, placementLength, pendingSliderTimeline, sliderLengthSnapDivisor, snapSliderLength } from './sliderPath'; // v156: 重新计算滑条长度; v357: 粘贴锚点节拍吸附; v364: 调试暴露吸附纯函数
 import { sliderVelocityAt, svPointAt } from './parser'; // v366: 调试暴露 (SV 绿线边界验证)
 import { snapshotNodes, withRedPartners, transformNodesFromSnapshot } from './nodeSelection'; // v304: F08 节点选区快捷键变换
@@ -1520,6 +1520,47 @@ class EditorStore {
     if (!ts.size) return;
     this.pushUndo();
     for (const tp of bm.timingPoints) if (!tp.uninherited && ts.has(tp.time)) Object.assign(tp, patch);
+    this.emit();
+  }
+
+  // ---- v372: timing 面板文件管理器式多选 (红绿线通用; 集合复用 selectedGreenLines, 语义扩为「选中的 timing 点」) ----
+  tpSelAnchor: number | null = null; // Shift 范围选择锚点 (time)
+
+  /** 行点击多选: 单击 = 单选; Ctrl = 切换单条; Shift = 锚点到本行范围 (按可见行序, 含红绿线) */
+  clickTimingLine(time: number, mods: { ctrl?: boolean; shift?: boolean }, visibleTimes: number[]) {
+    if (mods.shift && this.tpSelAnchor !== null) {
+      const range = rangeTimes(visibleTimes, this.tpSelAnchor, time);
+      if (range) { for (const t of range) this.selectedGreenLines.add(t); this.emitSelection(); return; }
+    }
+    if (mods.ctrl) {
+      if (this.selectedGreenLines.has(time)) this.selectedGreenLines.delete(time);
+      else this.selectedGreenLines.add(time);
+    } else {
+      this.selectedGreenLines.clear();
+      this.selectedGreenLines.add(time);
+    }
+    this.tpSelAnchor = time;
+    this.emitSelection();
+  }
+
+  /** v372: 批量修改选中 timing 点 (红绿通用; patch 不含 time/uninherited/beatLength; 一次 undo) */
+  updateTimingPointsAt(times: Iterable<number>, patch: Partial<TimingPoint>) {
+    const bm = this.beatmap; if (!bm) return;
+    const ts = new Set(times);
+    if (!ts.size) return;
+    this.pushUndo();
+    for (const tp of bm.timingPoints) if (ts.has(tp.time)) Object.assign(tp, patch);
+    this.emit();
+  }
+
+  /** v372: 批量删除选中 timing 点 (红绿通用; 一次 undo) */
+  deleteTimingPointsAt(times: Iterable<number>) {
+    const bm = this.beatmap; if (!bm) return;
+    const ts = new Set(times);
+    if (!ts.size) return;
+    this.pushUndo();
+    bm.timingPoints = bm.timingPoints.filter(tp => !ts.has(tp.time));
+    for (const t of ts) this.selectedGreenLines.delete(t);
     this.emit();
   }
 
