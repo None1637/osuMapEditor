@@ -3,6 +3,7 @@ import { store, useEditor } from '@/osu/store';
 import { getSkin, type Skin } from '@/osu/skin'; // v318: hitcircleSpriteWidth 随光秃幽灵移除 (renderer 内部自用)
 import { renderPlayfield, computeCombos, getSliderPath, invalidatePath, mergedWithPreview, drawDistanceGuideRing, drawPendingSpinner, drawSliderControlPoints } from '@/osu/renderer'; // v259: hover 预览滑条点复用控制点绘制; v308: hover 选中环移除
 import { computePendingPath, deleteSliderPoint, toggleSliderPointRed, resolveSliderCurveType, nearestOnSegment, sliderGeometryLength, snapSliderLength, resnapSliderLength, redPairPartner, isRedPairPoint, SliderPath, preserveArcsForBezier, placementLength, snapPlacementTime, spinnerPlacementEnd, BEAT_SNAP_OPTIONS } from '@/osu/sliderPath'; // v319: 插点改 lazer 原位置插入 (旧投影插点函数弃用); v321: BEAT_SNAP_OPTIONS (Ctrl+滚轮循环细分)
+import { bsplineToStableBezier } from '@/osu/freehand/pathApproximator'; // v377: B4 转 stable 兼容 B (Schneider 容差拟合, 少锚点)
 import { objectSnapPoints, snapToNearby, snapDragDelta, type Pt } from '@/osu/objectSnap';
 import { sliderHelperCircle, sliderHelperLines, clipLineToBox, geoHelperSnap, geoHelperSources, geoDistSources, distGuideSnap, geoDragCorrection, GEO_CLIP_BOX, type GeoLine, type GeoCircle } from '@/osu/geometryHelpers';
 import { instantiatePattern } from '@/osu/patternLibrary';
@@ -794,13 +795,14 @@ export function EditorCanvas() {
           } else if (store.tool === 'slider') {
             // 与 finishSlider 同源: 路径/长度/起点时间同一公式 (预览=落盘); 幻影点只在光标在画布内时并入
             const computed = computePendingPath(store.pendingSlider, cur.inside ? store.pendingCursor : null);
-            // v363: 手绘预览 (pend 带 bspline 标记) — 幽灵直接按 'B4' 渲染控制点列 (与 drawPendingSlider
-            //   的 raw/落盘 finishFreehandSlider 同源; 跳过 preserveArcsForBezier, 3 点段不转圆预设贝塞尔)
+            // v363: 手绘预览 (pend 带 bspline 标记) — 幽灵按控制点列渲染 (与 drawPendingSlider
+            //   的 raw 同源; 跳过 preserveArcsForBezier, 3 点段不转圆预设贝塞尔)
+            //   v377: 落盘/预览均为拟合后的 stable 'B' (bsplineToStableBezier; 'B4' 渲染支持已移除)
             const bspline = store.pendingSlider.some(pt => pt.bspline);
-            const finalCtrl = bspline ? computed.controlPoints : preserveArcsForBezier(computed.curveType, computed.controlPoints);
+            const finalCtrl = bspline ? bsplineToStableBezier(computed.controlPoints) : preserveArcsForBezier(computed.curveType, computed.controlPoints);
             ghosts.push({ id: -2, type: 'slider', x: finalCtrl[0].x, y: finalCtrl[0].y,
               time: Math.round(snapPlacementTime(bm.timingPoints, store.currentTime, store.beatSnap)), // v366: = 落盘时间公式 (v363 钳制撤销)
-              curveType: bspline ? 'B4' : computed.curveType, curvePoints: finalCtrl.slice(1), slides: 1,
+              curveType: bspline ? 'B' : computed.curveType, curvePoints: finalCtrl.slice(1), slides: 1,
               length: placementLength(bm.timingPoints, store.currentTime, bm.difficulty.sliderMultiplier,
                 computed.length, store.distanceLock, bm.editor.distanceSpacing, store.beatSnap),
               newCombo: store.placeNewCombo, comboSkip: 0, hitSound: store.placeHitSound });
@@ -1717,7 +1719,7 @@ export function EditorCanvas() {
   };
 
   // ---- v66: 手绘滑条 (lazer SliderPlacementBlueprint Drawing 模式) ----
-  /** 拖动中实时拟合预览: builder 控制点 -> pendingSlider (段起点 = 红锚点, bspline 标记 => 'B4' 渲染), 走既有放置预览渲染 */
+  /** 拖动中实时拟合预览: builder 控制点 -> pendingSlider (段起点 = 红锚点, bspline 标记 => B 样条直接求值渲染), 走既有放置预览渲染 */
   const updateFreehandPreview = (builder: IncrementalBSplineBuilder, head: { x: number; y: number }) => {
     const { points } = fitSegmentsToPoints(builder.getControlPoints(), builder.degree, FREEHAND_CIRCLE_THRESHOLD);
     if (points.length < 2) return; // 输入还太少, 保持仅头部
@@ -1727,7 +1729,7 @@ export function EditorCanvas() {
     ];
   };
 
-  /** 松开鼠标: Finish 后取最终控制点建滑条 (单段圆弧 => 'P' 三点, 否则 'B4' B样条少控制点, 与 lazer 编辑器一致) */
+  /** 松开鼠标: Finish 后取最终控制点建滑条 (单段圆弧 => 'P' 三点, 否则 B 样条拟合转 stable 'B' 少锚点, v377) */
   const finishFreehandSlider = (builder: IncrementalBSplineBuilder) => {
     const bm = store.beatmap;
     const head = store.pendingSlider[0];
@@ -1741,16 +1743,21 @@ export function EditorCanvas() {
       ctrl.push(a);
       if (pt.red) ctrl.push({ ...a });
     }
-    // v74: 非单弧 => 'B4' (lazer 扩展 degree-4 B 样条, 控制点 = builder 原始输出)
-    const curveType = singleArc && ctrl.length === 3 ? 'P' : 'B4';
+    // v377: 非单弧 => B 样条控制点列容差拟合为 stable 兼容 'B' (Schneider FitCurve, 偏差 <= 1px;
+    //   锚点尽量少 — 精确 Boehm 转换每 piece 一组红锚点太多不好改, 弃用)
+    //   (原 v74 落盘 'B4' 为 lazer 内存扩展格式, stable osu 无法解析; 'B4' 渲染支持已移除)
+    const singleP = singleArc && ctrl.length === 3;
+    const curveType = singleP ? 'P' : 'B';
+    // lazer 导出口径: 转换后控制点 Round 取整 (stable 坐标为整数)
+    const finalPts = singleP ? ctrl : bsplineToStableBezier(ctrl).map(p => ({ x: Math.round(p.x), y: Math.round(p.y) }));
     // 长度 = 几何全长, 锁定间距时吸细分网格×间距倍率 (v365 起, 原吸整拍; 与 finishSlider 同款规则; lazer endCurve: Finishing 状态 SnapTo)
     // v83: 规则收敛到共享纯函数 placementLength/snapPlacementTime
     const len = placementLength(bm.timingPoints, store.currentTime, bm.difficulty.sliderMultiplier,
-      sliderGeometryLength(curveType, ctrl), store.distanceLock, bm.editor.distanceSpacing, store.beatSnap);
+      sliderGeometryLength(curveType, finalPts), store.distanceLock, bm.editor.distanceSpacing, store.beatSnap);
     store.addObject({
       id: genId(), type: 'slider', x: ctrl[0].x, y: ctrl[0].y,
       time: Math.round(snapPlacementTime(bm.timingPoints, store.currentTime, store.beatSnap)),
-      curveType, curvePoints: ctrl.slice(1), slides: 1, length: len,
+      curveType, curvePoints: finalPts.slice(1), slides: 1, length: len,
       newCombo: store.placeNewCombo, comboSkip: 0, hitSound: store.placeHitSound, // v241: 放置态 (Q/W/E/R 预设; 取代原硬编码 NC=true)
     });
     store.placeNewCombo = false; // v241: NC 仅一次 (放置后复位)

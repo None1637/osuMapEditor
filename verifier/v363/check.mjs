@@ -33,8 +33,9 @@ section('源码: 手绘拖拽中幽灵不抑制 (Bug A)');
   assert(/!store\.playing && \(!store\.canvasDragging \|\| placingDrag\) && !store\.patternDrag/.test(ec), '幽灵门控放行放置中拖拽');
   assert(/cur\.inside \|\| !store\.limitToPlayfield \|\| placingDrag/.test(ec), '手绘拖出游玩区幽灵同样保持');
   assert(/const bspline = store\.pendingSlider\.some\(pt => pt\.bspline\);/.test(ec), '手绘拟合点 bspline 标记检测');
-  assert(/const finalCtrl = bspline \? computed\.controlPoints : preserveArcsForBezier\(/.test(ec), '手绘预览跳过 preserveArcsForBezier (不转圆预设贝塞尔)');
-  assert(/curveType: bspline \? 'B4' : computed\.curveType/.test(ec), "手绘幽灵按 'B4' 渲染 (与落盘 finishFreehandSlider 同源)");
+  // v377 适配: 手绘幽灵与落盘均走 bsplineToStableBezier 拟合后的 stable 'B' ('B4' 渲染支持移除)
+  assert(/const finalCtrl = bspline \? bsplineToStableBezier\(computed\.controlPoints\) : preserveArcsForBezier\(/.test(ec), '手绘预览跳过 preserveArcsForBezier (改走 bsplineToStableBezier 拟合)');
+  assert(/curveType: bspline \? 'B' : computed\.curveType/.test(ec), "手绘幽灵按拟合后 'B' 渲染 (与落盘 finishFreehandSlider 同源)");
   const st = read('src/osu/store.ts');
   assert(/pendingSlider: \{ x: number; y: number; redAnchor: boolean; bspline\?: boolean \}\[\]/.test(st), 'pendingSlider 类型含 bspline 可选标记');
 }

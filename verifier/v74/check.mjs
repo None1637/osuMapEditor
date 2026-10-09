@@ -22,19 +22,22 @@ function readSrc(rel) { return fs.readFileSync(path.join(root, rel), 'utf8'); }
 await import('file://' + out);
 fs.unlinkSync(out);
 
-section("sliderPath.ts: 'B4' 路径 + 类型解析 + 预览");
+section("sliderPath.ts: B 样条路径 + 类型解析 + 预览 (v377 适配: 'B4' curveType 移除)");
 {
   const src = readSrc('src/osu/sliderPath.ts');
-  assert(/case 'B4': return bsplinePath/.test(src), "computeRawPath 'B4' 分支");
-  assert(/bSplineToPiecewiseLinear\(segment, 4\)/.test(src), 'bsplinePath 逐段 degree-4');
-  assert(/current === 'B4'\) return 'B4'/.test(src), 'resolveSliderCurveType 保持 B4');
-  assert(/p\.bspline/.test(src) && /bspline \? 'B4' : inferSegmentType/.test(src), 'computePendingPath bspline 标记 => B4 渲染');
+  assert(!/case 'B4'/.test(src), "computeRawPath 无 'B4' 分支 (渲染层移除, v377)");
+  assert(/export function bsplineRawPath\(pts: Vec2\[\]\)/.test(src), 'bsplineRawPath 导出 (预览直接求值)');
+  assert(/bSplineToPiecewiseLinear\(segment, 4\)/.test(src), 'bsplineRawPath 逐段 degree-4');
+  assert(!/current === 'B4'\) return 'B4'/.test(src), 'resolveSliderCurveType 不再特判 B4 (v377)');
+  assert(/p\.bspline/.test(src) && /bspline \? bsplineRawPath\(s\) : SliderPath\.computeRawPath\(inferSegmentType/.test(src), 'computePendingPath bspline 标记 => B 样条直接求值');
 }
 
 section('EditorCanvas.tsx: B4 落盘 + 一键手绘 + 候选期 canvasDragging');
 {
   const src = readSrc('src/components/EditorCanvas.tsx');
-  assert(/singleArc && ctrl\.length === 3 \? 'P' : 'B4'/.test(src), "finishFreehandSlider 落盘 'B4'");
+  // v377 适配: 落盘由 'B4' 改 stable 兼容 'B' (bsplineToStableBezier 容差拟合, 少锚点; stable 无法解析 B4)
+  assert(/const curveType = singleP \? 'P' : 'B';/.test(src) && /bsplineToStableBezier\(ctrl\)/.test(src),
+    "finishFreehandSlider 落盘 stable 'B' (v377: B4 拟合转换; 原 v74 落盘 B4 废弃)");
   assert(/bspline: true/.test(src), '预览点带 bspline 标记');
   assert(/isHead = store\.pendingSlider\.length === 0/.test(src), '无待放点 => 按下即放头 (isHead 候选)');
   assert(/drawCandRef\.current = \{ x: p\.x, y: p\.y, sp: sp0, redAnchor: e\.ctrlKey, isHead \}/.test(src), '头部候选登记');

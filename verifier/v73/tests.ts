@@ -3,7 +3,7 @@
 import { IncrementalBSplineBuilder } from '../../src/osu/freehand/bsplineBuilder';
 import { bSplineToPiecewiseLinear, bSplineToBezier, type Vec } from '../../src/osu/freehand/pathApproximator';
 import { fitSegmentsToPoints, convertCircleToBezierAnchors, circularArcProperties, type FitResult } from '../../src/osu/freehand/freehandFit';
-import { SliderPath } from '../../src/osu/sliderPath';
+import { bsplineRawPath } from '../../src/osu/sliderPath'; // v377 适配: computeRawPath 'B4' 分支移除, 直接调 bsplineRawPath
 
 let failures = 0;
 function assert(cond: boolean, msg: string) {
@@ -114,7 +114,7 @@ section('fitSegmentsToPoints: builder 长笔画集成 (B4 少控制点, 路径�
   assert(fit.points.length === segs[0].length && !fit.points.some(p => p.red),
     `控制点 = builder 原始 ${segs[0].length} 个 (实际 ${fit.points.length})`);
   // 'B4' 渲染路径 ≡ builder 拟合 (同 bSplineToPiecewiseLinear), 且贴合手绘轨迹
-  const stable = SliderPath.computeRawPath('B4', toStablePoints(fit));
+  const stable = bsplineRawPath(toStablePoints(fit));
   const draw: Vec[] = [];
   for (let i = 0; i <= 200; i++) { const t = i / 200; draw.push({ x: t * 700, y: Math.sin(t * Math.PI * 5) * 50 }); }
   const devDraw = maxDeviation(draw, stable);
@@ -140,7 +140,7 @@ section('fitSegmentsToPoints: 多段内弧段保留 B 样条控制点 (v74, 形�
   const firstRed = fit.points.findIndex(p => p.red);
   assert(firstRed === segs[0].length - 1, `弧段保留 ${segs[0].length} 个 B 样条控制点 (首红点位于 ${firstRed})`);
   // 'B4' 路径贴合原手绘轨迹 (B 样条拟合本身过弧, 形状不变)
-  const stable = SliderPath.computeRawPath('B4', toStablePoints(fit));
+  const stable = bsplineRawPath(toStablePoints(fit));
   const draw: Vec[] = [];
   for (let i = 0; i <= 60; i++) {
     const t = i / 60;

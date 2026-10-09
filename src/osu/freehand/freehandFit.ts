@@ -2,8 +2,9 @@
 // (osu.Game.Rulesets.Osu/Edit/Blueprints/Sliders/SliderPlacementBlueprint.cs:440-554)
 // 每段先尝试用 3 点圆弧替代 (损失 ≤ CircleThreshold 且单向弯曲不超过一圈), 否则保留 B 样条段
 // v73: 移植 BezierConverter.ConvertCircleToBezierAnchors (圆预设, 供 stable 兼容导出备用) + continue 语义修正
-// v74: 落盘改 'B4' (lazer 扩展格式, 控制点 = builder 原始输出); 弧特判仅单段 (整条 'P'),
-//      多段内弧段保留 B 样条控制点 (v73 曾转贝塞尔锚点落 'B', 控制点过多, 与 lazer 编辑器不一致)
+// v74: 弧特判仅单段 (整条 'P'), 多段内弧段保留 B 样条控制点
+// v377: 落盘由 'B4' 改 stable 兼容 'B' (EditorCanvas finishFreehandSlider 处 bsplineToStableBezier 容差拟合, 少锚点;
+//       'B4' 为 lazer 内存扩展格式, stable 无法解析, 渲染支持已移除)
 import { bSplineToPiecewiseLinear, type Vec } from './pathApproximator';
 
 export interface ArcProps {
@@ -170,9 +171,9 @@ export interface FitResult {
 /**
  * builder 段列 -> 滑条控制点列 (lazer updateSliderPathFromBSplineBuilder 同构):
  * 每段首点带类型标记 (=> red 段分隔), 段中间点平铺, 仅末段补尾点。
- * v74: 落盘 curveType = 'B4' (lazer 扩展, degree-4 B 样条, 控制点 = builder 原始输出, 数量少);
+ * v377: 落盘由 'B4' 改 stable 'B' (finishFreehandSlider 处容差拟合, 少锚点);
  * 弧特判仅单段生效 (整条 'P' 三点, stable 原生); 多段内弧段保留 B 样条控制点
- * ('B4' 渲染形状与弧一致, lazer 虽记 PERFECT_CURVE 段但我方单类型模型不支持混合段类型,
+ * (B 样条渲染形状与弧一致, lazer 虽记 PERFECT_CURVE 段但我方单类型模型不支持混合段类型,
  *  保留 B 样条控制点形状不变且可编辑点更少)。
  */
 export function fitSegmentsToPoints(segments: Vec[][], degree: number, circleThreshold: number): FitResult {

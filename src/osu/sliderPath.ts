@@ -1,4 +1,6 @@
-// 滑条路径计算: 直线(L) / 三点圆弧(P) / 贝塞尔(B) / 卡特姆(C) / B样条(B4, lazer 扩展)
+// 滑条路径计算: 直线(L) / 三点圆弧(P) / 贝塞尔(B) / 卡特姆(C)
+// v377: 'B4' (lazer 内存扩展 B 样条) 渲染支持移除 — 落盘/读入均转 stable 'B' (pathApproximator.bsplineToStableBezier),
+//   仅手绘进行中的预览经导出的 bsplineRawPath 直接求值 (不经过 curveType)
 import { sliderVelocityAt, timingAt, snapAcrossRedLine, type Beatmap, type HitObject, type TimingPoint, type Vec2 } from './parser';
 import { bSplineToPiecewiseLinear } from './freehand/pathApproximator';
 import { convertCircleToBezierAnchors } from './freehand/freehandFit';
@@ -19,8 +21,7 @@ export class SliderPath {
       case 'L': return linearPath(pts);
       case 'P': return perfectArcPath(pts);
       case 'C': return catmullPath(pts);
-      case 'B4': return bsplinePath(pts); // lazer 扩展: degree-4 B 样条
-      default: return bezierPath(pts); // B
+      default: return bezierPath(pts); // B (v377: 'B4' 支持移除, 读入/落盘均已转 'B')
     }
   }
 
@@ -277,8 +278,8 @@ export function flattenBezier(pts: Vec2[], out: Vec2[]): void {
   out.push({ x: pts[pts.length - 1].x, y: pts[pts.length - 1].y }); // 全曲线精确末点
 }
 
-// v74: lazer B4| (degree-4 clamped 均匀 B 样条, 红点(重复点)分段; 手绘滑条落盘格式, 控制点少)
-function bsplinePath(pts: Vec2[]): Vec2[] {
+// v74: clamped degree-4 均匀 B 样条 -> 折线 (红点(重复点)分段); 仅手绘进行中预览直接调用 (v377: 不再作为 curveType)
+export function bsplineRawPath(pts: Vec2[]): Vec2[] {
   const out: Vec2[] = [];
   let segment: Vec2[] = [];
   const flush = () => {
@@ -427,11 +428,10 @@ export function toggleSliderPointRed(pts: Vec2[], index: number): Vec2[] | null 
 
 /**
  * 节点增删后的 curveType 解析: 红点存在 -> 'B' (v15 放置规则同款);
- * 'B4' 有红点对仍合法 (B 样条分段), 保持 'B4' (v74);
  * 原类型仍合法则保持 ('P' 恰好 3 点合法, 'L'/'B'/'C' 任意 >=2 点合法), 否则按 inferSegmentType 降级
+ * (v377: 'B4' 支持移除 — 读入/落盘均已转 'B', 此处不再特判)
  */
 export function resolveSliderCurveType(pts: Vec2[], current: string): string {
-  if (current === 'B4') return 'B4';
   if (hasRedPair(pts)) return 'B';
   if (current === 'P' && pts.length !== 3) return inferSegmentType(pts.length);
   return current;
@@ -487,10 +487,10 @@ export function computePendingPath(pend: PendingPoint[], cursor: Vec2 | null): P
 
   const raw: Vec2[] = [];
   let length = 0;
-  const bspline = pend.some(p => p.bspline); // v74: 手绘预览 => 段按 B 样条 ('B4') 渲染 (与落盘一致)
+  const bspline = pend.some(p => p.bspline); // v74: 手绘进行中预览 => 段按 B 样条直接求值 (v377: 不经 curveType, 落盘时拟合转 'B')
   for (const s of segments) {
     if (s.length < 2) continue;
-    const segRaw = SliderPath.computeRawPath(bspline ? 'B4' : inferSegmentType(s.length), s);
+    const segRaw = bspline ? bsplineRawPath(s) : SliderPath.computeRawPath(inferSegmentType(s.length), s);
     for (let i = 0; i < segRaw.length; i++) {
       if (raw.length > 0 && i === 0) continue;
       if (raw.length > 0) length += Math.hypot(segRaw[i].x - raw[raw.length - 1].x, segRaw[i].y - raw[raw.length - 1].y);

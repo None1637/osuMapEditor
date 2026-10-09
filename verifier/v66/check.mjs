@@ -65,8 +65,8 @@ section('EditorCanvas.tsx: Drawing 模式接线');
   assert(/store\.pendingSlider\.length === 0 \|\| store\.pendingSlider\.length === 1/.test(src) && /e\.button === 0/.test(src), '待放点 <=1 时按下 = 手绘候选 (v74: 含空待放, 一键手绘)');
   assert(/Math\.hypot\(cp\.x - cand\.x, cp\.y - cand\.y\) <= 4\) return/.test(src), '4px 拖拽阈值');
   assert(/builder\.addLinearPoint\(\{ x: 0, y: 0 \}\)/.test(src) && /builder\.addLinearPoint\(\{ x: cand\.x - head\.x, y: cand\.y - head\.y \}\)/.test(src), '绘制起点 = 头部原点 + 按下点 (相对头部)');
-  // v74: 非单弧落盘改 'B4' (lazer 扩展 B 样条, 少控制点)
-  assert(/singleArc && ctrl\.length === 3 \? 'P' : 'B4'/.test(src), "单段圆弧 => P, 否则 B4 (v74: lazer 编辑器口径)");
+  // v377 适配: 落盘由 'B4' 改 stable 兼容 'B' (bsplineToStableBezier; stable 无法解析 B4)
+  assert(/const curveType = singleP \? 'P' : 'B';/.test(src), "单段圆弧 => P, 否则 stable 'B' (v377: B4 落盘废弃)");
   assert(/if \(pt\.red\) ctrl\.push\(\{ \.\.\.a \}\)/.test(src), '红锚点加倍 (osu 连续重复点惯例)');
   assert(/builder\.finish\(\);\s*\n\s*finishFreehandSlider\(builder\)/.test(src), 'mouseup: Finish 后建滑条');
   assert((src.match(/freehandRef\.current/g) || []).length >= 8, 'window mouseup 兜底收尾');
