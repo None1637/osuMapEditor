@@ -548,6 +548,7 @@ class EditorStore {
     this.savedFingerprint = this.fingerprint(); // v140: 载入内容成为干净基准 (脏标记按内容指纹对比)
     this.selected.clear();
     this.altPickSliders = new Set(); // v371: 换谱清空 Alt 点选滑条
+    this.gridSpacing = null; // v373: 载入/刷新后间距跟随新谱面 GridSize, 清除手动覆盖
     this.undoStack = []; this.redoStack = [];
     this.currentTime = bm.general.previewTime > 0 ? bm.general.previewTime : (bm.hitObjects[0]?.time ?? 0) - 1000;
     if (this.currentTime < 0) this.currentTime = 0;
@@ -986,6 +987,7 @@ class EditorStore {
     bm.general = deepCopy(s.general);
     bm.metadata = deepCopy(s.metadata);
     bm.rawSections = deepCopy(s.rawSections ?? {}); // v209
+    this.gridSpacing = null; // v373: 撤销/重做后间距跟随恢复出的 editor.gridSize, 清除手动覆盖
   }
 
   undo() {
