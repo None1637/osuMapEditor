@@ -40,7 +40,9 @@ section('TimingPanel.tsx: stable F6 样式');
   assert(!/!tp\.uninherited[\s\S]{0,60}data-tp-input="meter"/.test(src.replace(/<td className={td}>\s*\{tp\.uninherited \? \(/, '<td>{(')), '绿行不渲染 meter 输入');
   assert(/data-tp-sample-code>\{sampleSetCode\(tp\.sampleSet, tp\.sampleIndex\)\}/.test(src), '音效集+序号合并显示');
   assert(/t\('timing\.sample', 'Sample'\)/.test(src) && !/t\('timing\.sample_index', 'Index'\)\}<\/th>/.test(src), '表头合并为 Sample 单列');
-  assert(/className=\{`w-12 \$\{inp\}`\} \/>\s*\n\s*<span className="ml-0\.5 text-white\/40">%<\/span>/.test(src), '行音量 n% 显示');
+  // v374 适配: 音量平时纯文本 n%, 点击才出输入框; 断言编辑控件与文本显示均带 %
+  assert(/className=\{`w-12 \$\{inp\}`\} data-tp-input="volume" \/>\s*\n\s*<span className="ml-0\.5 text-white\/40">%<\/span>/.test(src)
+    && /\{tp\.volume\}%/.test(src), '行音量 n% 显示 (v374: 平时文本, 点击出输入框)');
 }
 
 section('多选: 行点击 + 红线批量栏');

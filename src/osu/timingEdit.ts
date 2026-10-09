@@ -45,6 +45,16 @@ export function formatMsTime(ms: number): string {
   return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}.${String(mmm).padStart(3, '0')}`;
 }
 
+/** v376: 解析 h:mm:ss.mmm (小时与毫秒可省略, 接受 mm:ss.mmm) -> ms; 非法返回 null */
+export function parseMsTime(s: string): number | null {
+  const m = /^\s*(?:(\d+):)?(\d{1,2}):(\d{1,2})(?:\.(\d{1,3}))?\s*$/.exec(s);
+  if (!m) return null;
+  const h = m[1] ? +m[1] : 0, mm = +m[2], ss = +m[3];
+  if (mm >= 60 || ss >= 60) return null;
+  const ms = m[4] ? +(m[4].padEnd(3, '0')) : 0;
+  return h * 3600000 + mm * 60000 + ss * 1000 + ms;
+}
+
 /** v70: 当前时间点生效的绿线 (红线出现后 SV 复位, 与 timingAt 同语义; 无则 null) */
 export function activeGreenAt(points: TimingPoint[], time: number): TimingPoint | null {
   let green: TimingPoint | null = null;
@@ -113,4 +123,14 @@ export function rangeTimes(visibleTimes: number[], anchor: number, target: numbe
 export function fmtTpPrec(v: number): string {
   if (!isFinite(v)) return '0';
   return String(+v.toPrecision(13));
+}
+
+/** v375: Timing 行文本显示 — BPM 统一 3 位小数, SV 统一 2 位小数 (编辑态仍走 fmtTpPrec 全精度) */
+export function fmtBpm(beatLength: number): string {
+  const v = 60000 / beatLength;
+  return isFinite(v) ? v.toFixed(3) : '0.000';
+}
+export function fmtSv(beatLength: number): string {
+  const v = -100 / beatLength;
+  return isFinite(v) ? v.toFixed(2) : '0.00';
 }

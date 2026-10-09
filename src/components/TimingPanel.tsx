@@ -1,17 +1,17 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { X } from 'lucide-react'; // v181: ✕ → lucide
 import { store, useEditor, usePlaybackFrame } from '@/osu/store';
 import type { TimingPoint } from '@/osu/parser';
-import { defaultNewPoint, setEffectBit, EFFECT_KIAI, EFFECT_OMIT_BARLINE, formatMsTime, activeGreenAt, scrollTargetIndex, sampleSetCode, fmtTpPrec } from '@/osu/timingEdit';
+import { defaultNewPoint, setEffectBit, EFFECT_KIAI, EFFECT_OMIT_BARLINE, formatMsTime, parseMsTime, activeGreenAt, scrollTargetIndex, sampleSetCode, fmtTpPrec, fmtBpm, fmtSv } from '@/osu/timingEdit';
 import { hotkeyLabel } from '@/osu/hotkeys'; // v321 (F21): 快捷键提示随改键同步
 import { useT } from '@/i18n';
 
 /** v372: 高精度数值输入 (BPM/SV) — 聚焦期间保留用户原文 ( controlled 值重算会吞掉输入中的 "." ),
  *  失焦后回到规范显示 (最多 13 位有效小数, stable 同精度); 输入过程中每次合法值即时提交 */
-function PreciseInput({ value, onCommit, className, dataAttr, dataValue }: { value: number; onCommit: (v: number) => void; className: string; dataAttr?: string; dataValue?: string }) {
+function PreciseInput({ value, onCommit, className, dataAttr, dataValue, autoFocus }: { value: number; onCommit: (v: number) => void; className: string; dataAttr?: string; dataValue?: string; autoFocus?: boolean }) {
   const [raw, setRaw] = useState<string | null>(null);
   return (
-    <input type="number" step="any" className={className}
+    <input type="number" step="any" className={className} autoFocus={autoFocus}
       {...(dataAttr ? { [dataAttr]: dataValue ?? true } : {})}
       value={raw ?? fmtTpPrec(value)}
       onFocus={() => setRaw(fmtTpPrec(value))}
@@ -21,6 +21,30 @@ function PreciseInput({ value, onCommit, className, dataAttr, dataValue }: { val
         if (isFinite(v)) onCommit(v);
       }}
       onBlur={() => setRaw(null)} />
+  );
+}
+
+/** v374: stable F6 风格单元格 — 平时只显示纯文本 (行对齐, 无重复信息);
+ *  单击文本 (不带 Ctrl/Shift, 以免抢多选) 切换为编辑控件; 失焦移出 / Enter / Escape 关闭回文本 */
+function EditCell({ display, edit, className, dataDisplay }: { display: ReactNode; edit: () => ReactNode; className: string; dataDisplay?: string }) {
+  const [editing, setEditing] = useState(false);
+  const close = () => setEditing(false);
+  return (
+    <td className={className}>
+      {editing ? (
+        <span className="inline-flex items-center justify-center gap-1" data-tp-editing
+          onClick={e => e.stopPropagation()}
+          onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget as Node)) close(); }}
+          onKeyDown={e => { if (e.key === 'Enter' || e.key === 'Escape') close(); }}>
+          {edit()}
+        </span>
+      ) : (
+        <span className="cursor-pointer hover:text-white" data-tp-display={dataDisplay}
+          onClick={e => { if (e.ctrlKey || e.metaKey || e.shiftKey) return; e.stopPropagation(); setEditing(true); }}>
+          {display}
+        </span>
+      )}
+    </td>
   );
 }
 
@@ -110,7 +134,7 @@ export function TimingPanel({ full = false }: { full?: boolean }) {
 
   const inp = 'bg-black/40 border border-white/15 rounded px-1 py-0.5 text-white text-center';
   const th = 'px-2 py-1 text-white/50 text-center whitespace-nowrap font-normal';
-  const td = 'px-2 py-1 text-center whitespace-nowrap';
+  const td = 'px-2 py-1 text-center whitespace-nowrap overflow-hidden'; // v374-2: table-fixed 下溢出裁剪, 不撑列宽
 
   return (
     <div className={`bg-[#16161d] text-sm text-white/80 ${full
@@ -212,7 +236,19 @@ export function TimingPanel({ full = false }: { full?: boolean }) {
       )}
       {/* v71: 滚动条在窗口内部 (表格区独立滚动); v359: full 模式 flex-1 撑满垂直空间 */}
       <div ref={scrollRef} data-tp-scroll className={`px-3 pb-2 overflow-auto ${full ? 'flex-1 min-h-0' : 'max-h-44'}`}>
-        <table className="border-collapse mx-auto">
+        {/* v374-2: table-fixed + 固定列宽 — 点击单元格切换编辑控件时列宽/窗口宽度不再跳动 */}
+        <table className="border-collapse mx-auto table-fixed">
+          <colgroup>
+            <col className="w-8" />{/* 选择 */}
+            <col className="w-10" />{/* 线型圆点 */}
+            <col className="w-56" />{/* 时间 (编辑态: ms + h:mm:ss.mmm 双输入框; v376 加宽) */}
+            <col className="w-36" />{/* BPM/SV (13 位小数输入框 + 后缀) */}
+            <col className="w-16" />{/* 拍号 n/4 */}
+            <col className="w-40" />{/* Sample (下拉 + 序号) */}
+            <col className="w-20" />{/* 音量 n% */}
+            <col className="w-44" />{/* 效果 (kiai + Omit Bar Line) */}
+            <col className="w-20" />{/* 跳转/删除 */}
+          </colgroup>
           {/* v72: 表头固定在窗口内不随表格滚动 (sticky + 底色遮挡) */}
           <thead className="sticky top-0 z-10" data-tp-thead>
             <tr className="border-b border-white/10">
@@ -251,62 +287,76 @@ export function TimingPanel({ full = false }: { full?: boolean }) {
                       data-tp-dot={tp.uninherited ? 'red' : 'green'}
                       title={tp.uninherited ? t('timing.red_line', 'Timing Point') : t('timing.green_line', 'Inherited Timing Point')} />
                   </td>
-                  <td className={td}>
-                    <input type="number" value={Math.round(tp.time)} data-tp-input="time"
-                      onChange={e => updateTp(i, { time: parseFloat(e.target.value) || 0 })}
-                      className={`w-20 ${inp}`} />
-                    {/* v70-1: 时分秒格式 */}
-                    <span className="ml-1 text-white/40 tabular-nums" data-tp-fmt>{formatMsTime(tp.time)}</span>
-                  </td>
-                  <td className={td}>
-                    {/* v372: 高精度输入 (最多 13 位有效小数, stable 同精度; 聚焦保留原文) */}
-                    {tp.uninherited ? (
-                      <PreciseInput value={60000 / tp.beatLength} dataAttr="data-tp-input" dataValue="bpm"
+                  {/* v376: 时间 — 平时仅显示 h:mm:ss.mmm; 点击同时出 ms 与时分秒两个编辑框 */}
+                  <EditCell className={td} dataDisplay="time"
+                    display={<span className="tabular-nums" data-tp-fmt>{formatMsTime(tp.time)}</span>}
+                    edit={() => (<>
+                      <input type="number" autoFocus defaultValue={Math.round(tp.time)} data-tp-input="time" title="ms"
+                        onChange={e => updateTp(i, { time: parseFloat(e.target.value) || 0 })}
+                        className={`w-20 ${inp}`} />
+                      <input type="text" defaultValue={formatMsTime(tp.time)} data-tp-input="timeFmt" title="h:mm:ss.mmm"
+                        onChange={e => { const ms = parseMsTime(e.target.value); if (ms !== null) updateTp(i, { time: ms }); }}
+                        className={`w-28 ${inp} tabular-nums`} />
+                    </>)} />
+                  {/* v374: BPM/SV — 平时文本 (对齐一致), 点击出高精度输入框 */}
+                  <EditCell className={td} dataDisplay={tp.uninherited ? 'bpm' : 'sv'}
+                    display={<>
+                      {/* v375: 显示统一 BPM 3 位 / SV 2 位小数 (编辑态仍全精度) */}
+                      <span className="tabular-nums">{tp.uninherited ? fmtBpm(tp.beatLength) : fmtSv(tp.beatLength)}</span>
+                      <span className="ml-1 text-white/40">{tp.uninherited ? 'BPM' : 'x'}</span>
+                    </>}
+                    edit={() => tp.uninherited ? (
+                      <PreciseInput autoFocus value={60000 / tp.beatLength} dataAttr="data-tp-input" dataValue="bpm"
                         onCommit={v => updateTp(i, { beatLength: 60000 / (v || 120) })}
                         className={`w-24 ${inp}`} />
                     ) : (
-                      <PreciseInput value={-100 / tp.beatLength} dataAttr="data-tp-input" dataValue="sv"
+                      <PreciseInput autoFocus value={-100 / tp.beatLength} dataAttr="data-tp-input" dataValue="sv"
                         onCommit={v => updateTp(i, { beatLength: -100 / (v || 1) })}
                         className={`w-24 ${inp}`} />
-                    )}
-                    <span className="ml-1 text-white/40">{tp.uninherited ? 'BPM' : 'x'}</span>
-                  </td>
-                  {/* v372: 拍号显示为 n/4; 绿线不显示拍号 */}
-                  <td className={td}>
-                    {tp.uninherited ? (
-                      <span className="inline-flex items-center gap-0.5">
-                        <input type="number" min="1" max="8" value={tp.meter} onChange={e => updateTp(i, { meter: parseInt(e.target.value) || 4 })}
-                          className={`w-10 ${inp}`} data-tp-input="meter" />
-                        <span className="text-white/40">/4</span>
-                      </span>
-                    ) : null}
-                  </td>
-                  {/* v372: 音效集+序号合并显示 (S / S:C1 / S:C2), 编辑控件同列保留 */}
-                  <td className={td}>
-                    <span className="inline-flex items-center gap-1">
-                      <span className="text-white/70 tabular-nums min-w-8" data-tp-sample-code>{sampleSetCode(tp.sampleSet, tp.sampleIndex)}</span>
-                      <select value={tp.sampleSet} data-tp-input="sampleSet"
+                    )} />
+                  {/* v372: 拍号显示为 n/4; 绿线不显示拍号; v374: 点击才出输入框 */}
+                  {tp.uninherited ? (
+                    <EditCell className={td} dataDisplay="meter"
+                      display={<span className="tabular-nums">{tp.meter}/4</span>}
+                      edit={() => (
+                        <span className="inline-flex items-center gap-0.5">
+                          <input type="number" min="1" max="8" autoFocus defaultValue={tp.meter} onChange={e => updateTp(i, { meter: parseInt(e.target.value) || 4 })}
+                            className={`w-10 ${inp}`} data-tp-input="meter" />
+                          <span className="text-white/40">/4</span>
+                        </span>
+                      )} />
+                  ) : <td className={td}></td>}
+                  {/* v372: 音效集+序号合并显示 (S / S:C1 / S:C2); v374: 平时只显示合并文本, 点击才出下拉+序号 */}
+                  <EditCell className={td} dataDisplay="sample"
+                    display={<span className="text-white/70 tabular-nums" data-tp-sample-code>{sampleSetCode(tp.sampleSet, tp.sampleIndex)}</span>}
+                    edit={() => (<>
+                      <select value={tp.sampleSet} autoFocus data-tp-input="sampleSet"
                         onChange={e => updateTp(i, { sampleSet: parseInt(e.target.value) })}
                         className="bg-black/40 border border-white/15 rounded px-1 py-0.5 text-white">
                         <option value={1}>Normal</option>
                         <option value={2}>Soft</option>
                         <option value={3}>Drum</option>
                       </select>
-                      <input type="number" min="0" max="99" value={tp.sampleIndex} data-tp-input="sampleIndex"
+                      <input type="number" min="0" max="99" defaultValue={tp.sampleIndex} data-tp-input="sampleIndex"
                         onChange={e => updateTp(i, { sampleIndex: parseInt(e.target.value) || 0 })}
                         className={`w-10 ${inp}`} />
-                    </span>
-                  </td>
-                  <td className={td}>
-                    {/* v372: 音量显示为 n% */}
-                    <input type="number" min="0" max="100" value={tp.volume} onChange={e => updateTp(i, { volume: parseInt(e.target.value) || 0 })}
-                      className={`w-12 ${inp}`} />
-                    <span className="ml-0.5 text-white/40">%</span>
-                  </td>
-                  <td className={td}>
-                    <span className="inline-flex items-center gap-2">
+                    </>)} />
+                  {/* v372: 音量显示为 n%; v374: 点击才出输入框 */}
+                  <EditCell className={td} dataDisplay="volume"
+                    display={<span className="tabular-nums">{tp.volume}%</span>}
+                    edit={() => (<>
+                      <input type="number" min="0" max="100" autoFocus defaultValue={tp.volume} onChange={e => updateTp(i, { volume: parseInt(e.target.value) || 0 })}
+                        className={`w-12 ${inp}`} data-tp-input="volume" />
+                      <span className="ml-0.5 text-white/40">%</span>
+                    </>)} />
+                  {/* v374: 效果 — 平时文本 (kiai / Omit Bar Line), 点击才出 checkbox */}
+                  <EditCell className={td} dataDisplay="effects"
+                    display={<span className="text-white/70">
+                      {[(tp.effects & EFFECT_KIAI) !== 0 ? 'kiai' : '', tp.uninherited && (tp.effects & EFFECT_OMIT_BARLINE) !== 0 ? t('timing.omit_barline', 'Omit Bar Line') : ''].filter(Boolean).join(', ') || '—'}
+                    </span>}
+                    edit={() => (<>
                       <label className="flex items-center gap-1" title="kiai (effects bit0)">
-                        <input type="checkbox" checked={(tp.effects & EFFECT_KIAI) !== 0} data-tp-input="kiai"
+                        <input type="checkbox" autoFocus checked={(tp.effects & EFFECT_KIAI) !== 0} data-tp-input="kiai"
                           onChange={e => updateTp(i, { effects: setEffectBit(tp.effects, EFFECT_KIAI, e.target.checked) })} />
                         kiai
                       </label>
@@ -317,8 +367,7 @@ export function TimingPanel({ full = false }: { full?: boolean }) {
                           {t('timing.omit_barline', 'Omit Bar Line')}
                         </label>
                       )}
-                    </span>
-                  </td>
+                    </>)} />
                   <td className={td}>
                     {/* v359: 按钮放大并排 (soulten/None1637: 这两个按钮太小了; 转到时间轴与删除横向分开) */}
                     <span className="inline-flex items-center gap-1.5">
