@@ -43,6 +43,7 @@ import { LangFirstRun } from '@/components/LangFirstRun'; // v349: 首次启动�
 import { TransformDialog } from '@/components/TransformDialog'; // v209: 旋转/缩放独立窗口
 import { FpsCounter } from '@/components/FpsCounter'; // v220: 右下角帧数显示
 import { displaySettings } from '@/osu/displaySettings'; // v253: 帧数显示开关
+import { installSelectWheelCycle } from '@/osu/selectWheel'; // v381: 枚举下拉框滚轮循环
 import { useT } from '@/i18n'; // v346: 多语言
 
 // v191: 工具按钮文本前加 Lucide 图标; v321 (F21): key 改为动作 id, 展示名经 hotkeyLabel 动态取 (改键同步)
@@ -88,6 +89,9 @@ function PanNumInput({ label, labelKey, value, step, min, max, grow, digits, onC
 function GridSpacingInput({ disabled }: { disabled: boolean }) {
   const committed = store.gridSpacing ?? store.beatmap?.editor.gridSize ?? 4;
   const [text, setText] = useState<string | null>(null);
+  // v380: committed 外部变化 (撤销/重做/刷新谱面) 时丢弃未失焦的本地文本 — 修复「撤销后输入框仍显示旧间距」
+  // (输入过程中的提交也会触发, 但此刻 text 与 committed 同值, 显示无感)
+  useEffect(() => { setText(null); }, [committed]);
   return (
     <input type="number" min={4} max={256} step={1} disabled={disabled} data-grid-input="spacing"
       value={text ?? String(committed)}
@@ -270,14 +274,28 @@ export default function App() {
     const onKey = (e: KeyboardEvent) => {
       const tag = (e.target as HTMLElement)?.tagName;
       if (showLibrary || showSkin || testPlay) return;
-      if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return;
+      if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') {
+        // v380: number 输入框无原生文本撤销语义 — 放行 undo/redo (修复「网格间距输入框聚焦时 Ctrl+Z 被吞,
+        //   撤销不回复间距值」的漏网路径; Electron 原生菜单 accelerator 之外的浏览器/CDP 路径)。
+        //   文本输入 (text/textarea) 保留原生文本撤销, 不放行。
+        if (tag === 'INPUT' && (e.target as HTMLInputElement).type === 'number' && !store.transformDialog) {
+          const idNum = findHotkeyAction(e);
+          if (idNum === 'undo') { e.preventDefault(); store.undo(); }
+          else if (idNum === 'redo') { e.preventDefault(); store.redo(); }
+        }
+        return;
+      }
       if (hotkeyCaptureActive()) return; // v286: 改键捕获中不派发
       // v345: 变换预览会话 (旋转/缩放/对称窗口) 中屏蔽编辑类快捷键 — 预览态物件几何不该进 undo
       //   快照 (撤销链错位, 「不能撤销到上次保存」B 类根因) 也不该被 J/K/Delete/Ctrl+G 等改动;
       //   放行 save (内部先回滚预览) / 窗口切换 / Esc 关窗
+      //   v379: 放行 undo/redo — store.undo/redo 已预览会话感知 (先回滚未提交预览再撤销/重做,
+      //   事后重立基准; 修复「窗口开着时不能 Ctrl+Z 撤销」)
       if (store.transformDialog) {
         const id0 = findHotkeyAction(e);
         if (id0 === 'save') { e.preventDefault(); store.save(); }
+        else if (id0 === 'undo') { e.preventDefault(); store.undo(); }
+        else if (id0 === 'redo') { e.preventDefault(); store.redo(); }
         else if (id0 === 'open-rotate') { e.preventDefault(); store.openTransformDialog('rotate'); }
         else if (id0 === 'open-scale') { e.preventDefault(); store.openTransformDialog('scale'); }
         else if (id0 === 'cancel') { e.preventDefault(); store.closeTransformDialog(); }
@@ -400,6 +418,9 @@ export default function App() {
     const t = setInterval(() => { void store.backupNow('auto'); }, 10 * 60 * 1000);
     return () => clearInterval(t);
   }, []);
+
+  // v381: 枚举下拉框滚轮循环 — 一个全局监听覆盖全部 <select> (悬停滚轮切换, 首尾循环)
+  useEffect(() => installSelectWheelCycle(), []);
 
   // v156: Timing 菜单勾选状态上报 (节拍类型 radio = 当前生效红线拍号, 节拍器 checkbox; 值变化才发)
   useEffect(() => {

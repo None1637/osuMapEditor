@@ -35,10 +35,11 @@ section('源码: 单滑条锚点穿透 (Bug B)');
   assert(/const singleSliderNodePress = \(p: Pt, mods: \{ ctrlKey: boolean; metaKey: boolean \}\): boolean/.test(ec), 'singleSliderNodePress 抽函数存在');
   assert(/if \(singleSliderNodePress\(p, e\)\) return;/.test(ec), '画布 onMouseDown 调用同一函数 (无逻辑分叉)');
   assert(/nodeDragRef\.current = \{ objId: so\.id, pointIndex: hitIdx, pairWith: redPairPartner\(ctrl, hitIdx\)/.test(ec), '锚点拖拽含红锚点成对语义');
-  const press = ec.match(/store\.playfieldNodePress = \(cx, cy, mods\) => \{[\s\S]{0,900}?\n    \};/)?.[0] ?? '';
+  // v378: 穿透链扩展 (手柄/未选锚点/物件本体) 后窗口 900→1400; 单滑条节点按下由尾返改中间环节
+  const press = ec.match(/store\.playfieldNodePress = \(cx, cy, mods\) => \{[\s\S]{0,1400}?\n    \};/)?.[0] ?? '';
   assert(/nodeAltPress\(p, mods\)/.test(press), '穿透: Alt 切换/框选 (已有)');
   assert(/nodeGroupDragPress\(p\)\) return true;/.test(press), '穿透: 已选节点整组拖拽 (已有)');
-  assert(/return singleSliderNodePress\(p, mods\);/.test(press), '穿透: 单滑条锚点拖拽/Ctrl 加锚点 (v362 新增)');
+  assert(/if \(singleSliderNodePress\(p, mods\)\) return true;/.test(press), '穿透: 单滑条锚点拖拽/Ctrl 加锚点 (v362 新增; v378 改中间环节)');
 }
 
 section('CDP: 覆盖区单锚点拖拽/Alt/Ctrl/seek/幽灵预览');
@@ -79,6 +80,8 @@ section('CDP: 覆盖区单锚点拖拽/Alt/Ctrl/seek/幽灵预览');
       ready = await evalJs('!!(window.__osuStore && window.__osuStore.beatmap && window.__osuToClient)').catch(() => false);
     }
     if (!ready) throw new Error('应用未就绪');
+    await evalJs(`window.__osuSetLang && window.__osuSetLang('en')`); // v378: 关首跑语言框 (v349 LangFirstRun; localStorage 按 dev 端口隔离, 端口变即弹全屏遮罩拦截真实事件/elementFromPoint)
+    await evalJs(`window.__osuSkin && window.__osuSkin.resetSkinToDefault()`); // v378: 强制默认皮肤 — 用户皮肤 sliderBorder 灰色时 G 白边亮度断言失效 (settings.json skinDir 持久化, 仅改运行内存不影响用户配置)
     await sleep(800); // 布局稳定 (窗口初始化期间 uiZoom/面板尺寸可能漂移)
 
     // 造两条滑条: 尾锚点分别落在下时间轴覆盖带 / 左侧栏覆盖区
@@ -221,6 +224,8 @@ section('CDP: 覆盖区单锚点拖拽/Alt/Ctrl/seek/幽灵预览');
       const head = store.pendingSlider[0], ph = store.pendingCursor;
       if (!head || !ph) return { fail: '无头点/幻影点', nPend, ph: !!ph };
       const hc = window.__osuToClient(head.x, head.y), pc = window.__osuToClient(ph.x, ph.y);
+      const diag = { head, ph, canvasW: r.width, szx: (window.__osuToClient(1, 0).x - window.__osuToClient(0, 0).x) }; // v378: G flaky 诊断
+      diag.borderSrc = { skin: window.__osuSkin?.getSkin?.().sliderBorder ?? 'n/a', bm: store.beatmap.colors.sliderBorder || '(空)', ls: localStorage.getItem('osu-editor:display-settings') };
       const g = c.getContext('2d');
       const dpr = c.width / r.width;
       // 25% 处 + 垂直方向 ±100px 横截条, 取最大亮度
@@ -228,20 +233,23 @@ section('CDP: 覆盖区单锚点拖拽/Alt/Ctrl/seek/幽灵预览');
       const dx = pc.x - hc.x, dy = pc.y - hc.y, len = Math.hypot(dx, dy);
       const nx = -dy / len, ny = dx / len;
       let mxTube = 0;
-      for (let off = -100; off <= 100; off += 4) {
+      // v378: 横截跨度按管身白边实际距离 (radius*szx client px) 动态化 — 原固定 ±100px 在大窗口
+      //   (szx≈3.3, 白边≈121px) 下采不到白边, 只剩骨架线亮度 ≈136 (本机 2560 宽屏实测翻车)
+      const span = Math.ceil((54.4 - 4.48 * store.beatmap.difficulty.cs) * diag.szx + 40);
+      for (let off = -span; off <= span; off += 4) {
         const x = Math.round((qx + nx * off - r.left) * dpr), y = Math.round((qy + ny * off - r.top) * dpr);
         const d = g.getImageData(x - 2, y - 2, 5, 5).data;
         for (let i = 0; i < d.length; i += 4) { const v = Math.max(d[i], d[i + 1], d[i + 2]); if (v > mxTube) mxTube = v; }
       }
-      // 管身外参照点 (垂直方向 250px) 应为暗背景
-      const bx = Math.round((qx + nx * 250 - r.left) * dpr), by = Math.round((qy + ny * 250 - r.top) * dpr);
+      // 管身外参照点 (垂直方向管身跨度外 80px) 应为暗背景
+      const bx = Math.round((qx + nx * (span + 80) - r.left) * dpr), by = Math.round((qy + ny * (span + 80) - r.top) * dpr);
       const bd = g.getImageData(bx - 2, by - 2, 5, 5).data;
       let mxBg = 0;
       for (let i = 0; i < bd.length; i += 4) { const v = Math.max(bd[i], bd[i + 1], bd[i + 2]); if (v > mxBg) mxBg = v; }
-      return { nPend, mxTube, mxBg };
+      return { nPend, mxTube, mxBg, diag };
     })()`);
     assert(rG.nPend === 1, 'G: 已放头点 (pendingSlider=1)');
-    assert(rG.mxTube > 165, `G: 幽灵滑条身渲染 (管身横截最大亮度 ${rG.mxTube} > 165; 修复前仅骨架线 ≈136)`);
+    assert(rG.mxTube > 165, `G: 幽灵滑条身渲染 (管身横截最大亮度 ${rG.mxTube} > 165; 修复前仅骨架线 ≈136; 诊断 ${JSON.stringify(rG.diag)})`);
     assert(rG.mxBg < 80, `G: 管身外背景保持暗 (${rG.mxBg} < 80, 采样未受头圈光晕干扰)`);
 
     ws.close();

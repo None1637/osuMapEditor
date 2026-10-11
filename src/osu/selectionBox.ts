@@ -380,20 +380,22 @@ export const ROT_SNAP_STEP = 15; // lazer snap_step (Shift 吸附 15°)
 
 export type RotateCorner = 'tl' | 'tr' | 'bl' | 'br';
 
-/** 四角旋转手柄位置 (显示框角点向外 12.5px/轴) */
-export function rotationHandlePoints(dq: Quad): { corner: RotateCorner; x: number; y: number }[] {
+/** 四角旋转手柄位置 (显示框角点向外 12.5px/轴);
+ *  v378: out 可覆盖 — 屏幕恒定偏移由调用方按当前缩放换算传入 (ROT_HANDLE_OUT / uiZoom / playfieldScale),
+ *  游玩区放大/缩小后手柄相对框角的偏移不再跟着变 (默认参数保持 v50 纯函数行为) */
+export function rotationHandlePoints(dq: Quad, out: number = ROT_HANDLE_OUT): { corner: RotateCorner; x: number; y: number }[] {
   return [
-    { corner: 'tl', x: dq.x - ROT_HANDLE_OUT, y: dq.y - ROT_HANDLE_OUT },
-    { corner: 'tr', x: dq.x + dq.w + ROT_HANDLE_OUT, y: dq.y - ROT_HANDLE_OUT },
-    { corner: 'bl', x: dq.x - ROT_HANDLE_OUT, y: dq.y + dq.h + ROT_HANDLE_OUT },
-    { corner: 'br', x: dq.x + dq.w + ROT_HANDLE_OUT, y: dq.y + dq.h + ROT_HANDLE_OUT },
+    { corner: 'tl', x: dq.x - out, y: dq.y - out },
+    { corner: 'tr', x: dq.x + dq.w + out, y: dq.y - out },
+    { corner: 'bl', x: dq.x - out, y: dq.y + dq.h + out },
+    { corner: 'br', x: dq.x + dq.w + out, y: dq.y + dq.h + out },
   ];
 }
 
-/** 旋转手柄命中 (就近优先, tol 为 osu px) */
-export function hitRotationHandle(dq: Quad, p: Pt, tol: number): RotateCorner | null {
+/** 旋转手柄命中 (就近优先, tol 为 osu px; v378: out 与绘制同参, 命中位置 = 显示位置) */
+export function hitRotationHandle(dq: Quad, p: Pt, tol: number, out: number = ROT_HANDLE_OUT): RotateCorner | null {
   let best: RotateCorner | null = null, bestD = tol;
-  for (const h of rotationHandlePoints(dq)) {
+  for (const h of rotationHandlePoints(dq, out)) {
     const d = Math.hypot(h.x - p.x, h.y - p.y);
     if (d <= bestD) { best = h.corner; bestD = d; }
   }

@@ -20,7 +20,8 @@ const ec = readSrc('src/components/EditorCanvas.tsx');
 section('F18a: refreshHover 集中重算 + Alt 即时刷新');
 {
   assert(/hoverNodeRef = useRef<\{ objId: number; idx: number \} \| null>\(null\)/.test(ec), 'hoverNodeRef 存在');
-  const rh = ec.match(/const refreshHover = \(\) => \{[\s\S]{0,1200}?\n  \};/);
+  // v381: 窗口 1200→2400 — refreshHover 加了 store.setHoverNode 同步/非 Alt 悬停锚点上报, 块变长 (逻辑未变)
+  const rh = ec.match(/const refreshHover = \(\) => \{[\s\S]{0,2400}?\n  \};/);
   assert(!!rh, 'refreshHover 存在');
   assert(!!rh && /nearestNode\(sliders, offs, cp\)/.test(rh[0]), 'Alt 层: 跨滑条最近锚点');
   assert(!!rh && /isVisibleAt\(bm, o, store\.currentTime\) \|\| store\.selected\.has\(o\.id\) \|\| store\.selectedNodes\.has\(o\.id\)/.test(rh[0]), 'Alt 层候选含 v273 例外 (与点选一致)');
@@ -33,7 +34,8 @@ section('F18a: refreshHover 集中重算 + Alt 即时刷新');
 
 section('F18a 渲染: Alt 层锚点高亮环');
 {
-  const ring = ec.match(/Alt 层 hover 锚点高亮环[\s\S]{0,1200}?g\.restore\(\);/);
+  // v378: 窗口 1200→1600 — v378 环半径/线宽改固定屏幕(视觉) px 加了两行换算注释, 块变长超出原窗口 (环渲染本体未变)
+  const ring = ec.match(/Alt 层 hover 锚点高亮环[\s\S]{0,1600}?g\.restore\(\);/);
   assert(!!ring, '高亮环渲染块存在');
   assert(!!ring && /'#ff6666' : '#f5a623'/.test(ring[0]), '已选=红(将取消) / 未选=橙黄(将选中)');
 }

@@ -27,6 +27,8 @@ export interface DisplaySettings {
   /** v353: 滑条渐变轨道 (开 = 中心亮/边缘暗的径向渐变轨道, lazer LegacySliderBody 同款;
       关 = 纯黑轨道, v19 起的 stable 观感实验样式) */
   sliderGradientTrack: boolean;
+  /** v381: 上方时间轴 hitsound 粉药丸 (采样集+音量) 与绿线 SV 药丸显示 (关 = 都不画, 命中测试同步关闭) */
+  timelineSvSample: boolean;
   // v284: timelineTransparent 开关移除 — 时间轴半透明成为唯一行为 (用户要求: 默认就是半透明, 不要开关)
 }
 
@@ -51,6 +53,7 @@ function loadDisplaySettings(): DisplaySettings {
     showFps: true,              // v253: 默认显示帧数 (v220 起的行为)
     selectionBounds: true,      // v254: 默认画黄框 (v49 起的行为)
     sliderGradientTrack: false, // v353: 默认纯黑轨道 (保持 v19 起观感, 渐变轨道为可选)
+    timelineSvSample: true,     // v381: 默认显示 SV/音量药丸 (v53/v61 起的行为)
     // v284: timelineTransparent 移除 (半透明为唯一行为)
   };
   try {
@@ -72,6 +75,7 @@ function loadDisplaySettings(): DisplaySettings {
       showFps: p.showFps !== false,
       selectionBounds: p.selectionBounds !== false,
       sliderGradientTrack: !!p.sliderGradientTrack, // v353
+      timelineSvSample: p.timelineSvSample !== false, // v381: 默认显示
       // v284: timelineTransparent 移除 (localStorage 残留键忽略)
     };
   } catch { return def; }

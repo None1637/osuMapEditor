@@ -493,8 +493,8 @@ function buildMenu() {
           e("edit-flip-v", mT("menu.flip_v"), "CmdOrCtrl+J", sel),
           e("edit-rot-cw", mT("menu.rot_cw"), "CmdOrCtrl+.", sel),
           e("edit-rot-ccw", mT("menu.rot_ccw"), "CmdOrCtrl+,", sel),
-          e("edit-open-rotate", mT("menu.rotate"), "CmdOrCtrl+Shift+R", sel),
-          e("edit-open-scale", mT("menu.scale"), "CmdOrCtrl+Shift+S", sel),
+          e("edit-open-rotate", mT("menu.rotate"), "CmdOrCtrl+Shift+R", map), // v379: 无选区也可开窗 (先开窗后选物件)
+          e("edit-open-scale", mT("menu.scale"), "CmdOrCtrl+Shift+S", map), // v379: 同上
           e("edit-open-symmetry", mT("menu.symmetry"), null, sel), // v210: 无快捷键
           { type: "separator" },
           e("edit-clear-hs-selected", mT("menu.clear_hs_selected"), null, sel),

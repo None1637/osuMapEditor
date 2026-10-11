@@ -17,10 +17,10 @@ const read = (rel) => fs.readFileSync(path.join(root, rel), 'utf8');
 section('源码: paste 锚点吸附');
 {
   const src = read('src/osu/store.ts');
-  assert(src.includes("import { resnapSliderLength, snapPlacementTime } from './sliderPath';"), 'store 引入 snapPlacementTime');
+  assert(/import \{[^}]*\bsnapPlacementTime\b[^}]*\} from '\.\/sliderPath';/.test(src), 'store 引入 snapPlacementTime (v380 适配: v364 起 import 列表已扩展, 断言改正则)');
   assert(src.includes('const at = snapPlacementTime(this.beatmap.timingPoints, atTime, this.beatSnap);'), 'paste 锚点 = snapPlacementTime (lazer SnapTime 语义)');
-  assert(src.includes('o.time = Math.floor(c.time + at);'), '物件按吸附锚点写入');
-  assert(src.includes('const t = Math.floor(c.time + at); // v357'), '绿线同一吸附锚点');
+  assert(src.includes('o.time = Math.round(c.time + at);'), '物件按吸附锚点写入 (v380: 取整统一 round)');
+  assert(src.includes('const t = Math.round(c.time + at); // v357'), '绿线同一吸附锚点 (v380: round)');
   assert(!src.includes('c.time + atTime'), '不再使用未吸附 atTime');
 }
 
@@ -80,9 +80,10 @@ section('CDP: 离网格时刻粘贴 -> 落点吸附');
       store.seek(raw);
       store.paste(store.currentTime);
       const pasted = store.beatmap.hitObjects.find(o => o.id !== 888371);
-      // 期望: floor(吸附(raw) + (src.time - src.time)) = floor(snap)
+      // 期望: round(吸附(raw) + (src.time - src.time)) = round(snap) (v380 适配: 取整 floor → round;
+      //   本场景 snapped 为整数, round == floor, 行为不变)
       const snapped = red.time + Math.round((raw - red.time) / grid) * grid;
-      return { pastedTime: pasted?.time, expected: Math.floor(snapped), raw: store.currentTime, grid, selected: [...store.selected] };
+      return { pastedTime: pasted?.time, expected: Math.round(snapped), raw: store.currentTime, grid, selected: [...store.selected] };
     })()`);
     assert(res.pastedTime === res.expected,
       `离网格 ${(res.raw % res.grid).toFixed(1)}ms 粘贴 -> 吸附到 ${res.expected} (实得 ${res.pastedTime}${res.pastedTime !== res.expected ? ', 修复前会落 ' + Math.floor(res.raw) : ''})`);

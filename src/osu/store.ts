@@ -20,6 +20,7 @@ import { resnapSliderLength, snapPlacementTime, placementLength, pendingSliderTi
 import { sliderVelocityAt, svPointAt } from './parser'; // v366: 调试暴露 (SV 绿线边界验证)
 import { snapshotNodes, withRedPartners, transformNodesFromSnapshot } from './nodeSelection'; // v304: F08 节点选区快捷键变换
 import { setDisplayFlag as applyDisplayFlag, setDisplayNumber as applyDisplayNumber, setDisplayString as applyDisplayString, type BoolDisplayKey, type DisplaySettings, type StrDisplayKey } from './displaySettings'; // v132: 显示设置
+import { setEditorPref as applyEditorPref, type EditorPrefKey } from './editorPrefs'; // v381: 通用编辑器偏好
 import { setVolume as applyVolume, musicGain, effectsGain, type VolumeSettings } from './volumeSettings'; // v144: 音量设置
 import { dirtyFingerprint } from './dirtyFingerprint'; // v140: 脏标记内容指纹
 import { seekByBeats, wheelSteps, playingWheelStepMs, type WheelAccum } from './seekSnapping'; // v193: 滚轮 seek
@@ -208,6 +209,8 @@ class EditorStore {
   // v286: 快捷键设置面板 (显示设置左侧「快捷键」按钮; 动作注册表/覆盖在 hotkeys 模块)
   hotkeyPanelOpen = false;
   setHotkeyPanelOpen(b: boolean) { this.hotkeyPanelOpen = b; this.emitSelection(); }
+  /** v381: 通用编辑器偏好 (设置面板「通用」区; 值在 editorPrefs 模块单例, 交互代码直读) */
+  setEditorPref(k: EditorPrefKey, v: boolean) { applyEditorPref(k, v); this.emitSelection(); }
   setVolume(k: keyof VolumeSettings, v: number) { applyVolume(k, v); this.applyVolumeBuses(); this.emitSelection(); }
   /** v103: 解码后的整曲 PCM (波形/频谱数据源); 解码失败降级时为 null */
   getAudioBuffer(): AudioBuffer | null { return this.audioBuffer; }
@@ -326,6 +329,16 @@ class EditorStore {
   pendingCursor: { x: number; y: number } | null = null;
   /** v145: 放置预览幽灵位置 (osu 坐标, 已吸附, EditorCanvas mousemove 维护; 间距面板实时预览用) */
   placementPreview: { x: number; y: number } | null = null;
+  /** v381: hover 滑条锚点 (EditorCanvas refreshHover 维护; 右上角信息面板显示该锚点位置) */
+  hoverNode: { objId: number; idx: number } | null = null;
+  /** v381: 写 hover 锚点; 与现值相同则不发通知 (mousemove 高频调用, 防重渲染风暴) */
+  setHoverNode(v: { objId: number; idx: number } | null) {
+    const cur = this.hoverNode;
+    if (!v && !cur) return;
+    if (v && cur && v.objId === cur.objId && v.idx === cur.idx) return;
+    this.hoverNode = v;
+    this.emitSelection();
+  }
   /** v145: 写放置预览; 圆整到整数 px 且与现值相同则不发通知 (防 mousemove/rAF 重渲染风暴) */
   setPlacementPreview(p: { x: number; y: number } | null) {
     const q = p ? { x: Math.round(p.x), y: Math.round(p.y) } : null;
@@ -539,6 +552,8 @@ class EditorStore {
   }
 
   load(bm: Beatmap, audioUrl: string | null, backgroundUrl: string | null = null, samples?: Map<string, File>, source: MapSource | null = null) {
+    invalidatePath(); // v378: 换谱几何缓存全部失效 — pathCache 按物件 id 缓存, 新谱物件 id 与旧谱滑条
+    //   重合时 hitTest/渲染沿用旧几何 (点不中/画错形状); restore() 已有同款清理, load 漏了
     this.beatmap = bm;
     this.mapSource = source;
     this.lastSave = null;
@@ -966,15 +981,20 @@ class EditorStore {
     return deepCopy({ hitObjects: bm.hitObjects, timingPoints: bm.timingPoints, difficulty: bm.difficulty, editor: bm.editor, general: bm.general, metadata: bm.metadata, rawSections: bm.rawSections ?? {} });
   }
 
+  /** v379: 入栈快照 (不含预览回滚) — pushUndo / beginDrag(预览会话起步) 共用 */
+  private pushSnapshot() {
+    this.undoStack.push(this.snapshot());
+    if (this.undoStack.length > 200) this.undoStack.shift();
+    this.redoStack = [];
+    // v140: 不再在此置脏 — 入栈发生在变更前, 且存在无实际改动的操作; 脏标记改由 emit() 时按内容指纹对比 (refreshDirty)
+  }
+
   pushUndo() {
     // v345: 预览会话中任何快照前先无条件回滚到基准 (原 v331 只在选区变化时回滚 — 选区不变的
     //   入栈路径, 如预览中改节拍细分/按编辑快捷键, 会把预览态混进快照 = 撤销链错位,
     //   「不能撤销到上次保存」的 B 类根因); 回滚幂等 (commitTransformPreview 已先回滚一次)
     if (this.tfBackup) this.restoreTransformBackup();
-    this.undoStack.push(this.snapshot());
-    if (this.undoStack.length > 200) this.undoStack.shift();
-    this.redoStack = [];
-    // v140: 不再在此置脏 — pushUndo 发生在变更前, 且存在无实际改动的操作; 脏标记改由 emit() 时按内容指纹对比 (refreshDirty)
+    this.pushSnapshot();
   }
 
   restore(s: Snapshot) {
@@ -992,15 +1012,24 @@ class EditorStore {
 
   undo() {
     if (!this.undoStack.length) return;
+    // v379: 变换预览会话中撤销 (窗口开着时 Ctrl+Z 可用) — 先回滚未提交预览再撤销,
+    //   撤销后以新状态重立预览基准 (窗口保持打开, 继续调值预览相对新基准); 重做对称
+    const pv = this.tfBackup ? 'obj' : this.tfNodeBackup ? 'node' : null;
+    if (pv === 'obj') this.restoreTransformBackup(); else if (pv === 'node') this.restoreNodeTransformBackup();
     this.redoStack.push(this.snapshot());
     this.restore(this.undoStack.pop()!);
+    if (pv === 'obj') this.beginTransformPreview(); else if (pv === 'node') this.beginNodeTransformPreview();
     this.emit();
   }
 
   redo() {
     if (!this.redoStack.length) return;
+    // v379: 预览会话感知, 同 undo
+    const pv = this.tfBackup ? 'obj' : this.tfNodeBackup ? 'node' : null;
+    if (pv === 'obj') this.restoreTransformBackup(); else if (pv === 'node') this.restoreNodeTransformBackup();
     this.undoStack.push(this.snapshot());
     this.restore(this.redoStack.pop()!);
+    if (pv === 'obj') this.beginTransformPreview(); else if (pv === 'node') this.beginNodeTransformPreview();
     this.emit();
   }
 
@@ -1115,7 +1144,10 @@ class EditorStore {
 
   /** 重新对齐 (stable Resnap): 'current' = 当前红线段内物件, 'all' = 全部物件,
    *  'bookmarks' = 当前书签区间内物件 (v355: 最后一个 <= 当前时间的书签 -> 下一个书签);
-   *  time/endTime 吸附到物件生效红线的节拍网格 (当前节拍吸附细分), 一次 undo */
+   *  time/endTime 吸附到物件生效红线的节拍网格 (当前节拍吸附细分), 一次 undo。
+   *  v380: 书签区间边界修正 — 正好压线的物件是区间锚点, 不动 (修复「前一条线上的物件被吸到线前」);
+   *  区间内部件的吸附结果不得越出区间 (修复「靠后线的物件被吸到线后」): 越界时改取靠区间内侧的
+   *  相邻 tick, 区间内无 tick 则保持不动。 */
   timingResnap(scope: 'current' | 'all' | 'bookmarks') {
     const bm = this.beatmap; if (!bm || !bm.hitObjects.length) return;
     const snap = this.beatSnap;
@@ -1127,7 +1159,8 @@ class EditorStore {
       hi = bm.timingPoints.find(p => p.uninherited && p.time > red.time)?.time ?? Infinity;
     } else if (scope === 'bookmarks') {
       // v355: 书签区间 — 无书签时不动作; 当前时间之前无书签则从头起, 之后无书签则到尾
-      const marks = bm.editor.bookmarks;
+      // v380: 防御性排序 — 文件载入的 [Editor] Bookmarks 保持文件顺序 (parser 不排序), 乱序会取错区间
+      const marks = [...bm.editor.bookmarks].sort((a, b) => a - b);
       if (!marks.length) return;
       for (const b of marks) { if (b <= this.currentTime) lo = b; else { hi = b; break; } }
     }
@@ -1135,9 +1168,18 @@ class EditorStore {
     let n = 0;
     for (const o of bm.hitObjects) {
       if (o.time < lo || o.time >= hi) continue;
+      // v380: 书签线锚点 — 正好压前/后线的物件不移动 (归属相邻区间亦然; 线即锚)
+      if (scope === 'bookmarks' && (o.time === lo || o.time === hi)) continue;
       const red = effectivePointAt(bm.timingPoints, o.time, true);
       if (!red) continue;
-      const nt = snapAcrossRedLine(bm.timingPoints, o.time, snapTimeToRedBeat(red, o.time, snap)); // v285: lazer 跨红线就近规则
+      let nt = snapAcrossRedLine(bm.timingPoints, o.time, snapTimeToRedBeat(red, o.time, snap)); // v285: lazer 跨红线就近规则
+      // v380: 吸附结果越出书签区间 -> 改取区间内贴近边界的 tick (对齐网格且不越线); 无内侧 tick 则不动
+      if (scope === 'bookmarks' && (nt < lo || nt > hi)) {
+        const div = red.beatLength / snap;
+        const k = nt < lo ? Math.ceil((lo - red.time) / div - 1e-9) : Math.floor((hi - red.time) / div + 1e-9);
+        nt = red.time + k * div;
+        if (nt < lo - 1e-6 || nt > hi + 1e-6) continue;
+      }
       const d = nt - o.time;
       if (!d) continue;
       o.time = nt;
@@ -1235,8 +1277,39 @@ class EditorStore {
   }
 
   // 拖拽结束时调用(拖拽过程中直接改对象不存undo)
-  commitDrag() { this.dragUndoDepth = null; this.emit(); }
-  beginDrag() { this.pushUndo(); this.dragUndoDepth = this.undoStack.length; }
+  commitDrag() {
+    // v379: 预览会话起步的拖拽确已发生 — 把预览固化为独立 undo 步 (快照 = 预览前基准),
+    //   插在本次拖拽快照之下: 撤销链 当前 →(undo 拖拽)→ 预览态 →(undo 预览)→ 最初谱面
+    //   (修复「先旋转/缩放预览再拖曳, 关窗后撤销回不到最初」); 并以拖拽后几何重立预览基准,
+    //   窗口会话不被拖曳中断 (拖完继续调值预览相对新基准; 关窗回滚到拖拽后状态, 不再抹掉拖曳)
+    if (this.dragPreviewSession && this.dragUndoDepth !== null && this.undoStack.length === this.dragUndoDepth && this.undoStack.length) {
+      const isObj = this.dragPreviewSession === 'obj';
+      if (isObj ? !!this.tfBackup : !!this.tfNodeBackup) {
+        const s2 = this.snapshot(); // 拖拽后 (当前)
+        if (isObj) this.restoreTransformBackup(); else this.restoreNodeTransformBackup();
+        const s0 = this.snapshot(); // 预览前基准
+        this.restore(s2);
+        const s1 = this.undoStack.pop()!; // beginDrag 压入的拖拽快照 (预览态)
+        this.undoStack.push(s0, s1);
+        if (this.undoStack.length > 200) this.undoStack.shift();
+        if (isObj) this.beginTransformPreview(); else this.beginNodeTransformPreview();
+      }
+    }
+    this.dragPreviewSession = null;
+    this.dragUndoDepth = null;
+    this.emit();
+  }
+  /** v379: 预览会话中起步的拖拽类型 (commitDrag 固化预览 undo 步用; 见 beginDrag) */
+  private dragPreviewSession: 'obj' | 'node' | null = null;
+  beginDrag() {
+    // v379: 变换预览会话中开始拖拽 — 快照直接取当前(预览)态, 不走 pushUndo 的先回滚
+    //   (回滚会把物件瞬回预览前位置 = 「开窗时一拖曳物件就回到原点」); 预览本身的 undo 步
+    //   在 commitDrag 确认拖拽发生后才固化, 纯点击(空拖拽)不产生任何快照、会话不受影响
+    if (this.tfBackup) this.dragPreviewSession = 'obj';
+    else if (this.tfNodeBackup) this.dragPreviewSession = 'node';
+    if (this.dragPreviewSession) this.pushSnapshot(); else this.pushUndo();
+    this.dragUndoDepth = this.undoStack.length;
+  }
   /** v345: 空拖拽收尾 (mousedown 压栈后无任何改动) — 若 beginDrag 的快照仍在栈顶则静默弹出,
    *  不污染 redoStack (原 undo() 会把当前态塞进 redo, 且拖拽按住期间有快捷键入栈时会误弹
    *  别人的快照吞掉一步合法撤销); 栈深不匹配 (期间有其他入栈) 回退 undo() 保持旧语义 */
@@ -1245,6 +1318,7 @@ class EditorStore {
     if (this.dragUndoDepth !== null && this.undoStack.length === this.dragUndoDepth && this.undoStack.length) this.undoStack.pop();
     else this.undo();
     this.dragUndoDepth = null;
+    this.dragPreviewSession = null; // v379: 纯点击(空拖拽)不固化预览, 会话原样继续
   }
 
   /** 画布拖拽进行中 (节点/物件移动/框选): 时间轴等外部组件此时应忽略鼠标交互, 避免拖动经过时误触 seek (非响应式标志, 不 emit) */
@@ -1273,8 +1347,16 @@ class EditorStore {
   symSliderAxisDragHandler: ((which: 1 | 2, x: number, y: number) => void) | null = null;
   /** v360: 时间轴覆盖区锚点穿透 (soulten: 重疊到時間軸的滑條點不能點擊取消/拖動) —
       EditorCanvas 注册, TopTimeline mousedown 先询问; 返回 true = 已按画布节点按下逻辑处理
-      (Alt 切换/框选, 整组拖拽; v362: + 选中单滑条拖锚点含红锚点成对 / Ctrl 加锚点), 时间轴不再响应 */
+      (Alt 切换/框选, 整组拖拽; v362: + 选中单滑条拖锚点含红锚点成对 / Ctrl 加锚点;
+      v378: + 旋转/缩放手柄 / 未选滑条锚点自动选中拖拽 / 物件本体拖拽), 时间轴不再响应 */
   playfieldNodePress: ((clientX: number, clientY: number, mods: { altKey: boolean; shiftKey: boolean; ctrlKey: boolean; metaKey: boolean }) => boolean) | null = null;
+  /** v378: 锚点命中探测 (四侧覆盖区捕获拦截用) — 按下点会进入滑条锚点交互 (Alt 切换/已选节点整组拖/
+      选中单滑条锚点拖拽/未选滑条非头锚点自动选中拖拽) 时返回 true; 命中锚点时连输入框/按钮也不再优先
+      (用户反馈: 输入框下的锚点也要能交互)。物件/手柄命中不在此列 — 仍保持控件优先 */
+  playfieldAnchorHit: ((clientX: number, clientY: number, mods: { altKey: boolean; shiftKey: boolean; ctrlKey: boolean; metaKey: boolean }) => boolean) | null = null;
+  /** v378: 四侧覆盖区右键穿透 — 选中单滑条锚点右键 (白点删除/红锚点合并转白), 与画布 onContextMenu 同一逻辑;
+      命中锚点时同样压过控件 (与左键同原则), 未命中照常放行 */
+  playfieldNodeContext: ((clientX: number, clientY: number) => boolean) | null = null;
 
   openConversion(d: NonNullable<EditorStore['conversionDialog']>) { this.conversionDialog = d; this.emitSelection(); }
   /** 关闭转换窗口 (清除预览; 不应用) */
@@ -1364,21 +1446,22 @@ class EditorStore {
     // v357: 粘贴锚点先吸附节拍网格 (lazer ComposeScreen.Paste: SnapTime(clock.CurrentTime) - Min(StartTime)) —
     //   此前直接用未吸附的当前时刻, 播放中/节拍间暂停时粘贴的物件落在网格外, 需要重新对齐才能救回
     const at = snapPlacementTime(this.beatmap.timingPoints, atTime, this.beatSnap);
-    // v196: 取整 round → floor — 底部时间戳 fmt 用 floor 显示, 用户按显示时刻粘贴 (如节拍吸附产生
-    // 的 55749.507 显示 0:55.749, round 会落到 55750 与显示/既有线不符); floor 后粘贴时刻 == 显示时刻。
-    // 与放置 (round 吸附) 的关系: round(f) ≥ floor(f), 物件恒不早于同刻粘贴的绿线, timingAt 不会取错 SV。
+    // v380: 取整 floor → round — 与所有放置入口统一 (finishSlider/圆圈/转盘均为 Math.round(吸附值));
+    // 修复「复制粘贴放置的物件与期望吸附点偏差 1ms」(非整节拍 tick 如 55749.507: 点击放置落 55750,
+    // 旧粘贴 floor 落 55749)。v196 的 floor 语义 (对齐底部时间戳 floor 显示) 由此作废 — 粘贴与放置同刻优先。
+    // 物件与绿线仍同一路径同一取整 (相等 => timingAt 不会取错 SV)。
     for (const c of this.clipboard) {
       const o = deepCopy(c);
       o.id = genId();
-      // v113: 物件时间与绿线同一路径取整 (v196 统一为 floor, 见上)
-      o.time = Math.floor(c.time + at);
-      if (o.endTime !== undefined && c.endTime !== undefined) o.endTime = Math.floor(c.endTime + at);
+      // v113: 物件时间与绿线同一路径取整 (v196 曾统一为 floor; v380 统一回 round, 与放置入口一致)
+      o.time = Math.round(c.time + at);
+      if (o.endTime !== undefined && c.endTime !== undefined) o.endTime = Math.round(c.endTime + at);
       this.beatmap.hitObjects.push(o);
       this.selected.add(o.id);
     }
     // v102: 绿线粘贴 — 目标时刻已有绿线则覆盖其参数 (与拖入新线替换语义一致), 否则插入
     for (const c of this.clipboardGreens) {
-      const t = Math.floor(c.time + at); // v357: 与物件同一吸附锚点
+      const t = Math.round(c.time + at); // v357: 与物件同一吸附锚点; v380: floor → round (同物件)
       const existing = this.beatmap.timingPoints.find(tp => !tp.uninherited && Math.round(tp.time) === t);
       if (existing) Object.assign(existing, deepCopy(c), { time: t });
       else this.beatmap.timingPoints.push({ ...deepCopy(c), time: t });
@@ -1666,6 +1749,8 @@ class EditorStore {
   /** 提交预览: undo 快照取预览前状态 (一次应用一次 undo), 随后以已提交态为新基准继续预览 */
   commitTransformPreview(fn: (objs: HitObject[], c: Pt) => HitObject[], origin: TransformOrigin = 'selection') {
     if (this.lockNotes || !this.tfBackup) { this.applyTransform(fn, origin); return; }
+    // v379: 无选区开窗 (先开窗后选物件) 时应用 = no-op — 不产生空 undo 快照/不清 redo
+    if (!this.selectedObjects().length) return;
     this.restoreTransformBackup();
     this.pushUndo(); // 快照 = 预览前
     const objs = this.selectedObjects();
@@ -1930,7 +2015,8 @@ class EditorStore {
   transformDialog: 'rotate' | 'scale' | 'symmetry' | null = null;
   openTransformDialog(m: 'rotate' | 'scale' | 'symmetry') {
     // v360: 旋转/缩放支持仅选中滑条锚点 (节点模式); 对称仍需物件选区
-    if (!this.selected.size && !(m !== 'symmetry' && this.nodeSelectionCount)) return;
+    // v379: 旋转/缩放无选区也可开窗 (先开窗后选物件; 未选中时预览/应用 = no-op, 窗口开着时选中即生效)
+    if (m === 'symmetry' && !this.selected.size) return;
     this.transformDialog = m; this.emitSelection();
   }
   closeTransformDialog() { if (this.transformDialog) { this.transformDialog = null; this.emitSelection(); } }

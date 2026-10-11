@@ -75,6 +75,7 @@ section('CDP: 区外起拖全程实时钳制 (a/b) / 区内不变 (c) / 多选 (
       ready = await evalJs('!!(window.__osuStore && window.__osuStore.beatmap && window.__osuToClient)').catch(() => false);
     }
     if (!ready) throw new Error('应用未就绪');
+    await evalJs(`window.__osuSetLang && window.__osuSetLang('en')`); // v378: 关首跑语言框 (v349 LangFirstRun; localStorage 按 dev 端口隔离, 端口变即弹全屏遮罩拦截真实事件/elementFromPoint)
     await sleep(800); // 布局稳定 (视口足够大, 游玩区外仍有可点画布余量; 区外偏移见 b 段动态计算)
 
     // 基础环境: 开限界, 关一切吸附 (钳制断言不受吸附修正干扰)

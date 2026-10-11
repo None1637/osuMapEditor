@@ -14,7 +14,7 @@ function assert(cond, msg) { if (!cond) { failures++; console.error('  FAIL:', m
 
 const src = fs.readFileSync(path.join(root, 'src/components/DraggableDialog.tsx'), 'utf8');
 assert(/v258: Adobe 式拖动调值/.test(src), 'v258 注释在');
-assert(/onPointerDown=\{e => \{[\s\S]{0,300}setPointerCapture/.test(src), 'pointerdown 记录起点并捕获指针 (v276 适配: 中间插入已聚焦框选判断)');
+assert(/onPointerDown=\{e => \{[\s\S]{0,420}setPointerCapture/.test(src), 'pointerdown 记录起点并捕获指针 (v276 适配: 中间插入已聚焦框选判断; v381 适配: 插入拖动调值总开关早退, 窗口 300→420)');
 assert(/Math\.abs\(dx\) < 3/.test(src), '3px 阈值 (不影响点击聚焦)');
 assert(/e\.shiftKey \? 10 : e\.altKey \? 0\.1 : 1/.test(src), 'Shift ×10 / Alt ×0.1 倍率');
 assert(/d\.v0 \+ \(dx \/ 5\) \* step \* mult/.test(src), '拖动按 step 调值 (v269 适配: 5px = 1 step, 原 1px 太敏感)');

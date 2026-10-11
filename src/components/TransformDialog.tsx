@@ -3,6 +3,9 @@
 // 同一 rotateSelected/scaleSelected 变换入口 (一次应用一次 undo)。窗口间角度/倍率各自独立记忆。
 // v210: 新增对称模式 (编辑菜单「对称...」, 无快捷键) — 对称轴: 选区/中心(竖直或水平线)/自定义(两点决定直线,
 // 画布上可拖拽两端点, 两点最小间距 4px 无法重合); 应用 = store.reflectSelected (一次 undo)。
+// v379: 无选区也可快捷键开窗 (store.openTransformDialog 去守卫), 空选区时显示提示且预览/应用 no-op;
+//   开窗状态 Ctrl+Z/Y 可用 (store.undo/redo 预览会话感知); 拖曳起步于预览态时预览固化为独立 undo 步
+//   并以拖拽后几何重立基准 (store.beginDrag/commitDrag) — 撤销链可一步步回到最初谱面, 预览不被拖曳中断
 import { useEffect, useRef, useState } from 'react';
 import { RotateCcw, RotateCw } from 'lucide-react';
 import { store, useEditor, type TransformOrigin } from '@/osu/store';
@@ -118,6 +121,10 @@ export function TransformDialog({ mode }: { mode: 'rotate' | 'scale' | 'symmetry
       )}
       {mode !== 'symmetry' && nodeMode && (
         <div className="text-white/45">{t('transform.node_mode_hint', 'Applying to selected slider anchors (origin = anchor bounding box center)')}</div>
+      )}
+      {/* v379: 无选区开窗提示 (预览/应用此时为 no-op, 选中物件后即生效) */}
+      {mode !== 'symmetry' && selCount === 0 && (
+        <div className="text-white/45">{t('transform.no_selection_hint', 'No objects selected — changing values has no effect until you select objects on the canvas')}</div>
       )}
       {mode === 'rotate' && (
         <div className="flex items-center gap-1 flex-wrap">

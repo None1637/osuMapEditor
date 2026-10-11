@@ -33,10 +33,10 @@ assert(/if \(tp\.uninherited \|\| !this\.selectedGreenLines\.has\(tp\.time\)\) c
 assert(/this\.beatmap\.timingPoints\.sort\(\(a, b\) => a\.time - b\.time\);\s*this\.selectedGreenLines = moved;/.test(store),
   'nudgeSelected: timingPoints 重排序 + 选区重键');
 
-// store: 复制粘贴对齐修复 (v196 适配: 取整 round → floor, 与底部时间戳显示一致)
+// store: 复制粘贴对齐修复 (v196 曾适配: 取整 round → floor; v380 再适配: 统一回 round, 与放置入口一致)
 assert(/if \(c\.endTime !== undefined\) c\.endTime -= t0;/.test(store), 'copy: endTime 转相对时间');
-assert(/o\.time = Math\.floor\(c\.time \+ at\);/.test(store), 'paste: 物件时间与绿线同路径取整 (v196: floor; v357: 锚点 at = 吸附后时刻)');
-assert(/o\.endTime = Math\.floor\(c\.endTime \+ at\)/.test(store), 'paste: endTime 同步平移取整 (v196: floor; v357: 锚点 at)');
+assert(/o\.time = Math\.round\(c\.time \+ at\);/.test(store), 'paste: 物件时间与绿线同路径取整 (v380: round; v357: 锚点 at = 吸附后时刻)');
+assert(/o\.endTime = Math\.round\(c\.endTime \+ at\)/.test(store), 'paste: endTime 同步平移取整 (v380: round; v357: 锚点 at)');
 assert(!/o\.time = c\.time \+ atTime;/.test(store), 'paste: 旧的不对称 (物件不取整) 已删');
 
 // Timelines: 右键绿线药丸删除 (在物件命中之前, 红线不动作; v114 起选中药丸走 deleteSelected 删整个选区)

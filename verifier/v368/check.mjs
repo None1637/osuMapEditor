@@ -22,7 +22,8 @@ const read = (rel) => fs.readFileSync(path.join(root, rel), 'utf8');
 section('源码: refreshHover 门控不再含游玩区边界 (cp.inside)');
 {
   const ec = read('src/components/EditorCanvas.tsx');
-  const m = ec.match(/const refreshHover = \(\) => \{[\s\S]{0,1400}?\n  \};/);
+  // v381: 窗口 1400→2400 — refreshHover 加了 store.setHoverNode 同步/非 Alt 悬停锚点上报, 块变长 (逻辑未变)
+  const m = ec.match(/const refreshHover = \(\) => \{[\s\S]{0,2400}?\n  \};/);
   assert(!!m, 'refreshHover 定义存在');
   if (m) {
     assert(!/cp\.inside/.test(m[0]), 'refreshHover 不再按 cp.inside (游玩区矩形) 门控 hover');
@@ -73,6 +74,7 @@ section('CDP: 区外滑条 hover 出控制点预览 / 区内不变 / Alt 锚点�
       ready = await evalJs('!!(window.__osuStore && window.__osuStore.beatmap && window.__osuToCanvas)').catch(() => false);
     }
     if (!ready) throw new Error('应用未就绪');
+    await evalJs(`window.__osuSetLang && window.__osuSetLang('en')`); // v378: 关首跑语言框 (v349 LangFirstRun; localStorage 按 dev 端口隔离, 端口变即弹全屏遮罩拦截真实事件/elementFromPoint)
     await sleep(800); // 布局稳定
 
     // 双滑条场景: 一条完全在游玩区内 (id 434343), 一条完全在游玩区外右下 (id 434344, x>512 且 y>384)

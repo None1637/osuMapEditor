@@ -77,6 +77,27 @@ section('CDP: 吸附网格扫描 / 交互预览=落盘 / freehand / distanceLock
     if (!ready) throw new Error('应用未就绪 (含 __osuSnap)');
     await sleep(800); // 布局稳定
 
+    // v380 适配: 归一谱面 — 启动会恢复上次打开的谱面 (localStorage 持久化, 跨运行污染), C/D 段的
+    //   SV=4 / beatPx=1120 校准依赖确定性 timing。载入固定谱面: 红线 1000/500ms + 绿线 1001/-25
+    //   (v227 红线重置 SV, 绿线须在红线后) => T=1000+8 拍 段 SV=4, SM=2.8 => beatPx=1120, tickPx=140。
+    await evalJs(`(() => {
+      const store = window.__osuStore;
+      window.__osuSetLang && window.__osuSetLang('en');
+      window.__osuSkin && window.__osuSkin.resetSkinToDefault();
+      const base = store.beatmap;
+      store.load({ ...base,
+        timingPoints: [
+          { time: 1000, beatLength: 500, meter: 4, sampleSet: 1, sampleIndex: 0, volume: 80, uninherited: true, effects: 0 },
+          { time: 1001, beatLength: -25, meter: 4, sampleSet: 1, sampleIndex: 0, volume: 80, uninherited: false, effects: 0 },
+        ],
+        hitObjects: [],
+        difficulty: { ...base.difficulty, sliderMultiplier: 2.8 },
+        editor: { ...base.editor, beatDivisor: 4, bookmarks: [] } }, null);
+      store.pause && store.pause();
+      store.tool = 'select';
+      return true;
+    })()`);
+
     // A: 纯函数扫描 — d ∈ {1,2,3,4,6,12} × 几何序列, 时间轴预览尾端必须落在 1/sliderLengthSnapDivisor(d)
     //    网格 (k 整数 ±0.05, len 取整 px 换算回 ms 有舍入), 且存在非整拍吸附 (证明不是只吸 1/1)
     const rA = await evalJs(`(() => {

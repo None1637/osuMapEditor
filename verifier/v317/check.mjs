@@ -21,7 +21,9 @@ section('F19: Alt+Shift 框选 toggle (v343)');
   assert(/subtract\?: boolean/.test(ec), 'nodeMarqueeRef 带 subtract 标记');
   const altLayer = ec.match(/const nodeAltPress = \(p: Pt[\s\S]{0,2600}?\n  \};/);
   assert(!!altLayer && /subtract: mods\.shiftKey && !mods\.ctrlKey && !mods\.metaKey/.test(altLayer[0]), '起手: 仅 Shift = toggle (Ctrl/Meta 仍加选)');
-  const mm = ec.match(/const inRect = nodesInRect[\s\S]{0,900}?\n      \}/);
+  // v378: 适配 v371 框选收窄重构 — inRect 改由 inRect0 经 altPick/「第一个框到的滑条」收窄得到 (let inRect = inRect0),
+  //   原模式 `const inRect = nodesInRect` 已不存在; 结束锚改到加选分支 setSelectedNodes, 窗口放大覆盖中间收窄块 (toggle 分支本体未变)
+  const mm = ec.match(/const inRect0 = nodesInRect[\s\S]{0,2400}?store\.setSelectedNodes\(\[\.\.\.nmq\.base, \.\.\.keepNodes, \.\.\.inRect\]\);/);
   assert(!!mm, 'mousemove 框选应用分支存在');
   assert(!!mm && /if \(nmq\.subtract\)/.test(mm[0]), 'toggle 分支存在');
   assert(!!mm && /kept = baseArr\.filter\(\(\[a, b\]\) => !inKeys\.has/.test(mm[0]), '框内已选 → 剔除');

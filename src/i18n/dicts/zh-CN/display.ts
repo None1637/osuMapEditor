@@ -33,5 +33,7 @@ export const zhCN: Record<string, string> = {
   'display.bg_brightness_desc': '游玩区背景图的不透明度; 0% 完全隐藏, 100% 全亮',
   'display.hide_title_bar_name': '隐藏窗口标题栏 (Hide Title Bar)',
   'display.hide_title_bar_desc': '去掉系统标题栏, 保留右上角最小/最大/关闭; 页签栏空白处可拖动窗口; 重启后生效',
+  'display.timeline_sv_sample_name': '时间轴 SV / 音量标记 (Timeline SV / Volume Pills)',
+  'display.timeline_sv_sample_desc': '上方时间轴显示 hitsound 粉药丸 (采样集+音量) 与绿线 SV 药丸; 关闭则都不画, 药丸也不再可点',
   'display.footer_note': '设置即时生效并自动记忆; 仅影响编辑器内显示, 不写入谱面文件。',
 };

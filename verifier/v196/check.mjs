@@ -1,4 +1,6 @@
 // 验证器 v196: paste 取整 round → floor (粘贴时刻 == 底部时间戳显示时刻)
+// v380 适配: 取整规则统一回 round (与所有放置入口一致, 修复「粘贴物件偏差 1ms」) — 本验证器的 floor
+//   断言改为 round 断言; 行为语义以 v380 为准 (粘贴落点 = 点击放置落点)。
 // 运行: node verifier/v196/check.mjs
 import { buildSync } from 'esbuild';
 import { fileURLToPath } from 'url';
@@ -22,14 +24,14 @@ function readSrc(rel) { return fs.readFileSync(path.join(root, rel), 'utf8'); }
 await import('file://' + out); // store 层断言 (内部自报 V196_TESTS_*)
 fs.unlinkSync(out);
 
-section('store.ts: paste 两路径统一 floor');
+section('store.ts: paste 两路径统一 round (v380 适配: floor → round, 与放置入口一致)');
 {
   const src = readSrc('src/osu/store.ts');
-  assert(/o\.time = Math\.floor\(c\.time \+ atTime\);/.test(src), '物件时间 floor');
-  assert(/o\.endTime = Math\.floor\(c\.endTime \+ atTime\)/.test(src), 'endTime floor');
-  assert(/const t = Math\.floor\(c\.time \+ atTime\);/.test(src), '绿线时间 floor');
-  assert(!/Math\.round\(c\.time \+ atTime\)/.test(src), '旧 round 路径已删');
-  assert(/v196/.test(src), 'v196 注释存在');
+  assert(/o\.time = Math\.round\(c\.time \+ at\);/.test(src), '物件时间 round (v380)');
+  assert(/o\.endTime = Math\.round\(c\.endTime \+ at\)/.test(src), 'endTime round (v380)');
+  assert(/const t = Math\.round\(c\.time \+ at\);/.test(src), '绿线时间 round (v380)');
+  assert(!/Math\.floor\(c\.time \+ at\)/.test(src), 'v196 的 floor 路径已由 v380 移除');
+  assert(/v380/.test(src), 'v380 注释存在');
 }
 
 section('Timelines.tsx: 时间戳显示确为 floor (一致性前提)');

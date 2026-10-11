@@ -21,5 +21,6 @@ export const zhCN: Record<string, string> = {
   'timeline.slider_nodes': '滑条点 ×{n}',
   'timeline.node_first': '前 #{i} ←',
   'timeline.node_last': '后 #{i} →',
+  'timeline.hover_node': '滑条点 #{i}/{n}',
   'timeline.no_selection': '未选中物件',
 };

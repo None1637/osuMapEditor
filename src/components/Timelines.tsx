@@ -519,8 +519,11 @@ export function TopTimeline() {
           const si = stacks.get(o.id) ?? { level: 0, count: 1 };
           const lay = stackLayout(si.count, OBJ_H, RAD);
           // v53: 粉药丸 (lazer SamplePointPiece): bank 字母 + 音量, 挂在头圆下方
-          const sp = samplePill(bm, o);
-          samplePills.push({ x: sx, text: sp.text, alt: sp.alt });
+          // v381: 显示设置关闭时不收集 (下游排布/绘制整段跳过)
+          if (displaySettings.timelineSvSample) {
+            const sp = samplePill(bm, o);
+            samplePills.push({ x: sx, text: sp.text, alt: sp.alt });
+          }
           // v213: 节点选区存在时整条不高亮, 只给选中节点画黄环 (stable 时间轴节点选中语义)
           const edgeSel = store.selectedEdges.get(o.id);
           const sel = (store.selected.has(o.id) || prevIds.has(o.id)) && !edgeSel?.size;
@@ -575,7 +578,8 @@ export function TopTimeline() {
           }
         }
         // v53: 粉药丸绘制 (头圆下方, 压分隔线垂入 tick 行; 过密时收缩为圆点 — lazer SamplePointContracted)
-        {
+        // v381: displaySettings.timelineSvSample 关 = 不画 (收集端已跳过, 这里双保险)
+        if (displaySettings.timelineSvSample) {
           g.font = pillFont(10); // v351: 缩放补偿 (原固定 10px, 缩小后超小)
           // v190: v189 起物件倒序绘制, 收集到的药丸 x 为降序; pillLayout 依赖升序, 否则全部误判重叠收缩成点
           const items = samplePills.map(p => ({ ...p, w: measureCached(g, p.text) + 10 })).sort((a, b) => a.x - b.x); // v245: 测宽走缓存
@@ -642,12 +646,15 @@ export function TopTimeline() {
             drawPill(tx, 63, bpmPillText(tp.beatLength), PILL_RED);
           }
           // v245: SV 药丸数据帧级 memo (原每帧 [...points].sort() 全表复制排序, 1000 绿线实测热点)
-          if (!memoSv || memoSv.ver !== dataVer || memoSv.pts !== bm.timingPoints)
-            memoSv = { ver: dataVer, pts: bm.timingPoints, out: svPoints(bm.timingPoints) };
-          for (const p of memoSv.out) {
-            const tx = x(p.time);
-            if (tx < -20 || tx > r.width + 20) continue;
-            drawPill(tx, 76.5, svPillText(p.sv), PILL_LIME, store.selectedGreenLines.has(p.time));
+          // v381: displaySettings.timelineSvSample 关 = SV 药丸不画
+          if (displaySettings.timelineSvSample) {
+            if (!memoSv || memoSv.ver !== dataVer || memoSv.pts !== bm.timingPoints)
+              memoSv = { ver: dataVer, pts: bm.timingPoints, out: svPoints(bm.timingPoints) };
+            for (const p of memoSv.out) {
+              const tx = x(p.time);
+              if (tx < -20 || tx > r.width + 20) continue;
+              drawPill(tx, 76.5, svPillText(p.sv), PILL_LIME, store.selectedGreenLines.has(p.time));
+            }
           }
           g.textAlign = 'start'; g.textBaseline = 'alphabetic';
         }
@@ -759,7 +766,8 @@ export function TopTimeline() {
       const tp = bm.timingPoints[i];
       if (tp.uninherited && inRect(tx(tp.time), 63, bpmPillText(tp.beatLength))) return { idx: i, tp };
     }
-    for (const p of svPoints(bm.timingPoints)) {
+    // v381: 显示设置关掉 SV 药丸后命中测试同步关闭 (隐形药丸不可点)
+    if (displaySettings.timelineSvSample) for (const p of svPoints(bm.timingPoints)) {
       if (inRect(tx(p.time), 76.5, svPillText(p.sv))) {
         const idx = bm.timingPoints.findIndex(tp => !tp.uninherited && tp.time === p.time);
         if (idx >= 0) return { idx, tp: bm.timingPoints[idx] };
@@ -1365,6 +1373,17 @@ export function SelectionInfoPanel() {
       };
     }
   }
+  // v381: hover 滑条锚点位置信息 (EditorCanvas refreshHover 维护 store.hoverNode; 优先级低于节点选区信息,
+  //   高于物件/预览信息 — 拖拽进行中 canvasDragging 会清空 hoverNode, 不会盖掉实时拖拽数据)
+  let hoverPt: { idx: number; x: number; y: number; total: number } | null = null;
+  if (!nodeInfo && bm && store.hoverNode) {
+    const ho = bm.hitObjects.find(x => x.id === store.hoverNode!.objId);
+    if (ho && ho.type === 'slider') {
+      const ctrl = [{ x: ho.x, y: ho.y }, ...(ho.curvePoints ?? [])];
+      const pt = ctrl[store.hoverNode!.idx];
+      if (pt) hoverPt = { idx: store.hoverNode!.idx, x: Math.round(pt.x), y: Math.round(pt.y), total: ctrl.length };
+    }
+  }
   return (
     <div className="w-40 shrink-0 border-l border-white/10 flex flex-col items-end justify-center px-2 font-mono text-[11px] leading-5 text-white/85 select-none whitespace-nowrap" style={{ background: 'rgba(12,12,17,0.15)' }}>{/* v129: 背景半透明; v284: 固定 (开关移除) */}
       {nodeInfo ? (
@@ -1373,6 +1392,12 @@ export function SelectionInfoPanel() {
           {/* v268: 最前选中节点到前一节点的距离 / 最后选中节点到后一节点的距离 (无端点显示 —) */}
           <div className="text-white/60">{t('timeline.node_first', 'First #{i} ←', { i: nodeInfo.firstIdx })} <span className="text-cyan-300">{nodeInfo.prevDist === null ? '—' : `${nodeInfo.prevDist}px`}</span></div>
           <div className="text-white/60">{t('timeline.node_last', 'Last #{i} →', { i: nodeInfo.lastIdx })} <span className="text-cyan-300">{nodeInfo.nextDist === null ? '—' : `${nodeInfo.nextDist}px`}</span></div>
+        </>
+      ) : hoverPt ? (
+        <>
+          {/* v381: hover 滑条锚点 — 显示锚点序号与坐标 (节点选区信息的 hover 版) */}
+          <div className="text-white/60">{t('timeline.hover_node', 'Slider Point #{i}/{n}', { i: hoverPt.idx, n: hoverPt.total - 1 })}</div>
+          <div>x:{hoverPt.x} y:{hoverPt.y}</div>
         </>
       ) : info ? (
         <>

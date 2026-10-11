@@ -31,7 +31,10 @@ section('store.ts: pushUndo 预览回滚守卫 (v345: 无条件回滚, 取代 v3
   assert(!/selKeyOf|tfSelKey/.test(store), 'v345: selKeyOf/tfSelKey 签名守卫已移除 (改无条件回滚)');
   const push = store.match(/pushUndo\(\) \{[\s\S]{0,600}?\n  \}/);
   assert(!!push && /if \(this\.tfBackup\) this\.restoreTransformBackup\(\);/.test(push[0]), 'pushUndo: 预览会话中快照前无条件回滚到基准 (回滚幂等)');
-  assert(!!push && push[0].indexOf('restoreTransformBackup') < push[0].indexOf('this.undoStack.push'), '回滚先于快照');
+  // v379: 入栈抽至 pushSnapshot (beginDrag 预览会话起步共用); 断言改为「pushUndo 回滚先于 pushSnapshot 调用」+「pushSnapshot 内才入栈」
+  assert(!!push && push[0].indexOf('restoreTransformBackup') < push[0].indexOf('this.pushSnapshot()'), '回滚先于快照 (v379: 快照在 pushSnapshot 内)');
+  const snap = store.match(/private pushSnapshot\(\) \{[\s\S]{0,300}?\n  \}/);
+  assert(!!snap && /this\.undoStack\.push\(this\.snapshot\(\)\)/.test(snap[0]), 'v379: pushSnapshot 承担入栈');
   assert(/cancelDragNoop\(\) \{[\s\S]{0,300}?this\.dragUndoDepth/.test(store), 'v345: cancelDragNoop 空拖拽按栈深静默弹栈 (不进 redo)');
 }
 

@@ -50,7 +50,7 @@ section('EditorCanvas.tsx: 旋转手柄 / 光标 / 可见性接线');
   assert(/ew-resize/.test(src) && /ns-resize/.test(src) && /nwse-resize/.test(src) && /nesw-resize/.test(src), '缩放手柄光标形状');
   assert(/'grabbing'/.test(src) && /'grab'/.test(src), '旋转手柄 grab 光标');
   assert(/hoverHandleRef/.test(src), '悬停手柄跟踪 (旋转手柄淡入)');
-  assert(/rotationHandlePoints\(dq\)/.test(src), '渲染旋转手柄');
+  assert(/rotationHandlePoints\(dq, rotOut\)/.test(src), '渲染旋转手柄 (v378: 偏移改固定屏幕 px, 传入 rotOut)');
 }
 
 section('Timelines.tsx: 框选修复 (hitTestMarker 像素阈值)');

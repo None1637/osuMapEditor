@@ -19,6 +19,8 @@ const ROWS: { key: BoolDisplayKey; nameKey: string; nameEn: string; descKey: str
   // v253/v254
   { key: 'showFps', nameKey: 'display.show_fps_name', nameEn: 'FPS Counter', descKey: 'display.show_fps_desc', descEn: 'Floating real-time FPS counter in the bottom-right corner; when off, it is not mounted at all' },
   { key: 'selectionBounds', nameKey: 'display.selection_bounds_name', nameEn: 'Selection Bounds', descKey: 'display.selection_bounds_desc', descEn: 'Yellow bounding box and scale/rotate handles for selected objects; when off, only the object selection effect is shown' },
+  // v381
+  { key: 'timelineSvSample', nameKey: 'display.timeline_sv_sample_name', nameEn: 'Timeline SV / Volume Pills', descKey: 'display.timeline_sv_sample_desc', descEn: 'Show hitsound sample pills (sample bank + volume) and green-line SV pills in the top timeline; when off, neither is drawn and the pills are no longer clickable' },
   // v284: 时间轴半透明开关移除 — 半透明为唯一行为 (用户要求: 默认就是半透明, 不要开关)
 ];
 

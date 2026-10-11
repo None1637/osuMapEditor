@@ -3645,3 +3645,149 @@
   6) 行点击文件管理器式多选 (点在输入控件上不触发): 单击=单选, Ctrl=切换, Shift=锚点范围 (rangeTimes 按可见行序); 红绿线通用 — store.clickTimingLine + tpSelAnchor, 集合复用 selectedGreenLines (语义扩为选中 timing 点); 新增红线批量编辑栏 (音效集/序号/音量/kiai/删除, updateTimingPointsAt/deleteTimingPointsAt 红绿通用)。
 - 适配: v157 (sv 批量字段改 PreciseInput 属性透传断言)。
 - 验证: verifier/v372 (sampleSetCode/rangeTimes/fmtTpPrec 纯函数 + 源码断言 + v157 结构回归); 回归 v157/v62/v359/v371 全绿; tsc + vite build 通过。
+
+## v378 — 滑条锚点交互补全 + 四侧 UI 覆盖区穿透完整优先级链 + 选中框装饰固定屏幕 px
+- 用户反馈: 6 项 — 1) 没选中滑条时不能直接拖它的锚点 (要先点物件选中, stable 可直接拖);
+  2) 四侧 UI (上/下时间轴/侧栏) 盖住的物件本体/包围框缩放/旋转手柄不能交互 (v360-v362 只通了
+  Alt 层/整组拖/单滑条锚点); 3) 覆盖区右键不能删锚点/红转白; 4) 关掉「选中包围框」后复选滑条点
+  的节点框仍隐形命中 (看不见却能拖); 5) Alt hover 锚点环/选中节点黄环半径随游玩区缩放变化;
+  6) 旋转手柄相对框角的偏移随游玩区缩放变化 (hover 光标与命中位置随之漂移)。
+- 修复 (EditorCanvas.tsx 除注明外):
+  1) onMouseDown 物件命中前插入 unselectedSliderNodePress (1594): 未选滑条锚点按下 = 自动选中
+     该滑条并转 singleSliderNodePress 节点编辑; 头部锚点 (idx 0) 刻意排除 — 头部 = 物件本体抓取点,
+     空选区按头部仍是物件拖拽 (v369 语义不变); Shift 保留物件加选不进入。物件命中段抽为
+     objectPress (1608) 供穿透共用;
+  2) playfieldNodePress 穿透补全为 onMouseDown 完整优先级链 (457): selectionHandlePress
+     (旋转→缩放, 1516 抽出) → Alt → 整组拖拽 → 单滑条节点 → 未选滑条锚点 → 物件本体拖拽;
+     新增 store 桥 playfieldAnchorHit (store.ts:1281) — 捕获拦截里锚点命中先于「控件优先」判定
+     (输入框/按钮下的锚点也能拖, 只有锚点压过控件, 物件/手柄命中仍保持控件优先);
+  3) 右键锚点操作抽为 sliderAnchorContextPress (1635) + store.playfieldNodeContext 桥 +
+     contextmenu 捕获监听: 覆盖区右键删白点/红转白 (头部右键吞掉不删, 与画布 onContextMenu 一致);
+  4) currentQuads (145): 「选中包围框」开关进 memo 键并整体门控 — 关闭时节点选区也不生成 quads
+     (原开关只挡黄框绘制, 节点框 dq 仍参与整组拖拽 insideBox 与手柄命中 = 隐形包围框);
+  5) Alt hover 环半径 9/uiZoom()/scale (964, 原固定 9 osu px 是真 bug) 与选中节点黄环
+     10/uiZoom()/scale (1063, 补 uiZoom) — 任何缩放组合下固定屏幕 px, 线宽同款;
+  6) selectionBox.ts: rotationHandlePoints/hitRotationHandle 加第 4 参 out (384/395, 默认
+     ROT_HANDLE_OUT=12.5 保持 v50/v54 纯函数兼容); 绘制 (1032) 与命中 (1526) 统一传
+     rotHandleOut() = ROT_HANDLE_OUT/uiZoom()/playfieldScale (371) — 偏移固定屏幕 px,
+     显示位置 = 命中位置。
+- 顺带真 bug 修复 (回归暴露): store.load 加 invalidatePath() (store.ts:542) — pathCache 按物件 id
+  缓存, 换谱后新物件 id 撞上旧谱滑条 id 时 hitTest/渲染沿用旧几何 (点不中/画错形状); 默认谱面
+  id=101 恰为 slider, v369 测试物件 id=101 撞上后 (a) 段空选按头 hitTest 不命中
+  (restore() 早有同款清理「防止旧滑条残留」, load 漏了)。
+- 验证器加固/适配:
+  - v378/v369/v368/v362 ready 后加 __osuSetLang('en') — v349 LangFirstRun 首跑语言框的
+    localStorage 按 dev 端口隔离, 端口变即弹全屏遮罩 (z-9999) 拦截真实鼠标事件与
+    elementFromPoint (本轮 v369 b0/v368 hover 三处/v378 2b inBottom 批量失败的共同根因);
+  - v362 加 resetSkinToDefault (用户皮肤 sliderBorder=#525252 灰边使 G 白边亮度 >165 断言失效,
+    仅改运行内存不动用户配置) + G 横截采样跨度按 radius*szx 动态化 (固定 ±100px 在 2560 宽屏
+    szx≈3.3 下采不到 ≈121px 处的白边);
+  - v378 2b/2c 落点从覆盖带上沿 (br.top+12) 改垂直中央; 残留 flaky 真根因 (本轮定位):
+    显示设置持久化在 localStorage, 测试收尾 setDisplayFlag 的写盘是 leveldb 异步 flush,
+    会被 electron.kill() 抢先 — 前次运行残留的 selectionBounds=false 使 currentQuads 门控
+    (需求4) 返回 null, 手柄 quads 不生成 → 2b/2c 穿透假失败 (CDP 探针证实拦截链/桥函数/
+    selectionHandlePress 全部正常, 隔离环境派发必现 consumed=true)。加固: setup 显式
+    setDisplayFlag('selectionBounds', true) 与持久化状态解耦; 适配 v362 (窗口 900→1400,
+    singleSliderNodePress 断言改 if-return)、v50 (rotationHandlePoints(dq)→(dq, rotOut) 断言)、
+    v316 (高亮环截取窗口 1200→1600, v378 换算注释撑长)、v317 (inRect→inRect0,
+    适配 v371 框选收窄重构, toggle 分支本体未变)。
+  - v362 G 残留 147 失败的复核结论 (本轮): 147 恰为持久化用户皮肤 sliderBorder=#525252 灰边
+    的亮度 (CDP 探针实测: 灰皮肤 147, resetSkinToDefault 同步生效后 243, 与 sliderGradientTrack
+    无关) — resetSkinToDefault (check.mjs:84) 已覆盖该根因, 本轮 4 连跑全 243 未复现;
+    断言内嵌诊断 (borderSrc/ls) 保留, 若再发可直接读出当时生效的描边来源。
+- 验证: verifier/v378 (tests.ts 纯函数 rotationHandlePoints out 参数 7 项 + check.mjs 源码断言 +
+  CDP 27 项实测: 1a-1d 未选滑条拖锚点/中段仍物件拖, 2a-2c 下时间轴穿透物件拖拽/缩放/旋转手柄,
+  3a-3c 覆盖区右键删锚点/控件上锚点优先/非锚点按钮不吞, 4a/4b 关包围框后节点框不画不命中,
+  5a-5d 黄环 zoom1/zoom2 半径不变, 6a/6b 手柄 grab 光标+像素定位)。
+- 回归: v371/v369/v368/v362/v361/v360/v309/v316/v317/v266/v376/v374 全绿 (串行; 注意多验证器
+  并行跑 CDP 会资源争抢 flaky, 回归请串行); tsc + vite build 通过。
+
+## v379 — 旋转/缩放窗口: 无选区可开 + 开窗可撤销/拖曳 + 预览不被拖曳中断
+- 用户反馈: 4 项 — 1) 旋转/缩放窗口应能无选区快捷键打开 (先开窗后选物件), 未选中时无效果;
+  2) 先预览旋转/缩放再拖曳物件后关窗, 撤销回不到最初谱面; 3) 窗口开着时 Ctrl+Z 无效、
+  一拖曳物件就弹回原点; 4) 调值实时预览被拖曳中断。
+- 根因与修复 (store.ts 除注明外):
+  1) openTransformDialog 旧守卫「无选区不开」— 改为旋转/缩放始终开窗 (对称仍需选区);
+     commitTransformPreview 空选区 no-op (原会压空 undo 快照清 redo); 原生编辑菜单
+     「旋转.../缩放...」启用条件 hasSelection→hasMap (electron/main.cjs:496);
+     TransformDialog 空选区提示 (i18n transform.no_selection_hint);
+  2)/3b)/4) 同源: beginDrag 走 pushUndo 先回滚预览再快照 (物件瞬回预览前 = 拖曳回原点),
+     且 tfBackup 基准不随拖曳更新 — 关窗/再次调值把拖曳位移抹掉、undo 链错位。修复:
+     beginDrag 遇预览会话 (tfBackup/tfNodeBackup) 时快照直接取当前(预览)态 (dragPreviewSession
+     标记); commitDrag 确认拖拽发生后把预览固化为独立 undo 步 (快照=预览前基准, 插在拖拽
+     快照之下) 并以拖拽后几何重立基准 — 撤销链 当前 →(undo 拖拽)→ 预览态 →(undo 预览)→ 最初;
+     cancelDragNoop 清标记 (纯点击不固化预览); 节点会话 (tfNodeBackup) 同构;
+  3a) App.tsx 预览会话快捷键屏蔽名单放行 undo/redo; store.undo/redo 预览会话感知
+     (先回滚未提交预览再撤销/重做, 事后以新状态重立基准, 窗口保持打开)。
+- 顺带重构: pushUndo 入栈段抽为 pushSnapshot (beginDrag 预览起步共用); 适配旧断言
+  v331 (回滚先于快照 → 先于 pushSnapshot 调用 + pushSnapshot 承担入栈)、v120 (v140 注释
+  随行 pushSnapshot)。
+- 验证: verifier/v379/check.mjs (源码断言 + CDP 21 项实测: 1a-1f 无选区开旋转/缩放窗、
+  空选区调值/应用 no-op、选中即生效、Esc 回滚; 2a-2f 预览→拖曳→调值→关窗→逐步撤销回最初
+  (hitObjects 全字段归一化对比); 3a 开窗 Ctrl+Z/Ctrl+Y; 3b 拖曳不弹回原点; 4a/4b 拖后
+  预览基准=拖拽后几何; 5a-5d 节点模式同构)。setup 归一 localStorage (hotkeys 改键覆盖/
+  tf-scale lockRatio) 与皮肤, 防跨运行污染。
+- 回归: v378/v362/v360/v345/v344/v331/v120 全绿 (串行); tsc + vite build 通过。
+
+## v380 — 时间类: 放置偏差1ms + bookmark 区间对齐边界 + 网格间距撤销回复
+- 用户反馈: 3 项 — 1) 放置 (含复制粘贴等方式) 的物件仍可能与当前时间点偏差 1ms;
+  2) 前后两条 bookmark 线按「重新对齐Bookmark区间」后, 后线物件被吸到线后、前线物件被吸到线前;
+  3) 手动改网格间距后撤销或刷新不回复间距值 (v373 已修 store 层, 本版复核并补漏网路径)。
+- 根因与修复:
+  1) paste 取整与放置入口不一致 (src/osu/store.ts paste): 放置 (finishSlider/圆圈/转盘) 全部
+     Math.round(吸附值), 唯独粘贴用 v196 引入的 Math.floor(c.time + at) — 非整节拍 tick
+     (如 BPM 175.23 的 1941.6196) 点击放置落 1942、粘贴落 1941, 差 1ms。修复: 物件/endTime/绿线
+     三处 floor → round, 与放置统一; 适配旧验证器 v113/v196/v357 (floor 断言改 round,
+     v196/tests.ts 期望同步改写; v357 顺带修正因 v364 import 扩展而过时的引入断言)。
+  2) timingResnap('bookmarks') 边界归属 (src/osu/store.ts): 区间 [lo, hi) 前线 inclusive,
+     压前线的物件被就近吸附到线前 tick; 靠后线的区间内部件就近吸附可越过后线。修复:
+     正好压前/后线的物件作为区间锚点不动; 吸附结果越界时改取区间内贴近边界的 tick
+     (ceil/floor 朝向内侧), 区间内无 tick 则不动; 书签列表防御性排序
+     (parser 保持文件顺序, 乱序 .osu 会取错区间)。
+  3) v373 复核: store.load/restore 重置 gridSpacing 本身正确 (CDP 实测撤销/重做/刷新均回复)。
+     漏网路径在 UI 层 (src/App.tsx): a) 间距输入框聚焦时 Ctrl+Z 被快捷键处理的
+     INPUT/SELECT/TEXTAREA 早退吞掉 (number 输入框无原生文本撤销) — 改为 number 输入框内
+     放行 undo/redo 快捷键; b) GridSpacingInput 本地 text 态在外部撤销/重做/刷新后滞留,
+     显示旧间距 — committed 外部变化时 useEffect 丢弃本地文本。
+- 验证: verifier/v380/check.mjs (源码断言 + CDP: 1a 3 BPM (120/175.23/90.5) × 7 档 beatSnap ×
+  5 采样时刻的点击放置+粘贴 time == round(理论吸附) 偏差 0; 2a-2e 压线锚点不动/区间内吸附/
+  靠后线不越界/区间外不动/一次 undo; 3a-3e 真实输入框路径改间距→聚焦 Ctrl+Z 回复且显示回复/
+  Ctrl+Y 重做/刷新谱面跟随磁盘值)。setup 归一 __osuSetLang/localStorage hotkeys/皮肤。
+- 顺带适配: v364 CDP 段启动会恢复 localStorage 持久化的上次谱面, SV=4/beatPx=1120 校准在他人
+  环境失效 — CDP 开头归一为固定谱面 (红线 1000/500ms + 绿线 1001/-25, SM=2.8), 与本批源码改动
+  无关 (sliderPath/parser/sampleBeatmap 均未动)。
+- 回归: v379/v378/v373/v366/v365/v364/v357/v355/v285/v196/v113 全绿 (串行); tsc + vite build 通过。
+
+## v381 — 设置/UI 类: 时间轴SV/音量开关 + 拖动调值开关 + 移动死区开关 + hover锚点位置 + 枚举框滚轮循环
+- 用户反馈: 5 项 — 1) 显示设置加开关控制上方时间轴是否显示 hitsound volume 与 SV 标记;
+  2) 设置加开关控制数值框能否按住左右拖动改值 (默认能); 3) 设置加物件移动死区开关
+  (开 = 起始移动最小 2px 现状, 关 = 1px; 包围框手柄与滑条点本就不受此死区影响);
+  4) 指针悬停滑条点时不显示该点位置信息, 应要有; 5) 枚举下拉框 (如网格类型) 支持滚轮调整,
+  滚到末尾循环回开头 (反向亦然)。
+- 实现:
+  1) displaySettings 新增 timelineSvSample (默认开); Timelines.tsx 粉药丸收集/绘制、SV 药丸
+     绘制、SV 药丸命中测试三处门控 (关 = 不画也不可点); DisplayPanel.tsx 加开关行。
+  2) 新模块 src/osu/editorPrefs.ts (localStorage 持久化, 模式同 displaySettings):
+     dragAdjustNumbers 默认开; DraftNum onPointerDown 早退门控 (关 = 拖动不改值, 滚轮/键入保留)。
+     开关放在快捷键设置面板顶部新增「通用」区 (HotkeyPanel.tsx), 经 store.setEditorPref 翻转。
+  3) editorPrefs.moveDeadzone2px 默认开 (2px); EditorCanvas applyObjectDrag 死区阈值改取 prefs
+     (>1 = 2px / >0 = 1px)。顺带修复潜伏 bug: 原死区内 (1px 微拖) 仍实时改写物件坐标,
+     只是 moved=false 不 emit/不入 undo, 松手 cancelDragNoop 弹空快照不还原 → 静默移位且无撤销;
+     现死区内直接 return 不应用位移。节点拖拽 (nodeDragRef/nodesMoveDragRef) 与包围框手柄
+     (scaleDragRef/rotateDragRef) 各自 moved 逻辑不动。
+  4) store 新增 hoverNode + setHoverNode (同值不 emit 防 mousemove 重渲染风暴);
+     EditorCanvas refreshHover 同步 hover 锚点 (Alt 层最近锚点 + 非 Alt 悬停选中滑条手柄,
+     命中同 mousedown nearestCtrlPoint), onMouseLeave/非 select 工具/拖拽中清空;
+     Timelines.tsx SelectionInfoPanel 新增 hover 分支 (优先级: 节点选区 > hover > 物件/预览),
+     显示滑条点序号与 x/y 坐标。
+  5) 新模块 src/osu/selectWheel.ts: window 捕获阶段全局 wheel 监听, 悬停 <select> 滚动切选项
+     (跳过 disabled, 取模首尾循环), 原生 value setter + change 事件驱动 React 受控组件,
+     改键捕获态 (hotkeyCaptureActive) 让位; App.tsx 挂载一次覆盖全部枚举框。
+- 验证: verifier/v381/check.mjs (源码断言 + CDP 18 项实测: 1a-1c fillText 拦截实测药丸显隐
+  (BPM 红药丸不受影响); 2a-2e 拖动调值开/关/滚轮保留/再开; 3a-3e 死区开 1px 不动/2px 动/
+  关后 1px 即动/再开复原; 4a-4d hover 锚点出序号+坐标/空白与移走不显示; 5a-5b 网格类型下拉
+  滚轮逐项切换且首尾双向循环)。setup 归一 __osuSetLang/localStorage hotkeys/皮肤/editorPrefs/
+  displaySettings; 合成 PointerEvent 打 setPointerCapture noop 补丁。
+- 顺带适配旧验证器断言 (refreshHover/onPointerDown 块变长, 逻辑不变): v316 窗口 1200→2400,
+  v368 窗口 1400→2400, v258 窗口 300→420。
+- 回归: v380/v379/v378/v368/v367/v316/v269/v258 全绿 (串行); tsc + vite build 通过。

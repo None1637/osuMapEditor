@@ -6,6 +6,7 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode, type PointerEvent } from 'react';
 import { X } from 'lucide-react'; // v181: 关闭按钮 emoji ✕ → lucide
 import { dialogFit, useUiZoom } from '../osu/uiZoom';
+import { editorPrefs } from '../osu/editorPrefs'; // v381: 拖动调值总开关
 import { useT } from '../i18n';
 
 /** 居中落点 (纯函数): 视口 (vw,vh) 内放 (w,h) 窗口的左上角, 负值钳 0 */
@@ -91,7 +92,8 @@ export function useSaveParamsOnClose<T>(key: string, v: T) {
 /** v40: 数字输入 (草稿态) — 聚焦期间保留原始文本, 全选重打不被 clamp/格式化打断;
  *  每次击键仍实时 set (驱动预览), 失焦回显最终值 */
 /** v258: Adobe 式拖动调值 — 按住输入框水平拖动改数值 (v269: 默认 5px = 1 step, 原 1px 太敏感;
- *  Shift ×10, Alt ×0.1); 超过 3px 阈值才进入拖动 (不影响点击聚焦/正常选字), 拖动期间阻止文本选择 */
+ *  Shift ×10, Alt ×0.1); 超过 3px 阈值才进入拖动 (不影响点击聚焦/正常选字), 拖动期间阻止文本选择;
+ *  v381: 设置面板可全局关闭 (editorPrefs.dragAdjustNumbers, 关 = 按下不进入拖动调值) */
 /** v276: 已聚焦的输入框内按下拖动 = 原生文本框选, 不触发调值 (用户反馈「框选输入框中数字时
  *  不要触发左右拖动数值」); 调值只在未聚焦的输入框上按下拖动 (= 点击即聚焦的那次交互) */
 export function DraftNum({ value, set, testid, min, max, step = 1, digits }: {
@@ -132,6 +134,7 @@ export function DraftNum({ value, set, testid, min, max, step = 1, digits }: {
       onBlur={() => setDraft(null)}
       onPointerDown={e => {
         if (e.button !== 0) return;
+        if (!editorPrefs.dragAdjustNumbers) return; // v381: 设置里关掉拖动调值 — 拖动不改值 (滚轮/键入保留)
         if (document.activeElement === e.currentTarget) return; // v276: 已聚焦 → 拖动留给文本框选
         dragRef.current = { x0: e.clientX, v0: value, active: false };
         e.currentTarget.setPointerCapture(e.pointerId);
