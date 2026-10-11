@@ -14,7 +14,7 @@
 import { fileURLToPath } from 'url';
 import path from 'path';
 import fs from 'fs';
-import { spawn } from 'child_process';
+import { launchIsolatedElectron, killIsolated, normalizeEnv } from '../_lib/env.mjs'; // v383: 环境归一共享 helper
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 
@@ -53,10 +53,9 @@ section('源码: 需求3 输入框 undo/redo 放行 + 文本滞留');
 
 section('CDP: 三项行为实测');
 {
-  const ELECTRON = path.join(root, 'node_modules', 'electron', 'dist', 'electron.exe');
   const PORT = 9480;
   const sleep = (ms) => new Promise(r => setTimeout(r, ms));
-  const electron = spawn(ELECTRON, ['.', `--remote-debugging-port=${PORT}`], { cwd: root, stdio: 'ignore' });
+  const { proc: electron, profile } = launchIsolatedElectron(root, PORT); // v383: 隔离 userData, 不碰真实 settings/localStorage
   try {
     let target;
     for (let i = 0; i < 60 && !target; i++) {
@@ -89,6 +88,7 @@ section('CDP: 三项行为实测');
       ready = await evalJs('!!(window.__osuStore && window.__osuStore.beatmap && window.__osuToClient && window.__osuSetLang)').catch(() => false);
     }
     if (!ready) throw new Error('应用未就绪');
+    await normalizeEnv(evalJs); // v383: 环境归一 (语言 en / 默认皮肤 / 关曲库遮罩 / 清污染键)
 
     // setup: 归一持久化状态 (localStorage/皮肤跨运行污染教训), 造谱工具挂 window
     await evalJs(`(async () => {
@@ -246,7 +246,7 @@ section('CDP: 三项行为实测');
     failures++;
     console.error('  FAIL: CDP 段异常 —', String(e).slice(0, 500));
   } finally {
-    electron.kill();
+    await killIsolated(electron, profile); // v383: 杀进程 + 回收临时 profile
   }
 }
 

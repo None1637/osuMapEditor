@@ -5,7 +5,8 @@
 import { fileURLToPath } from 'url';
 import path from 'path';
 import fs from 'fs';
-import { execSync, spawn } from 'child_process';
+import { execSync } from 'child_process';
+import { launchIsolatedElectron, killIsolated, normalizeEnv } from '../_lib/env.mjs'; // v383: 环境归一共享 helper
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 let failures = 0;
@@ -23,10 +24,9 @@ section('源码: sliderBodyColors 轨道色优先级随开关翻转');
 
 section('CDP 像素: 轨道色优先级 (渐变轨道开, 探滑条体中心色)');
 {
-  const ELECTRON = path.join(root, 'node_modules', 'electron', 'dist', 'electron.exe');
   const PORT = 9461;
   const sleep = (ms) => new Promise(r => setTimeout(r, ms));
-  const electron = spawn(ELECTRON, ['.', `--remote-debugging-port=${PORT}`], { cwd: root, stdio: 'ignore' });
+  const { proc: electron, profile } = launchIsolatedElectron(root, PORT); // v383: 隔离 userData, 不碰真实 settings/localStorage
   try {
     let target;
     for (let i = 0; i < 60 && !target; i++) {
@@ -59,6 +59,7 @@ section('CDP 像素: 轨道色优先级 (渐变轨道开, 探滑条体中心色)
       ready = await evalJs('!!(window.__osuStore && window.__osuStore.beatmap && window.__osuToCanvas && window.__osuSkin)').catch(() => false);
     }
     if (!ready) throw new Error('应用未就绪');
+    await normalizeEnv(evalJs); // v383: 环境归一 (语言 en / 默认皮肤 / 关曲库遮罩 / 清污染键)
 
     // 单条 L 滑条 (312,192)->(380,150) @6000ms; 渐变轨道开 (纯黑轨道不吃轨道色, 测不出)
     await evalJs(`(() => {
@@ -117,7 +118,7 @@ section('CDP 像素: 轨道色优先级 (渐变轨道开, 探滑条体中心色)
     failures++;
     console.error('  FAIL: CDP 段异常 —', String(e).slice(0, 300));
   } finally {
-    electron.kill();
+    await killIsolated(electron, profile); // v383: 杀进程 + 回收临时 profile
   }
 }
 

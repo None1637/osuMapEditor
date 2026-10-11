@@ -1314,10 +1314,11 @@ export function BottomTimeline() {
           store.wheelSeek(e.deltaY, e.deltaMode);
         }} />
       <div className="flex items-center gap-1.5 shrink-0">
-        {/* 倍速 (lazer PlaybackControl.PlaybackTabControl: 底栏右侧, 25/50/75/100%, 激活加粗)
-            v296: 编辑器倍速固定不变调 (signalsmith-stretch, lazer PlaybackControl Tempo 语义), 变调按钮已移除;
-            变调 (Frequency 重采样) 仅测试游玩 DT/HT 内部强制使用 */}
-        <div className="flex flex-col items-center gap-0.5 px-1" title={t('timeline.speed_title', 'Playback speed (tempo-preserving, signalsmith-stretch; lazer Tempo)')}>
+        {/* 倍速 (编辑器右侧栏, 25/50/75/100%, 激活加粗)
+            v385: 编辑器倍速固定变速不变调 (signalsmith-stretch 保时音高拉伸,
+            对齐 lazer 编辑器 PlaybackControl Tempo 语义); v382 的 sinc 变调引擎
+            保留给测试游玩 DT/HT (Frequency 语义, 无编辑器 UI 入口) */}
+        <div className="flex flex-col items-center gap-0.5 px-1" title={t('timeline.speed_title', 'Playback speed (tempo-preserving stretch, lazer-editor-like)')}>
           <span className="text-[10px] text-white/40 leading-3">{t('timeline.speed_label', 'Speed')}</span>
           <div className="flex rounded overflow-hidden border border-white/10">
             {[0.25, 0.5, 0.75, 1].map(v => (

@@ -1,17 +1,16 @@
 // CDP profile v340 (Electron / production 构建): dev server 版 React 开销掩盖差异, 用 Electron 跑 dist 重测
 //   场景同 profile.mjs: A0 空区框选 / A1 物件框选 / B1 Alt 节点框选 / C1 拖滑条甩动
 // 运行: npm run build 后 node verifier/v340/profile-electron.mjs  (会短暂弹出编辑器窗口)
-import { spawn } from 'child_process';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { launchIsolatedElectron, killIsolated, normalizeEnv } from '../_lib/env.mjs'; // v383
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
-const ELECTRON = path.join(root, 'node_modules', 'electron', 'dist', 'electron.exe');
 const DEBUG_PORT = 9435;
 
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
-const electron = spawn(ELECTRON, ['.', `--remote-debugging-port=${DEBUG_PORT}`], { cwd: root, stdio: 'ignore' });
+const { proc: electron, profile } = launchIsolatedElectron(root, DEBUG_PORT); // v383: 隔离 userData
 
 let target;
 for (let i = 0; i < 60 && !target; i++) {
@@ -21,7 +20,7 @@ for (let i = 0; i < 60 && !target; i++) {
   } catch { /* not ready */ }
   if (!target) await sleep(500);
 }
-if (!target) { console.error('找不到 Electron 页面目标'); electron.kill(); process.exit(2); }
+if (!target) { console.error('找不到 Electron 页面目标'); await killIsolated(electron, profile); process.exit(2); }
 const ws = new WebSocket(target.webSocketDebuggerUrl);
 await new Promise((res, rej) => { ws.onopen = res; ws.onerror = rej; });
 
@@ -131,6 +130,7 @@ try {
     ready = await evalJs('!!(window.__osuStore && window.__osuStore.beatmap && window.__osuToCanvas)').catch(() => false);
   }
   if (!ready) throw new Error('Electron 应用未就绪');
+  await normalizeEnv(evalJs); // v383: 环境归一
 
   // 注入 2000 物件谱面 (同 profile.mjs)
   await evalJs(`(() => {
@@ -303,6 +303,6 @@ try {
   await mouse('mouseReleased', pMid.x, pMid.y, { alt: true });
   await keyAlt(false);
 } finally {
-  electron.kill();
+  await killIsolated(electron, profile); // v383: 杀进程 + 回收临时 profile
 }
 process.exit(0);

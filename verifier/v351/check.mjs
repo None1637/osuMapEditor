@@ -8,7 +8,8 @@
 import { fileURLToPath } from 'url';
 import path from 'path';
 import { readFileSync } from 'fs';
-import { spawn, execSync } from 'child_process';
+import { execSync } from 'child_process';
+import { launchIsolatedElectron, killIsolated, normalizeEnv } from '../_lib/env.mjs'; // v383: 环境归一共享 helper
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 let failures = 0;
@@ -37,10 +38,9 @@ section('A: 源码形态');
 
 section('B: CDP DOM 配色类名');
 {
-  const ELECTRON = path.join(root, 'node_modules', 'electron', 'dist', 'electron.exe');
   const PORT = 9458;
   const sleep = (ms) => new Promise(r => setTimeout(r, ms));
-  const electron = spawn(ELECTRON, ['.', `--remote-debugging-port=${PORT}`], { cwd: root, stdio: 'ignore' });
+  const { proc: electron, profile } = launchIsolatedElectron(root, PORT); // v383: 隔离 userData, 不碰真实 settings/localStorage
   try {
     let target;
     for (let i = 0; i < 60 && !target; i++) {
@@ -67,12 +67,7 @@ section('B: CDP DOM 配色类名');
       if (r.result?.exceptionDetails) throw new Error('页面内执行出错: ' + JSON.stringify(r.result.exceptionDetails).slice(0, 400));
       return r.result?.result?.value;
     };
-    let ready = false;
-    for (let i = 0; i < 60 && !ready; i++) {
-      await sleep(500);
-      ready = await evalJs('!!(window.__osuStore && window.__osuStore.beatmap)').catch(() => false);
-    }
-    if (!ready) throw new Error('应用未就绪');
+    await normalizeEnv(evalJs); // v383: 就绪等待 + 环境归一 (语言 en / 默认皮肤 / 关曲库遮罩 / 清污染键)
 
     const clsOf = (re) => evalJs(`(() => { const b = [...document.querySelectorAll('button')].find(x => ${re}.test(x.textContent)); return b ? b.className : null; })()`);
     const libCls = await clsOf('/Song Library|曲库|曲庫/');
@@ -97,7 +92,7 @@ section('B: CDP DOM 配色类名');
     failures++;
     console.error('  FAIL: CDP 段异常 —', String(e).slice(0, 300));
   } finally {
-    electron.kill();
+    await killIsolated(electron, profile); // v383: 杀进程 + 回收临时 profile
   }
 }
 

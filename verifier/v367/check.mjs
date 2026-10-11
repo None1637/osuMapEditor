@@ -12,7 +12,8 @@
 import { fileURLToPath } from 'url';
 import path from 'path';
 import fs from 'fs';
-import { execSync, spawn } from 'child_process';
+import { execSync } from 'child_process';
+import { launchIsolatedElectron, killIsolated, normalizeEnv } from '../_lib/env.mjs'; // v383
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 let failures = 0;
@@ -54,10 +55,9 @@ section('源码: digits 显示机制 (DraftNum/PanNumInput), 非缩放框不动'
 
 section('CDP: 缩放窗口步进=原来 1/10 + 显示 3 位小数 / 游玩区 Zoom / 递增缩放框');
 {
-  const ELECTRON = path.join(root, 'node_modules', 'electron', 'dist', 'electron.exe');
   const PORT = 9500;
   const sleep = (ms) => new Promise(r => setTimeout(r, ms));
-  const electron = spawn(ELECTRON, ['.', `--remote-debugging-port=${PORT}`], { cwd: root, stdio: 'ignore' });
+  const { proc: electron, profile } = launchIsolatedElectron(root, PORT); // v383: 隔离 userData
   try {
     let target;
     for (let i = 0; i < 60 && !target; i++) {
@@ -91,6 +91,7 @@ section('CDP: 缩放窗口步进=原来 1/10 + 显示 3 位小数 / 游玩区 Zo
     }
     if (!ready) throw new Error('应用未就绪');
     await sleep(800); // 布局稳定
+    await normalizeEnv(evalJs); // v383: 环境归一
 
     // A: 缩放变换窗口 — step 属性 / 初始 3 位显示 / 滚轮步进 0.005 (= 原 0.05 的 1/10) / 0.59 显示 0.590
     const rA = await evalJs(`(async () => {
@@ -189,7 +190,7 @@ section('CDP: 缩放窗口步进=原来 1/10 + 显示 3 位小数 / 游玩区 Zo
     failures++;
     console.error('  FAIL: CDP 段异常 —', String(e).slice(0, 300));
   } finally {
-    electron.kill();
+    await killIsolated(electron, profile); // v383: 杀进程 + 回收临时 profile
   }
 }
 

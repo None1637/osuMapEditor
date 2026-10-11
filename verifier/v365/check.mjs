@@ -9,7 +9,8 @@
 import { fileURLToPath } from 'url';
 import path from 'path';
 import fs from 'fs';
-import { execSync, spawn } from 'child_process';
+import { execSync } from 'child_process';
+import { launchIsolatedElectron, killIsolated, normalizeEnv } from '../_lib/env.mjs'; // v383
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 let failures = 0;
@@ -29,10 +30,9 @@ section('源码: distanceLock 分支 = 间距倍率 × 细分网格');
 
 section('CDP: spacing×beatSnap 矩阵 / 预览=落盘 / v219 例外 / spacing=1.0 等价非锁定');
 {
-  const ELECTRON = path.join(root, 'node_modules', 'electron', 'dist', 'electron.exe');
   const PORT = 9498;
   const sleep = (ms) => new Promise(r => setTimeout(r, ms));
-  const electron = spawn(ELECTRON, ['.', `--remote-debugging-port=${PORT}`], { cwd: root, stdio: 'ignore' });
+  const { proc: electron, profile } = launchIsolatedElectron(root, PORT); // v383: 隔离 userData
   try {
     let target;
     for (let i = 0; i < 60 && !target; i++) {
@@ -65,6 +65,7 @@ section('CDP: spacing×beatSnap 矩阵 / 预览=落盘 / v219 例外 / spacing=1
       ready = await evalJs('!!(window.__osuStore && window.__osuStore.beatmap && window.__osuToClient && window.__osuSnap)').catch(() => false);
     }
     if (!ready) throw new Error('应用未就绪 (含 __osuSnap)');
+    await normalizeEnv(evalJs); // v383: 环境归一
     await sleep(800); // 布局稳定
 
     // 校准 beatPx (锁定关, d=1 超短滑条 → v219 对齐 1 tick = beatPx/2)
@@ -190,7 +191,7 @@ section('CDP: spacing×beatSnap 矩阵 / 预览=落盘 / v219 例外 / spacing=1
     failures++;
     console.error('  FAIL: CDP 段异常 —', String(e).slice(0, 300));
   } finally {
-    electron.kill();
+    await killIsolated(electron, profile); // v383: 杀进程 + 回收临时 profile
   }
 }
 

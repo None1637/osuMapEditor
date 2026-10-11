@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { DraggableDialog } from './DraggableDialog';
 import { store, useEditor } from '@/osu/store';
-import { editorPrefs, type EditorPrefKey } from '@/osu/editorPrefs'; // v381: 通用区开关
+// v386: 「通用」区两个 editorPrefs 开关挪到菜单栏「设置」菜单 (checkbox 菜单项), 本面板不再含偏好开关
 import { useT } from '@/i18n';
 import {
   HOTKEY_ACTIONS,
@@ -18,12 +18,6 @@ import {
   setHotkeyCapture,
   setHotkeyOverride,
 } from '@/osu/hotkeys';
-
-/** v381: 通用区开关行定义 (编辑器行为偏好, 值在 editorPrefs 单例, 持久化 localStorage) */
-const PREF_ROWS: { key: EditorPrefKey; nameKey: string; nameEn: string; descKey: string; descEn: string }[] = [
-  { key: 'dragAdjustNumbers', nameKey: 'pref.drag_adjust_numbers_name', nameEn: 'Drag to Adjust Numbers', descKey: 'pref.drag_adjust_numbers_desc', descEn: 'Hold and drag left/right on number input boxes to change the value (5px = 1 step, Shift ×10, Alt ×0.1); when off, dragging does not change values (typing and mouse wheel still work)' },
-  { key: 'moveDeadzone2px', nameKey: 'pref.move_deadzone_name', nameEn: 'Object Move Deadzone 2px', descKey: 'pref.move_deadzone_desc', descEn: 'Objects/notes only start moving after the pointer travels 2px; when off, 1px is enough (bounding-box handles and slider anchors are unaffected — they never had this deadzone)' },
-];
 
 /** v286: 快捷键设置面板 —— 列出全部可改键动作，点击绑定进入捕获态自定义改键。 */
 export function HotkeyPanel() {
@@ -107,24 +101,6 @@ export function HotkeyPanel() {
 
   return (
     <DraggableDialog title={t('hotkey.panel.title', 'Hotkey Settings')} testid="hotkey-panel" width={560} onClose={() => store.setHotkeyPanelOpen(false)}> {/* v292/v293: 字体调大, 面板加宽配套 */}
-      {/* v381: 通用区 (编辑器行为偏好; 开关行样式仿 DisplayPanel) */}
-      <div className="mb-2 space-y-2 border-b border-osu-border pb-2" data-testid="pref-general-section">
-        <div className="text-[13px] font-bold uppercase tracking-wider text-osu-textdim">{t('pref.general_title', 'General')}</div>
-        {PREF_ROWS.map(r => (
-          <div key={r.key} className="flex items-center gap-2.5" data-pref-row={r.key}>
-            <button onClick={() => store.setEditorPref(r.key, !editorPrefs[r.key])}
-              data-pref-toggle={r.key}
-              className={`w-9 h-5 rounded-full relative shrink-0 transition-colors ${editorPrefs[r.key] ? 'bg-sky-500' : 'bg-white/15'}`}
-              title={editorPrefs[r.key] ? t('display.click_to_disable', 'Click to disable') : t('display.click_to_enable', 'Click to enable')}>
-              <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all ${editorPrefs[r.key] ? 'left-[18px]' : 'left-0.5'}`} />
-            </button>
-            <div className="min-w-0">
-              <div className={`text-xs ${editorPrefs[r.key] ? 'text-white/90' : 'text-white/45'}`}>{t(r.nameKey, r.nameEn)}</div>
-              <div className="text-[10px] text-white/40 leading-4">{t(r.descKey, r.descEn)}</div>
-            </div>
-          </div>
-        ))}
-      </div>
       <div className="flex max-h-[60vh] flex-col gap-2 overflow-y-auto pr-1" data-testid="hotkey-list">
         {cats.map((cat) => (
           <div key={cat}>

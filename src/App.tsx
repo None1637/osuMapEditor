@@ -44,6 +44,7 @@ import { TransformDialog } from '@/components/TransformDialog'; // v209: 旋转/
 import { FpsCounter } from '@/components/FpsCounter'; // v220: 右下角帧数显示
 import { displaySettings } from '@/osu/displaySettings'; // v253: 帧数显示开关
 import { installSelectWheelCycle } from '@/osu/selectWheel'; // v381: 枚举下拉框滚轮循环
+import { editorPrefs } from '@/osu/editorPrefs'; // v386: 设置菜单 editorPrefs 勾选状态上报
 import { useT } from '@/i18n'; // v346: 多语言
 
 // v191: 工具按钮文本前加 Lucide 图标; v321 (F21): key 改为动作 id, 展示名经 hotkeyLabel 动态取 (改键同步)
@@ -432,6 +433,21 @@ export default function App() {
       if (key === last) return;
       last = key;
       api.menuTimingState({ meter: store.timingMeterAtCurrent(), metronome: store.metronome });
+    };
+    report();
+    return store.subscribe(report);
+  }, []);
+
+  // v386: 设置菜单 editorPrefs 勾选状态上报 (数值框拖动调值 / 物件移动死区 2px; 值变化才发, 主进程据此重建勾选)
+  useEffect(() => {
+    const api = getElectronAPI();
+    if (!api) return;
+    let last = '';
+    const report = () => {
+      const key = `${editorPrefs.dragAdjustNumbers}|${editorPrefs.moveDeadzone2px}`;
+      if (key === last) return;
+      last = key;
+      api.menuEditorPrefsState({ dragAdjustNumbers: editorPrefs.dragAdjustNumbers, moveDeadzone2px: editorPrefs.moveDeadzone2px });
     };
     report();
     return store.subscribe(report);

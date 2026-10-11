@@ -269,6 +269,14 @@ ipcMain.on("timing-menu-state", (_e, s) => {
   buildMenu()
 })
 
+// v386: 设置菜单勾选状态 (渲染进程经 "editor-prefs-state" 上报, 值变化才发):
+//   dragAdjustNumbers = 数值框拖动调值, moveDeadzone2px = 物件移动死区 2px (v381 起在 editorPrefs, 原快捷键面板通用区挪到菜单)
+let editorPrefsState = { dragAdjustNumbers: true, moveDeadzone2px: true }
+ipcMain.on("editor-prefs-state", (_e, s) => {
+  editorPrefsState = { dragAdjustNumbers: s?.dragAdjustNumbers !== false, moveDeadzone2px: s?.moveDeadzone2px !== false }
+  buildMenu()
+})
+
 ipcMain.on("menu-state", (_e, state) => {
   menuState = state && state.file ? state : null
   if (menuState && menuState.folderRel) {
@@ -395,6 +403,9 @@ const MENU_LABELS = {
   "menu.set_preview": { en: "Set Current Position as Preview Point", "zh-CN": "把当前位置设为预览点", "zh-TW": "把當前位置設為預覽點" },
   "menu.settings": { en: "Settings", "zh-CN": "设置", "zh-TW": "設置" },
   "menu.reconfigure": { en: "Reconfigure osu! Folder & Skin", "zh-CN": "重新配置 osu! 目录与皮肤", "zh-TW": "重新配置 osu! 目錄與皮膚" },
+  // v386: 设置菜单可勾选项 (editorPrefs, 原快捷键设置面板通用区)
+  "menu.drag_adjust_numbers": { en: "Drag to Adjust Number Inputs", "zh-CN": "按住拖动调整输入框数值", "zh-TW": "按住拖動調整輸入框數值" },
+  "menu.move_deadzone": { en: "Object Move Deadzone (2px)", "zh-CN": "物件移动死区 2px", "zh-TW": "物件移動死區 2px" },
   "menu.reload": { en: "Reload", "zh-CN": "刷新", "zh-TW": "重新整理" },
   "menu.devtools": { en: "Developer Tools", "zh-CN": "开发者工具", "zh-TW": "開發者工具" },
   "menu.quit": { en: "Quit", "zh-CN": "退出", "zh-TW": "結束" },
@@ -559,6 +570,10 @@ function buildMenu() {
       label: mT("menu.settings"),
       submenu: [
         { label: mT("menu.reconfigure"), click: () => win?.webContents.send("open-setup") },
+        { type: "separator" },
+        // v386: 编辑器行为偏好 (checkbox, 勾选状态渲染端经 editor-prefs-state 上报; 点击 → menu-cmd 翻转 editorPrefs)
+        { label: mT("menu.drag_adjust_numbers"), type: "checkbox", checked: editorPrefsState.dragAdjustNumbers, click: () => send({ type: "settings-toggle-editor-pref", key: "dragAdjustNumbers" }) },
+        { label: mT("menu.move_deadzone"), type: "checkbox", checked: editorPrefsState.moveDeadzone2px, click: () => send({ type: "settings-toggle-editor-pref", key: "moveDeadzone2px" }) },
         { type: "separator" },
         { role: "reload", label: mT("menu.reload") },
         { role: "toggleDevTools", label: mT("menu.devtools") },

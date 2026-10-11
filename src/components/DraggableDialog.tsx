@@ -93,7 +93,7 @@ export function useSaveParamsOnClose<T>(key: string, v: T) {
  *  每次击键仍实时 set (驱动预览), 失焦回显最终值 */
 /** v258: Adobe 式拖动调值 — 按住输入框水平拖动改数值 (v269: 默认 5px = 1 step, 原 1px 太敏感;
  *  Shift ×10, Alt ×0.1); 超过 3px 阈值才进入拖动 (不影响点击聚焦/正常选字), 拖动期间阻止文本选择;
- *  v381: 设置面板可全局关闭 (editorPrefs.dragAdjustNumbers, 关 = 按下不进入拖动调值) */
+ *  v381: 可全局关闭 (editorPrefs.dragAdjustNumbers, 关 = 按下不进入拖动调值; v386: 开关挪到菜单栏「设置」菜单) */
 /** v276: 已聚焦的输入框内按下拖动 = 原生文本框选, 不触发调值 (用户反馈「框选输入框中数字时
  *  不要触发左右拖动数值」); 调值只在未聚焦的输入框上按下拖动 (= 点击即聚焦的那次交互) */
 export function DraftNum({ value, set, testid, min, max, step = 1, digits }: {

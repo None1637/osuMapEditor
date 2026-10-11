@@ -2256,7 +2256,7 @@ export function EditorCanvas() {
     if (!d || !bm) return;
     const __mt0 = performance.now(); // v341 调试分段
     let dx = Math.round(p.x - d.startX), dy = Math.round(p.y - d.startY);
-    // v381: 起始移动死区可选 — 开 = 2px (v233 起现状); 关 = 1px (设置面板通用区; 仅物件/note 拖拽,
+    // v381: 起始移动死区可选 — 开 = 2px (v233 起现状); 关 = 1px (v386: 菜单栏「设置」菜单; 仅物件/note 拖拽,
     //   包围框缩放/旋转手柄与滑条锚点拖拽不走此死区, 各自逻辑不动)
     if (Math.abs(dx) + Math.abs(dy) > (editorPrefs.moveDeadzone2px ? 1 : 0)) d.moved = true;
     // v381: 死区内直接不应用位移 — 原实现死区内仍实时改写坐标 (只是 moved=false 不 emit/不入 undo),

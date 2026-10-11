@@ -3,18 +3,17 @@
 //   修复后: 平移拖拽层 + 装饰层位移 blit (dragPath=translate) + 拖拽 rAF 节流 — renderAvg 应 < 4ms
 //   另验证: 按住未拖动 (moved=false) 时不走排除重建; 拖拽中 __dragState.uniform=true
 // 运行: npm run build 后 node verifier/v341/check.mjs  (会短暂弹出编辑器窗口)
-import { spawn } from 'child_process';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { launchIsolatedElectron, killIsolated, normalizeEnv } from '../_lib/env.mjs'; // v383: 环境归一共享 helper
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
-const ELECTRON = path.join(root, 'node_modules', 'electron', 'dist', 'electron.exe');
 const DEBUG_PORT = 9441;
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 let failures = 0;
 function assert(cond, msg) { if (!cond) { failures++; console.error('  FAIL:', msg); } else console.log('  ok:', msg); }
 
-const electron = spawn(ELECTRON, ['.', `--remote-debugging-port=${DEBUG_PORT}`], { cwd: root, stdio: 'ignore' });
+const { proc: electron, profile } = launchIsolatedElectron(root, DEBUG_PORT); // v383: 隔离 userData, 不碰真实 settings/localStorage
 let target;
 for (let i = 0; i < 60 && !target; i++) {
   try {
@@ -23,7 +22,7 @@ for (let i = 0; i < 60 && !target; i++) {
   } catch { /* not ready */ }
   if (!target) await sleep(500);
 }
-if (!target) { console.error('找不到 Electron 页面目标'); electron.kill(); process.exit(1); }
+if (!target) { console.error('找不到 Electron 页面目标'); await killIsolated(electron, profile); process.exit(1); }
 const ws = new WebSocket(target.webSocketDebuggerUrl);
 await new Promise((res, rej) => { ws.onopen = res; ws.onerror = rej; });
 let msgId = 0;
@@ -69,6 +68,7 @@ try {
     ready = await evalJs('!!(window.__osuStore && window.__osuStore.beatmap && window.__osuToCanvas)').catch(() => false);
   }
   if (!ready) throw new Error('Electron 应用未就绪');
+  await normalizeEnv(evalJs); // v383: 环境归一 (语言 en / 默认皮肤 / 关曲库与首跑框 / 清污染键)
 
   // 密集可见场景: 1000 物件全部落在当前时间可见窗口 (全选拖动最坏情况)
   await evalJs(`(() => {
@@ -143,7 +143,7 @@ try {
 
   if (exceptions.length) { failures++; console.error('  FAIL: 页面异常:', exceptions.slice(0, 3)); }
 } finally {
-  electron.kill();
+  await killIsolated(electron, profile); // v383: 杀进程 + 回收临时 profile
 }
 console.log(failures ? `\n${failures} 个断言失败` : '\ncheck v341 全部通过');
 process.exit(failures ? 1 : 0);

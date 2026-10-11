@@ -14,7 +14,8 @@
 import { fileURLToPath } from 'url';
 import path from 'path';
 import fs from 'fs';
-import { execSync, spawn } from 'child_process';
+import { execSync } from 'child_process';
+import { launchIsolatedElectron, killIsolated, normalizeEnv } from '../_lib/env.mjs'; // v383
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 let failures = 0;
@@ -39,10 +40,9 @@ section('源码: 吸附规则与调用链 (v218/v219 语义不动)');
 
 section('CDP: 吸附网格扫描 / 交互预览=落盘 / freehand / distanceLock v365 新语义');
 {
-  const ELECTRON = path.join(root, 'node_modules', 'electron', 'dist', 'electron.exe');
   const PORT = 9497;
   const sleep = (ms) => new Promise(r => setTimeout(r, ms));
-  const electron = spawn(ELECTRON, ['.', `--remote-debugging-port=${PORT}`], { cwd: root, stdio: 'ignore' });
+  const { proc: electron, profile } = launchIsolatedElectron(root, PORT); // v383: 隔离 userData
   try {
     let target;
     for (let i = 0; i < 60 && !target; i++) {
@@ -76,6 +76,7 @@ section('CDP: 吸附网格扫描 / 交互预览=落盘 / freehand / distanceLock
     }
     if (!ready) throw new Error('应用未就绪 (含 __osuSnap)');
     await sleep(800); // 布局稳定
+    await normalizeEnv(evalJs); // v383: 环境归一
 
     // v380 适配: 归一谱面 — 启动会恢复上次打开的谱面 (localStorage 持久化, 跨运行污染), C/D 段的
     //   SV=4 / beatPx=1120 校准依赖确定性 timing。载入固定谱面: 红线 1000/500ms + 绿线 1001/-25
@@ -233,7 +234,7 @@ section('CDP: 吸附网格扫描 / 交互预览=落盘 / freehand / distanceLock
     failures++;
     console.error('  FAIL: CDP 段异常 —', String(e).slice(0, 300));
   } finally {
-    electron.kill();
+    await killIsolated(electron, profile);
   }
 }
 

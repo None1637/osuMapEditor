@@ -11,7 +11,8 @@
 import { fileURLToPath } from 'url';
 import path from 'path';
 import fs from 'fs';
-import { execSync, spawn } from 'child_process';
+import { execSync } from 'child_process';
+import { launchIsolatedElectron, killIsolated, normalizeEnv } from '../_lib/env.mjs'; // v383: 环境归一共享 helper
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 let failures = 0;
@@ -35,10 +36,9 @@ section('源码: 钳制按当前帧实时位置 (不再按拖拽起始 orig 判�
 
 section('CDP: 区外起拖全程实时钳制 (a/b) / 区内不变 (c) / 多选 (d)');
 {
-  const ELECTRON = path.join(root, 'node_modules', 'electron', 'dist', 'electron.exe');
   const PORT = 9452;
   const sleep = (ms) => new Promise(r => setTimeout(r, ms));
-  const electron = spawn(ELECTRON, ['.', `--remote-debugging-port=${PORT}`], { cwd: root, stdio: 'ignore' });
+  const { proc: electron, profile } = launchIsolatedElectron(root, PORT); // v383: 隔离 userData, 不碰真实 settings/localStorage
   try {
     let target;
     for (let i = 0; i < 60 && !target; i++) {
@@ -69,12 +69,7 @@ section('CDP: 区外起拖全程实时钳制 (a/b) / 区内不变 (c) / 多选 (
       type, x, y, button: 'left', clickCount: type === 'mousePressed' ? 1 : 0,
       buttons: type === 'mouseReleased' ? 0 : 1,
     });
-    let ready = false;
-    for (let i = 0; i < 60 && !ready; i++) {
-      await sleep(500);
-      ready = await evalJs('!!(window.__osuStore && window.__osuStore.beatmap && window.__osuToClient)').catch(() => false);
-    }
-    if (!ready) throw new Error('应用未就绪');
+    await normalizeEnv(evalJs); // v383: 就绪等待 + 环境归一 (语言 en / 默认皮肤 / 关曲库与首跑框 / 清污染键)
     await evalJs(`window.__osuSetLang && window.__osuSetLang('en')`); // v378: 关首跑语言框 (v349 LangFirstRun; localStorage 按 dev 端口隔离, 端口变即弹全屏遮罩拦截真实事件/elementFromPoint)
     await sleep(800); // 布局稳定 (视口足够大, 游玩区外仍有可点画布余量; 区外偏移见 b 段动态计算)
 
@@ -211,7 +206,7 @@ section('CDP: 区外起拖全程实时钳制 (a/b) / 区内不变 (c) / 多选 (
     failures++;
     console.error('  FAIL: CDP 段异常 —', String(e).slice(0, 300));
   } finally {
-    electron.kill();
+    await killIsolated(electron, profile); // v383: 杀进程 + 回收临时 profile
   }
 }
 

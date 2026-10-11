@@ -3,18 +3,17 @@
 //   修复后: 静态场景层命中 (每帧 1 次 drawImage) + 装饰 sprite 缓存 — renderAvg 应 < 2ms
 //   另验证静态层键稳定 (框选/拖拽期间 __sceneDbg.rebuilds <= 2: 进场一次 + 落盘一次)
 // 运行: npm run build 后 node verifier/v340/check.mjs  (会短暂弹出编辑器窗口)
-import { spawn } from 'child_process';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { launchIsolatedElectron, killIsolated, normalizeEnv } from '../_lib/env.mjs'; // v383
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
-const ELECTRON = path.join(root, 'node_modules', 'electron', 'dist', 'electron.exe');
 const DEBUG_PORT = 9437;
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 let failures = 0;
 function assert(cond, msg) { if (!cond) { failures++; console.error('  FAIL:', msg); } else console.log('  ok:', msg); }
 
-const electron = spawn(ELECTRON, ['.', `--remote-debugging-port=${DEBUG_PORT}`], { cwd: root, stdio: 'ignore' });
+const { proc: electron, profile } = launchIsolatedElectron(root, DEBUG_PORT); // v383: 隔离 userData
 let target;
 for (let i = 0; i < 60 && !target; i++) {
   try {
@@ -23,7 +22,7 @@ for (let i = 0; i < 60 && !target; i++) {
   } catch { /* not ready */ }
   if (!target) await sleep(500);
 }
-if (!target) { console.error('找不到 Electron 页面目标'); electron.kill(); process.exit(1); }
+if (!target) { console.error('找不到 Electron 页面目标'); await killIsolated(electron, profile); process.exit(1); }
 const ws = new WebSocket(target.webSocketDebuggerUrl);
 await new Promise((res, rej) => { ws.onopen = res; ws.onerror = rej; });
 let msgId = 0;
@@ -71,6 +70,7 @@ try {
     ready = await evalJs('!!(window.__osuStore && window.__osuStore.beatmap && window.__osuToCanvas)').catch(() => false);
   }
   if (!ready) throw new Error('Electron 应用未就绪');
+  await normalizeEnv(evalJs); // v383: 环境归一
 
   // 密集可见场景: 1000 物件全部落在当前时间可见窗口
   await evalJs(`(() => {
@@ -146,7 +146,7 @@ try {
 
   if (exceptions.length) { failures++; console.error('  FAIL: 页面异常:', exceptions.slice(0, 3)); }
 } finally {
-  electron.kill();
+  await killIsolated(electron, profile); // v383: 杀进程 + 回收临时 profile
 }
 console.log(failures ? `\n${failures} 个断言失败` : '\ncheck v340 全部通过');
 process.exit(failures ? 1 : 0);

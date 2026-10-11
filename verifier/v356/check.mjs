@@ -7,7 +7,8 @@
 import { fileURLToPath } from 'url';
 import path from 'path';
 import fs from 'fs';
-import { execSync, spawn } from 'child_process';
+import { execSync } from 'child_process';
+import { launchIsolatedElectron, killIsolated, normalizeEnv } from '../_lib/env.mjs'; // v383: 环境归一共享 helper
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 let failures = 0;
@@ -24,10 +25,9 @@ section('源码: 滑条球绘制门控');
 
 section('CDP: slides=1/3 各 5 分数点球可见性');
 {
-  const ELECTRON = path.join(root, 'node_modules', 'electron', 'dist', 'electron.exe');
   const PORT = 9463;
   const sleep = (ms) => new Promise(r => setTimeout(r, ms));
-  const electron = spawn(ELECTRON, ['.', `--remote-debugging-port=${PORT}`], { cwd: root, stdio: 'ignore' });
+  const { proc: electron, profile } = launchIsolatedElectron(root, PORT); // v383: 隔离 userData
   try {
     let target;
     for (let i = 0; i < 60 && !target; i++) {
@@ -51,6 +51,7 @@ section('CDP: slides=1/3 各 5 分数点球可见性');
     let ready = false;
     for (let i = 0; i < 60 && !ready; i++) { await sleep(500); ready = await evalJs('!!(window.__osuStore && window.__osuStore.beatmap && window.__osuToCanvas)').catch(() => false); }
     if (!ready) throw new Error('应用未就绪');
+    await normalizeEnv(evalJs); // v383: 环境归一
 
     // 合成谱面: 直滑条 (150,192)->(450,192) slides=1 / (150,280)->(450,280) slides=3
     await evalJs(`(() => {
@@ -107,7 +108,7 @@ section('CDP: slides=1/3 各 5 分数点球可见性');
     failures++;
     console.error('  FAIL: CDP 段异常 —', String(e).slice(0, 300));
   } finally {
-    electron.kill();
+    await killIsolated(electron, profile); // v383: 杀进程 + 回收临时 profile
   }
 }
 

@@ -19,7 +19,8 @@
 import { fileURLToPath } from 'url';
 import path from 'path';
 import fs from 'fs';
-import { execSync, spawn } from 'child_process';
+import { execSync } from 'child_process';
+import { launchIsolatedElectron, killIsolated, normalizeEnv } from '../_lib/env.mjs'; // v383: 环境归一共享 helper
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 let failures = 0;
@@ -55,10 +56,9 @@ section('源码: 幽灵 time = 落盘时间公式 (v363 钳制撤销), 抗淡出
 
 section('CDP: SV 绿线 ±0ms/±1ms + off-grid + 红线 预览=落盘 (length/velocity/时长)');
 {
-  const ELECTRON = path.join(root, 'node_modules', 'electron', 'dist', 'electron.exe');
   const PORT = 9499;
   const sleep = (ms) => new Promise(r => setTimeout(r, ms));
-  const electron = spawn(ELECTRON, ['.', `--remote-debugging-port=${PORT}`], { cwd: root, stdio: 'ignore' });
+  const { proc: electron, profile } = launchIsolatedElectron(root, PORT); // v383: 隔离 userData, 不碰真实 settings/localStorage
   try {
     let target;
     for (let i = 0; i < 60 && !target; i++) {
@@ -91,6 +91,7 @@ section('CDP: SV 绿线 ±0ms/±1ms + off-grid + 红线 预览=落盘 (length/ve
       ready = await evalJs('!!(window.__osuStore && window.__osuStore.beatmap && window.__osuToClient && window.__osuSnap && window.__osuSnap.sliderVelocityAt)').catch(() => false);
     }
     if (!ready) throw new Error('应用未就绪 (含 __osuSnap.sliderVelocityAt)');
+    await normalizeEnv(evalJs); // v383: 环境归一 (语言 en / 默认皮肤 / 关曲库面板 / 清污染键)
     await sleep(800); // 布局稳定
 
     // 场景执行器: 给定 timing 附加点 + currentTime, 真实鼠标放滑条 (头点 + 幻影 450 client px + 右键落盘),
@@ -169,7 +170,7 @@ section('CDP: SV 绿线 ±0ms/±1ms + off-grid + 红线 预览=落盘 (length/ve
     failures++;
     console.error('  FAIL: CDP 段异常 —', String(e).slice(0, 300));
   } finally {
-    electron.kill();
+    await killIsolated(electron, profile); // v383: 杀进程 + 回收临时 profile
   }
 }
 

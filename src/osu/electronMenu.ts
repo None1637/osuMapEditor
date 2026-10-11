@@ -7,6 +7,7 @@ import { serverDir } from './serverFs';
 import { listDifficulties, loadDifficulty } from './library';
 import { getElectronAPI, type ElectronMenuCommand } from './electronBridge';
 import { getLang, onLangChange } from '@/i18n'; // v346: 多语言 — 语言上报主进程 (菜单标签重建)
+import { editorPrefs } from './editorPrefs'; // v386: 设置菜单 editorPrefs 勾选开关
 import { computeMerge } from './convert/merge'; // v212: 作图菜单「合并滑条」
 import type { Beatmap } from './parser';
 import type { MapSource } from './saveMap';
@@ -108,6 +109,8 @@ export async function handleMenuCommand(cmd: ElectronMenuCommand): Promise<void>
     case 'edit-nudge-next': store.nudgeSelectedBySnap(1); return;
     // ---- v212: 作图菜单 (与 Inspector 入口同语义) ----
     case 'compose-polygon': store.openConversion('polygon'); return; // 无需选区
+    // v386: 设置菜单 — editorPrefs 勾选开关 (翻转后 store.setEditorPref 内部 emitSelection → App.tsx 订阅回报主进程重建勾选)
+    case 'settings-toggle-editor-pref': store.setEditorPref(cmd.key, !editorPrefs[cmd.key]); return;
     case 'compose-stream': // 滑条转连打: 需选中滑条
       if (store.beatmap?.hitObjects.some(o => store.selected.has(o.id) && o.type === 'slider')) store.openConversion('stream');
       return;

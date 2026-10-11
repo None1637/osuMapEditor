@@ -11,7 +11,8 @@
 import { fileURLToPath } from 'url';
 import path from 'path';
 import fs from 'fs';
-import { execSync, spawn } from 'child_process';
+import { execSync } from 'child_process';
+import { launchIsolatedElectron, killIsolated, normalizeEnv } from '../_lib/env.mjs'; // v383
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 let failures = 0;
@@ -36,10 +37,9 @@ section('源码: refreshHover 门控不再含游玩区边界 (cp.inside)');
 
 section('CDP: 区外滑条 hover 出控制点预览 / 区内不变 / Alt 锚点环区外生效');
 {
-  const ELECTRON = path.join(root, 'node_modules', 'electron', 'dist', 'electron.exe');
   const PORT = 9451;
   const sleep = (ms) => new Promise(r => setTimeout(r, ms));
-  const electron = spawn(ELECTRON, ['.', `--remote-debugging-port=${PORT}`], { cwd: root, stdio: 'ignore' });
+  const { proc: electron, profile } = launchIsolatedElectron(root, PORT); // v383: 隔离 userData
   try {
     let target;
     for (let i = 0; i < 60 && !target; i++) {
@@ -74,6 +74,7 @@ section('CDP: 区外滑条 hover 出控制点预览 / 区内不变 / Alt 锚点�
       ready = await evalJs('!!(window.__osuStore && window.__osuStore.beatmap && window.__osuToCanvas)').catch(() => false);
     }
     if (!ready) throw new Error('应用未就绪');
+    await normalizeEnv(evalJs); // v383: 环境归一
     await evalJs(`window.__osuSetLang && window.__osuSetLang('en')`); // v378: 关首跑语言框 (v349 LangFirstRun; localStorage 按 dev 端口隔离, 端口变即弹全屏遮罩拦截真实事件/elementFromPoint)
     await sleep(800); // 布局稳定
 
@@ -147,7 +148,7 @@ section('CDP: 区外滑条 hover 出控制点预览 / 区内不变 / Alt 锚点�
     failures++;
     console.error('  FAIL: CDP 段异常 —', String(e).slice(0, 300));
   } finally {
-    electron.kill();
+    await killIsolated(electron, profile); // v383: 杀进程 + 回收临时 profile
   }
 }
 

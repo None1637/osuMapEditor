@@ -7,18 +7,17 @@
 //   修复: setEditorField 统一入 undo (同字段 800ms 连写合并); pushUndo 无条件回滚预览;
 //     save 先回滚预览; 预览会话屏蔽编辑快捷键; cancelDragNoop 深度配对弹栈
 // 运行: npm run build 后 node verifier/v345/check.mjs  (会短暂弹出编辑器窗口)
-import { spawn } from 'child_process';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { launchIsolatedElectron, killIsolated, normalizeEnv } from '../_lib/env.mjs'; // v383
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
-const ELECTRON = path.join(root, 'node_modules', 'electron', 'dist', 'electron.exe');
 const DEBUG_PORT = 9447;
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 let failures = 0;
 function assert(cond, msg) { if (!cond) { failures++; console.error('  FAIL:', msg); } else console.log('  ok:', msg); }
 
-const electron = spawn(ELECTRON, ['.', `--remote-debugging-port=${DEBUG_PORT}`], { cwd: root, stdio: 'ignore' });
+const { proc: electron, profile } = launchIsolatedElectron(root, DEBUG_PORT); // v383: 隔离 userData
 let target;
 for (let i = 0; i < 60 && !target; i++) {
   try {
@@ -27,7 +26,7 @@ for (let i = 0; i < 60 && !target; i++) {
   } catch { /* not ready */ }
   if (!target) await sleep(500);
 }
-if (!target) { console.error('找不到 Electron 页面目标'); electron.kill(); process.exit(1); }
+if (!target) { console.error('找不到 Electron 页面目标'); await killIsolated(electron, profile); process.exit(1); }
 const ws = new WebSocket(target.webSocketDebuggerUrl);
 await new Promise((res, rej) => { ws.onopen = res; ws.onerror = rej; });
 let msgId = 0;
@@ -63,6 +62,7 @@ try {
     ready = await evalJs('!!(window.__osuStore && window.__osuStore.beatmap && window.__osuToCanvas)').catch(() => false);
   }
   if (!ready) throw new Error('Electron 应用未就绪');
+  await normalizeEnv(evalJs); // v383: 环境归一
 
   // 干净基线: load 会设 savedFingerprint + 清栈 (等价于「上次保存」)
   await evalJs(`(() => {
@@ -162,7 +162,7 @@ try {
   if (exceptions.length) { failures++; console.error('  FAIL: 页面异常:', exceptions.slice(0, 3)); }
   else console.log('  ok: 全程无页面异常');
 } finally {
-  electron.kill();
+  await killIsolated(electron, profile);
 }
 console.log(failures ? `\n${failures} 个断言失败` : '\ncheck v345 全部通过');
 process.exit(failures ? 1 : 0);

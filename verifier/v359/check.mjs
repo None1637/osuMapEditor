@@ -6,7 +6,8 @@
 import { fileURLToPath } from 'url';
 import path from 'path';
 import fs from 'fs';
-import { execSync, spawn } from 'child_process';
+import { execSync } from 'child_process';
+import { launchIsolatedElectron, killIsolated, normalizeEnv } from '../_lib/env.mjs'; // v383
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 let failures = 0;
@@ -51,10 +52,9 @@ section('源码: i18n');
 
 section('CDP: 垂直满版 + 加线自动滚动');
 {
-  const ELECTRON = path.join(root, 'node_modules', 'electron', 'dist', 'electron.exe');
   const PORT = 9466;
   const sleep = (ms) => new Promise(r => setTimeout(r, ms));
-  const electron = spawn(ELECTRON, ['.', `--remote-debugging-port=${PORT}`], { cwd: root, stdio: 'ignore' });
+  const { proc: electron, profile } = launchIsolatedElectron(root, PORT); // v383: 隔离 userData
   try {
     let target;
     for (let i = 0; i < 60 && !target; i++) {
@@ -81,12 +81,7 @@ section('CDP: 垂直满版 + 加线自动滚动');
       if (r.result?.exceptionDetails) throw new Error('页面内执行出错: ' + JSON.stringify(r.result.exceptionDetails).slice(0, 400));
       return r.result?.result?.value;
     };
-    let ready = false;
-    for (let i = 0; i < 60 && !ready; i++) {
-      await sleep(500);
-      ready = await evalJs('!!(window.__osuStore && window.__osuStore.beatmap)').catch(() => false);
-    }
-    if (!ready) throw new Error('应用未就绪');
+    await normalizeEnv(evalJs); // v383: 环境归一 (含 __osuStore.beatmap 就绪等待)
 
     // F2 切到 timing 页签
     await evalJs(`window.dispatchEvent(new KeyboardEvent('keydown', { key: 'F2', bubbles: true, cancelable: true }))`);
@@ -126,7 +121,7 @@ section('CDP: 垂直满版 + 加线自动滚动');
     failures++;
     console.error('  FAIL: CDP 段异常 —', String(e).slice(0, 300));
   } finally {
-    electron.kill();
+    await killIsolated(electron, profile); // v383: 杀进程并回收临时 profile
   }
 }
 

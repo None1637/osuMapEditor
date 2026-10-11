@@ -13,7 +13,8 @@ import { fileURLToPath } from 'url';
 import path from 'path';
 import fs from 'fs';
 import os from 'os';
-import { execSync, spawn } from 'child_process';
+import { execSync } from 'child_process';
+import { launchIsolatedElectron, killIsolated, normalizeEnv } from '../_lib/env.mjs'; // v383: 环境归一共享 helper
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 let failures = 0;
@@ -175,10 +176,9 @@ section('F: 编译');
 
 section('G: 运行时语言切换 (Electron CDP)');
 {
-  const ELECTRON = path.join(root, 'node_modules', 'electron', 'dist', 'electron.exe');
   const PORT = 9452;
   const sleep = (ms) => new Promise(r => setTimeout(r, ms));
-  const electron = spawn(ELECTRON, ['.', `--remote-debugging-port=${PORT}`], { cwd: root, stdio: 'ignore' });
+  const { proc: electron, profile } = launchIsolatedElectron(root, PORT); // v383: 隔离 userData, 不碰真实 settings/localStorage
   try {
     let target;
     for (let i = 0; i < 60 && !target; i++) {
@@ -211,6 +211,7 @@ section('G: 运行时语言切换 (Electron CDP)');
       ready = await evalJs('!!(window.__osuStore && window.__osuStore.beatmap && window.__osuSetLang)').catch(() => false);
     }
     if (!ready) throw new Error('应用未就绪 (无 __osuSetLang — 需先 npm run build)');
+    await normalizeEnv(evalJs); // v383: 环境归一 (语言 en / 默认皮肤 / 清污染键)
     const bodyText = () => evalJs('document.body.innerText');
     const switcherVal = () => evalJs(`document.querySelector('[data-lang-switcher] select')?.value ?? null`);
 
@@ -237,7 +238,7 @@ section('G: 运行时语言切换 (Electron CDP)');
     failures++;
     console.error('  FAIL: G 段异常 —', String(e).slice(0, 300));
   } finally {
-    electron.kill();
+    await killIsolated(electron, profile); // v383: 杀进程 + 回收临时 profile
   }
 }
 

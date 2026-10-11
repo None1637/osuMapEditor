@@ -1,4 +1,5 @@
-// v381: 通用编辑器偏好 (设置面板「通用」区, 快捷键设置面板顶部) — 纯数据层, 无 React, 同 displaySettings 模式
+// v381: 通用编辑器偏好 — 纯数据层, 无 React, 同 displaySettings 模式
+// v386: UI 从快捷键设置面板「通用」区挪到菜单栏「设置」菜单 (checkbox 菜单项, electronMenu/main.cjs)
 // 默认值保持旧行为: 数值框拖动调值开 / 物件移动死区 2px
 export interface EditorPrefs {
   /** 数值输入框按住左右拖动调值 (DraftNum, v258/v269; 关 = 拖动不改值, 滚轮/键盘输入保留) */

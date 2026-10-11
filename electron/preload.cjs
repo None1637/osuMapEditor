@@ -27,6 +27,8 @@ contextBridge.exposeInMainWorld("osuEditor", {
   confirmClose: () => ipcRenderer.send("close-confirmed"),
   // v156: Timing 菜单勾选状态 (节拍类型 radio / 节拍器 checkbox)
   menuTimingState: (s) => ipcRenderer.send("timing-menu-state", s),
+  // v386: 设置菜单勾选状态 (editorPrefs: 拖动调值 / 物件移动死区)
+  menuEditorPrefsState: (s) => ipcRenderer.send("editor-prefs-state", s),
   // v185: 谱面备份 (主进程写 exe 同目录 backup_beatmaps; 内容与上次相同则改名去重)
   backupBeatmap: (payload) => ipcRenderer.invoke("backup-beatmap", payload),
   openBackupFolder: (info) => ipcRenderer.invoke("open-backup-folder", info),

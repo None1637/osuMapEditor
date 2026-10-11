@@ -10,7 +10,8 @@ import { buildSync } from 'esbuild';
 import { fileURLToPath } from 'url';
 import path from 'path';
 import fs from 'fs';
-import { execSync, spawn } from 'child_process';
+import { execSync } from 'child_process';
+import { launchIsolatedElectron, killIsolated, normalizeEnv } from '../_lib/env.mjs'; // v383: 环境归一共享 helper
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 let failures = 0;
@@ -70,10 +71,9 @@ section('源码: i18n');
 
 section('CDP: Alt/Ctrl+滚轮加性缩放 + 多键绑定端到端');
 {
-  const ELECTRON = path.join(root, 'node_modules', 'electron', 'dist', 'electron.exe');
   const PORT = 9465;
   const sleep = (ms) => new Promise(r => setTimeout(r, ms));
-  const electron = spawn(ELECTRON, ['.', `--remote-debugging-port=${PORT}`], { cwd: root, stdio: 'ignore' });
+  const { proc: electron, profile } = launchIsolatedElectron(root, PORT); // v383: 隔离 userData, 不碰真实 settings/localStorage
   try {
     let target;
     for (let i = 0; i < 60 && !target; i++) {
@@ -108,7 +108,7 @@ section('CDP: Alt/Ctrl+滚轮加性缩放 + 多键绑定端到端');
       }
       if (!ready) throw new Error('应用未就绪');
     };
-    await waitReady();
+    await normalizeEnv(evalJs); // v383: 首次就绪等待 + 环境归一 (后续 reload 仍走 waitReady — normalizeEnv 会清掉用例自设的 osu-editor:hotkeys)
 
     // -- 上时间轴滚轮缩放 (lazer 加性步进) --
     const zoom = await evalJs(`(() => {
@@ -172,7 +172,7 @@ section('CDP: Alt/Ctrl+滚轮加性缩放 + 多键绑定端到端');
     failures++;
     console.error('  FAIL: CDP 段异常 —', String(e).slice(0, 300));
   } finally {
-    electron.kill();
+    await killIsolated(electron, profile); // v383: 杀进程 + 回收临时 profile
   }
 }
 

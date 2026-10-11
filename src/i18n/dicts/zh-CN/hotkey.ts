@@ -1,11 +1,6 @@
 // v346: hotkey 模块 zh-CN 词典分片 (快捷键注册表 + 快捷键设置面板)
 export const zhCN: Record<string, string> = {
-  // v381: 通用区 (编辑器行为偏好)
-  'pref.general_title': '通用',
-  'pref.drag_adjust_numbers_name': '拖动调整数值 (Drag to Adjust Numbers)',
-  'pref.drag_adjust_numbers_desc': '数值输入框上按住左右拖动改数值 (5 像素 = 1 步, Shift ×10, Alt ×0.1); 关闭则拖动不改值 (键盘输入与滚轮调整保留)',
-  'pref.move_deadzone_name': '物件移动死区 2px (Move Deadzone)',
-  'pref.move_deadzone_desc': '物件/note 拖过 2 像素才开始移动; 关闭则 1 像素即触发 (包围框手柄与滑条点本就没有此死区, 不受影响)',
+  // v386: pref.* 通用区键已删 — 两个 editorPrefs 开关挪到菜单栏「设置」菜单 (文案在主进程 MENU_LABELS)
   // 动作 (HOTKEY_ACTIONS, key = hotkey.action. + snake(id))
   'hotkey.action.play_pause': '播放/暂停',
   'hotkey.action.test_play': '测试游玩',

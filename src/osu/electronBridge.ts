@@ -47,6 +47,8 @@ export interface ElectronAPI {
   confirmClose(): void;
   /** v156: 上报 Timing 菜单勾选状态 (节拍类型 radio = 当前生效红线拍号; 节拍器 checkbox) */
   menuTimingState(state: { meter: number | null; metronome: boolean }): void;
+  /** v386: 上报设置菜单勾选状态 (editorPrefs: 数值框拖动调值 / 物件移动死区 2px; 值变化才发) */
+  menuEditorPrefsState(state: ElectronEditorPrefsState): void;
   /** v185: 谱面备份 (主进程写 exe 同目录 backup_beatmaps/<艺术家_歌曲名>/<原名_时间戳>.osu) */
   backupBeatmap(payload: { artist: string; title: string; origFile: string; content: string }): Promise<{ ok: boolean; action?: string; folder?: string; file?: string; error?: string }>;
   /** v185: 打开当前谱面的备份文件夹 */
@@ -87,6 +89,12 @@ export interface ElectronRecentEntry {
   folderRel: string;
   file: string;
   label?: string;
+}
+
+/** v386: 渲染端 -> 主进程的设置菜单勾选状态 (editorPrefs 两项) */
+export interface ElectronEditorPrefsState {
+  dragAdjustNumbers: boolean;
+  moveDeadzone2px: boolean;
 }
 
 /** v77: 渲染端 -> 主进程的菜单状态 (folderRel = Songs 内相对路径; 非服务器来源为 null) */
@@ -143,7 +151,9 @@ export type ElectronMenuCommand =
   | { type: 'compose-polygon' }
   | { type: 'compose-stream' }
   | { type: 'compose-merge' }
-  | { type: 'compose-sym-slider' }; // v236: 对称滑条 (恰好选中 1 个滑条时可用)
+  | { type: 'compose-sym-slider' } // v236: 对称滑条 (恰好选中 1 个滑条时可用)
+  // ---- v386: 设置菜单 — editorPrefs 勾选开关 (翻转, 状态经 menuEditorPrefsState 回报主进程重建勾选) ----
+  | { type: 'settings-toggle-editor-pref'; key: 'dragAdjustNumbers' | 'moveDeadzone2px' };
 
 /** v209: 渲染端 -> 主进程的编辑菜单置灰状态; v212: 扩 hasSlider/selMulti (作图菜单置灰用) */
 export interface ElectronEditMenuState {

@@ -18,7 +18,7 @@
 import { fileURLToPath } from 'url';
 import path from 'path';
 import fs from 'fs';
-import { spawn } from 'child_process';
+import { launchIsolatedElectron, killIsolated, normalizeEnv } from '../_lib/env.mjs'; // v383: 环境归一共享 helper
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 
@@ -72,10 +72,9 @@ section('源码: i18n + LF');
 
 section('CDP: 四项行为实测');
 {
-  const ELECTRON = path.join(root, 'node_modules', 'electron', 'dist', 'electron.exe');
   const PORT = 9479;
   const sleep = (ms) => new Promise(r => setTimeout(r, ms));
-  const electron = spawn(ELECTRON, ['.', `--remote-debugging-port=${PORT}`], { cwd: root, stdio: 'ignore' });
+  const { proc: electron, profile } = launchIsolatedElectron(root, PORT); // v383: 隔离 userData, 不碰真实 settings/localStorage
   try {
     let target;
     for (let i = 0; i < 60 && !target; i++) {
@@ -102,21 +101,12 @@ section('CDP: 四项行为实测');
       if (r.result?.exceptionDetails) throw new Error('页面内执行出错: ' + JSON.stringify(r.result.exceptionDetails).slice(0, 400));
       return r.result?.result?.value;
     };
-    let ready = false;
-    for (let i = 0; i < 60 && !ready; i++) {
-      await sleep(500);
-      ready = await evalJs('!!(window.__osuStore && window.__osuStore.beatmap && window.__osuToClient)').catch(() => false);
-    }
-    if (!ready) throw new Error('应用未就绪');
+    await normalizeEnv(evalJs); // v383: 就绪等待 + 环境归一 (语言 en / 默认皮肤 / 关曲库与首跑框 / 清污染键)
 
-    // setup: 归一持久化状态 (v378 教训: localStorage/皮肤跨运行污染), 造谱 (滑条 379001 + 单点 379002)
+    // setup: 造谱 (滑条 379001 + 单点 379002) — 持久化状态归一已由 normalizeEnv 完成 (v378 教训)
     const setup = await evalJs(`(async () => {
       const store = window.__osuStore;
       const sleep = (ms) => new Promise(r => setTimeout(r, ms));
-      window.__osuSetLang && window.__osuSetLang('en'); // 关首跑语言框
-      localStorage.removeItem('osu-editor:hotkeys'); // v379 加固: 改键覆盖持久化在 localStorage, 清掉保证默认键位
-      localStorage.removeItem('osu-editor:conv:tf-scale'); // 缩放窗口 lockRatio 持久化
-      window.__osuSkin && window.__osuSkin.resetSkinToDefault();
       const base = store.beatmap;
       const red = base.timingPoints.find(p => p.uninherited);
       const t0 = Math.round(red.time + red.beatLength * 4);
@@ -356,7 +346,7 @@ section('CDP: 四项行为实测');
     failures++;
     console.error('  FAIL: CDP 段异常 —', String(e).slice(0, 400));
   } finally {
-    electron.kill();
+    await killIsolated(electron, profile); // v383: 杀进程 + 回收临时 profile
   }
 }
 

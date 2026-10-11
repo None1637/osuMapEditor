@@ -1,14 +1,13 @@
 // v340 调试: 密集场景拖滑条时静态层键为何逐帧漂移
-import { spawn } from 'child_process';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { launchIsolatedElectron, killIsolated, normalizeEnv } from '../_lib/env.mjs'; // v383
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
-const ELECTRON = path.join(root, 'node_modules', 'electron', 'dist', 'electron.exe');
 const DEBUG_PORT = 9436;
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
-const electron = spawn(ELECTRON, ['.', `--remote-debugging-port=${DEBUG_PORT}`], { cwd: root, stdio: 'ignore' });
+const { proc: electron, profile } = launchIsolatedElectron(root, DEBUG_PORT); // v383: 隔离 userData
 let target;
 for (let i = 0; i < 60 && !target; i++) {
   try {
@@ -17,7 +16,7 @@ for (let i = 0; i < 60 && !target; i++) {
   } catch { /* not ready */ }
   if (!target) await sleep(500);
 }
-if (!target) { console.error('找不到页面目标'); electron.kill(); process.exit(2); }
+if (!target) { console.error('找不到页面目标'); await killIsolated(electron, profile); process.exit(2); }
 const ws = new WebSocket(target.webSocketDebuggerUrl);
 await new Promise((res, rej) => { ws.onopen = res; ws.onerror = rej; });
 let msgId = 0;
@@ -43,6 +42,7 @@ try {
     ready = await evalJs('!!(window.__osuStore && window.__osuStore.beatmap && window.__osuToCanvas)').catch(() => false);
   }
   if (!ready) throw new Error('未就绪');
+  await normalizeEnv(evalJs); // v383: 环境归一
   await evalJs(`(() => {
     const store = window.__osuStore;
     const base = store.beatmap;
@@ -89,6 +89,6 @@ try {
   console.log('dbg:', dbg);
   console.log('state:', st);
 } finally {
-  electron.kill();
+  await killIsolated(electron, profile);
 }
 process.exit(0);

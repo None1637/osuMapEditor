@@ -9,6 +9,7 @@ import { GRID_ORIGIN } from './gridSnap';
 import { AudioClock } from './clock/AudioClock';
 import { HitSoundScheduler, type HitSoundEvent } from './clock/HitSoundScheduler';
 import { createTempoNode, type TempoNode } from './clock/tempoWorklet';
+import { createRateNode, type RateNode } from './clock/rateWorklet';
 import { parseHitSample, setNumFromGeneral, soundsForHitSound, stemCandidates, planSliderSounds, objectVolume, buildHitSampleRaw, hitSampleFilename, DEFAULT_SAMPLE_STEMS, DEFAULT_SLIDER_STEMS, type SliderSoundPlan, type HitSample } from './clock/hitSounds';
 import { SAMPLE_CONCURRENCY, VoiceLimiter } from './clock/voiceLimiter';
 import { saveBeatmap, mapFileName, type MapSource, type SaveOutcome } from './saveMap';
@@ -209,7 +210,7 @@ class EditorStore {
   // v286: 快捷键设置面板 (显示设置左侧「快捷键」按钮; 动作注册表/覆盖在 hotkeys 模块)
   hotkeyPanelOpen = false;
   setHotkeyPanelOpen(b: boolean) { this.hotkeyPanelOpen = b; this.emitSelection(); }
-  /** v381: 通用编辑器偏好 (设置面板「通用」区; 值在 editorPrefs 模块单例, 交互代码直读) */
+  /** v381: 通用编辑器偏好 (v386: UI 挪到菜单栏「设置」菜单; 值在 editorPrefs 模块单例, 交互代码直读) */
   setEditorPref(k: EditorPrefKey, v: boolean) { applyEditorPref(k, v); this.emitSelection(); }
   setVolume(k: keyof VolumeSettings, v: number) { applyVolume(k, v); this.applyVolumeBuses(); this.emitSelection(); }
   /** v103: 解码后的整曲 PCM (波形/频谱数据源); 解码失败降级时为 null */
@@ -371,6 +372,12 @@ class EditorStore {
   tempoAnalyser: AnalyserNode | null = null; // 测试挂钩: CDP 频谱验证不变调
   private tempoGain: GainNode | null = null; // v216: 变速支路独立增益 (seek 防咔哒 dip 只作用此支路)
   private tempoEndTimer: ReturnType<typeof setTimeout> | null = null; // 播完检测 (signalsmith 节点无 ended 回执, 定时器替代)
+  // v382: 变速变调重采样引擎 (窗 sinc 插值 worklet; 编辑器慢放/测试游玩 DT/HT 统一走此, stable 语义)
+  private rateNode: RateNode | null = null;
+  private rateLoading: Promise<void> | null = null;
+  rateActive = false; // 调试: 当前播放是否经 sinc 重采样引擎
+  private rateGain: GainNode | null = null; // 变速支路独立增益 (seek 防咔哒 dip 只作用此支路, 同 v216 tempo 支路)
+  private rateEndTimer: ReturnType<typeof setTimeout> | null = null; // 播完检测 (同 tempoEndTimer)
   private clock: AudioClock | null = null;
   private scheduler: HitSoundScheduler | null = null;
   private hitBuffers = new Map<string, AudioBuffer>(); // stem(如 "soft-hitnormal") -> 谱面自定义采样
@@ -394,10 +401,13 @@ class EditorStore {
   /** 调试: 当前活跃 voice 数 / 历史峰值 (CDP 验证用) */
   debugVoiceStats = { active: 0, maxSeen: 0 };
   playbackRate: number = 1;
-  /** v295/v296: 变速模式 — true=Frequency 变调 (直接重采样, 与 lazer DT/HT (ModRateAdjust.cs)
-   *  一致, 无时间拉伸失真); false=Tempo 不变调 (signalsmith-stretch, lazer 编辑器
-   *  PlaybackControl.cs 语义)。v296: 编辑器固定 false (不变调), UI 切换按钮已移除;
-   *  true 仅测试游玩 DT/HT 内部强制使用 (TestPlayOverlay 退出时恢复) */
+  /** v295/v296: 变速模式 — true=Frequency 变调 (重采样, 音高随速度变化, lazer DT/HT
+   *  (ModRateAdjust.cs) 语义); false=Tempo 不变调 (signalsmith-stretch 保时音高拉伸)。
+   *  v385: 编辑器慢放固定 false (不变调) — lazer 源码考据: 编辑器 PlaybackControl.cs:79
+   *  走 AdjustableProperty.Tempo (BASS FX/SoundTouch 保时音高), adjustPitch=true 是 DT/HT
+   *  mod 语义而非编辑器慢放 (v382 曾误判 stable 慢放=变调, 已修正);
+   *  v382 的窗 sinc 变调引擎 (clock/rateWorklet.ts) 保留给测试游玩 DT/HT —
+   *  比 Chromium playbackRate 线性插值干净 ~70dB (verifier/v382), 仍是升级 */
   rateAdjustPitch: boolean = false;
   private eventsVersion = -1;
 
@@ -597,6 +607,8 @@ class EditorStore {
     // 歌曲更换: 旧变速节点持有旧 PCM, 销毁待重建
     if (this.tempoNode) { try { this.tempoNode.disconnect(); } catch { /* noop */ } this.tempoNode = null; this.tempoAnalyser = null; this.tempoGain = null; }
     this.tempoLoading = null;
+    if (this.rateNode) { try { this.rateNode.disconnect(); } catch { /* noop */ } this.rateNode = null; this.rateGain = null; } // v382
+    this.rateLoading = null;
     this.audioUrl = url;
     this.audioBuffer = null;
     this.degradedSync = false;
@@ -610,7 +622,8 @@ class EditorStore {
       }).then(decoded => {
         if (decoded && this.audioUrl === url) {
           this.audioBuffer = decoded;
-          this.ensureTempoNode(); // 预热变速引擎, 首次变速播放即可用
+          // v382: 预热当前模式的变速引擎 (变调=sinc 重采样, 不变调=signalsmith), 首次变速播放即可用
+          if (this.rateAdjustPitch) this.ensureRateNode(); else this.ensureTempoNode();
           this.emit();
         }
       }).catch(() => {
@@ -624,6 +637,33 @@ class EditorStore {
         this.audio.addEventListener('ended', () => { this.playing = false; this.emit(); });
       });
     }
+  }
+
+  /** v382: 变速变调重采样引擎 (窗 sinc 插值): 创建节点并送入解码后的 PCM (幂等, 异步) */
+  private ensureRateNode() {
+    if (!this.actx || !this.audioBuffer || this.rateNode || this.rateLoading) return;
+    const actx = this.actx;
+    const buf = this.audioBuffer;
+    this.rateLoading = (async () => {
+      try {
+        const node = await createRateNode(actx);
+        if (this.audioBuffer !== buf) { node.disconnect(); return; } // 加载期间已换歌
+        const chL = buf.getChannelData(0);
+        const chR = buf.numberOfChannels > 1 ? buf.getChannelData(1) : chL;
+        const lc = chL.slice();
+        const rc = chR === chL ? lc : chR.slice();
+        // buffer 模式: PCM 移交节点内部缓冲 (transferable); 单声道由节点复制到双声道
+        node.addBuffers(rc === lc ? [lc] : [lc, rc], buf.sampleRate, rc === lc ? [lc.buffer] : [lc.buffer, rc.buffer]);
+        if (this.audioBuffer !== buf) { node.disconnect(); return; } // 送 PCM 期间已换歌
+        const g = actx.createGain(); // 变速支路独立增益 (v216/v226 seek dip, 同 tempo 支路)
+        node.connect(g);
+        g.connect(this.ensureMusicBus()); // v144: 经音乐总线 (音量设置), 不直接接 destination
+        this.rateNode = node;
+        this.rateGain = g;
+      } catch (err) {
+        console.warn('sinc 重采样节点不可用, 变速将退化为原生 playbackRate (低质量)', err);
+      }
+    })();
   }
 
   /** signalsmith-stretch 变速不变调引擎: 创建节点并送入解码后的 PCM (幂等, 异步) */
@@ -818,6 +858,9 @@ class EditorStore {
     if (this.tempoEndTimer) { clearTimeout(this.tempoEndTimer); this.tempoEndTimer = null; }
     if (this.tempoNode) { try { this.tempoNode.stop(); } catch { /* noop */ } }
     this.tempoActive = false;
+    if (this.rateEndTimer) { clearTimeout(this.rateEndTimer); this.rateEndTimer = null; } // v382
+    if (this.rateNode) { try { this.rateNode.stop(); } catch { /* noop */ } }
+    this.rateActive = false;
     this.stopAllHitVoices(); // v122: 引擎停止时 hitsound 一起停 (暂停/换谱/变速重启都经此处)
   }
 
@@ -2164,6 +2207,28 @@ class EditorStore {
             this.emit();
           }
         }, Math.max(0, (endCtx - actx.currentTime) * 1000 + 50));
+      } else if (this.rateActive && this.rateNode) {
+        // v382: sinc 重采样变速支路 — dip 贴紧切换点单次短窗 (~5ms), 语义同上方 v226 tempo 支路
+        if (this.rateGain) {
+          const rg = this.rateGain.gain;
+          rg.cancelScheduledValues(now);
+          rg.setValueAtTime(rg.value, now);
+          rg.linearRampToValueAtTime(0, startW);
+          rg.linearRampToValueAtTime(1, startW + 0.002);
+        }
+        this.rateNode.schedule({ output: startW, input: offset, rate: this.playbackRate, active: true });
+        if (this.rateEndTimer) { clearTimeout(this.rateEndTimer); this.rateEndTimer = null; }
+        const endCtx = startW + (this.audioBuffer.duration - offset) / this.playbackRate;
+        this.rateEndTimer = setTimeout(() => {
+          this.rateEndTimer = null;
+          if (this.rateNode) { try { this.rateNode.stop(); } catch { /* noop */ } }
+          if (this.rateActive && this.playing) {
+            this.playing = false;
+            this.rateActive = false;
+            this.currentTime = this.songLength();
+            this.emit();
+          }
+        }, Math.max(0, (endCtx - actx.currentTime) * 1000 + 50));
       } else {
         // v226: 硬切换 — 旧源 2ms 斜降到 0 后停止, 新源 startW 启动 2ms 斜升到 1, 重叠 ~2ms
         if (this.source) {
@@ -2192,6 +2257,7 @@ class EditorStore {
         this.sourceGain = sg;
       }
       this.clock.onStartedAtCtxTime(startW, t);
+      this.clock.rate = this.playbackRate; // v385: 播放中变速走此处重锚定 (setRate 无缝支路), 时钟速率同步
       this.rebuildEventsIfDirty();
       this.stopAllHitVoices(); // v198: 停掉旧区间已预排程的 hitsound, resync 只重排 >= now 的事件
       this.scheduler?.resync();
@@ -2221,6 +2287,16 @@ class EditorStore {
         // 变速不变调 (lazer AudioAdjustments.Tempo): signalsmith-stretch 引擎.
         // schedule 锚点 = AudioContext 时间线, 与 source.start(startW, offset) 同一语义;
         // 节点自补偿内部延迟 (120ms), 每块按映射重定位, 无漂移
+        // v385: 起播防咔哒斜坡 (同 v216 source 支路语义) — stretch 引擎从任意相位
+        // 全幅起输出会有阶跃 (实测起播沿跳变 ~0.6, 见 verifier/v385)
+        if (this.tempoGain) {
+          const tg = this.tempoGain.gain;
+          const nowT = this.actx!.currentTime;
+          tg.cancelScheduledValues(nowT);
+          tg.setValueAtTime(0, nowT);
+          tg.setValueAtTime(0, startW);
+          tg.linearRampToValueAtTime(1, startW + 0.003);
+        }
         this.tempoNode.schedule({ output: startW, input: offset, rate: this.playbackRate, active: true });
         // 播完: 定时器走原播完逻辑 (signalsmith 节点无 ended 回执), 到点再 stop 节点省 CPU.
         // 注意不能提前 schedule 一个未来 stop: 其"清除其后所有排程"语义会把未来 start 一并丢弃
@@ -2236,7 +2312,41 @@ class EditorStore {
           }
         }, Math.max(0, (endCtx - this.actx!.currentTime) * 1000 + 50));
         this.tempoActive = true;
+      } else if (this.playbackRate !== 1 && this.rateAdjustPitch && this.rateNode) { // v382
+        // 变速变调 (测试游玩 DT/HT, lazer Frequency 语义): 窗 sinc 重采样引擎.
+        // schedule 锚点 = AudioContext 时间线, 与 source.start(startW, offset) 同一语义;
+        // 对称窗 => 零群延迟, 锚点采样级精确, 无漂移
+        // v385: 起播防咔哒斜坡 (同上方 tempo 支路; v384 实测起播沿跳变 ~0.6)
+        if (this.rateGain) {
+          const rg = this.rateGain.gain;
+          const nowR = this.actx!.currentTime;
+          rg.cancelScheduledValues(nowR);
+          rg.setValueAtTime(0, nowR);
+          rg.setValueAtTime(0, startW);
+          rg.linearRampToValueAtTime(1, startW + 0.003);
+        }
+        this.rateNode.schedule({ output: startW, input: offset, rate: this.playbackRate, active: true });
+        // 播完: 定时器走原播完逻辑 (worklet 虽有 ended 回执, 定时器兜底统一处理)
+        const endCtx = startW + (this.audioBuffer.duration - offset) / this.playbackRate;
+        this.rateEndTimer = setTimeout(() => {
+          this.rateEndTimer = null;
+          if (this.rateNode) { try { this.rateNode.stop(); } catch { /* noop */ } }
+          if (this.rateActive && this.playing) {
+            this.playing = false;
+            this.rateActive = false;
+            this.currentTime = this.songLength();
+            this.emit();
+          }
+        }, Math.max(0, (endCtx - this.actx!.currentTime) * 1000 + 50));
+        this.rateActive = true;
       } else {
+        if (this.playbackRate !== 1 && this.rateAdjustPitch && !this.rateNode) { // v382
+          // worklet 未就绪: 本次退回原生 playbackRate (低质量), 就绪后自动重进 sinc 引擎
+          this.ensureRateNode();
+          this.rateLoading?.then(() => {
+            if (this.playing && this.playbackRate !== 1 && this.rateAdjustPitch && this.rateNode && !this.rateActive) { this.pause(); this.play(); }
+          });
+        }
         if (this.playbackRate !== 1 && !this.rateAdjustPitch && !this.tempoNode) { // v295
           // worklet 未就绪: 本次退回 playbackRate (变调), 就绪后自动重进不变调引擎
           this.ensureTempoNode();
@@ -2290,22 +2400,30 @@ class EditorStore {
 
   togglePlay() { this.playing ? this.pause() : this.play(); }
 
-  /** 变速 (0.5 / 0.75 / 1.0); 播放中切换则重启 source 重锚定 */
+  /** 变速 (0.5 / 0.75 / 1.0); 播放中切换则重启 source 重锚定
+   *  v385: 同引擎内变速 (不变调↔不变调 / 变调↔变调, 目标非 1x) 改走 seekWhilePlaying
+   *  重锚定 — dip 防咔哒平滑拼接, 不再 pause/play 留 ~20ms 静音间隙与起播阶跃 */
   setRate(rate: number) {
     if (this.playbackRate === rate) return;
+    const seamless = this.playing && rate !== 1 &&
+      ((!this.rateAdjustPitch && this.tempoActive && this.tempoNode) ||
+        (this.rateAdjustPitch && this.rateActive && this.rateNode));
     this.playbackRate = rate;
     if (this.playing) {
-      this.pause();
-      this.play();
+      if (seamless) this.seekWhilePlaying(this.positionMs());
+      else { this.pause(); this.play(); }
     }
     this.emit();
   }
 
   /** v295: 切换 变调(Frequency)/不变调(Tempo) 变速模式; 播放中且 rate≠1 时重启重锚定。
-   *  v296: 不再持久化 (编辑器固定不变调, 仅测试游玩 DT/HT 临时切 true) */
+   *  v385: 编辑器慢放固定不变调 (lazer 编辑器 Tempo 语义); 变调 (v382 sinc 引擎) 仅
+   *  测试游玩 DT/HT 内部强制使用, TestPlayOverlay 退出时恢复 */
   setRateAdjustPitch(v: boolean) {
     if (this.rateAdjustPitch === v) return;
     this.rateAdjustPitch = v;
+    // 变速引擎按模式预热 (v382: 变调=sinc 重采样, 不变调=signalsmith)
+    if (this.audioBuffer) { if (v) this.ensureRateNode(); else this.ensureTempoNode(); }
     if (this.audio) { // 降级 <audio> 通道同步 (Web Audio 通道在 play() 分支生效)
       this.audio.preservesPitch = !v;
       (this.audio as HTMLAudioElement & { webkitPreservesPitch?: boolean }).webkitPreservesPitch = !v;
@@ -2337,6 +2455,9 @@ class EditorStore {
       hasAudioBuffer: !!this.audioBuffer,
       tempoReady: !!this.tempoNode,
       tempoActive: this.tempoActive,
+      rateReady: !!this.rateNode, // v382: sinc 重采样引擎
+      rateActive: this.rateActive,
+      rateAdjustPitch: this.rateAdjustPitch,
       slideLoopCount: this.slideLoops.length,
       log: this.debugLog,
     };

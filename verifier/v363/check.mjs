@@ -18,7 +18,8 @@
 import { fileURLToPath } from 'url';
 import path from 'path';
 import fs from 'fs';
-import { execSync, spawn } from 'child_process';
+import { execSync } from 'child_process';
+import { launchIsolatedElectron, killIsolated, normalizeEnv } from '../_lib/env.mjs'; // v383
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 let failures = 0;
@@ -53,10 +54,9 @@ section('源码: 幽灵抗淡出 (Bug B; v366 起由 renderer 实现, 幽灵 tim
 
 section('CDP: 手绘拖拽预览头部 (数字+颜色) / 过去节拍吸附不淡出');
 {
-  const ELECTRON = path.join(root, 'node_modules', 'electron', 'dist', 'electron.exe');
   const PORT = 9487;
   const sleep = (ms) => new Promise(r => setTimeout(r, ms));
-  const electron = spawn(ELECTRON, ['.', `--remote-debugging-port=${PORT}`], { cwd: root, stdio: 'ignore' });
+  const { proc: electron, profile } = launchIsolatedElectron(root, PORT); // v383: 隔离 userData
   try {
     let target;
     for (let i = 0; i < 60 && !target; i++) {
@@ -89,6 +89,7 @@ section('CDP: 手绘拖拽预览头部 (数字+颜色) / 过去节拍吸附不�
       ready = await evalJs('!!(window.__osuStore && window.__osuStore.beatmap && window.__osuToClient)').catch(() => false);
     }
     if (!ready) throw new Error('应用未就绪');
+    await normalizeEnv(evalJs); // v383: 环境归一 (就绪循环保留 — 判据含 __osuToClient)
     await sleep(800); // 布局稳定
 
     // 采样助手注入: 头圈 patch (均值/白色数字笔画计数) — 数字 = 26x26 内 min(r,g,b)>180 像素数
@@ -235,7 +236,7 @@ section('CDP: 手绘拖拽预览头部 (数字+颜色) / 过去节拍吸附不�
     failures++;
     console.error('  FAIL: CDP 段异常 —', String(e).slice(0, 300));
   } finally {
-    electron.kill();
+    await killIsolated(electron, profile); // v383: 杀进程 + 回收临时 profile
   }
 }
 

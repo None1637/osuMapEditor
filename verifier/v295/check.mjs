@@ -4,6 +4,14 @@
 //   - 编辑器 PlaybackControl.cs:79 -> AdjustableProperty.Tempo (BASS 不变调拉伸)
 // v296 修订: 编辑器倍速固定不变调 (rateAdjustPitch 默认 false, 底栏切换按钮已移除);
 //   变调仅测试游玩 DT/HT 内部强制使用 (与 lazer ModRateAdjust 完全对齐), 退出恢复。
+// v382 修订: 编辑器改回固定**变调** (rateAdjustPitch 默认 true) — 对齐 osu!stable
+//   (BASS) HT/慢放语义: plain resample 变速变调; 且重采样改走自研窗 sinc 插值引擎
+//   (src/osu/clock/rateWorklet.ts), 取代 Chromium playbackRate 线性插值 (慢放镜像失真,
+//   实测见 verifier/v382)。signalsmith 不变调路径保留为备选 (无 UI 入口)。
+// v385 修订: v382 的"stable 慢放=变调"系误判 — lazer 编辑器 PlaybackControl.cs:79 走
+//   AdjustableProperty.Tempo (保时音高), adjustPitch=true 是 DT/HT mod 语义; 编辑器慢放
+//   改回固定**不变调** (rateAdjustPitch 默认 false, signalsmith-stretch); v382 sinc 变调
+//   引擎保留给测试游玩 DT/HT (仍优于 Chromium 线性插值 ~70dB)。
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
@@ -16,8 +24,8 @@ const timelines = readFileSync(join(root, 'src/components/Timelines.tsx'), 'utf8
 let fails = 0;
 const check = (name, cond) => { if (!cond) { fails++; console.error('FAIL:', name); } };
 
-// store: 字段默认 false (v296: 编辑器固定不变调)
-check('store: rateAdjustPitch 字段默认 false (v296)',
+// store: 字段默认 false (v385: 编辑器慢放 = lazer Tempo 不变调语义)
+check('store: rateAdjustPitch 字段默认 false (v385)',
   /rateAdjustPitch:\s*boolean\s*=\s*false/.test(store));
 check('store: setRateAdjustPitch 播放中重启 + emit',
   /setRateAdjustPitch\(v:\s*boolean\)[\s\S]{0,500}this\.playing\s*&&\s*this\.playbackRate\s*!==\s*1[\s\S]{0,200}this\.emit\(\)/.test(store));

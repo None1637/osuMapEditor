@@ -12,7 +12,8 @@
 import { fileURLToPath } from 'url';
 import path from 'path';
 import fs from 'fs';
-import { execSync, spawn } from 'child_process';
+import { execSync } from 'child_process';
+import { launchIsolatedElectron, killIsolated, normalizeEnv } from '../_lib/env.mjs'; // v383: 环境归一共享 helper
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 let failures = 0;
@@ -44,10 +45,9 @@ section('源码: 单滑条锚点穿透 (Bug B)');
 
 section('CDP: 覆盖区单锚点拖拽/Alt/Ctrl/seek/幽灵预览');
 {
-  const ELECTRON = path.join(root, 'node_modules', 'electron', 'dist', 'electron.exe');
   const PORT = 9486;
   const sleep = (ms) => new Promise(r => setTimeout(r, ms));
-  const electron = spawn(ELECTRON, ['.', `--remote-debugging-port=${PORT}`], { cwd: root, stdio: 'ignore' });
+  const { proc: electron, profile } = launchIsolatedElectron(root, PORT); // v383: 隔离 userData, 不碰真实 settings/localStorage
   try {
     let target;
     for (let i = 0; i < 60 && !target; i++) {
@@ -74,12 +74,7 @@ section('CDP: 覆盖区单锚点拖拽/Alt/Ctrl/seek/幽灵预览');
       if (r.result?.exceptionDetails) throw new Error('页面内执行出错: ' + JSON.stringify(r.result.exceptionDetails).slice(0, 400));
       return r.result?.result?.value;
     };
-    let ready = false;
-    for (let i = 0; i < 60 && !ready; i++) {
-      await sleep(500);
-      ready = await evalJs('!!(window.__osuStore && window.__osuStore.beatmap && window.__osuToClient)').catch(() => false);
-    }
-    if (!ready) throw new Error('应用未就绪');
+    await normalizeEnv(evalJs); // v383: 就绪等待 + 环境归一 (语言 en / 默认皮肤 / 关曲库与首跑框 / 清污染键)
     await evalJs(`window.__osuSetLang && window.__osuSetLang('en')`); // v378: 关首跑语言框 (v349 LangFirstRun; localStorage 按 dev 端口隔离, 端口变即弹全屏遮罩拦截真实事件/elementFromPoint)
     await evalJs(`window.__osuSkin && window.__osuSkin.resetSkinToDefault()`); // v378: 强制默认皮肤 — 用户皮肤 sliderBorder 灰色时 G 白边亮度断言失效 (settings.json skinDir 持久化, 仅改运行内存不影响用户配置)
     await sleep(800); // 布局稳定 (窗口初始化期间 uiZoom/面板尺寸可能漂移)
@@ -257,7 +252,7 @@ section('CDP: 覆盖区单锚点拖拽/Alt/Ctrl/seek/幽灵预览');
     failures++;
     console.error('  FAIL: CDP 段异常 —', String(e).slice(0, 300));
   } finally {
-    electron.kill();
+    await killIsolated(electron, profile); // v383: 杀进程 + 回收临时 profile
   }
 }
 

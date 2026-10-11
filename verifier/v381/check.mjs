@@ -1,4 +1,6 @@
 // 验证器 v381: 设置/UI 类五项用户反馈
+//  v386 适配: 需求2/3 的两个 editorPrefs 开关 UI 从快捷键设置面板「通用」区挪到菜单栏「设置」菜单
+//  (checkbox 菜单项), 相关断言已同步改为「HotkeyPanel 不再含 + 主进程菜单含」; 行为断言不变。
 //  1) 显示设置新增「时间轴 SV / 音量标记」开关 (displaySettings.timelineSvSample, 默认开 = 现状) —
 //     关 = 上方时间轴不画 hitsound 粉药丸 (采样集+音量) 与绿线 SV 药丸, SV 药丸命中测试同步关闭
 //     (Timelines.tsx 收集/绘制/命中三处门控; DisplayPanel.tsx 加开关行)。
@@ -20,7 +22,7 @@
 import { fileURLToPath } from 'url';
 import path from 'path';
 import fs from 'fs';
-import { spawn } from 'child_process';
+import { launchIsolatedElectron, killIsolated, normalizeEnv } from '../_lib/env.mjs'; // v383: 环境归一共享 helper
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 
@@ -54,7 +56,10 @@ section('源码: 需求2/3 通用偏好 (editorPrefs + 面板 + 消费点)');
   assert(/Math\.abs\(dx\) \+ Math\.abs\(dy\) > \(editorPrefs\.moveDeadzone2px \? 1 : 0\)\) d\.moved = true/.test(ec), '物件拖拽死区阈值取 prefs (开 2px / 关 1px)');
   assert(/if \(!d\.moved\) return;/.test(ec), '死区内不应用位移 (修复静默移位)');
   const hp = read('src/components/HotkeyPanel.tsx');
-  assert(/data-pref-toggle=\{r\.key\}/.test(hp) && /PREF_ROWS/.test(hp), '设置面板通用区开关行');
+  // v386: 两个开关 UI 挪到菜单栏「设置」菜单 — HotkeyPanel 不再含通用区, 主进程菜单含 checkbox 项
+  assert(!/PREF_ROWS|data-pref-toggle|pref-general-section/.test(hp), '快捷键面板不再含通用区开关 (v386 挪位)');
+  const mc = read('electron/main.cjs');
+  assert(/menu\.drag_adjust_numbers"\), type: "checkbox"/.test(mc) && /menu\.move_deadzone"\), type: "checkbox"/.test(mc), '设置菜单含两项 checkbox (v386)');
   const st = read('src/osu/store.ts');
   assert(/setEditorPref\(k: EditorPrefKey, v: boolean\)/.test(st), 'store.setEditorPref');
 }
@@ -84,10 +89,9 @@ section('源码: 需求5 枚举框滚轮循环');
 
 section('CDP: 五项行为实测');
 {
-  const ELECTRON = path.join(root, 'node_modules', 'electron', 'dist', 'electron.exe');
   const PORT = 9481;
   const sleep = (ms) => new Promise(r => setTimeout(r, ms));
-  const electron = spawn(ELECTRON, ['.', `--remote-debugging-port=${PORT}`], { cwd: root, stdio: 'ignore' });
+  const { proc: electron, profile } = launchIsolatedElectron(root, PORT); // v383: 隔离 userData, 不碰真实 settings/localStorage
   try {
     let target;
     for (let i = 0; i < 60 && !target; i++) {
@@ -114,12 +118,7 @@ section('CDP: 五项行为实测');
       if (r.result?.exceptionDetails) throw new Error('页面内执行出错: ' + JSON.stringify(r.result.exceptionDetails).slice(0, 500));
       return r.result?.result?.value;
     };
-    let ready = false;
-    for (let i = 0; i < 60 && !ready; i++) {
-      await sleep(500);
-      ready = await evalJs('!!(window.__osuStore && window.__osuStore.beatmap && window.__osuToClient && window.__osuSetLang)').catch(() => false);
-    }
-    if (!ready) throw new Error('应用未就绪');
+    await normalizeEnv(evalJs); // v383: 就绪等待 + 环境归一 (语言 en / 默认皮肤 / 关曲库 / 清污染键)
 
     // setup: 归一持久化状态 (localStorage/皮肤跨运行污染教训)
     await evalJs(`(() => {
@@ -340,7 +339,7 @@ section('CDP: 五项行为实测');
     failures++;
     console.error('  FAIL: CDP 段异常 —', String(e).slice(0, 500));
   } finally {
-    electron.kill();
+    await killIsolated(electron, profile); // v383: 杀进程 + 回收临时 profile
   }
 }
 

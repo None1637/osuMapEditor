@@ -4,31 +4,22 @@
 //   模式B hideTitleBar=true (WCO): 菜单条 paddingRight=140 + drag 区 (v280 行为不变)
 //   两模式各截一张顶部图 (v281-framed.png / v281-overlay.png) 供人工核对
 // 运行: node verifier/v281/cdp-v281.mjs
-import { spawn } from 'child_process';
-import fs from 'fs';
-import os from 'os';
+// v383: 不再直写真实 %APPDATA%/osu-map-editor/settings.json (曾是把用户配置写坏的根因之一) —
+//   改走 _lib/env.mjs 隔离 userData + settingsPatch 把 hideTitleBar 合入临时 profile 副本。
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
+import { launchIsolatedElectron, killIsolated } from '../_lib/env.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
-const ELECTRON = path.join(root, 'node_modules/electron/dist/electron.exe');
-const SETTINGS = path.join(os.homedir(), 'AppData/Roaming/osu-map-editor/settings.json');
 const DEBUG_PORT = 9442;
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 let failures = 0;
 function assert(cond, msg) { if (!cond) { failures++; console.error('  FAIL:', msg); } else console.log('  ok:', msg); }
 
-const origSettings = fs.existsSync(SETTINGS) ? fs.readFileSync(SETTINGS, 'utf8') : null;
-function setHideTitleBar(v) {
-  const s = origSettings ? JSON.parse(origSettings) : {};
-  s.hideTitleBar = v;
-  fs.writeFileSync(SETTINGS, JSON.stringify(s, null, 2));
-}
-
 async function runMode(hideTitleBar, shotFile) {
   console.log(`\n== 模式 hideTitleBar=${hideTitleBar} ==`);
-  setHideTitleBar(hideTitleBar);
-  const el = spawn(ELECTRON, ['.', `--remote-debugging-port=${DEBUG_PORT}`], { cwd: root, stdio: 'ignore' });
+  const { proc: el, profile } = launchIsolatedElectron(root, DEBUG_PORT, { settingsPatch: { hideTitleBar } });
   let target;
   for (let i = 0; i < 60 && !target; i++) {
     try {
@@ -75,14 +66,11 @@ async function runMode(hideTitleBar, shotFile) {
     console.log('  截图:', `verifier/v281/${shotFile}`);
   } catch (e) { failures++; console.error('  ERROR:', e.message); }
   try { ws.close(); } catch { /* ignore */ }
-  el.kill();
-  await sleep(1500);
+  await killIsolated(el, profile);
 }
 
 await runMode(false, 'v281-framed.png');
 await runMode(true, 'v281-overlay.png');
 
-if (origSettings !== null) fs.writeFileSync(SETTINGS, origSettings); // 还原用户设置
-else if (fs.existsSync(SETTINGS)) fs.unlinkSync(SETTINGS);
 console.log(failures ? `\nV281_CDP_FAILED: ${failures}` : '\nV281_CDP_ALL_PASSED');
 process.exit(failures ? 1 : 0);

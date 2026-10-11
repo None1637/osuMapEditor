@@ -6,7 +6,8 @@
 import { fileURLToPath } from 'url';
 import path from 'path';
 import { readFileSync } from 'fs';
-import { spawn, execSync } from 'child_process';
+import { execSync } from 'child_process';
+import { launchIsolatedElectron, killIsolated, normalizeEnv } from '../_lib/env.mjs'; // v383
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 let failures = 0;
@@ -34,10 +35,9 @@ section('A: 源码形态');
 
 section('B: CDP 按 F2/F3/F1 切页签');
 {
-  const ELECTRON = path.join(root, 'node_modules', 'electron', 'dist', 'electron.exe');
   const PORT = 9459;
   const sleep = (ms) => new Promise(r => setTimeout(r, ms));
-  const electron = spawn(ELECTRON, ['.', `--remote-debugging-port=${PORT}`], { cwd: root, stdio: 'ignore' });
+  const { proc: electron, profile } = launchIsolatedElectron(root, PORT); // v383: 隔离 userData
   try {
     let target;
     for (let i = 0; i < 60 && !target; i++) {
@@ -64,12 +64,7 @@ section('B: CDP 按 F2/F3/F1 切页签');
       if (r.result?.exceptionDetails) throw new Error('页面内执行出错: ' + JSON.stringify(r.result.exceptionDetails).slice(0, 400));
       return r.result?.result?.value;
     };
-    let ready = false;
-    for (let i = 0; i < 60 && !ready; i++) {
-      await sleep(500);
-      ready = await evalJs('!!(window.__osuStore && window.__osuStore.beatmap)').catch(() => false);
-    }
-    if (!ready) throw new Error('应用未就绪');
+    await normalizeEnv(evalJs); // v383: 就绪等待 + 环境归一 (语言 en / 默认皮肤 / 关曲库遮罩 / 清污染键)
 
     const activeTab = () => evalJs(`(() => { const b = [...document.querySelectorAll('button')].find(x => x.className.includes('bg-[#2563eb]')); return b ? b.textContent.trim().replace(/\\s+/g, ' ') : null; })()`);
     const pressF = async (key, code, vk) => {
@@ -93,7 +88,7 @@ section('B: CDP 按 F2/F3/F1 切页签');
     failures++;
     console.error('  FAIL: CDP 段异常 —', String(e).slice(0, 300));
   } finally {
-    electron.kill();
+    await killIsolated(electron, profile); // v383: 杀进程 + 回收临时 profile
   }
 }
 

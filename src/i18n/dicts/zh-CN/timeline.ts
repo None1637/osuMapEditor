@@ -14,7 +14,7 @@ export const zhCN: Record<string, string> = {
   'timeline.zoom_in_title': '放大 (滚轮键位见快捷键设置)',
   'timeline.zoom_out_title': '缩小 (滚轮键位见快捷键设置)',
   'timeline.jump_title': '点击输入时间跳转 (mm:ss:ms 或纯毫秒); 也可粘贴复制的物件文本跳转到其起始时间并选中',
-  'timeline.speed_title': '播放速度 (变速不变调 signalsmith-stretch, lazer Tempo)',
+  'timeline.speed_title': '播放速度 (变速不变调时间拉伸, 对齐 lazer 编辑器慢放)',
   'timeline.speed_label': '倍速',
   'timeline.play_title': '空格',
   'timeline.back_to_start_title': '回到开头',

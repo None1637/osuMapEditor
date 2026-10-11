@@ -4,18 +4,17 @@
 //   修复: deepCopy undefined 防御 + beginTransformPreview 缺省不拷贝
 //   断言: 开窗/应用/预览全程无页面异常, #root 存活; 混合选区 (单点+滑条) 旋转后位置确实改变
 // 运行: npm run build 后 node verifier/v344/check.mjs  (会短暂弹出编辑器窗口)
-import { spawn } from 'child_process';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { launchIsolatedElectron, killIsolated, normalizeEnv } from '../_lib/env.mjs'; // v383
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
-const ELECTRON = path.join(root, 'node_modules', 'electron', 'dist', 'electron.exe');
 const DEBUG_PORT = 9445;
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 let failures = 0;
 function assert(cond, msg) { if (!cond) { failures++; console.error('  FAIL:', msg); } else console.log('  ok:', msg); }
 
-const electron = spawn(ELECTRON, ['.', `--remote-debugging-port=${DEBUG_PORT}`], { cwd: root, stdio: 'ignore' });
+const { proc: electron, profile } = launchIsolatedElectron(root, DEBUG_PORT); // v383: 隔离 userData
 let target;
 for (let i = 0; i < 60 && !target; i++) {
   try {
@@ -24,7 +23,7 @@ for (let i = 0; i < 60 && !target; i++) {
   } catch { /* not ready */ }
   if (!target) await sleep(500);
 }
-if (!target) { console.error('找不到 Electron 页面目标'); electron.kill(); process.exit(1); }
+if (!target) { console.error('找不到 Electron 页面目标'); await killIsolated(electron, profile); process.exit(1); }
 const ws = new WebSocket(target.webSocketDebuggerUrl);
 await new Promise((res, rej) => { ws.onopen = res; ws.onerror = rej; });
 let msgId = 0;
@@ -56,12 +55,7 @@ const rootAlive = () => evalJs('(document.getElementById("root")?.children.lengt
 
 try {
   await send('Runtime.enable');
-  let ready = false;
-  for (let i = 0; i < 60 && !ready; i++) {
-    await sleep(500);
-    ready = await evalJs('!!(window.__osuStore && window.__osuStore.beatmap)').catch(() => false);
-  }
-  if (!ready) throw new Error('Electron 应用未就绪');
+  await normalizeEnv(evalJs); // v383: 就绪等待 + 环境归一
 
   // 单点 + 滑条 各一
   await evalJs(`(() => {
@@ -133,7 +127,7 @@ try {
   if (exceptions.length) { failures++; console.error('  FAIL: 页面异常:', exceptions.slice(0, 3)); }
   else console.log('  ok: 全程无页面异常');
 } finally {
-  electron.kill();
+  await killIsolated(electron, profile);
 }
 console.log(failures ? `\n${failures} 个断言失败` : '\ncheck v344 全部通过');
 process.exit(failures ? 1 : 0);

@@ -3791,3 +3791,116 @@
 - 顺带适配旧验证器断言 (refreshHover/onPointerDown 块变长, 逻辑不变): v316 窗口 1200→2400,
   v368 窗口 1400→2400, v258 窗口 300→420。
 - 回归: v380/v379/v378/v368/v367/v316/v269/v258 全绿 (串行); tsc + vite build 通过。
+
+## v382 — 慢放音质: 编辑器慢放对齐 osu!stable (变速变调) + 自研窗 sinc 重采样引擎
+- 用户反馈: 慢放 (0.5x/0.75x, 底栏倍速) 音质比不上 osu!stable, 各频率有失真。
+- 诊断 (verifier/v382/measure.mjs, CDP 真实 Electron 内 OfflineAudioContext 渲染测试音 + FFT):
+  - 编辑器慢放原路径 = signalsmith-stretch 不变调拉伸 (v296 语义, 非 stable); 稳态单音
+    杂散 ~-50dB, 且保时音高本身与 stable 的 HT/慢放 (音高随速度下降) 语义不同。
+  - 变调回退/测试游玩 DT-HT 原路径 = Chromium AudioBufferSourceNode.playbackRate
+    线性插值重采样 — 实测 0.5x: 5kHz 杂散总量 -31dB / 10kHz -19dB (峰值 -22dB),
+    镜像+混叠折回可闻频段, 即"各频率失真"的来源; 0.75x 同样量级。
+- 实现:
+  1) 新 AudioWorklet 处理器 src/osu/clock/rateResampler.worklet.js: 48-tap Blackman 窗
+     sinc 插值 (2048 相位量化表), 减速全带宽重建 (镜像抑制 >70dB), 加速 cutoff=1/step
+     抗混叠; 对称窗零群延迟, schedule({output,input,rate}) 在 AudioContext 时间线锚定,
+     语义同 AudioBufferSourceNode.start(when, offset); buffers 消息可附带原子 schedule
+     (离线渲染下背靠背 postMessage 第二条不送达的防护)。封装 src/osu/clock/rateWorklet.ts
+     (?raw 内联 + blob URL 注入, 无外部资源)。
+  2) store: rateAdjustPitch 默认改 true (编辑器固定变调, 对齐 stable; signalsmith 不变调
+     路径保留为备选, 无 UI 入口); 新增 rateNode/rateGain/rateEndTimer/rateActive 与
+     ensureRateNode (幂等预热, PCM transferable 移交); play()/seekWhilePlaying()/
+     stopSource()/setAudio() 各加 sinc 支路 (v226 seek dip、v251 采样网格吸附、
+     v144 音乐总线、v198 hitsound 停voice 等既有语义全部保留); worklet 未就绪回退原生
+     playbackRate 并就绪后自动重进。hitsound 不走变速 (与现状一致, 仅时序随 clock 拉伸)。
+  3) Timelines 倍速 tooltip 与 zh-CN 词典改述为变速变调语义。
+- 验证: verifier/v382/check.mjs = 源码断言 + 测量断言 (sinc 0.5x/0.75x 单音杂散 <-75dB、
+  峰值 <-85dB、THD<0.01%, multi 杂散 <-75dB, 10kHz@0.5 较 Chromium 改善 >40dB;
+  实测 0.5x 单音杂散 ~-89dB/峰值 ~-97dB) + CDP 6 组功能实测 (0.5x 走 rateActive 支路且
+  谱面位置按 0.5x 推进 / 播放中 seekWhilePlaying 落点正确 / 变速 0.5→1→0.75 支路切换 /
+  暂停冻结与继续 / 0.5x 下 hitsound 按拉伸时序发声)。
+- 顺带修订: verifier/v295/check.mjs 默认断言 false→true (v382 语义修订, 双模式结构保留)。
+- 回归: v381/v380/v379/v378/v226/v295 等 (见任务回报); tsc + vite build 通过。
+
+## v383 — 验证器环境归一加固 (纯测试基建, 不动 app 行为)
+- 背景事故: 某次验证器运行把真实 userData (%APPDATA%/osu-map-editor/settings.json) 清成
+  0 字节并污染 localStorage → firstRun 向导遮罩 (z-[60]) 吃真实点击 + recents 丢失停在曲库界面
+  (App.tsx 快捷键处理 showLibrary 时直接 return) → 热键类 CDP 用例大面积假失败, 语言/显示设置
+  断言漂移。
+- 根因调查 (谁清了 settings.json):
+  1) 主因: electron/main.cjs "menu-state" IPC 每次加载谱面都 readSettings→非原子
+     writeFileSync settings.json (recents 持久化); 验证器收尾 electron.kill() 在 Windows 上
+     = TerminateProcess 立即断, 落在 writeFileSync 的截断-写入窗口即留下 0 字节文件。
+     所有直连真实 userData 的 CDP 验证器每次跑都在写真实配置, 属于结构性风险。
+  2) 帮凶: verifier/v281 从 Node 侧直写真实 settings.json (hideTitleBar 开关, 跑完还原;
+     中断即丢配置)。
+  3) localStorage (i18n.lang / osu-editor:hotkeys / osu-editor:display-settings) 同理被用例
+     直接写进真实 profile。
+- 加固方案 (verifier/_lib/env.mjs 共享 helper):
+  - launchIsolatedElectron(root, port, { seed, settingsPatch, extraArgs }): mkdtemp 独立
+    --user-data-dir, 播种真实 settings.json 副本 (缺失/损坏不播种); settings/localStorage 写入
+    全部落临时 profile, 真实 userData 只读; killIsolated 杀进程+回收临时目录。
+  - normalizeEnv(evalJs): 就绪等待 + __osuSetLang('en') + resetSkinToDefault + backdrop 语义
+    (mousedown+mouseup 落遮罩本体) 关曲库面板 — 必须走 onClose, 只摘 DOM 不行 (showLibrary
+    状态仍拦快捷键) + 清已知污染 localStorage 键 (不全清, 全清会触发 v349 首跑语言框)。
+  - 首跑向导 (播种缺失时出现) 不能 el.remove() (React commit 崩溃) 也不能 display:none
+    (向导内 useCounterZoom 量到 0 尺寸 → setState 死循环, React #185 整树卸载, 快捷键监听
+    全灭 — v383 实测); 它不拦快捷键/合成事件, 仅挡 CDP Input 真实点击, 保留即可。
+- 迁移范围: v340-v369/v378-v382 全部 CDP check.mjs (34 个) + v382/measure.mjs +
+  v340/{profile-electron,debug-key}.mjs + v281 (根因修复: 改走 settingsPatch, 不再碰真实
+  settings.json)。更早的 cdp-vXXX/probe 类历史脚本 (v13-v337) 属一次性调试件, 未迁移。
+- 顺带修复: src/i18n/s2t.ts 补 7 个未覆盖字 (药→藥/触→觸 入 S2T_TABLE, 粉丸死才就 入
+  S2T_SAME; display.ts/hotkey.ts 既有文案引入, v346 E 段覆盖率断言 HEAD 上就红)。
+- 验证: verifier/v383/check.mjs = 源码断言 (helper 导出/迁移到位/v281 不再直写) + CDP-A
+  播种路径 (谱面恢复/无向导/热键通路/真实 settings.json 全程未变/临时 profile 回收) + CDP-B
+  无播种路径 (模拟配置丢失: 向导出现但热键与归一仍可用)。
+- 回归: 33 个迁移 check.mjs 串行全绿 (含 v346 补表后); v281/v379 单跑全绿; npm run build 通过。
+
+## v385 — 慢放语义修正 (编辑器慢放=不变调, 对齐 lazer 编辑器) + 实时路径瞬态修复
+- 语义修正 (用户澄清 + lazer 源码考据, 本地检出 D:/Projects/osuMapEditor/osu):
+  - osu.Game/Screens/Edit/Components/PlaybackControl.cs:79: 编辑器播放速度走
+    AdjustableProperty.Tempo = 保时音高时间拉伸 (BASS FX / SoundTouch 类);
+    RateAdjustModHelper.cs: adjustPitch=true 的 Frequency (变速变调) 是 DT/HT mod 语义,
+    不是编辑器慢放。v382 "stable 慢放=变调" 系误判。
+  - 改动: store.rateAdjustPitch 默认改回 false (编辑器慢放 = signalsmith-stretch 保时音高);
+    v382 的窗 sinc 变调引擎保留给测试游玩 DT/HT (仍比 Chromium 线性插值干净 ~70dB);
+    Timelines 倍速 tooltip / zh-CN 词典文案改回不变调语义; v295/v382 验证器断言适配。
+  - v384 的 compare-lazer.mjs 以 Frequency (理想重采样) 为基准, 语义已失效, 由
+    verifier/v385/check.mjs 取代 (v384 诊断件已清理)。
+- 瞬态修复 (v384 实时录音诊断: CDP 真实 dist app, 音乐总线并联 capture worklet 录原始
+  PCM — 稳态两条引擎在实时路径都已干净 (sinc 支路 0.5x 杂散 -88dB, 与离线基线一致;
+  glitch=0), 用户听到的"音质不行"来自瞬态):
+  1) 起播沿咔哒: play() 变速支路无启动斜坡, stretch/重采样引擎从任意相位全幅起输出,
+     实测沿跳变 ~0.61 → tempo/rate 两支路加 3ms 起播斜坡 (v216 source 支路同款),
+     修复后 0.003 (store.ts play());
+  2) 变速切换拼接: setRate 播放中 pause/play 重启 → ~20ms 静音间隙 + 0.62 阶跃咔哒
+     → 同引擎内变速 (目标非 1x) 改走 seekWhilePlaying 重锚定 (dip 防咔哒平滑拼接),
+     修复后跳变 0、无长间隙; 顺带补 seekWhilePlaying 的 clock.rate 同步 (变速后谱面
+     位置推进速率跟随新倍速, 否则 positionMs 仍按旧速率走)。
+- 验证: verifier/v385/check.mjs = 源码断言 + 实时录音测量断言 (峰位保持 <1% 偏差 —
+  实测 <0.1%; 稳态 glitch=0; 单音杂散 ~-50dB 即 signalsmith 固有水平, 与 lazer BASS FX
+  同量级; 起播沿 <0.1; 拼接 jumps=0 且无 >10ms 零跑) + CDP 功能回归 7 组 (默认不变调 /
+  0.5x tempo 支路推进 / seekWhilePlaying / 无缝变速位置连续且按新倍速推进 / 回 1x /
+  暂停继续 / hitsound 拉伸时序)。
+- 回归: v382/v383/v381/v380/v379/v378/v295/v226 (见任务回报); tsc + vite build 通过。
+
+## v386 — v381 两个 editorPrefs 开关挪位: 快捷键面板「通用」区 → 菜单栏「设置」菜单
+- 起因: v381 把「数值框拖动调值」(editorPrefs.dragAdjustNumbers, 默认开) 与「物件移动死区 2px」
+  (editorPrefs.moveDeadzone2px, 默认开) 放进了快捷键设置面板顶部通用区, 用户要求放到菜单栏。
+- 改动 (数据层不动 — editorPrefs.ts / store.setEditorPref / DraftNum 门控 / 死区阈值全保留):
+  - electron/main.cjs: 「设置」菜单在「重新配置 osu! 目录与皮肤」下新增两个 checkbox 菜单项
+    (MENU_LABELS 三语内嵌标签); 勾选状态 = editorPrefsState (渲染进程经 "editor-prefs-state"
+    IPC 上报, 默认全开, 值变化才发); 点击 → menu-cmd { type:'settings-toggle-editor-pref', key }。
+  - electron/preload.cjs + src/osu/electronBridge.ts: menuEditorPrefsState 通道 + 命令类型。
+  - src/osu/electronMenu.ts: handleMenuCommand 处理翻转 (store.setEditorPref 取反)。
+  - src/App.tsx: store.subscribe 上报 editorPrefs 勾选状态 (同 v156 timing-menu-state 模式),
+    翻转后主进程 buildMenu 重建勾选。
+  - src/components/HotkeyPanel.tsx: 删通用区 (PREF_ROWS / pref-general-section / editorPrefs import);
+    src/i18n/dicts/zh-CN/hotkey.ts: 删 pref.* 五键 (菜单文案在主进程 MENU_LABELS, zh-TW 内嵌同步)。
+- 验证: verifier/v386/check.mjs = 源码断言 (菜单/IPC 链路 + 面板移除 + i18n 清理) + CDP 实测:
+  设置菜单两 checkbox 存在且默认勾; store.setEditorPref 后菜单勾选同步; 菜单 DOM 点击全链路
+  (menu-item-click → 主进程 → menu-cmd → editorPrefs 翻转 → 勾选重建); 关闭后 DraftNum 拖动
+  不改值/滚轮保留/再开恢复 +5; 死区关后物件 1px 即动/再开 1px 不动; 快捷键面板打开后无通用区。
+- 回归适配: v381 check.mjs 的「设置面板通用区开关行」断言改为「HotkeyPanel 不含 + 主进程菜单含」
+  (头部注明 v386 挪位), 行为断言不变。
+- 回归: v381/v383/v380/v385 串行全绿; tsc + vite build 通过。
