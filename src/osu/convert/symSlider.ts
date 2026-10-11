@@ -28,7 +28,7 @@
 //   - slides/newCombo/hitSound/hitSampleRaw 等其余字段保留原值
 import type { Beatmap, HitObject, Vec2 } from '../parser';
 import { genId } from '../parser';
-import { sliderGeometryLength } from '../sliderPath';
+import { sliderGeometryLength, parseBSplineType } from '../sliderPath'; // v387: parseBSplineType (B 样条拼接保型)
 import { sliderTailPoint } from '../objectSnap';
 import { segmentsToPoints, sliderToBezierSegments } from './bezierPath';
 
@@ -182,12 +182,14 @@ export function computeSymSlider(bm: Beatmap, o: HitObject, p: SymSliderParams):
   const dur = (o.endTime ?? o.time) - o.time;
   const time = p.join === 'tail' ? o.time : Math.round((o.endTime ?? o.time) - dur * (count + 1));
   const endTime = p.join === 'tail' ? Math.round(o.time + dur * (count + 1)) : (o.endTime ?? o.time);
+  // v387: B 样条 ('B<n>') 源拼接保持原类型 — 红锚点接缝即 B 样条分段, 形状无损; 其余类型拼接恒 'B' (v243)
+  const joinType = parseBSplineType(workType) !== null ? workType : 'B';
   return [{
     ...o, id: genId(),
     x: joined[0].x, y: joined[0].y,
     time, endTime,
-    curveType: 'B',
+    curveType: joinType,
     curvePoints: joined.slice(1),
-    length: Math.round(sliderGeometryLength('B', joined) * 100) / 100,
+    length: Math.round(sliderGeometryLength(joinType, joined) * 100) / 100,
   }];
 }

@@ -15,9 +15,9 @@ export const zhCN: Record<string, string> = {
   'timeline.zoom_out_title': '缩小 (滚轮键位见快捷键设置)',
   'timeline.jump_title': '点击输入时间跳转 (mm:ss:ms 或纯毫秒); 也可粘贴复制的物件文本跳转到其起始时间并选中',
   'timeline.speed_title': '播放速度 (变速不变调时间拉伸, 对齐 lazer 编辑器慢放)',
-  'timeline.speed_label': '倍速',
+  'timeline.speed_label': '播放速度', // v390-3: 原「倍速」, 对齐 lazer 截图文案
   'timeline.play_title': '空格',
-  'timeline.back_to_start_title': '回到开头',
+  // v390: 'timeline.back_to_start_title' 删除 — 「回到开头」按钮移除 (底栏 lazer 布局)
   'timeline.slider_nodes': '滑条点 ×{n}',
   'timeline.node_first': '前 #{i} ←',
   'timeline.node_last': '后 #{i} →',

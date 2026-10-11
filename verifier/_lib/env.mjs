@@ -35,7 +35,8 @@ export function launchIsolatedElectron(root, port, { seed = true, settingsPatch 
       if (s) fs.writeFileSync(path.join(profile, 'settings.json'), JSON.stringify(settingsPatch ? { ...s, ...settingsPatch } : s, null, 2) + '\n');
     } catch { /* 真实配置缺失/损坏 → 不播种, 走 normalizeEnv 兜底 */ }
   }
-  const proc = spawn(ELECTRON, ['.', `--remote-debugging-port=${port}`, `--user-data-dir=${profile}`, ...extraArgs], { cwd: root, stdio: 'ignore' });
+  // v392: OSU_VERIFIER=1 注入 — main.cjs 检测到后多屏时把窗口挪到非主屏 (跑测试不占主屏)
+  const proc = spawn(ELECTRON, ['.', `--remote-debugging-port=${port}`, `--user-data-dir=${profile}`, ...extraArgs], { cwd: root, stdio: 'ignore', env: { ...process.env, OSU_VERIFIER: '1' } });
   return { proc, profile };
 }
 

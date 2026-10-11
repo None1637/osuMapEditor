@@ -92,7 +92,7 @@ section('SelectionInfoPanel: 放置预览间距显示');
 section('回归: v45/v55 旧断言仍成立');
 {
   const sp = readSrc('src/osu/spacing.ts');
-  assert(/distPx \/ \(distanceSnapPxPerBeat\(bm, fromEndTime\) \* beats\)/.test(sp), 'v45: 间距倍率公式 (v149 起基准含 SM*SV)');
+  assert(/distPx \/ \(100 \* bm\.difficulty\.sliderMultiplier \* sv \* beats\)/.test(sp), 'v45: 间距倍率公式 (v397 起基准固定 1.0x = 100*SM*SV*拍数, 不含 DS)');
   assert(/export function selectionSpacingInfo/.test(sp), 'v45: selectionSpacingInfo 保留');
 }
 

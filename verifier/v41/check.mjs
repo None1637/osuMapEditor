@@ -33,19 +33,19 @@ section('stream.ts: v41 语义 (时间等距 + streamFractions 空间分布)');
 {
   const src = readSrc('src/osu/convert/stream.ts');
   assert(/export function streamFractions/.test(src), '导出 streamFractions');
-  assert(/Math\.max\(0, p\.endPercent \/ 100\)/.test(src), 'endPercent 允许 0');
+  assert(/Math\.max\(0\.01, p\.rampPercent \/ 100\)/.test(src), 'v398: 倍率下限 1% (旧 endPercent 0 移除)');
   assert(/fracs\[i\] \* slides/.test(src), '位置取 streamFractions (非时间比例)');
   // streamTimes 内不得再引用 weight (时间恒等距)
   const fn = src.slice(src.indexOf('export function streamTimes'), src.indexOf('export function streamFractions'));
-  assert(!/weight\(/.test(fn), 'streamTimes 不再用 weight (时间恒等距)');
+  assert(!/streamSpacingWeight\(/.test(fn), 'streamTimes 不用间距权重 (时间恒等距)');
 }
 
-section('StreamDialog: 节拍下拉框 + endPercent 0~400');
+section('StreamDialog: 节拍下拉框 + 倍率 1~2000 (v398: 旧 endPercent 0~400 改为 rampPercent)');
 {
   const dlg = readSrc('src/components/convert/StreamDialog.tsx');
   assert(/SPACINGS.*\[1, 2, 3, 4, 6, 8, 12, 16\]/.test(dlg.replace(/\s/g, ' ')) || /\[1, 2, 3, 4, 6, 8, 12, 16\]\.map/.test(dlg), '节拍分母与节拍吸附同组');
   assert(/data-conv="spacing"/.test(dlg) && /<select/.test(dlg), '间距为下拉框 (data-conv=spacing)');
-  assert(/Math\.max\(0, Math\.min\(400, v\)\)/.test(dlg), 'endPercent 钳制 0~400');
+  assert(/Math\.max\(1, Math\.min\(2000, v\)\)/.test(dlg), 'v398: 倍率钳制 1~2000 (正反方向 step 恒 1, 精度相同)');
 }
 
 if (failures) { console.error(`\nVERIFIER_V41_FAILED: ${failures} 处失败`); process.exit(1); }

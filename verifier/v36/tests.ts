@@ -32,32 +32,33 @@ section('streamTimes: 等距');
   assert(t2.join(',') === '0,300,600,900', `spacingMs=300: 0,300,600,900 (${t2.join(',')})`);
 }
 
-section('streamFractions: 变距只改空间分布, 时间恒等距 (v41 语义)');
+section('streamFractions: 变距只改空间分布, 时间恒等距 (v41 语义; v398 参数模型)');
 {
-  const p: StreamParams = { ...DEFAULT_STREAM_PARAMS, mode: 'count', count: 5, curve: 'linear', endPercent: 50 };
+  // v398: 旧 curve:'linear', endPercent:50 ≡ 自定义间距 + 底数1(线性) + 倍率50 + 单次不镜像
+  const p: StreamParams = { ...DEFAULT_STREAM_PARAMS, mode: 'count', count: 5, customSpacing: true, expoBase: 1, rampPercent: 50, repeats: 1, mirrorRepeat: false };
   const t = streamTimes(1000, p, 300);
   assert(t.join(',') === '0,250,500,750,1000', `变距时时间仍等距 (${t.join(',')})`);
   const f = streamFractions(p, t, 1000);
   assert(f.length === 5 && f[0] === 0 && Math.abs(f[4] - 1) < 1e-9, '位置比例覆盖 [0,1] (变距末点恒在路径尾)');
   const gaps = f.slice(1).map((v, i) => v - f[i]);
   assert(gaps[0] > gaps[3], `空间间距前疏后密 (${gaps.map(g => g.toFixed(3)).join(',')})`);
-  // 间距比 = 权重比: 线性 w=1+(k-1)p, k=0.5
+  // 间距比 = 权重比: 线性 w=1+(k-1)p, k=0.5; v398: 非镜像段末采样 (p = 0.25..1)
   const ratio = gaps[0] / gaps[3];
-  const expect = (1 - 0.5 * 0.125) / (1 - 0.5 * 0.875);
+  const expect = (1 - 0.5 * 0.25) / (1 - 0.5 * 1);
   assert(Math.abs(ratio - expect) < 0.01, `空间间距比 ${ratio.toFixed(3)} ≈ 理论 ${expect.toFixed(3)}`);
-  // bell: 两端 100%, 中段最密
-  const fb = streamFractions({ ...p, curve: 'bell' }, t, 1000);
+  // bell 等价 (v398: 重复2 + 镜像, 段中点采样): 两端 100%, 中段最密, 左右对称
+  const fb = streamFractions({ ...p, repeats: 2, mirrorRepeat: true }, t, 1000);
   const gb = fb.slice(1).map((v, i) => v - fb[i]);
   assert(Math.abs(gb[0] - gb[3]) < 1e-9 && gb[1] < gb[0], `bell 对称且中段密 (${gb.map(g => g.toFixed(3)).join(',')})`);
-  // endPercent=0: 权重按段中点采样, 末段趋近 0 但不精确为 0; 验证合法单调且覆盖 [0,1]
-  const f0 = streamFractions({ ...p, endPercent: 0 }, t, 1000);
+  // 倍率 1% (旧 endPercent=0 的最低点): 严格递减且覆盖 [0,1]
+  const f0 = streamFractions({ ...p, rampPercent: 1 }, t, 1000);
   const g0 = f0.slice(1).map((v, i) => v - f0[i]);
   assert(Math.abs(f0[4] - 1) < 1e-9 && g0.every((g, j) => j === 0 || g < g0[j - 1]),
-    `endPercent=0: 严格递减覆盖 [0,1] (${f0.map(v => v.toFixed(3)).join(',')})`);
-  // 等距曲线: 按间距模式位置比例 = 时间比例; 按数量模式 = 索引均布 (v43)
-  const fe = streamFractions({ ...p, mode: 'spacing', curve: 'equal' }, [0, 300, 600, 900], 1000);
+    `倍率1%: 严格递减覆盖 [0,1] (${f0.map(v => v.toFixed(3)).join(',')})`);
+  // 固定间距 (不勾自定义): 按间距模式位置比例 = 时间比例; 按数量模式 = 索引均布 (v43)
+  const fe = streamFractions({ ...p, mode: 'spacing', customSpacing: false }, [0, 300, 600, 900], 1000);
   assert(fe.join(',') === '0,0.3,0.6,0.9', `等距@spacing: 位置比例跟随时间 (${fe.join(',')})`);
-  const fc = streamFractions({ ...p, curve: 'equal' }, [0, 300, 600, 900], 1000);
+  const fc = streamFractions({ ...p, customSpacing: false }, [0, 300, 600, 900], 1000);
   assert(fc.map(v => v.toFixed(2)).join(',') === '0.00,0.33,0.67,1.00', `等距@count: 位置索引均布 (${fc.map(v => v.toFixed(2)).join(',')})`);
 }
 

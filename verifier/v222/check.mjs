@@ -1,8 +1,8 @@
-// 验证器 v222: 滑条转连打 — 指数变化曲线 + 指数参数 (两位小数, 仅选中指数变化时显示)。
-// stream.ts: StreamCurve 增 'expo', StreamParams 增 exponent (>0, 默认 2);
-//   权重 w(p) = 1 + (k-1) * p^exp — exp=1 同线性, >1 前慢后快, 0<exp<1 前快后慢, exp 钳制 >=0.01。
-// StreamDialog.tsx: 间距曲线下拉框增「指数变化」; 指数输入框 (step 0.01, 写入时四舍五入到两位小数)
-//   仅 params.curve === 'expo' 时渲染; 附带 同线性/前慢后快/前快后慢 提示。
+// 验证器 v222: 滑条转连打 — 指数参数 (v398 重做: 改为真正的「指数底数」expoBase, 默认 1 = 线性)。
+// v398 背景 (soulten): 旧 exponent 是幂指数 (p^exp), 不是底数, 「用起來不像」;
+//   新权重 w(ph) = 1 + (k-1) * (B^ph - 1)/(B - 1) — B=1 线性, B>1 前慢后快, 0<B<1 前快后慢。
+// StreamDialog.tsx: 间距曲线改「自定义连打间距」勾选框, 勾选后出 指数底数/倍率/重复次数+镜像重复 三项;
+//   底数输入框 step 0.01, 写入时四舍五入到两位小数, 附带 同线性/前慢后快/前快后慢 提示。
 // 运行: node verifier/v222/check.mjs
 import { fileURLToPath } from 'url';
 import path from 'path';
@@ -14,30 +14,38 @@ function assert(cond, msg) { if (!cond) { failures++; console.error('  FAIL:', m
 function section(name) { console.log('== ' + name); }
 function readSrc(rel) { return fs.readFileSync(path.join(root, rel), 'utf8'); }
 
-section('stream.ts: expo 曲线 + exponent 参数');
+section('stream.ts: v398 指数底数模型');
 {
   const src = readSrc('src/osu/convert/stream.ts');
-  assert(/\| 'expo' \|/.test(src), "StreamCurve 联合类型含 'expo'");
-  assert(/exponent: number;.*v222/.test(src), 'StreamParams 含 exponent 字段 (带 v222 注释)');
-  assert(/DEFAULT_STREAM_PARAMS[^}]*exponent: 2/.test(src), '默认参数 exponent: 2');
-  assert(/function weight\(curve: StreamCurve, k: number, p: number, exp = 2\)/.test(src), 'weight() 接收 exp 参数 (默认 2)');
-  assert(/case 'expo': return 1 \+ d \* Math\.pow\(p, Math\.max\(0\.01, exp\)\)/.test(src), 'expo 权重 = 1 + d * p^exp, exp 钳制 >=0.01');
-  // v230: expo 采样点改段末 (j+1)/(n-1) — 段中点采样高指数全程平坦 ("没效果"反馈); 其他曲线保持段中点
-  assert(/weight\(p\.curve, k, p\.curve === 'expo' \? \(j \+ 1\) \/ \(n - 1\) : \(j \+ 0\.5\) \/ \(n - 1\), p\.exponent \?\? 2\)/.test(src), 'streamFractions 传入 p.exponent (缺省兜底 2; v230: expo 段末采样)');
+  assert(!/StreamCurve/.test(src), 'v398: StreamCurve 联合类型移除');
+  assert(/expoBase: number;.*v398/.test(src), 'StreamParams 含 expoBase 字段 (带 v398 注释)');
+  assert(/customSpacing: boolean;.*v398/.test(src), 'StreamParams 含 customSpacing 字段');
+  assert(/rampPercent: number;.*v398/.test(src), 'StreamParams 含 rampPercent 字段');
+  assert(/repeats: number;.*v398/.test(src) && /mirrorRepeat: boolean;.*v398/.test(src), 'StreamParams 含 repeats/mirrorRepeat 字段');
+  assert(/DEFAULT_STREAM_PARAMS[^}]*expoBase: 1/.test(src), '默认参数 expoBase: 1 (= 线性, 可恢复预设)');
+  assert(/export function streamSpacingWeight\(/.test(src), '导出 streamSpacingWeight');
+  assert(/Math\.abs\(B - 1\) < 1e-9 \? ph : \(Math\.pow\(B, ph\) - 1\) \/ \(B - 1\)/.test(src), '底数形状 = (B^ph-1)/(B-1), B=1 线性');
+  assert(/p\.mirrorRepeat && c % 2 === 1/.test(src), '镜像重复: 奇数段相位反向');
+  assert(/export function migrateStreamParams/.test(src), '遗留参数迁移函数');
 }
 
-section('StreamDialog.tsx: 指数参数输入框, 仅指数变化时显示');
+section('StreamDialog.tsx: 自定义勾选 + 三项参数');
 {
   const src = readSrc('src/components/convert/StreamDialog.tsx');
   const dict = readSrc('src/i18n/dicts/zh-CN/convert.ts');
-  // v346 i18n: 选项元组为 ['expo', 'curve_expo', 'Exponential'], 中文译文在 convert 词典分片
-  assert(/\['expo', 'curve_expo', 'Exponential'\]/.test(src), '曲线下拉框含指数变化选项 (curve_expo key)');
-  assert(/'convert\.curve_expo': '指数变化'/.test(dict), '词典 convert.curve_expo 译文 = 指数变化');
-  assert(/params\.curve === 'expo' && \(/.test(src), '指数输入行仅选中指数变化时渲染');
-  assert(/data-conv=\{?["']exponent["']\}?|testid="exponent"/.test(src), '输入框 testid=exponent');
-  assert(/step=\{0\.01\}/.test(src), '步进 0.01');
-  assert(/Math\.round\(Math\.max\(0\.01, Math\.min\(10, v\)\) \* 100\) \/ 100/.test(src), '写入时钳制 0.01~10 并四舍五入到两位小数');
-  assert(/同线性.*前慢后快.*前快后慢/.test(src), '附带指数效果提示文本');
+  assert(!/CURVES/.test(src), 'v398: 曲线下拉框移除');
+  assert(/data-conv="custom-spacing"/.test(src), '自定义连打间距勾选框');
+  assert(/params\.customSpacing && \([\s\S]{0,400}testid="expo-base"/.test(src), '指数底数行仅勾选自定义时渲染');
+  assert(/testid="ramp-percent"/.test(src) && /testid="repeats"/.test(src) && /data-conv="mirror-repeat"/.test(src), '倍率/重复次数/镜像重复控件');
+  assert(/step=\{0\.01\}/.test(src), '底数步进 0.01');
+  assert(/Math\.round\(Math\.max\(0\.01, Math\.min\(100, v\)\) \* 100\) \/ 100/.test(src), '底数写入钳制 0.01~100 并四舍五入到两位小数');
+  assert(/Math\.max\(1, Math\.min\(2000, v\)\)/.test(src), '倍率钳制 1~2000');
+  assert(/同线性.*前慢后快.*前快后慢/.test(src.replace(/\s+/g, '')) || /stream_expo_linear/.test(src), '附带底数效果提示文本');
+  assert(dict.includes("'convert.stream_custom_spacing': '自定义连打间距'"), '词典: 自定义连打间距');
+  assert(dict.includes("'convert.stream_expo_base': '指数底数'"), '词典: 指数底数');
+  assert(dict.includes("'convert.stream_ramp_percent': '倍率 %'"), '词典: 倍率 %');
+  assert(dict.includes("'convert.stream_repeats': '重复次数'") && dict.includes("'convert.stream_mirror': '镜像重复'"), '词典: 重复次数/镜像重复');
+  assert(!/'convert\.curve_expo'/.test(dict) && !/'convert\.stream_end_percent'/.test(dict) && !/'convert\.stream_exponent'/.test(dict), '旧词典键移除');
 }
 
 if (failures) { console.error(`V222 FAILED: ${failures}`); process.exit(1); }

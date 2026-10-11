@@ -9,33 +9,59 @@ import type { Beatmap, HitObject } from '../parser';
 import { genId, sliderVelocityAt, timingAt } from '../parser';
 import { getSliderPath } from '../sliderPath';
 
-// v40: 间距单位改节拍; 曲线简化为 线性/先加后减/先减后加 ('accel'/'decel' 为 v36 遗留值, 加载时映射到 linear)
-// v222: 新增指数变化曲线 ('expo') + 指数参数 exponent
-export type StreamCurve = 'equal' | 'linear' | 'bell' | 'bellInv' | 'expo' | 'accel' | 'decel';
-
+// v398: 间距曲线重做 (soulten 反馈「指数不是底数, 用起来不像」) — 不勾「自定义连打间距」= 固定间距;
+//   勾选后三项: 指数底数 (1=线性, 可恢复预设) / 倍率% (1~2000, 正反调节精度相同) / 重复次数 + 镜像重复
 export interface StreamParams {
   mode: 'count' | 'spacing';  // 按数量 or 按时间间距
   count: number;              // 单点数 (>=1; =1 时仅滑条头一个 note)
   spacingBeats: number;       // 基准时间间距, 单位拍 (>0, spacing 模式; v41 起由节拍下拉框给出)
-  curve: StreamCurve;         // 空间间距变化曲线 (equal = 等距)
-  endPercent: number;         // 变距: 空间间距从 100% 渐变到 endPercent% (0~400; 如 50 = 尾部间距减半 = 变密)
-  exponent: number;           // v222: 指数曲线弯曲度 (>0, 两位小数; 仅 curve='expo' 时用; 1 = 同线性)
+  customSpacing: boolean;     // v398: 自定义连打间距 (false = 固定间距)
+  expoBase: number;           // v398: 指数底数 (>0, 两位小数; 1 = 线性; >1 前慢后快; <1 前快后慢)
+  rampPercent: number;        // v398: 倍率 % — 单点空间间距从 100% 渐变到该值 (1~2000; 100 = 不变)
+  repeats: number;            // v398: 重复次数 (1~16) — 渐变模式沿行程重复
+  mirrorRepeat: boolean;      // v398: 镜像重复 (奇数次重复反向渐变, 如 100→k→100)
 }
 
-export const DEFAULT_STREAM_PARAMS: StreamParams = { mode: 'spacing', count: 8, spacingBeats: 0.5, curve: 'equal', endPercent: 50, exponent: 2 };
+export const DEFAULT_STREAM_PARAMS: StreamParams = {
+  mode: 'spacing', count: 8, spacingBeats: 0.5,
+  customSpacing: false, expoBase: 1, rampPercent: 200, repeats: 1, mirrorRepeat: false,
+};
 
-/** 间距权重: p in [0,1] -> 间距倍率 (从 1 渐变到 k = endPercent/100) */
-function weight(curve: StreamCurve, k: number, p: number, exp = 2): number {
-  const d = k - 1;
-  switch (curve) {
-    case 'equal': return 1;
-    case 'linear':
-    case 'accel':              // 遗留值按线性处理
-    case 'decel': return 1 + d * p;                          // 线性变化
-    case 'bell': return 1 + d * Math.sin(Math.PI * p);       // 先加后减: 间距 100%->k->100% (中段最密)
-    case 'bellInv': return 1 - d * Math.sin(Math.PI * p);    // 先减后加: 间距 100%->(2-k)->100% (中段最疏)
-    case 'expo': return 1 + d * Math.pow(p, Math.max(0.01, exp)); // v222: 指数变化; exp>1 前慢后快, 0<exp<1 前快后慢
+/** v398: 遗留持久化参数 (v36~v222 的 curve/endPercent/exponent) 迁移到新模型;
+ *  bell = repeats 2 + 镜像 (100→k→100); bellInv 中段最疏 = 倍率 200-endPercent 的镜像两段 */
+export function migrateStreamParams(raw: StreamParams & { curve?: string; endPercent?: number; exponent?: number }): StreamParams {
+  if (raw.curve === undefined) return raw; // 已是新模型 (遗留数据必带 curve 字段)
+  const p = { ...DEFAULT_STREAM_PARAMS, ...raw };
+  const end = typeof raw.endPercent === 'number' ? raw.endPercent : 50;
+  switch (raw.curve) {
+    case 'linear': case 'accel': case 'decel':
+      return { ...p, customSpacing: true, expoBase: 1, rampPercent: end, repeats: 1, mirrorRepeat: false };
+    case 'expo':
+      return { ...p, customSpacing: true, expoBase: Math.max(0.01, raw.exponent ?? 2), rampPercent: end, repeats: 1, mirrorRepeat: false };
+    case 'bell':
+      return { ...p, customSpacing: true, expoBase: 1, rampPercent: end, repeats: 2, mirrorRepeat: true };
+    case 'bellInv':
+      return { ...p, customSpacing: true, expoBase: 1, rampPercent: Math.max(1, 200 - end), repeats: 2, mirrorRepeat: true };
+    default: // 'equal' / 未知
+      return { ...p, customSpacing: false };
   }
+}
+
+/** v398: 自定义间距权重 — segP∈[0,1] 行程比例 (段末采样) -> 该段间距倍率。
+ *  相位: 行程按重复次数分段, 镜像重复时奇数段相位反向;
+ *  形状: 底数 B — B=1 线性; 否则 (B^ph-1)/(B-1) (B>1 前慢后快, 0<B<1 前快后慢; B→1 极限即线性);
+ *  端点语义: 首段恒 100%, 单次重复时末段恒 = rampPercent% */
+export function streamSpacingWeight(p: StreamParams, segP: number): number {
+  const k = Math.max(0.01, p.rampPercent / 100);
+  const reps = Math.max(1, Math.round(p.repeats));
+  const q = Math.min(1, Math.max(0, segP)) * reps;
+  let c = Math.floor(q);
+  let ph = q - c;
+  if (c >= reps) { c = reps - 1; ph = 1; } // segP=1 边界: 末段末端相位 1
+  if (p.mirrorRepeat && c % 2 === 1) ph = 1 - ph;
+  const B = Math.max(0.01, p.expoBase);
+  const shape = Math.abs(B - 1) < 1e-9 ? ph : (Math.pow(B, ph) - 1) / (B - 1);
+  return Math.max(0, 1 + (k - 1) * shape);
 }
 
 /** 单条滑条的单点相对时间列 — v41: 时间间隔始终等距 (lazer convertToStream 语义);
@@ -57,21 +83,20 @@ export function streamTimes(duration: number, p: StreamParams, spacingMs: number
 }
 
 /** 单点沿滑条行程的位置比例列 [0..1] (与 times 等长):
- *  等距: 按数量模式 = 索引均布 (v43: 位置与 v41 一致, 与时间解耦, 超尾时间不再堆在尾部);
+ *  固定间距: 按数量模式 = 索引均布 (v43: 位置与 v41 一致, 与时间解耦, 超尾时间不再堆在尾部);
  *        按间距模式 = 时间比例 (与 lazer 一致, 末点不一定到路径尾);
- *  变距: 相邻间距按权重分配, 归一化覆盖整条行程 (末点恒在路径尾; 权重钳制 >=0, endPercent 支持 0) */
+ *  自定义间距 (v398): 相邻间距按 streamSpacingWeight 权重分配 (段末采样, v230 端点语义沿用),
+ *    归一化覆盖整条行程 (末点恒在路径尾) */
 export function streamFractions(p: StreamParams, times: number[], duration: number): number[] {
   const n = times.length;
   if (n < 2) return times.map(() => 0);
-  if (p.curve === 'equal') {
+  if (!p.customSpacing) {
     if (p.mode === 'count') return times.map((_, i) => i / (n - 1)); // v43
     return times.map(t => (duration > 0 ? t / duration : 0));
   }
-  const k = Math.max(0, p.endPercent / 100); // v41: 允许 0% (末段间距=0, 单点堆叠在路径尾)
-  // v230: expo 曲线改段末采样 ((j+1)/(n-1)) — 段中点采样 p 恒 <1, 高指数时 w≈1 全程平坦
-  // (末段也只采到 p=5/6, (5/6)^10≈0.16 远不到 k), 指数越大越"没效果";
-  // 段末采样使末段间距恰 = endPercent% (端点语义), 指数越大变化越集中在尾部, 符合直觉。
-  const w = Array.from({ length: n - 1 }, (_, j) => Math.max(0, weight(p.curve, k, p.curve === 'expo' ? (j + 1) / (n - 1) : (j + 0.5) / (n - 1), p.exponent ?? 2)));
+  // v398: 采样点 — 非镜像 = 段末 ((j+1)/(n-1), v230 端点语义: 单次重复时末段间距恰 = 倍率%);
+  //   镜像重复 = 段中点 ((j+0.5)/(n-1)) — 段末采样会把末段相位采到 0/1 端点, 破坏镜像对称 (bell 形两端不等)
+  const w = Array.from({ length: n - 1 }, (_, j) => streamSpacingWeight(p, (j + (p.mirrorRepeat ? 0.5 : 1)) / (n - 1)));
   const sum = w.reduce((a, b) => a + b, 0);
   if (sum <= 1e-9) return times.map(() => 0); // 全零权重: 全部堆在头部
   const f = [0];

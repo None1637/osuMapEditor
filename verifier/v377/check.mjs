@@ -37,33 +37,29 @@ section('pathApproximator.ts: bsplineToStableBezier (双候选少锚点)');
   assert(/function fitCubic\([\s\S]*reparameterize/.test(src) && /function generateBezier\(/.test(src), 'FitCurve 核心 (最小二乘 + Newton 重参数化)');
 }
 
-section('EditorCanvas.tsx: 落盘与预览均为 stable B');
+section('EditorCanvas.tsx: 落盘与预览 (v387 适配: B4 恢复一等类型, v377 落盘转 B 已撤销)');
 {
   const src = read('src/components/EditorCanvas.tsx');
-  assert(/const curveType = singleP \? 'P' : 'B';/.test(src) && /bsplineToStableBezier\(ctrl\)/.test(src),
-    'finishFreehandSlider 落盘 B (单段圆弧 => P)');
-  assert(/bsplineToStableBezier\(ctrl\)\.map\(p => \(\{ x: Math\.round\(p\.x\), y: Math\.round\(p\.y\) \}\)\)/.test(src), '落盘锚点取整');
-  assert(/sliderGeometryLength\(curveType, finalPts\)/.test(src), '长度按转换后控制点列计算');
-  assert(/curveType: bspline \? 'B' : computed\.curveType/.test(src), "手绘幽灵按拟合后 'B' 渲染 (预览=落盘)");
-  assert(!/'B4'/.test(src.replace(/\/\/[^\n]*|\/\*[\s\S]*?\*\//g, '')), '代码中不再有 B4 (注释除外)');
+  assert(/const curveType = singleP \? 'P' : 'B4';/.test(src) && !/bsplineToStableBezier\(ctrl\)/.test(src),
+    "finishFreehandSlider 落盘 'B4' (单段圆弧 => P; v387 撤销 v377 转 'B')");
+  assert(/sliderGeometryLength\(curveType, finalPts\)/.test(src), '长度按落盘控制点列计算');
+  assert(/curveType: bspline \? 'B4' : computed\.curveType/.test(src), "手绘幽灵按 'B4' 渲染 (预览=落盘, v387)");
 }
 
-section('parser.ts: 读入转换 + 序列化兜底');
+section('parser.ts: B4 读入/落盘原样保留 (v387 适配: v377 读入转换+序列化兜底已撤销)');
 {
   const src = read('src/osu/parser.ts');
-  assert(/\/\^B\(\\d\+\)\$\/\.exec\(base\.curveType/.test(src) && /base\.curveType = 'B';/.test(src),
-    "读入 'B<n>' 即转 'B' (内存不再持有 B4)");
-  assert(/bsplineToStableBezier\(\[\{ x: base\.x, y: base\.y \}, \.\.\.base\.curvePoints\], deg\)/.test(src), '读入转换带 degree');
-  assert(/curveType === 'B4'\s*\? bsplineToStableBezier/.test(src), "序列化兜底: 遗留 'B4' 落盘前转换");
+  assert(!/bsplineToStableBezier/.test(src), 'parser 不再引用 bsplineToStableBezier (v387 撤销读入/落盘转换)');
+  assert(/!s\.includes\(':'\)/.test(src), '段内类型字母 token 容错跳过 (v387)');
 }
 
-section('sliderPath.ts: 渲染层移除 B4');
+section('sliderPath.ts: B4 渲染恢复 (v387 适配)');
 {
   const src = read('src/osu/sliderPath.ts');
-  assert(!/case 'B4'/.test(src), "computeRawPath 无 'B4' 分支");
-  assert(!/current === 'B4'\) return 'B4'/.test(src), 'resolveSliderCurveType 不再特判 B4');
-  assert(/export function bsplineRawPath\(pts: Vec2\[\]\): Vec2\[\]/.test(src), 'bsplineRawPath 导出 (预览直接求值)');
-  assert(/bspline \? bsplineRawPath\(s\) : SliderPath\.computeRawPath/.test(src), 'computePendingPath 手绘预览不经 curveType');
+  assert(/if \(bSplineDeg !== null\) return bsplineRawPath\(pts, bSplineDeg\);/.test(src), "computeRawPath 'B<n>' 分支 (v387 恢复)");
+  assert(/if \(parseBSplineType\(current\) !== null\) return current;/.test(src), 'resolveSliderCurveType 保持 B4 (v387)');
+  assert(/export function bsplineRawPath\(pts: Vec2\[\], degree = 4\)/.test(src), 'bsplineRawPath 导出 (v387 degree 参数化)');
+  assert(/bspline \? bsplineRawPath\(s\) : SliderPath\.computeRawPath/.test(src), 'computePendingPath 手绘预览 B 样条求值');
 }
 
 if (failures) { console.error(`V377 FAILED: ${failures}`); process.exit(1); }

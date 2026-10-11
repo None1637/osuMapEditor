@@ -72,16 +72,16 @@ export const zhCN: Record<string, string> = {
   'convert.stream_spacing': '间距 (拍)',
   'convert.stream_snap_hint': '时间对齐网格',
   'convert.stream_curve': '间距曲线',
-  'convert.curve_equal': '等距',
-  'convert.curve_linear': '线性变化',
-  'convert.curve_bell': '先加后减',
-  'convert.curve_bell_inv': '先减后加',
-  'convert.curve_expo': '指数变化',
-  'convert.stream_end_percent': '变化到 %',
+  // v398: 曲线下拉改为自定义勾选 + 三项 (指数底数/倍率/重复次数+镜像); 旧 curve_* / end_percent / exponent 键移除
+  'convert.stream_custom_spacing': '自定义连打间距',
+  'convert.stream_fixed_hint': '不勾选 = 固定间距',
+  'convert.stream_expo_base': '指数底数',
+  'convert.stream_ramp_percent': '倍率 %',
+  'convert.stream_repeats': '重复次数',
+  'convert.stream_mirror': '镜像重复',
   'convert.stream_denser': '变密',
   'convert.stream_sparser': '变疏',
   'convert.stream_unchanged': '不变',
-  'convert.stream_exponent': '指数',
   'convert.stream_expo_linear': '同线性',
   'convert.stream_expo_slow_fast': '前慢后快',
   'convert.stream_expo_fast_slow': '前快后慢',
@@ -114,5 +114,8 @@ export const zhCN: Record<string, string> = {
   'convert.polygon_new_combo': '新 Combo',
   'convert.polygon_first_only': '仅首个物件',
   'convert.polygon_summary': '起始 {time}ms · 圆心 (256,192) · 将生成 {n} 个单点',
-  'convert.polygon_out_of_bounds': '顶点超出游玩区, 无法创建 (lazer 同款)',
+  // v395: polygon_out_of_bounds 移除 (顶点出游玩区照常生成)
+  // v387: B4 全图转贝塞尔 toast
+  'convert.b4_none': '谱面中没有 B4 (B 样条) 滑条',
+  'convert.b4_converted': '已将 {count} 个 B4 滑条转为贝塞尔 (stable 兼容)',
 };

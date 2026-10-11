@@ -46,7 +46,7 @@ section('EditorCanvas.tsx: 布局空间绘制/命中');
   assert(/const \{ sx, sy \} = fitCanvas\(c, r\);/.test(src) && /const r = zoomRect\(c\);/.test(src), '渲染: fitCanvas + zoomRect (v246: backing 取整, sx/sy = backing/布局, 取代 zoomDpr)');
   assert(/zoomClientX\(e\.clientX\) - r\.left - ox/.test(src), 'toOsu: 布局空间命中');
   assert(/10 \/ uiZoom\(\) \/ playfieldTransform\(zoomRect\(c\)\)\.scale/.test(src), '手柄命中容差按视觉 px 基准换算 (v223: 经 playfieldTransform, 含游玩区平移/缩放)');
-  assert(/\(r\.left \+ ox \+ x \* scale\) \* z/.test(src), '__osuToClient 乘 zoom 回视觉 client 坐标 (CDP 测试兼容)');
+  assert(/\(r\.left \+ ox \+ p\.x \* scale\) \* z/.test(src), '__osuToClient 乘 zoom 回视觉 client 坐标 (CDP 测试兼容; v391: x→p.x 旋转正变换后)');
 }
 
 section('Timelines.tsx: 布局空间绘制/命中');

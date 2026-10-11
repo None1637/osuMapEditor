@@ -47,8 +47,9 @@ section('spacingMultiplier: 面板单位同步含 SM*SV');
   assert(near(spacingMultiplier(bm, 1000, 2000, 560)!, 1), '560px / 2拍 / SM1.4 SV2 = 1.00x');
   assert(near(spacingMultiplier(bm, 1000, 2000, 280)!, 0.5), '280px / 2拍 = 0.50x');
   assert(spacingMultiplier(bm, 1000, 1000, 100) === null, '同刻 -> null (不变)');
+  // v397: 基准固定 1.0x (不含 DS 设置) — DS=0 不再返回 null, 按 1.0x 基准正常计算
   const bm0 = bmOf(1.4, 0, [red(0, 500)]);
-  assert(spacingMultiplier(bm0, 1000, 2000, 100) === null, 'DS=0 -> null (不变)');
+  assert(near(spacingMultiplier(bm0, 1000, 2000, 280)!, 1), 'v397: DS=0 仍按 1.0x 基准: 280px / 2拍 / SM1.4 = 1.00x');
 }
 
 if (failures) { console.error(`\nV149_TESTS_FAILED: ${failures} 处失败`); process.exit(1); }

@@ -23,7 +23,8 @@ section('EditorCanvas: Alt+滚轮缩放');
   assert(/e\.deltaMode === 1 \? e\.deltaY \* 33 : e\.deltaMode === 2 \? e\.deltaY \* 800 : e\.deltaY/.test(wheelBody), 'deltaMode 归一化 (与 wheelSteps 同款)');
   assert(/Math\.pow\(1\.1, -dy \/ 100\)/.test(wheelBody), '每刻度 ×1.1 (滚轮上 = 放大)');
   assert(/Math\.max\(0\.1, Math\.min\(10,/.test(wheelBody), '倍率钳 0.1..10 (同缩放输入框)');
-  assert(/store\.playfieldPanX \+= \(s0 - s1\) \* p\.x;/.test(wheelBody) && /store\.playfieldPanY \+= \(s0 - s1\) \* p\.y;/.test(wheelBody), 'pan 同步补偿 (光标焦点缩放)');
+  // v391 适配: 旋转下锚定补偿改用正变换后的点 fp = F(p) (rot=0 时 fp≡p, 行为不变)
+  assert(/const fp = pfRotFwd\(p, /.test(wheelBody) && /store\.playfieldPanX \+= \(s0 - s1\) \* fp\.x;/.test(wheelBody) && /store\.playfieldPanY \+= \(s0 - s1\) \* fp\.y;/.test(wheelBody), 'pan 同步补偿 (光标焦点缩放; v391: 旋转取 F(p))');
   assert(/store\.playfieldScale = s1;/.test(wheelBody), '写回 playfieldScale');
   assert(/store\.emit\(\);/.test(wheelBody), 'emit 刷新左侧面板输入框');
   assert(/return;[\s\S]*?store\.wheelSeek\(e\.deltaY, e\.deltaMode\);/.test(wheelBody), 'Alt 分支 return, 不再 wheelSeek; 非 Alt 保持 v193 seek');

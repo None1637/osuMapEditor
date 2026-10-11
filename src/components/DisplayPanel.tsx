@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { store, useEditor } from '@/osu/store';
 import { displaySettings, type BoolDisplayKey, type StrDisplayKey } from '@/osu/displaySettings';
 import { getElectronAPI, isElectron } from '@/osu/electronBridge'; // v263: 窗口条隐藏开关 (Electron 专属)
-import { DraggableDialog } from './DraggableDialog';
+import { DraggableDialog, ClickPct } from './DraggableDialog'; // v389: ClickPct = 点击 % 数变输入框
 import { useT } from '@/i18n';
 
 const ROWS: { key: BoolDisplayKey; nameKey: string; nameEn: string; descKey: string; descEn: string }[] = [
@@ -81,9 +81,7 @@ export function DisplayPanel() {
             data-display-slider="bgBrightness"
             onChange={e => store.setDisplayNumber('bgBrightness', parseInt(e.target.value))}
             className="w-28 accent-sky-500" />
-          <div className="w-10 text-right text-xs text-white/70 tabular-nums" data-display-value="bgBrightness">
-            {displaySettings.bgBrightness}%
-          </div>
+          <ClickPct value={displaySettings.bgBrightness} set={v => store.setDisplayNumber('bgBrightness', v)} testid="bgBrightness" />{/* v389: 点击 % 数变输入框直接打数字 */}
         </div>
         {/* v263: 窗口条隐藏 (Electron 专属; 重启后生效; 页签栏兼作拖拽区) */}
         {isElectron() && hideTitleBar !== null && (

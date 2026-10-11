@@ -47,12 +47,12 @@ section("bsplineRawPath: clamped degree-4 B 样条, 重复点分段 (v377 适配
   assert(midY < 60, `二次 B 样条不插值中点 (峰值 ${midY.toFixed(1)} < 60)`);
 }
 
-section('resolveSliderCurveType: B4 不再特判 (v377 适配: 内存不持有 B4)');
+section('resolveSliderCurveType: B4 保持 (v387 适配: B4 恢复一等类型, 编辑锚点不冲掉)');
 {
   const withRed = [{ x: 0, y: 0 }, { x: 100, y: 0 }, { x: 100, y: 0 }, { x: 200, y: 0 }];
-  assert(resolveSliderCurveType(withRed, 'B4') === 'B', "遗留 'B4' + 红点对 => 'B'");
+  assert(resolveSliderCurveType(withRed, 'B4') === 'B4', "'B4' + 红点对 => 保持 'B4' (v387)");
   assert(resolveSliderCurveType(withRed, 'B') === 'B', 'B + 红点对 => B (不变)');
-  assert(resolveSliderCurveType([{ x: 0, y: 0 }, { x: 1, y: 1 }], 'B4') === 'B4', "遗留 'B4' 无红点 => 原样透传 (current 合法保持; 内存正常路径不再有 B4)");
+  assert(resolveSliderCurveType([{ x: 0, y: 0 }, { x: 1, y: 1 }], 'B4') === 'B4', "'B4' 无红点 => 保持");
   assert(resolveSliderCurveType([{ x: 0, y: 0 }, { x: 1, y: 1 }, { x: 2, y: 2 }, { x: 3, y: 3 }], 'P') === 'B', 'P 点数 != 3 => 降级');
 }
 
@@ -69,18 +69,18 @@ section('computePendingPath: bspline 标记 => 段按 B4 渲染');
   assert(midY3 < 60, `3 点段 => 二次贝塞尔 (峰值 ${midY3.toFixed(1)}), 非圆弧 (~75)`);
 }
 
-section(".osu 读写: 'B4' 读入即转 'B', 落盘不含 B4 (v377 适配)");
+section(".osu 读写: 'B4' 读入/落盘原样保留 (v387 适配: 撤销 v377 读入即转 'B')");
 {
   const line = '256,192,1000,2,0,B4|300:200|350:240|400:192|450:150,1,300';
   const o = parseHitObjectLine(line);
-  // v377: stable 无法解析 B4 — 读入即转换 (5 控制点 <= degree+1 退化为单条 4 阶贝塞尔, 取整)
-  assert(o !== null && o.curveType === 'B' && o.curvePoints!.length === 4, `读入 B4 => 'B' 4 锚点 (实际 ${o?.curveType} ${o?.curvePoints?.length})`);
+  // v387: B4 恢复一等类型 — 读入原样保留 (stable 兼容性由 UI 警告条 + 一键全图转贝塞尔承担)
+  assert(o !== null && o.curveType === 'B4' && o.curvePoints!.length === 4, `读入 B4 => 'B4' 4 锚点保留 (实际 ${o?.curveType} ${o?.curvePoints?.length})`);
   const bmText = `osu file format v14\n\n[General]\nAudioFilename: a.mp3\n\n[Metadata]\nTitle: t\nArtist: a\nCreator: c\nVersion: v\n\n[Difficulty]\nHPDrainRate:5\nCircleSize:4\nOverallDifficulty:8\nApproachRate:9\nSliderMultiplier:1.4\nSliderTickRate:1\n\n[TimingPoints]\n0,500,4,1,0,80,1,0\n\n[HitObjects]\n${line}\n`;
   const bm = parseOsu(bmText);
   const out = serializeOsu(bm);
-  assert(!out.includes('B4|') && out.includes(',B|'), '序列化不再输出 B4 (转 stable B)');
-  const m = out.match(/,B\|([^\n]*)/);
-  assert(!!m && m![1].split('|').length === 4 && /^-?\d+:-?\d+(\||,|$)/.test(m![1] + ','), `转换后 4 个整数锚点 (实际 ${m?.[1]})`);
+  assert(out.includes(',B4|300:200|350:240|400:192|450:150,'), '序列化原样输出 B4 (v387)');
+  const m = out.match(/,B4\|([^\n]*)/);
+  assert(!!m && m![1].split('|').length === 4 && /^-?\d+:-?\d+(\||,|$)/.test(m![1] + ','), `4 个锚点原样 (实际 ${m?.[1]})`);
 }
 
 if (failures) { console.error(`\nTESTS_V74_FAILED: ${failures} 处失败`); process.exit(1); }

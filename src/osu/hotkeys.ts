@@ -68,6 +68,8 @@ export const HOTKEY_ACTIONS: HotkeyAction[] = [
   { id: 'open-rotate', label: '旋转窗口', en: 'Rotate Window', category: '变换', defaults: ['Ctrl+Shift+R'], menuId: 'edit-open-rotate' },
   { id: 'open-scale', label: '缩放窗口', en: 'Scale Window', category: '变换', defaults: ['Ctrl+Shift+S'], menuId: 'edit-open-scale' },
   { id: 'polygon', label: '多边形生成', en: 'Polygon Generator', category: '变换', defaults: ['Ctrl+Shift+D'], menuId: 'compose-polygon' },
+  // v396: 滑条转连打快捷键 (soulten 需求; 与菜单项 compose-stream 同步)
+  { id: 'stream', label: '滑条转连打窗口', en: 'Slider to Stream Window', category: '变换', defaults: ['Ctrl+Shift+F'], menuId: 'compose-stream' },
   // Hitsound (放置态 = 预设下次放置; select 工具 = 切换选中)
   { id: 'hs-newcombo', label: '新Combo (放置预设/选中切换)', en: 'New Combo (Placement Preset / Toggle Selected)', category: 'Hitsound', defaults: ['Q'] },
   { id: 'hs-whistle', label: 'Whistle (放置预设/选中切换)', en: 'Whistle (Placement Preset / Toggle Selected)', category: 'Hitsound', defaults: ['W'] },

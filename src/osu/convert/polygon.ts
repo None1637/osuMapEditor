@@ -52,7 +52,8 @@ export interface PolygonResult { objects: HitObject[]; outOfBounds: boolean; sta
  * 生成多边形单点串 (纯函数; 不碰谱面数据 — 预览/应用由调用方决定)。
  * 弦长 = DS × velocity × timeSpacing; velocity = 100×SM×sv/beatLength (lazer BASE_SCORING_DISTANCE×SliderMultiplier/精度调整 beatLength);
  * 半径 R = 弦长 / (2·sin(π/顶点数)); 角 θᵢ = 起始角 + (i+1)·2π/顶点数; 时间从吸附点按 timeSpacing 逐点吸附推进。
- * 任一顶点出游玩区 [0,512]×[0,384] => outOfBounds (lazer: 禁用创建按钮并清空预览)。
+ * v395: 顶点超出游玩区不再拦截 (soulten: 「這就不用限制了」) — 出游玩区照常生成, outOfBounds 恒 false
+ * (lazer 原为禁用创建并清空预览; 字段保留以兼容调用方/验证器签名)。
  */
 export function computePolygon(bm: Beatmap, currentTime: number, divisor: number, p: PolygonParams): PolygonResult {
   let t = snapBeatTime(bm.timingPoints, divisor, currentTime);
@@ -68,7 +69,6 @@ export function computePolygon(bm: Beatmap, currentTime: number, divisor: number
     const angle = (p.offsetAngle * Math.PI) / 180 + (i + 1) * ((2 * Math.PI) / p.vertices);
     const x = 256 + radius * Math.cos(angle);
     const y = 192 + radius * Math.sin(angle);
-    if (x < 0 || y < 0 || x > 512 || y > 384) return { objects: [], outOfBounds: true, startTime: t };
     objects.push({
       id: genId(), type: 'circle', x: Math.round(x), y: Math.round(y), time: Math.round(t),
       newCombo: i === 0 && p.newCombo, comboSkip: 0, hitSound: 0,

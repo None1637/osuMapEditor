@@ -48,7 +48,8 @@ section('symSlider.ts: 纯函数模块');
   assert(/base\.x - pts\[pts\.length - 1\]\.x/.test(src) && /base = pts\[0\]/.test(src), '拼头链式对齐 (份 i 末 → 份 i+1 首)');
   assert(/p\.join === 'tail' \? \[orig, \.\.\.copies\] : \[\.\.\.copies, orig\]/.test(src), '拼头段序列 = [份1..份n, 原] (各份正向, 取代初版逆序)');
   assert(/sliderTailPoint\(bm, o\)/.test(src), "拼接锚点/锚点 'tail' 走 sliderTailPoint");
-  assert(/curveType: 'B'/.test(src), '拼接滑条 curveType 转 B (红锚点分段)');
+  // v387 适配: B 样条 ('B<n>') 源拼接保持原类型 (红锚点接缝 = B 样条分段, 形状无损), 其余仍恒 'B'
+  assert(/const joinType = parseBSplineType\(workType\) !== null \? workType : 'B';/.test(src) && /curveType: joinType/.test(src), '拼接滑条 curveType 转 B (B 样条源保持 B<n>, v387)');
   assert(/1 \+ p\.scalePerCopy \* i/.test(src), '缩放/份: 第 i 份 = 1 + i×值');
 }
 

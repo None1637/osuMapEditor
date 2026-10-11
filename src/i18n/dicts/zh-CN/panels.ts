@@ -8,6 +8,7 @@ export const zhCN: Record<string, string> = {
   'volume.music_desc': '只影响歌曲播放',
   'volume.effects': '音效音量 (Effects)',
   'volume.effects_desc': '只影响 hitsound 与滑条循环音',
+  'panels.pct_click_edit': '点击直接输入数值', // v389: 滑条右侧 % 数提示
   'volume.note': '调整即时生效并自动记忆; 最终音量 = 主音量 × 歌曲/音效音量。',
   // UnsavedDialog
   'unsaved.title': '未保存的改动',

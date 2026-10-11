@@ -166,3 +166,28 @@ export function DraftNum({ value, set, testid, min, max, step = 1, digits }: {
       className="w-20 bg-black/40 border border-white/15 rounded px-1 py-0.5 text-white" />
   );
 }
+
+/** v389: 滑条右侧百分比数值 — 平时显示「n%」, 点击变输入框直接打数字 (soulten: 音量窗口最右边 % 数应可输入);
+ *  键入实时生效 (0..100 取整钳制), Enter/失焦关闭, Esc 恢复编辑前的值;
+ *  滚轮调值由 v388 全局 numberWheel 覆盖 (input[type=number]) */
+export function ClickPct({ value, set, testid }: { value: number; set: (v: number) => void; testid: string }) {
+  const t = useT();
+  const [editing, setEditing] = useState(false);
+  const origRef = useRef(value);
+  const clamp = (v: number) => Math.max(0, Math.min(100, Math.round(v)));
+  if (!editing)
+    return <button type="button" data-pct-display={testid}
+      onClick={() => { origRef.current = value; setEditing(true); }}
+      title={t('panels.pct_click_edit', 'Click to type a value')}
+      className="w-10 shrink-0 text-right text-xs text-white/70 tabular-nums rounded hover:bg-white/10 hover:text-white cursor-text">{value}%</button>;
+  return <input type="number" min={0} max={100} step={1} autoFocus data-pct-input={testid}
+    defaultValue={value}
+    onFocus={e => e.target.select()}
+    onChange={e => { const v = parseInt(e.target.value); if (!isNaN(v)) set(clamp(v)); }}
+    onBlur={() => setEditing(false)}
+    onKeyDown={e => {
+      if (e.key === 'Enter') e.currentTarget.blur();
+      if (e.key === 'Escape') { set(origRef.current); setEditing(false); } // 恢复编辑前的值
+    }}
+    className="w-10 shrink-0 bg-black/40 border border-white/15 rounded px-0.5 text-right text-xs text-white" />;
+}

@@ -73,13 +73,14 @@ section('原红锚点分段保留');
   assert(found, '红锚点 (200,0) 在转换结果中仍为重复点 (拐角保留)');
 }
 
-section('渲染层 B4 移除后 computeRawPath 不再识别 B4');
+section('computeRawPath 重新识别 B4 (v387 适配: B4 渲染恢复)');
 {
-  // 'B4' 落到 default bezier 分支 (内存不应再出现 B4; 万一出现按普通贝塞尔渲染, 不再按 B 样条)
-  const pts: P[] = [{ x: 0, y: 0 }, { x: 50, y: 80 }, { x: 120, y: -30 }, { x: 200, y: 40 }];
+  // v387: 'B4' 恢复一等 curveType — 走 B 样条分支; 与控制点数 >=6 的 'B' (普通贝塞尔) 形状不同
+  const pts: P[] = [{ x: 0, y: 0 }, { x: 40, y: 70 }, { x: 110, y: -20 }, { x: 180, y: 50 }, { x: 250, y: 0 }, { x: 320, y: 60 }, { x: 390, y: 10 }];
   const a = SliderPath.computeRawPath('B4', pts);
-  const b = SliderPath.computeRawPath('B', pts);
-  assert(a.length === b.length && maxDeviation(a, b) < 1e-9, "'B4' 与 'B' 同分支 (B 样条渲染支持已移除)");
+  const ideal = bsplineRawPath(pts, 4);
+  assert(a.length === ideal.length && maxDeviation(a, ideal) < 1e-9, "'B4' ≡ bsplineRawPath (v387 B 样条分支)");
+  assert(maxDeviation(a, SliderPath.computeRawPath('B', pts)) > 0.5, "'B4' 与 'B' 不同曲线");
 }
 
 if (failures) { console.error(`V377_TESTS_FAILED: ${failures}`); process.exit(1); }

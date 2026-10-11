@@ -28,8 +28,10 @@ section('spacing.ts: 1x 基准含 SM*SV (lazer DurationToDistance)');
   const src = readSrc('src/osu/spacing.ts');
   assert(/import \{ timingAt, svPointAt \} from '.\/parser';/.test(src), '导入 svPointAt');
   assert(/function distanceSnapPxPerBeat\(bm: Beatmap, refTime: number\)/.test(src), 'distanceSnapPxPerBeat 共享基准函数');
-  assert(/return bm\.editor\.distanceSpacing \* 100 \* bm\.difficulty\.sliderMultiplier \* sv;/.test(src), '基准 = DS * 100 * SM * SV');
-  assert(/return distPx \/ \(distanceSnapPxPerBeat\(bm, fromEndTime\) \* beats\);/.test(src), 'spacingMultiplier 用共享基准 (面板与放置同单位)');
+  assert(/return bm\.editor\.distanceSpacing \* 100 \* bm\.difficulty\.sliderMultiplier \* sv;/.test(src), '放置基准 = DS * 100 * SM * SV (distanceSnapPxPerBeat)');
+  // v397: spacingMultiplier (面板前/后位置距离) 基准改固定 1.0x, 不含 DS 设置
+  assert(/return distPx \/ \(100 \* bm\.difficulty\.sliderMultiplier \* sv \* beats\);/.test(src), 'v397: spacingMultiplier 基准 = 1.0x (100 * SM * SV * beats, 不含 DS)');
+  assert(/const green = svPointAt\(bm\.timingPoints, fromEndTime\)/.test(src), 'v397: spacingMultiplier 自取 SV (参考时刻 = 前件结束时刻)');
   assert(/const \{ red \} = timingAt\(bm\.timingPoints, endTime\);/.test(src), 'distanceLockDistance 拍长按参考时刻 (前件结束时刻, lazer referenceTime)');
   assert(/Math\.max\(0, \(time - endTime\) \/ red\.beatLength\)/.test(src), '拍数下限 0 (v211: 移除 v145 的 0.25 下限)');
   assert(!src.includes('bm.editor.distanceSpacing * 100 * beats'), '旧无 SV 公式已移除');

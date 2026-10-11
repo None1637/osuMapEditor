@@ -4,7 +4,6 @@
 //  2) 未建模内容 byte 级保留: [Events](含 storyboard/breaks/背景行)、[Colours]、
 //     未知 section、已建模 section 中的未知键、物件 hitSample / 滑条边缘音效原始字符串
 import { sliderGeometryLength } from './sliderPath';
-import { bsplineToStableBezier } from './freehand/pathApproximator'; // v377: B4 落盘兜底转 stable B
 
 export interface Vec2 { x: number; y: number }
 
@@ -256,18 +255,15 @@ export function parseHitObjectLine(line: string): HitObject | null {
     base.type = 'slider';
     const curve = (p[5] ?? 'L|0:0').split('|');
     base.curveType = curve[0];
-    base.curvePoints = curve.slice(1).map(s => {
+    // v387: 'B4'/'B<n>' (lazer 内存扩展 B 样条) 读入原样保留为一等类型 (渲染/编辑均支持, 对齐 lazer 编辑器存档);
+    //   stable 兼容性由 UI 警告条 + 一键全图转贝塞尔承担。段内类型字母 token (lazer v128 逐段类型, 无 ':') 跳过容错
+    base.curvePoints = [];
+    for (const s of curve.slice(1)) {
+      if (!s.includes(':')) continue; // 段内类型字母 (如 `B4|..|P|x:y|..`) — 单类型模型不保留, 仅容错跳过
       const [cx, cy] = s.split(':');
-      return { x: parseFloat(cx), y: parseFloat(cy) };
-    });
-    // v377: 旧文件 'B4'/'B<n>' (lazer 内存扩展 B 样条, stable 无法解析) — 读入即容差拟合转 'B'
-    //   (少量锚点, 偏差 <= 1px), 内存中不再持有 B4, 之后保存天然不会再写出
-    const bSplineMatch = /^B(\d+)$/.exec(base.curveType ?? '');
-    if (bSplineMatch) {
-      const deg = parseInt(bSplineMatch[1]) || 4;
-      base.curvePoints = bsplineToStableBezier([{ x: base.x, y: base.y }, ...base.curvePoints], deg)
-        .slice(1).map(pt => ({ x: Math.round(pt.x), y: Math.round(pt.y) }));
-      base.curveType = 'B';
+      const px = parseFloat(cx), py = parseFloat(cy);
+      if (Number.isNaN(px) || Number.isNaN(py)) continue;
+      base.curvePoints.push({ x: px, y: py });
     }
     // v283: lazer ConvertHitObjectParser.convertPoints 同款 edge-case (加载已有 .osu 与 lazer 一致;
     //   编辑器内编辑后的 P≠3 降级仍由 sliderPath.resolveSliderCurveType 承担, 互不影响):
@@ -327,15 +323,10 @@ export function serializeHitObjectLine(o: HitObject): string {
     // 可选尾字段缺失时省略, 保持与原文件字段数一致
     return o.hitSampleRaw !== undefined ? `${pos},${o.hitSampleRaw}` : pos;
   } else if (o.type === 'slider') {
-    // v377: 兜底 — 内存中仍存 'B4' 时落盘前容差拟合转 stable 兼容 'B' (Schneider, 偏差 <= 1px, 少锚点)
-    //   (正常路径已不会产生 B4: 生成点转 B + 读入即转; 此处仅为防御)
-    //   转换后坐标 Round 取整 (lazer LegacyBeatmapExporter 同款, stable 坐标为整数)
+    // v387: curveType 原样落盘 (含 'B4'/'B<n>', 对齐 lazer 编辑器存档); stable 兼容性由 UI 警告 + 一键转贝塞尔承担
     const curveType = o.curveType ?? 'L';
-    const curvePts = curveType === 'B4'
-      ? bsplineToStableBezier([{ x: o.x, y: o.y }, ...(o.curvePoints ?? [])]).slice(1).map(p => ({ x: Math.round(p.x), y: Math.round(p.y) }))
-      : (o.curvePoints ?? []);
-    const outType = curveType === 'B4' ? 'B' : curveType;
-    const curve = [outType, ...curvePts.map(p => `${fmtNum(p.x)}:${fmtNum(p.y)}`)].join('|');
+    const curvePts = o.curvePoints ?? [];
+    const curve = [curveType, ...curvePts.map(p => `${fmtNum(p.x)}:${fmtNum(p.y)}`)].join('|');
     const slides = o.slides ?? 1;
     const parts = [`${pos},${curve},${slides},${fmtNum(o.length ?? 100)}`];
     // edgeSounds/edgeSets/hitSample 逐级可选: 写到最后一个已定义的字段为止

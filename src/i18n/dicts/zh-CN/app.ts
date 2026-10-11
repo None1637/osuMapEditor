@@ -43,8 +43,9 @@ export const zhCN: Record<string, string> = {
   'app.lock_notes_title': '锁定物件 (Lock Notes): 开启后无法移动/修改/删除任何物件; 放置新物件、绿线编辑不受影响',
   // ---- 左侧栏: 游玩区平移 ----
   'app.playfield_pan': '游玩区平移',
-  'app.playfield_pan_title': '游玩区平移: 开启后按住鼠标中键拖动游玩区域; x/y = 偏移 (osu px), 缩放 = 倍率 (默认 1.0); 关闭后恢复默认视图 (已设值保留)',
+  'app.playfield_pan_title': '游玩区平移: 开启后按住鼠标中键拖动游玩区域; x/y = 偏移 (osu px), 缩放 = 倍率 (默认 1.0), 旋转 = 角度 (度, 绕游玩区中心); 关闭后恢复默认视图 (已设值保留)', // v391: 旋转
   'app.playfield_zoom': '缩放',
+  'app.playfield_rot': '旋转', // v391
   // ---- 左侧栏: 网格吸附 ----
   'app.grid_snap': '网格吸附',
   'app.grid_snap_title': '网格吸附 (Grid Snap): 放置/拖拽吸附到位置网格 (优先级: 物件吸附 > 锁定间距 > 网格)',
@@ -104,4 +105,7 @@ export const zhCN: Record<string, string> = {
   'app.hk_seek': '按节拍移动时间 (Shift 4拍)',
   'app.hk_jump_object': '跳到上/下个物件',
   'app.hk_node_edit': '选中滑条后可拖拽白色节点编辑形状',
+  // v387: B4 不兼容 stable 警告条
+  'app.b4_warning': '{count} 个 B 样条 (B4) 滑条 — stable osu! 无法读取',
+  'app.b4_convert_all': '全部转为贝塞尔',
 };

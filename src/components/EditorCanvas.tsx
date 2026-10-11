@@ -3,7 +3,7 @@ import { store, useEditor } from '@/osu/store';
 import { getSkin, type Skin } from '@/osu/skin'; // v318: hitcircleSpriteWidth 随光秃幽灵移除 (renderer 内部自用)
 import { renderPlayfield, computeCombos, getSliderPath, invalidatePath, mergedWithPreview, drawDistanceGuideRing, drawPendingSpinner, drawSliderControlPoints } from '@/osu/renderer'; // v259: hover 预览滑条点复用控制点绘制; v308: hover 选中环移除
 import { computePendingPath, deleteSliderPoint, toggleSliderPointRed, resolveSliderCurveType, nearestOnSegment, sliderGeometryLength, snapSliderLength, resnapSliderLength, redPairPartner, isRedPairPoint, SliderPath, preserveArcsForBezier, placementLength, snapPlacementTime, spinnerPlacementEnd, BEAT_SNAP_OPTIONS } from '@/osu/sliderPath'; // v319: 插点改 lazer 原位置插入 (旧投影插点函数弃用); v321: BEAT_SNAP_OPTIONS (Ctrl+滚轮循环细分)
-import { bsplineToStableBezier } from '@/osu/freehand/pathApproximator'; // v377: B4 转 stable 兼容 B (Schneider 容差拟合, 少锚点)
+// v387: bsplineToStableBezier 移出本文件 — 手绘落盘/预览均保留 'B4'; 全图转贝塞尔见 convert/convertB4.ts
 import { objectSnapPoints, snapToNearby, snapDragDelta, type Pt } from '@/osu/objectSnap';
 import { sliderHelperCircle, sliderHelperLines, clipLineToBox, geoHelperSnap, geoHelperSources, geoDistSources, distGuideSnap, geoDragCorrection, GEO_CLIP_BOX, type GeoLine, type GeoCircle } from '@/osu/geometryHelpers';
 import { instantiatePattern } from '@/osu/patternLibrary';
@@ -22,6 +22,7 @@ import { genId, timingAt, csToRadius, arToPreempt, snapAcrossRedLine, type Beatm
 import { IncrementalBSplineBuilder } from '@/osu/freehand/bsplineBuilder';
 import { fitSegmentsToPoints } from '@/osu/freehand/freehandFit';
 import { matchesHotkeyMouse, matchesHotkeyWheel } from '@/osu/hotkeys'; // v330: 游玩区平移/缩放/锁定间距可改键
+import { pfRotFwd, pfRotInv } from '@/osu/pfRotate'; // v391: 游玩区旋转正/逆变换
 import { getElectronAPI } from '@/osu/electronBridge'; // v336: exe 下 Alt 态由主进程转发 (DOM 事件被拦)
 
 const PW = 512, PH = 384; // osu 游玩区坐标系
@@ -48,14 +49,16 @@ export function viewTransform(r: { width: number; height: number }) {
 
 // v223: 游玩区平移/缩放 — 启用时在适配变换上叠加用户偏移 (osu px) 与缩放倍率
 // (等价于 translate(ox,oy) scale(base) translate(panX,panY) scale(s); 渲染/命中/坐标换算共用同一变换)
+// v391: 叠加旋转 rot (度, 绕游玩区中心 PW/2,PH/2, 最内层): screen = ox + scale·F(x), F(x) = c + R(θ)(x−c)
 function playfieldTransform(r: { width: number; height: number }) {
   const base = viewTransform(r);
   const s = store.playfieldScale;
-  if (!store.playfieldPanEnabled || !(s > 0)) return base;
+  if (!store.playfieldPanEnabled || !(s > 0)) return { ...base, rot: 0 };
   return {
     scale: base.scale * s,
     ox: base.ox + base.scale * store.playfieldPanX,
     oy: base.oy + base.scale * store.playfieldPanY,
+    rot: store.playfieldRotation, // v391
   };
 }
 
@@ -287,7 +290,8 @@ export function EditorCanvas() {
   const applySliderPoints = (o: HitObject, pts: { x: number; y: number }[]) => {
     o.x = pts[0].x; o.y = pts[0].y;
     o.curvePoints = pts.slice(1).map(p => ({ ...p }));
-    o.curveType = resolveSliderCurveType(pts, o.curveType ?? 'L');
+    // v394: 手动改过曲线类型的滑条不再强制改型 (L/C 放红点 / 红点下放白点保持原模式)
+    if (!store.manualCurveType.has(o.id)) o.curveType = resolveSliderCurveType(pts, o.curveType ?? 'L');
   };
 
   // 应用一次缩放拖拽 (lazer OsuSelectionScaleHandler.Update: 每次从 Begin 快照重算; modifier 实时生效)
@@ -414,8 +418,9 @@ export function EditorCanvas() {
   const toOsu = useCallback((e: { clientX: number; clientY: number }) => {
     const c = canvasRef.current!;
     const r = zoomRect(c); // v217: 布局空间 (渲染同系)
-    const { scale, ox, oy } = playfieldTransform(r);
-    return { x: (zoomClientX(e.clientX) - r.left - ox) / scale, y: (zoomClientY(e.clientY) - r.top - oy) / scale };
+    const { scale, ox, oy, rot } = playfieldTransform(r);
+    const q = { x: (zoomClientX(e.clientX) - r.left - ox) / scale, y: (zoomClientY(e.clientY) - r.top - oy) / scale };
+    return rot ? pfRotInv(q, rot) : q; // v391: 撤销旋转 — 命中/放置仍在未旋转的 osu 坐标系
   }, []);
 
   // 暴露给 CDP 测试: osu 坐标 -> client 坐标 / canvas 设备像素 (与渲染/命中共用同一变换, 含 PAD_Y 留白)
@@ -430,16 +435,18 @@ export function EditorCanvas() {
       const c = canvasRef.current;
       if (!c) return null;
       const r = zoomRect(c); // v217: 布局空间 → 乘 zoom 回视觉 client 坐标
-      const { scale, ox, oy } = playfieldTransform(r);
+      const { scale, ox, oy, rot } = playfieldTransform(r);
+      const p = pfRotFwd({ x, y }, rot); // v391: 先按旋转正变换再仿射 (与渲染同一管线)
       const z = uiZoom();
-      return { x: (r.left + ox + x * scale) * z, y: (r.top + oy + y * scale) * z };
+      return { x: (r.left + ox + p.x * scale) * z, y: (r.top + oy + p.y * scale) * z };
     };
     w.__osuToCanvas = (x, y) => {
       const c = canvasRef.current;
       if (!c) return null;
       const r = zoomRect(c);
-      const { scale, ox, oy } = playfieldTransform(r);
-      return { x: (ox + x * scale) * (c.width / r.width), y: (oy + y * scale) * (c.height / r.height) };
+      const { scale, ox, oy, rot } = playfieldTransform(r);
+      const p = pfRotFwd({ x, y }, rot); // v391
+      return { x: (ox + p.x * scale) * (c.width / r.width), y: (oy + p.y * scale) * (c.height / r.height) };
     };
     w.__invalidatePath = (id) => invalidatePath(id);
     // v44: 与渲染同一 mergedWithPreview + computeCombos 管线, 供 CDP 断言预览 combo 数字/颜色
@@ -727,9 +734,10 @@ export function EditorCanvas() {
         g.setTransform(sx, 0, 0, sy, 0, 0);
         g.fillStyle = '#111116';
         g.fillRect(0, 0, r.width, r.height);
-        const { scale, ox, oy } = playfieldTransform(r);
+        const { scale, ox, oy, rot } = playfieldTransform(r);
         g.save();
         g.translate(ox, oy); g.scale(scale, scale);
+        if (rot) { g.translate(PW / 2, PH / 2); g.rotate(rot * Math.PI / 180); g.translate(-PW / 2, -PH / 2); } // v391: 游玩区旋转 (最内层, 绕中心)
         // v245: 网格/背景/边框静态层缓存 — 内容与帧无关 (网格类型/间距/旋转/原点 + 背景图/亮度 + 变换矩阵
         //   决定), 原每帧逐线/逐弧 stroke + 背景 drawImage 是播放场景光栅热点 (CDP 实测); 合成到离屏位图,
         //   键不变时每帧仅 1 次 drawImage。绘制顺序保持: 网格 → 背景 → 边框。
@@ -739,16 +747,18 @@ export function EditorCanvas() {
           const O0 = store.currentGridOrigin();
           const gs0 = store.gridSpacing ?? bm.editor.gridSize;
           const bg0 = store.backgroundImg;
-          const key = [c.width, c.height, m0.a.toFixed(4), m0.d.toFixed(4), m0.e.toFixed(2), m0.f.toFixed(2),
+          const key = [c.width, c.height, m0.a.toFixed(4), m0.b.toFixed(4), m0.c.toFixed(4), m0.d.toFixed(4), m0.e.toFixed(2), m0.f.toFixed(2), // v391: b/c 入键 (旋转)
             store.gridType, gs0, store.gridRotation, O0.x, O0.y,
             store.backgroundUrl ?? '', bg0?.width ?? 0, bg0?.height ?? 0, displaySettings.bgBrightness].join('|');
           // v246: 层裁剪到游玩区设备矩形 (+8px 边距覆盖边框线宽) — 原整画布尺寸, 大窗口/高 dpr 下
           //   每帧全幅 drawImage 带宽开销让普通谱面也跑不满帧率; 内容全部被 clip 在游玩区内故裁剪安全。
+          //   v391: 旋转 (m0.b/c ≠ 0) 时游玩区不再轴对齐, 放弃紧凑裁剪用整画布 (旋转是非常态, 带宽换正确性)
           const M = 8;
-          const rx = Math.max(0, Math.floor(Math.min(m0.e, m0.e + PW * m0.a)) - M);
-          const ry = Math.max(0, Math.floor(Math.min(m0.f, m0.f + PH * m0.d)) - M);
-          const rw = Math.min(c.width, Math.ceil(Math.max(m0.e, m0.e + PW * m0.a)) + M) - rx;
-          const rh = Math.min(c.height, Math.ceil(Math.max(m0.f, m0.f + PH * m0.d)) + M) - ry;
+          const rotated = m0.b !== 0 || m0.c !== 0;
+          const rx = rotated ? 0 : Math.max(0, Math.floor(Math.min(m0.e, m0.e + PW * m0.a)) - M);
+          const ry = rotated ? 0 : Math.max(0, Math.floor(Math.min(m0.f, m0.f + PH * m0.d)) - M);
+          const rw = (rotated ? c.width : Math.min(c.width, Math.ceil(Math.max(m0.e, m0.e + PW * m0.a)) + M)) - rx;
+          const rh = (rotated ? c.height : Math.min(c.height, Math.ceil(Math.max(m0.f, m0.f + PH * m0.d)) + M)) - ry;
           if (!staticLayerRef.current || staticLayerRef.current.key !== key) {
             if (!staticLayerRef.current) staticLayerRef.current = { key, c: document.createElement('canvas'), x: rx, y: ry };
             staticLayerRef.current.key = key;
@@ -858,12 +868,13 @@ export function EditorCanvas() {
             const computed = computePendingPath(store.pendingSlider, cur.inside ? store.pendingCursor : null);
             // v363: 手绘预览 (pend 带 bspline 标记) — 幽灵按控制点列渲染 (与 drawPendingSlider
             //   的 raw 同源; 跳过 preserveArcsForBezier, 3 点段不转圆预设贝塞尔)
-            //   v377: 落盘/预览均为拟合后的 stable 'B' (bsplineToStableBezier; 'B4' 渲染支持已移除)
+            //   v387: 手绘幽灵直接以 'B4' + builder 控制点渲染 (computeRawPath 已支持 B 样条) — 预览=落盘同形,
+            //   不再经 bsplineToStableBezier 转 stable 'B' (修复"拖动时锚点少、松手后锚点爆炸"的观感不一致)
             const bspline = store.pendingSlider.some(pt => pt.bspline);
-            const finalCtrl = bspline ? bsplineToStableBezier(computed.controlPoints) : preserveArcsForBezier(computed.curveType, computed.controlPoints);
+            const finalCtrl = bspline ? computed.controlPoints : preserveArcsForBezier(computed.curveType, computed.controlPoints);
             ghosts.push({ id: -2, type: 'slider', x: finalCtrl[0].x, y: finalCtrl[0].y,
               time: Math.round(snapPlacementTime(bm.timingPoints, store.currentTime, store.beatSnap)), // v366: = 落盘时间公式 (v363 钳制撤销)
-              curveType: bspline ? 'B' : computed.curveType, curvePoints: finalCtrl.slice(1), slides: 1,
+              curveType: bspline ? 'B4' : computed.curveType, curvePoints: finalCtrl.slice(1), slides: 1,
               length: placementLength(bm.timingPoints, store.currentTime, bm.difficulty.sliderMultiplier,
                 computed.length, store.distanceLock, bm.editor.distanceSpacing, store.beatSnap),
               newCombo: store.placeNewCombo, comboSkip: 0, hitSound: store.placeHitSound });
@@ -1503,8 +1514,8 @@ export function EditorCanvas() {
         const newPts = [...ctrl.slice(0, best + 1), raw, ...ctrl.slice(best + 1)];
         applySliderPoints(so, newPts);
         // v240: 直线滑条新增白点 → 恰 3 点 (头+新点+尾) 时切换为圆弧 (stable 同款);
-        // 仅插入路径升级, 拖动/删除已有折线节点不变形
-        if (wasLinear && so.curveType === 'L' && newPts.length === 3) so.curveType = 'P';
+        // 仅插入路径升级, 拖动/删除已有折线节点不变形; v394: 手动改过型的不升级
+        if (wasLinear && so.curveType === 'L' && newPts.length === 3 && !store.manualCurveType.has(so.id)) so.curveType = 'P';
         resnapSliderLength(bm, so, store.beatSnap); // lazer: 插入控制点后 SnapTo (长度按新几何吸附节拍)
         invalidatePath(so.id);
         store.emit();
@@ -1867,27 +1878,25 @@ export function EditorCanvas() {
     ];
   };
 
-  /** 松开鼠标: Finish 后取最终控制点建滑条 (单段圆弧 => 'P' 三点, 否则 B 样条拟合转 stable 'B' 少锚点, v377) */
+  /** 松开鼠标: Finish 后取最终控制点建滑条 (单段圆弧 => 'P' 三点, 否则 builder 控制点原样落 'B4', v387 对齐 lazer) */
   const finishFreehandSlider = (builder: IncrementalBSplineBuilder) => {
     const bm = store.beatmap;
     const head = store.pendingSlider[0];
     if (!bm || !head) { store.pendingSlider = []; store.emit(); return; }
     const { points, singleArc } = fitSegmentsToPoints(builder.getControlPoints(), builder.degree, FREEHAND_CIRCLE_THRESHOLD);
     if (points.length < 2) { store.pendingSlider = [head]; store.emit(); return; } // 退化 (几乎没画): 回到只有头部的点击流
-    // 组装绝对控制点 (红锚点按 .osu 惯例加倍为连续重复点)
+    // 组装绝对控制点 (红锚点按 .osu 惯例加倍为连续重复点; lazer 导出口径 Round 取整)
     const ctrl: { x: number; y: number }[] = [{ x: Math.round(head.x), y: Math.round(head.y) }];
     for (const pt of points.slice(1)) {
       const a = { x: Math.round(head.x + pt.x), y: Math.round(head.y + pt.y) };
       ctrl.push(a);
       if (pt.red) ctrl.push({ ...a });
     }
-    // v377: 非单弧 => B 样条控制点列容差拟合为 stable 兼容 'B' (Schneider FitCurve, 偏差 <= 1px;
-    //   锚点尽量少 — 精确 Boehm 转换每 piece 一组红锚点太多不好改, 弃用)
-    //   (原 v74 落盘 'B4' 为 lazer 内存扩展格式, stable osu 无法解析; 'B4' 渲染支持已移除)
+    // v387: 非单弧 => 落 'B4' (lazer 编辑器存档同款 BSpline(4), 锚点即 builder 控制点 — 数量少且与拖动预览完全一致;
+    //   v377 的 bsplineToStableBezier 落盘转 'B' 已撤销。stable 兼容性由 B4 警告条 + 一键全图转贝塞尔承担)
     const singleP = singleArc && ctrl.length === 3;
-    const curveType = singleP ? 'P' : 'B';
-    // lazer 导出口径: 转换后控制点 Round 取整 (stable 坐标为整数)
-    const finalPts = singleP ? ctrl : bsplineToStableBezier(ctrl).map(p => ({ x: Math.round(p.x), y: Math.round(p.y) }));
+    const curveType = singleP ? 'P' : 'B4';
+    const finalPts = ctrl;
     // 长度 = 几何全长, 锁定间距时吸细分网格×间距倍率 (v365 起, 原吸整拍; 与 finishSlider 同款规则; lazer endCurve: Finishing 状态 SnapTo)
     // v83: 规则收敛到共享纯函数 placementLength/snapPlacementTime
     const len = placementLength(bm.timingPoints, store.currentTime, bm.difficulty.sliderMultiplier,
@@ -2595,8 +2604,10 @@ export function EditorCanvas() {
           const p = toOsu(e);
           const s0 = store.playfieldScale;
           const s1 = Math.max(0.1, Math.min(10, s0 * Math.pow(1.1, -dy / 100))); // 每刻度 ×1.1, 钳 0.1..10 (同缩放输入框)
-          store.playfieldPanX += (s0 - s1) * p.x;
-          store.playfieldPanY += (s0 - s1) * p.y;
+          // v391: 旋转下锚定补偿要用正变换后的点 (forward: screen = O + B·pan + B·s·F(p) ⇒ pan' = pan + (s0−s1)·F(p))
+          const fp = pfRotFwd(p, playfieldTransform(zoomRect(canvasRef.current!)).rot);
+          store.playfieldPanX += (s0 - s1) * fp.x;
+          store.playfieldPanY += (s0 - s1) * fp.y;
           store.playfieldScale = s1;
           store.emit(); // 左侧栏 x/y/缩放输入框实时刷新 (画布渲染循环每帧直接读 store)
           return;

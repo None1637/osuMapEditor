@@ -67,7 +67,7 @@ section('A: 静态调用 key 完整性 + 英文原文一致性');
 section('B: 词典 key 全部被使用');
 {
   const allSrc = files.map(f => read(f)).join('\n');
-  const dynOk = (k) => k.startsWith('hotkey.action.') || k.startsWith('hotkey.cat.') || k.startsWith('convert.curve_') || k.startsWith('volume.');
+  const dynOk = (k) => k.startsWith('hotkey.action.') || k.startsWith('hotkey.cat.') || k.startsWith('convert.stream_') || k.startsWith('volume.'); // v398: curve_ 域废弃, 改 stream_
   const extra = dictKeys.filter(k => !used.has(k) && !allSrc.includes(`'${k}'`) && !allSrc.includes(`"${k}"`) && !dynOk(k));
   assert(extra.length === 0, `无闲置词典 key (多余 ${extra.length}${extra.length ? ': ' + extra.slice(0, 8).join(', ') : ''})`);
 }
@@ -108,11 +108,11 @@ section('D: 动态前缀域数据校验');
   const catKeys = [...hk.matchAll(/\{ key: '([^']+)', en:/g)].map(m => m[1]);
   const missCat = catKeys.filter(k => !(`hotkey.cat.${k}` in dict));
   assert(catKeys.length >= 8 && missCat.length === 0, `hotkey.cat.* 覆盖全部 ${catKeys.length} 个分类 (缺 ${missCat.length})`);
-  // convert.curve_*
+  // convert.stream_* (v398: 曲线下拉移除, curve_* 域废弃; 改为自定义间距三项控件键)
   const stream = read('src/components/convert/StreamDialog.tsx');
-  const curveKeys = [...stream.matchAll(/\['\w+', '(curve_\w+)'/g)].map(m => m[1]);
-  const missCurve = curveKeys.filter(k => !(`convert.${k}` in dict));
-  assert(curveKeys.length === 5 && missCurve.length === 0, `convert.curve_* 覆盖全部 ${curveKeys.length} 条间距曲线 (缺 ${missCurve.length})`);
+  const streamKeys = [...stream.matchAll(/t\('(convert\.stream_\w+)'/g)].map(m => m[1]);
+  const missStream = [...new Set(streamKeys)].filter(k => !(k in dict));
+  assert(streamKeys.length >= 5 && missStream.length === 0, `convert.stream_* 覆盖全部 ${new Set(streamKeys).size} 个键 (缺 ${missStream.length}${missStream.length ? ': ' + missStream.slice(0, 5).join(',') : ''})`);
   // volume.*
   const vol = read('src/components/VolumePanel.tsx');
   const volKeys = [...vol.matchAll(/i18n: '(\w+)'/g)].map(m => m[1]);

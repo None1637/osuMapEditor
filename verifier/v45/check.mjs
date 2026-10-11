@@ -62,8 +62,8 @@ section('spacing.ts: 间距单位与锁定间距一致');
 {
   const src = readSrc('src/osu/spacing.ts');
   assert(/export function selectionSpacingInfo/.test(src), '导出 selectionSpacingInfo');
-  // v149 适配: 1x 基准含 SM*SV (lazer DurationToDistance 同源), 基准收敛到 distanceSnapPxPerBeat
-  assert(/distPx \/ \(distanceSnapPxPerBeat\(bm, fromEndTime\) \* beats\)/.test(src), '1x = distanceSnapPxPerBeat*拍数 = DS*100*SM*SV*拍数 (同 snapPlacement)');
+  // v397 适配: 面板间距倍率基准固定 1.0x (不再含 DS); 放置基准 distanceSnapPxPerBeat 仍含 DS
+  assert(/distPx \/ \(100 \* bm\.difficulty\.sliderMultiplier \* sv \* beats\)/.test(src), 'v397: 面板 1x = 100*SM*SV*拍数 (固定 1.0x 基准)');
   assert(/stackedEndPosition\(bm, p\)/.test(src) && /stackedEndPosition\(bm, last\)/.test(src), '间距按前/末件结束位置算 (滑条取尾)');
 }
 

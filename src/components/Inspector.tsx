@@ -6,6 +6,7 @@ import { parseHitSample, hitSampleFilename } from '@/osu/clock/hitSounds';
 import { computeMerge } from '@/osu/convert/merge';
 import { sliderToBezierSegments, segmentsToPoints } from '@/osu/convert/bezierPath';
 import { genId, type HitObject } from '@/osu/parser';
+import { parseBSplineType } from '@/osu/sliderPath'; // v387: B<n> (B 样条) curveType 识别
 import { hotkeyLabel } from '@/osu/hotkeys'; // v321 (F21): 快捷键提示随改键同步
 import { useT } from '@/i18n';
 
@@ -172,6 +173,7 @@ export function Inspector() {
   // v141: 废弃 卡特姆→贝塞尔 / 贝塞尔→卡特姆 (用不到), 新增 三点圆弧→贝塞尔
   const SliderConvertButtons = ({ sliders }: { sliders: HitObject[] }) => {
     const selP = sliders.filter(o => o.curveType === 'P');
+    const selB4 = sliders.filter(o => parseBSplineType(o.curveType) !== null); // v388: 选中集内 B 样条
     // P->B: 三点圆弧转三次贝塞尔近似 (circleToBezier, 90° 内误差 <0.03%), 无参数不弹窗, 点击直接应用 (一次 undo)
     const onP2B = () => {
       const out = selP.map((o): HitObject | null => {
@@ -187,12 +189,18 @@ export function Inspector() {
       <>
         {sliders.length > 0 && (
           <button data-conv-open="stream" onClick={() => store.openConversion('stream')} className={cls}>
-            {t('inspector.sliders_to_stream', 'Sliders to Stream ({n})', { n: sliders.length })}
+            {t('inspector.sliders_to_stream', 'Sliders to Stream ({n}, {key})', { n: sliders.length, key: hotkeyLabel('stream') })}
           </button>
         )}
         {selP.length > 0 && (
           <button data-conv-apply="p2b" onClick={onP2B} className={cls}>
             {t('inspector.arc_to_bezier', 'Arc → Bezier ({n})', { n: selP.length })}
+          </button>
+        )}
+        {/* v388: 选中集含 B 样条 (B4) 时一键转贝塞尔 (stable 兼容; 原地改不换 id, 一次 undo) */}
+        {selB4.length > 0 && (
+          <button data-conv-apply="b4toB" onClick={() => store.convertSelectedBSplineSliders()} className={cls}>
+            {t('inspector.bspline_to_bezier', 'B-Spline → Bezier ({n})', { n: selB4.length })}
           </button>
         )}
       </>
@@ -243,6 +251,8 @@ export function Inspector() {
     );
   }
   const o = sel[0];
+  // v387: 当前为 'B<n>' 时下拉按原 degree 显示, 否则提供固定 'B4' 选项
+  const bSplineOption = parseBSplineType(o.curveType) !== null && o.curveType ? o.curveType : 'B4';
   const upd = (patch: Partial<typeof o>) => {
     if (store.lockNotes) return; // v115: 锁定物件 — Inspector 数值/下拉编辑禁用
     store.pushUndo();
@@ -272,14 +282,22 @@ export function Inspector() {
       {o.type === 'slider' && <>
         <label className="flex items-center gap-1 text-white/70">
           <span className="w-14">{t('inspector.curve_type', 'Curve Type')}</span>
-          <select value={o.curveType} onChange={e => upd({ curveType: e.target.value })}
+          <select value={o.curveType} onChange={e => { store.markManualCurveType(o.id); upd({ curveType: e.target.value }); }} // v394: 手动改型后节点编辑不再强制改型
             className="bg-black/40 border border-white/15 rounded px-1 py-0.5 text-white">
             <option value="L">{t('inspector.curve_linear', 'L Linear')}</option>
             <option value="P">{t('inspector.curve_perfect', 'P Perfect')}</option>
             <option value="B">{t('inspector.curve_bezier', 'B Bezier')}</option>
             <option value="C">{t('inspector.curve_catmull', 'C Catmull')}</option>
+            {/* v387: B 样条 (lazer BSpline(4) 存档格式); 当前为其它 B<n> 时按原 degree 显示, 切换 = 控制点原样改按 B 样条解释 */}
+            <option value={bSplineOption}>
+              {t('inspector.curve_bspline', '{t} B-Spline (lazer)', { t: bSplineOption })}
+            </option>
           </select>
         </label>
+        {/* v387: B<n> 内联提示 — stable 不可读, 引导用警告条/菜单一键转换 */}
+        {parseBSplineType(o.curveType) !== null && (
+          <div className="text-amber-300/90 text-[11px]">{t('inspector.curve_bspline_hint', 'B-spline sliders are not readable by stable osu! (use the warning bar / Compose menu to convert)')}</div>
+        )}
         <Num label={t('inspector.length', 'Length')} value={Math.round(o.length ?? 0)} onChange={v => upd({ length: v })} />
         <Num label={t('inspector.repeats', 'Repeats')} value={o.slides ?? 1} onChange={v => upd({ slides: Math.max(1, Math.round(v)) })} />
       </>}

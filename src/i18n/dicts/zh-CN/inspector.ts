@@ -29,8 +29,9 @@ export const zhCN: Record<string, string> = {
   'inspector.sample_index': '采样序号',
   'inspector.volume': '音量',
   'inspector.sample_file': '采样文件: {filename}',
-  'inspector.sliders_to_stream': '滑条转连打 ({n} 条)',
+  'inspector.sliders_to_stream': '滑条转连打 ({n} 条, {key})', // v396: +快捷键提示
   'inspector.arc_to_bezier': '圆弧→贝塞尔 ({n} 条)',
+  'inspector.bspline_to_bezier': 'B 样条→贝塞尔 ({n} 条)', // v388: 选中集 B4 一键转 stable 兼容贝塞尔
   'inspector.selected_n': '已选中 {n} 个物件',
   'inspector.no_selection': '未选中物件',
   'inspector.convert_title': '转换',
@@ -56,4 +57,7 @@ export const zhCN: Record<string, string> = {
   'inspector.split_slider': '拆分滑条 (等时间)',
   'inspector.symmetric_slider': '对称滑条',
   'inspector.delete': '删除 (Del)',
+  // v387: B 样条 curveType
+  'inspector.curve_bspline': '{t} B 样条 (lazer)',
+  'inspector.curve_bspline_hint': 'B 样条滑条 stable osu! 无法读取 (可用右侧警告条/作图菜单一键转贝塞尔)',
 };

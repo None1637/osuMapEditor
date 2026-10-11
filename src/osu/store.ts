@@ -17,13 +17,14 @@ import { DEFAULT_GROUP, instantiatePattern, loadPatternGroups, loadPatterns, mak
 import { reportMenuState, reportDirtyState } from './electronMenu';
 import { getElectronAPI } from './electronBridge'; // v185: 谱面备份 IPC
 import { defaultNewPoint, effectivePointAt, activePointAt, snapTimeToRedBeat, metronomeBeats, rangeTimes } from './timingEdit'; // v156; v372: rangeTimes
-import { resnapSliderLength, snapPlacementTime, placementLength, pendingSliderTimeline, sliderLengthSnapDivisor, snapSliderLength } from './sliderPath'; // v156: 重新计算滑条长度; v357: 粘贴锚点节拍吸附; v364: 调试暴露吸附纯函数
+import { resnapSliderLength, snapPlacementTime, placementLength, pendingSliderTimeline, sliderLengthSnapDivisor, snapSliderLength, parseBSplineType } from './sliderPath'; // v156: 重新计算滑条长度; v357: 粘贴锚点节拍吸附; v364: 调试暴露吸附纯函数; v388: 选中集 B4 判定
 import { sliderVelocityAt, svPointAt } from './parser'; // v366: 调试暴露 (SV 绿线边界验证)
 import { snapshotNodes, withRedPartners, transformNodesFromSnapshot } from './nodeSelection'; // v304: F08 节点选区快捷键变换
 import { setDisplayFlag as applyDisplayFlag, setDisplayNumber as applyDisplayNumber, setDisplayString as applyDisplayString, type BoolDisplayKey, type DisplaySettings, type StrDisplayKey } from './displaySettings'; // v132: 显示设置
 import { setEditorPref as applyEditorPref, type EditorPrefKey } from './editorPrefs'; // v381: 通用编辑器偏好
 import { setVolume as applyVolume, musicGain, effectsGain, type VolumeSettings } from './volumeSettings'; // v144: 音量设置
 import { dirtyFingerprint } from './dirtyFingerprint'; // v140: 脏标记内容指纹
+import { countBSplineSliders, convertBSplineSlidersToBezier } from './convert/convertB4'; // v387: B4 警告条计数 + 一键全图转贝塞尔
 import { seekByBeats, wheelSteps, playingWheelStepMs, type WheelAccum } from './seekSnapping'; // v193: 滚轮 seek
 import { beginLifecycleFrame } from './lifecycle'; // v197: 每帧推进滑条时长 memo 帧号
 import { toggleEdgesHitSound, setEdgeSoundBitAll } from './edgeSounds'; // v213: 滑条 per-edge hitsound
@@ -120,6 +121,7 @@ class EditorStore {
   playfieldPanX = 0;
   playfieldPanY = 0;
   playfieldScale = 1.0;
+  playfieldRotation = 0; // v391: 旋转角度 (度, 绕游玩区中心 256,192; 同为视图辅助不入谱面)
   // v235: 吸附到物件总开关 (默认开) — 关闭后物件中心/滑条尾吸附、几何辅助吸附、间距辅助线吸附、拖拽整体吸附全部停用
   objectSnapEnabled = true;
   // v241: 放置态 — 放置工具 (circle/slider/spinner) 下 Q/W/E/R 预设下次放下物件的 newCombo/hitsound;
@@ -221,6 +223,7 @@ class EditorStore {
   patternPanelOpen = false;
   patternDrag: StoredPattern | null = null; // 拖拽中的 pattern (EditorCanvas 读它画幻影/落盘)
   patternAlign: 'none' | 'greenline' | 'scale' = 'none'; // 两个勾选框 (互斥)
+  patternNoHitsound = false; // v393: 收藏时不记录物件音效
   patternsLoaded = false;
   loadPatternsIfNeeded() {
     if (this.patternsLoaded) return;
@@ -231,12 +234,14 @@ class EditorStore {
   private persistPatterns() { savePatterns(this.patterns); savePatternGroups(this.patternGroups); }
   setPatternPanelOpen(b: boolean) { this.patternPanelOpen = b; this.emitSelection(); }
   setPatternAlign(a: 'none' | 'greenline' | 'scale') { this.patternAlign = a; this.emitSelection(); }
+  setPatternNoHitsound(b: boolean) { this.patternNoHitsound = b; this.emitSelection(); } // v393
   /** 收藏当前选中物件为 pattern (≥1 个), 归入 group (缺省未分类); 返回新 pattern */
   addPatternFromSelection(name: string, group?: string): StoredPattern | null {
     if (!this.beatmap || !this.selected.size) return null;
     const objs = this.beatmap.hitObjects.filter(o => this.selected.has(o.id));
     if (!objs.length) return null;
-    const p = makePattern(newPatternId(), name || `pattern ${this.patterns.length + 1}`, this.beatmap, objs, group);
+    const p = makePattern(newPatternId(), name || `pattern ${this.patterns.length + 1}`, this.beatmap, objs, group,
+      { noHitsound: this.patternNoHitsound }); // v393
     this.patterns = [...this.patterns, p];
     this.persistPatterns();
     this.emitSelection();
@@ -574,6 +579,7 @@ class EditorStore {
     this.selected.clear();
     this.altPickSliders = new Set(); // v371: 换谱清空 Alt 点选滑条
     this.gridSpacing = null; // v373: 载入/刷新后间距跟随新谱面 GridSize, 清除手动覆盖
+    this.manualCurveType.clear(); // v394: 换谱清空「手动改过曲线类型」记录 (仅本次编辑, 不存档)
     this.undoStack = []; this.redoStack = [];
     this.currentTime = bm.general.previewTime > 0 ? bm.general.previewTime : (bm.hitObjects[0]?.time ?? 0) - 1000;
     if (this.currentTime < 0) this.currentTime = 0;
@@ -1454,6 +1460,43 @@ class EditorStore {
     this.emit();
   }
 
+  /** v387: 谱面中 B 样条 ('B<n>') 滑条数量 — B4 不兼容 stable 警告条显隐依据 */
+  get b4SliderCount(): number { return countBSplineSliders(this.beatmap); }
+
+  /** v387: 一键全图 B4 转贝塞尔 (stable 兼容; 一次 undo + 2.6s toast 报告; 无 B4 时仅提示) */
+  convertAllBSplineSliders() {
+    const bm = this.beatmap;
+    if (!bm) return;
+    if (this.b4SliderCount === 0) {
+      this.saveMessage = tNow('convert.b4_none', 'No B-spline (B4) sliders in this map');
+      setTimeout(() => { this.saveMessage = null; this.emitPlayback(); }, 2600);
+      this.emitPlayback();
+      return;
+    }
+    this.pushUndo();
+    const n = convertBSplineSlidersToBezier(bm);
+    for (const o of bm.hitObjects) invalidatePath(o.id); // 转换了类型的滑条路径缓存失效 (数量少, 全量从简)
+    this.saveMessage = tNow('convert.b4_converted', 'Converted {count} B4 slider(s) to Bezier (stable-compatible)', { count: n });
+    setTimeout(() => { this.saveMessage = null; this.emitPlayback(); }, 2600);
+    this.emit();
+  }
+
+  /** v388: 选中集中的 B<n> 滑条转贝塞尔 (Inspector 按钮; 选中无 B4 时静默不动作) */
+  convertSelectedBSplineSliders() {
+    const bm = this.beatmap;
+    if (!bm) return;
+    let has = false;
+    for (const o of bm.hitObjects)
+      if (this.selected.has(o.id) && o.type === 'slider' && parseBSplineType(o.curveType) !== null) { has = true; break; }
+    if (!has) return;
+    this.pushUndo();
+    const n = convertBSplineSlidersToBezier(bm, this.selected);
+    for (const o of bm.hitObjects) if (this.selected.has(o.id)) invalidatePath(o.id);
+    this.saveMessage = tNow('convert.b4_converted', 'Converted {count} B4 slider(s) to Bezier (stable-compatible)', { count: n });
+    setTimeout(() => { this.saveMessage = null; this.emitPlayback(); }, 2600);
+    this.emit();
+  }
+
   copy() {
     if (!this.beatmap || (!this.selected.size && !this.selectedGreenLines.size)) return;
     const objs = this.beatmap.hitObjects.filter(o => this.selected.has(o.id));
@@ -1588,6 +1631,12 @@ class EditorStore {
     this.altPickSliders = new Set();
     this.emitSelection();
   }
+
+  // ---- v394: 手动改过曲线类型的滑条 (Inspector 下拉改型时记录; 记录后节点增删/切红不再强制改型,
+  //   如 L/C 放红点或红点下放白点不再强切贝塞尔; 仅本次编辑有效, 换谱清空, 不存档) ----
+  manualCurveType = new Set<number>();
+
+  markManualCurveType(id: number) { this.manualCurveType.add(id); }
 
   clearNodeSelection() {
     if (!this.selectedNodes.size) return;

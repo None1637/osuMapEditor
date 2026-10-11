@@ -5,6 +5,8 @@
 //   P -> ConvertCircleToBezierAnchors (:195) 圆弧转三次贝塞尔近似 (这里用标准 k=4/3*tan(θ/4) 分块近似, 目标同为最小形状变化)
 //   B -> 红锚点 (重复点) 分段, 每段保留原阶贝塞尔 (形状无损)
 import type { HitObject, Vec2 } from '../parser';
+import { parseBSplineType } from '../sliderPath'; // v387: B<n> 分支
+import { bSplineToBezierSegments } from '../freehand/pathApproximator'; // v387: Boehm 精确转换
 
 /** 一条贝塞尔曲线段: 控制点列 (2=线性, 3=二次, 4=三次, 更多=高阶原样保留) */
 export type BezierSeg = Vec2[];
@@ -160,9 +162,13 @@ export function sliderToBezierSegments(o: HitObject): BezierSeg[] {
   if (cur.length > 1) groups.push(cur);
 
   const type = o.curveType ?? 'L';
+  const bSplineDeg = parseBSplineType(type); // v387: 'B<n>' (B 样条)
   const out: BezierSeg[] = [];
   for (const g of groups) {
-    if (type === 'C') {
+    if (bSplineDeg !== null) {
+      // v387: B<n> — Boehm 精确转贝塞尔段 (形状无损; lazer BezierConverter.ConvertToModernBezier 同款)
+      out.push(...bSplineToBezierSegments(g, bSplineDeg).map(seg => seg.map(p => ({ ...p }))));
+    } else if (type === 'C') {
       out.push(...catmullToBezier(g));
     } else if (type === 'P') {
       // 与 sliderPath perfectArcPath 同款分组: 每次 3 点步进 2, 剩 2 点退化为直线

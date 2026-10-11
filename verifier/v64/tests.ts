@@ -72,11 +72,12 @@ section('computePolygon: SV 取最近滑条自身时间的绿线 (lazer lastWith
     `半径随 2x SV 翻倍 (${dist(r.objects[0]).toFixed(2)} vs ${dist(rNoSv.objects[0]).toFixed(2)})`);
 }
 
-section('computePolygon: 顶点出游玩区 => outOfBounds, 不生成');
+section('computePolygon: 顶点出游玩区照常生成 (v395: 不再拦截)');
 {
   const bm = mkBm([red(0, 500)]);
   const r = computePolygon(bm, 2500, 1, { ...DEFAULT_POLYGON_PARAMS, vertices: 3, distanceSnap: 6 });
-  assert(r.outOfBounds && r.objects.length === 0, 'divisor 1 + DS 6 => 半径 485 出界');
+  assert(!r.outOfBounds && r.objects.length === 3, 'divisor 1 + DS 6 => 半径 485 出界仍生成 3 个单点');
+  assert(r.objects.some(o => o.x < 0 || o.x > 512 || o.y < 0 || o.y > 384), '确有顶点在游玩区外');
 }
 
 if (failures) { console.error(`\nTESTS_V64_FAILED: ${failures}`); process.exit(1); }

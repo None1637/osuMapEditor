@@ -68,7 +68,7 @@ export function PolygonDialog() {
       <div className="text-white/40">
         {t('convert.polygon_summary', 'Start {time}ms · center (256,192) · will create {n} Hit Circles', { time: result.startTime, n: params.vertices * params.repeats })}
       </div>
-      {result.outOfBounds && <div className="text-red-300">{t('convert.polygon_out_of_bounds', 'Vertices out of Playfield bounds; cannot create (same as lazer)')}</div>}
+      {/* v395: 顶点出游玩区照常生成, 原红色拦截提示移除 */}
       <div className="flex gap-2 pt-1">
         <button data-conv="apply"
           onClick={() => { saveParams('polygon', params); store.applyConversion([], result.objects); }}

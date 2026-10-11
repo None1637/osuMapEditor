@@ -1,9 +1,15 @@
-// 滑条路径计算: 直线(L) / 三点圆弧(P) / 贝塞尔(B) / 卡特姆(C)
-// v377: 'B4' (lazer 内存扩展 B 样条) 渲染支持移除 — 落盘/读入均转 stable 'B' (pathApproximator.bsplineToStableBezier),
-//   仅手绘进行中的预览经导出的 bsplineRawPath 直接求值 (不经过 curveType)
+// 滑条路径计算: 直线(L) / 三点圆弧(P) / 贝塞尔(B) / 卡特姆(C) / B 样条(B<n>, v387 起一等类型)
+// v387: 'B4'/'B<n>' (lazer 内存扩展 B 样条) 恢复为一等 curveType — 读入/落盘/渲染/编辑全链路保留,
+//   对齐 lazer 编辑器存档; stable 兼容性由 UI 警告条 + 一键全图转贝塞尔承担 (v377 的读入/落盘自动转 'B' 已撤销)
 import { sliderVelocityAt, timingAt, snapAcrossRedLine, type Beatmap, type HitObject, type TimingPoint, type Vec2 } from './parser';
 import { bSplineToPiecewiseLinear } from './freehand/pathApproximator';
 import { convertCircleToBezierAnchors } from './freehand/freehandFit';
+
+/** v387: 'B<n>' (B 样条) curveType 判定 + degree 提取 (无匹配返回 null) */
+export function parseBSplineType(curveType: string | undefined): number | null {
+  const m = /^B(\d+)$/.exec(curveType ?? '');
+  return m ? (parseInt(m[1]) || 4) : null;
+}
 
 export class SliderPath {
   points: Vec2[] = []; // 等距采样点
@@ -17,11 +23,14 @@ export class SliderPath {
 
   static computeRawPath(curveType: string, pts: Vec2[]): Vec2[] {
     if (pts.length < 2) return pts.slice();
+    // v387: 'B4'/'B<n>' (B 样条) — clamped 均匀 B 样条按红锚点分段直接求值 (lazer SliderPath.calculateSubPath 同款)
+    const bSplineDeg = parseBSplineType(curveType);
+    if (bSplineDeg !== null) return bsplineRawPath(pts, bSplineDeg);
     switch (curveType) {
       case 'L': return linearPath(pts);
       case 'P': return perfectArcPath(pts);
       case 'C': return catmullPath(pts);
-      default: return bezierPath(pts); // B (v377: 'B4' 支持移除, 读入/落盘均已转 'B')
+      default: return bezierPath(pts); // B
     }
   }
 
@@ -278,13 +287,13 @@ export function flattenBezier(pts: Vec2[], out: Vec2[]): void {
   out.push({ x: pts[pts.length - 1].x, y: pts[pts.length - 1].y }); // 全曲线精确末点
 }
 
-// v74: clamped degree-4 均匀 B 样条 -> 折线 (红点(重复点)分段); 仅手绘进行中预览直接调用 (v377: 不再作为 curveType)
-export function bsplineRawPath(pts: Vec2[]): Vec2[] {
+// v74: clamped 均匀 B 样条 -> 折线 (红点(重复点)分段); v387: 加 degree 参数, 供 'B<n>' curveType 渲染与手绘预览共用
+export function bsplineRawPath(pts: Vec2[], degree = 4): Vec2[] {
   const out: Vec2[] = [];
   let segment: Vec2[] = [];
   const flush = () => {
     if (segment.length >= 2) {
-      const pl = bSplineToPiecewiseLinear(segment, 4);
+      const pl = bSplineToPiecewiseLinear(segment, degree);
       for (let i = 0; i < pl.length; i++) {
         if (out.length > 0 && i === 0) continue; // 段间共享端点去重
         out.push(pl[i]);
@@ -429,9 +438,11 @@ export function toggleSliderPointRed(pts: Vec2[], index: number): Vec2[] | null 
 /**
  * 节点增删后的 curveType 解析: 红点存在 -> 'B' (v15 放置规则同款);
  * 原类型仍合法则保持 ('P' 恰好 3 点合法, 'L'/'B'/'C' 任意 >=2 点合法), 否则按 inferSegmentType 降级
- * (v377: 'B4' 支持移除 — 读入/落盘均已转 'B', 此处不再特判)
+ * v387: 'B<n>' (B 样条) 编辑锚点后保持原类型 — 红锚点重复对即 B 样条段边界, 天然合法
+ *   (lazer 编辑器拖动 BSpline 控制点同样不改变 PathType)
  */
 export function resolveSliderCurveType(pts: Vec2[], current: string): string {
+  if (parseBSplineType(current) !== null) return current;
   if (hasRedPair(pts)) return 'B';
   if (current === 'P' && pts.length !== 3) return inferSegmentType(pts.length);
   return current;

@@ -128,6 +128,7 @@ export async function handleMenuCommand(cmd: ElectronMenuCommand): Promise<void>
       if (o?.type === 'slider') store.openConversion('symSlider');
       return;
     }
+    case 'compose-convert-b4': store.convertAllBSplineSliders(); return; // v387: B4 全图转贝塞尔 (与右侧栏警告条按钮同一 handler)
     default: return;
   }
 }

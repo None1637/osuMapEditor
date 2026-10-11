@@ -13,7 +13,7 @@ function assert(cond, msg) { if (!cond) { failures++; console.error('  FAIL:', m
 
 const src = fs.readFileSync(path.join(root, 'src/components/Timelines.tsx'), 'utf8');
 assert(/import \{ store, useEditor, usePlaybackFrame \} from '@\/osu\/store'/.test(src), '引入 usePlaybackFrame');
-const body = src.match(/export function BottomTimeline\(\) \{[\s\S]{0,200}/)?.[0] ?? '';
+const body = src.match(/export function BottomTimeline[\s\S]{0,340}/)?.[0] ?? ''; // v390 适配: 签名加 onTestPlay 参数 (类型注解含嵌套括号, 不截签名)
 assert(/usePlaybackFrame\(\); \/\/ v252/.test(body), 'BottomTimeline 订阅播放逐帧刷新 (v252)');
 assert(/data-bottom-time/.test(src), '左下角时间块仍在 (回归保护)');
 

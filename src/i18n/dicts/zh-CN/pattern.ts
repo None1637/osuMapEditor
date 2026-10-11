@@ -18,4 +18,6 @@ export const zhCN: Record<string, string> = {
   'pattern.delete_pattern': '删除 pattern',
   'pattern.timing_hint': '时序按节拍数记录: 间隔一拍的 pattern 拖到其他 BPM 的歌曲仍间隔一拍。放置时首物件跟随鼠标 (享受物件/网格吸附), 起点时间 = 当前编辑器时间 (吸附节拍)。',
   'pattern.ungrouped': '未分类',
+  'pattern.no_hitsound': '不记录物件音效', // v393
+  'pattern.no_hitsound_hint': '收藏的 pattern 不含音效与自定义采样, 放置出的物件用默认音效',
 };

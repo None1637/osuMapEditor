@@ -128,10 +128,10 @@ section('spacingMultiplier / selectionSpacingInfo: 锁定间距同单位');
   const info = selectionSpacingInfo(bm, new Set([2]))!;
   assert(info.x === 200 && info.y === 100, `坐标 = 首件 (200,100) (实际 ${info.x},${info.y})`);
   assert(Math.abs(info.prev! - 100 / 140) < 1e-9 && Math.abs(info.next! - 100 / 140) < 1e-9, `Prev/Next = 0.714x (实际 ${info.prev}/${info.next})`);
-  // DS=2 时同距离 = 0.357x (与锁定间距放置 = 1x 自洽)
+  // v397: 基准固定 1.0x 间距, 不再随 DS 设置变化 — DS=2 时同距离仍 = 0.714x
   bm.editor.distanceSpacing = 2;
   const info2 = selectionSpacingInfo(bm, new Set([2]))!;
-  assert(Math.abs(info2.prev! - 100 / 280) < 1e-9, `DS=2 -> 0.357x (实际 ${info2.prev})`);
+  assert(Math.abs(info2.prev! - 100 / 140) < 1e-9, `v397: DS=2 仍按 1.0x 基准 = 0.714x (实际 ${info2.prev})`);
   bm.editor.distanceSpacing = 1;
   // 多选: 取首/末件外侧
   const info3 = selectionSpacingInfo(bm, new Set([1, 2]))!;

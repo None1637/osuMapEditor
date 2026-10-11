@@ -108,6 +108,12 @@ export function bSplineToBezier(controlPoints: Vec[], degreeIn: number): Vec[] {
   return out;
 }
 
+/** v387: Boehm 细分直接返回贝塞尔段列 (相邻段共享端点不重复) — convert/bezierPath.sliderToBezierSegments 的 B<n> 分支用 */
+export function bSplineToBezierSegments(controlPoints: Vec[], degreeIn: number): Vec[][] {
+  if (controlPoints.length < 2) return controlPoints.length === 0 ? [] : [[{ ...controlPoints[0] }]];
+  return bSplineToBezierInternal(controlPoints, degreeIn).segments;
+}
+
 /**
  * v377: 'B4' (lazer 内存扩展 B 样条) -> stable 兼容 'B' 控制点列, 锚点尽量少 (soulten: 红锚点分段不好改)。
  * 双候选取锚点少者: Schneider/Graphics Gems FitCurve 容差拟合 (光滑笔迹锚点远少于精确转换)

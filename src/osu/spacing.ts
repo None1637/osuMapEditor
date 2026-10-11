@@ -1,26 +1,30 @@
 // 选中物件的坐标与前后间距信息 (右上角面板用, 纯函数可单测)
-// 间距单位 = 锁定间距 (DistanceSpacing) 的 "x": 1x = distanceSpacing * 100 * SliderMultiplier * SV * 间隔拍数 (osu px),
-// v149: 与当前 SV 挂钩 (lazer EditorBeatmap.DurationToDistance: 参考时刻 = 前件结束时刻),
-// 与 EditorCanvas.snapPlacement 的放置距离公式一致 (锁定间距放置的物件 Prev 恰为 1.00x)
+// v397: 间距倍率的 1x 基准固定 = 1.0x 锁定间距 (100 * SliderMultiplier * SV * 间隔拍数, 不含当前 DS 设置) —
+//   面板显示的 前/后位置距离不再随间距控制 (DistanceSpacing) 变化 (soulten 反馈);
+//   放置用的锁定间距 (distanceLockDistance) 仍含 DS, 互不影响。
+// v149: 与当前 SV 挂钩 (lazer EditorBeatmap.DurationToDistance: 参考时刻 = 前件结束时刻)
 import type { Beatmap, HitObject } from './parser';
 import { timingAt, svPointAt } from './parser';
 import { hitObjectEndTime } from './lifecycle';
 import { stackedEndPosition, stackedStartPosition } from './followPoints';
 import { getSliderPath } from './sliderPath';
 
-/** v149: 锁定间距 1x 的每拍像素 = DS * 100 * SliderMultiplier * SV(refTime) (lazer DurationToDistance 同源) */
+/** v149: 锁定间距 1x 的每拍像素 = DS * 100 * SliderMultiplier * SV(refTime) (lazer DurationToDistance 同源; 放置用, 含 DS) */
 function distanceSnapPxPerBeat(bm: Beatmap, refTime: number): number {
   const green = svPointAt(bm.timingPoints, refTime);
   const sv = green && green.beatLength < 0 ? -100 / green.beatLength : 1;
   return bm.editor.distanceSpacing * 100 * bm.difficulty.sliderMultiplier * sv;
 }
 
-/** 像素距离 -> 锁定间距倍率; 间隔拍数 <= 0 (重叠/同时) 时无意义, 返回 null */
+/** 像素距离 -> 间距倍率; v397: 基准固定 1.0x (= 100 * SM * SV * 间隔拍数, 不含 DS 设置);
+ *  间隔拍数 <= 0 (重叠/同时) 时无意义, 返回 null */
 export function spacingMultiplier(bm: Beatmap, fromEndTime: number, toTime: number, distPx: number): number | null {
   const { red } = timingAt(bm.timingPoints, toTime);
   const beats = (toTime - fromEndTime) / red.beatLength;
-  if (beats <= 0 || bm.editor.distanceSpacing <= 0) return null;
-  return distPx / (distanceSnapPxPerBeat(bm, fromEndTime) * beats); // v149: 基准含 SM*SV (与放置公式同单位)
+  if (beats <= 0) return null;
+  const green = svPointAt(bm.timingPoints, fromEndTime); // v149: SV 参考时刻 = 前件结束时刻
+  const sv = green && green.beatLength < 0 ? -100 / green.beatLength : 1;
+  return distPx / (100 * bm.difficulty.sliderMultiplier * sv * beats);
 }
 
 export interface SelectionSpacingInfo {

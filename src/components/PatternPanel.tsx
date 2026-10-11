@@ -59,9 +59,15 @@ export function PatternPanel() {
             <Star className="inline-block w-3.5 h-3.5 mr-0.5 -mt-0.5 fill-current" />{t('pattern.bookmark_selected', 'Bookmark Selected ({n})', { n: store.selected.size })}
           </button>
         </div>
-        <div className="flex items-center gap-3 text-white/70">
+        <div className="flex items-center gap-3 text-white/70 flex-wrap">
           {alignBox('greenline', t('pattern.align_greenline', 'Inherited Point Align'), t('pattern.align_greenline_hint', 'Insert an inherited timing point at the start of the pattern to change SV to match the speed when bookmarked, and one at the end to restore SV'))}
           {alignBox('scale', t('pattern.align_scale', 'Scale Slider Align'), t('pattern.align_scale_hint', 'Geometrically scale sliders so a slider that occupied one beat when bookmarked still occupies one beat after being dragged out'))}
+          {/* v393: 不记录物件音效 */}
+          <label className="flex items-center gap-1 cursor-pointer select-none" title={t('pattern.no_hitsound_hint', 'Bookmarked patterns keep no hit sounds or custom samples; placed objects use the default hitsound')}>
+            <input type="checkbox" checked={store.patternNoHitsound} data-pattern-nohitsound
+              onChange={e => store.setPatternNoHitsound(e.target.checked)} />
+            {t('pattern.no_hitsound', 'No Hitsounds')}
+          </label>
         </div>
         <div className="flex gap-2.5">
           {/* 分类侧栏 */}

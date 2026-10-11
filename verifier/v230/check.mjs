@@ -26,10 +26,10 @@ function readSrc(rel) { return fs.readFileSync(path.join(root, rel), 'utf8'); }
 await import('file://' + out); // 行为断言 (内部自报 V230_TESTS_*)
 fs.unlinkSync(out);
 
-section('stream.ts: 段末采样仅作用 expo');
+section('stream.ts: 采样点策略 (v398: 镜像=段中点保对称, 非镜像=段末端点语义)');
 {
   const src = readSrc('src/osu/convert/stream.ts');
-  assert(/p\.curve === 'expo' \? \(j \+ 1\) \/ \(n - 1\) : \(j \+ 0\.5\) \/ \(n - 1\)/.test(src), 'expo 段末采样, 其他曲线保持段中点');
+  assert(/\(j \+ \(p\.mirrorRepeat \? 0\.5 : 1\)\) \/ \(n - 1\)/.test(src), 'v398: 镜像段中点 / 非镜像段末采样');
 }
 
 if (failures) { console.error(`\nV230_FAILED: ${failures} 处失败`); process.exit(1); }

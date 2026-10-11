@@ -152,6 +152,7 @@ export type ElectronMenuCommand =
   | { type: 'compose-stream' }
   | { type: 'compose-merge' }
   | { type: 'compose-sym-slider' } // v236: 对称滑条 (恰好选中 1 个滑条时可用)
+  | { type: 'compose-convert-b4' } // v387: B4 全图转贝塞尔 (stable 兼容)
   // ---- v386: 设置菜单 — editorPrefs 勾选开关 (翻转, 状态经 menuEditorPrefsState 回报主进程重建勾选) ----
   | { type: 'settings-toggle-editor-pref'; key: 'dragAdjustNumbers' | 'moveDeadzone2px' };
 

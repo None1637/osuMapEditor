@@ -35,7 +35,7 @@ section('main.cjs: 作图菜单');
   // v346 i18n 适配: 菜单 label 走 mT("menu.*"), 中文译文在 main.cjs 菜单词典
   assert(/label: mT\("menu\.compose"\)/.test(src) && /"menu\.compose": \{[^}]*"zh-CN": "作图"/.test(src), '作图菜单存在');
   assert(src.includes('e2("compose-polygon", mT("menu.polygon"), "CmdOrCtrl+Shift+D", editState.hasMap)') && /"menu\.polygon": \{[^}]*"zh-CN": "多边形生成\.\.\."/.test(src), '多边形生成: 快捷键仅显示, 按谱面加载置灰');
-  assert(src.includes('e2("compose-stream", mT("menu.stream"), null, editState.hasSlider)') && /"menu\.stream": \{[^}]*"zh-CN": "滑条转连打\.\.\."/.test(src), '滑条转连打: 按选中含滑条置灰');
+  assert(src.includes('e2("compose-stream", mT("menu.stream"), "CmdOrCtrl+Shift+F", editState.hasSlider)') && /"menu\.stream": \{[^}]*"zh-CN": "滑条转连打\.\.\."/.test(src), '滑条转连打: 按选中含滑条置灰 (v396: 默认快捷键 Ctrl+Shift+F)');
   assert(src.includes('e2("compose-merge", mT("menu.merge"), null, editState.selMulti)') && /"menu\.merge": \{[^}]*"zh-CN": "合并滑条"/.test(src), '合并滑条: 按选中>=2 置灰');
   assert(/hasSlider: !!s\?\.hasSlider, selMulti: !!s\?\.selMulti/.test(src), 'edit-menu-state 接收新字段');
 }

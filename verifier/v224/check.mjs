@@ -19,22 +19,23 @@ section('App.tsx: PanNumInput grow 属性');
   assert(/\$\{grow \? 'flex-1' : 'w-12'\}/.test(src), 'grow 时输入框弹性占满');
 }
 
-section('App.tsx: 开关半宽 + 缩放同行');
+section('App.tsx: 开关半宽 + 缩放同行 (v391 修订: 开关独占一行, 缩放/旋转下一行)');
 {
   const src = readSrc('src/App.tsx');
-  assert(/data-pan-input="toggle"\s*\n?\s*className=\{`flex-1 min-w-0 text-left/.test(src), '开关按钮 flex-1 (约半宽, 不再 w-full)');
-  assert(!/data-pan-input="toggle"\s*\n?\s*className=\{`w-full/.test(src), '开关不再整行宽');
+  // v391 适配: 加旋转输入后开关恢复整行宽 (撤销 v224 的 flex-1 半宽同行), 缩放/旋转平分下一行
+  assert(/data-pan-input="toggle"\s*\n?\s*className=\{`w-full/.test(src), '开关按钮整行宽 (v391: 独占一行)');
+  assert(/<PanNumInput label="Rot" labelKey="app\.playfield_rot" grow/.test(src), '旋转输入框 (v391 新增, 与缩放平分一行)');
   // v346 i18n: 缩放输入框 label 改英文原文 'Zoom' + labelKey 'app.playfield_zoom'
-  assert(/<\/button>\s*\n\s*(?:\{[^\n]*\n\s*)?<PanNumInput label="Zoom" labelKey="app\.playfield_zoom"/.test(src), '缩放输入框紧跟开关按钮 (同一 flex 行)');
   // v367 修订: 缩放精细度 ×10 — 步进 0.1→0.01, 显示 2 位→3 位小数 (注明有意变更)
-  assert(/label="Zoom" labelKey="app\.playfield_zoom" value=\{Math\.round\(store\.playfieldScale \* 1000\) \/ 1000\} step=\{0\.01\} min=\{0\.1\} max=\{10\} digits=\{3\}/.test(src), '缩放 = 原 scale 输入 (倍率, 钳 0.1..10; v367: 步进 0.01 + 3 位小数)');
+  // v391 修订: 缩放带 grow 移到旋转同行 (不再跟开关同行)
+  assert(/label="Zoom" labelKey="app\.playfield_zoom" grow value=\{Math\.round\(store\.playfieldScale \* 1000\) \/ 1000\} step=\{0\.01\} min=\{0\.1\} max=\{10\} digits=\{3\}/.test(src), '缩放 = 原 scale 输入 (倍率, 钳 0.1..10; v367: 步进 0.01 + 3 位小数; v391: grow 与旋转同行)');
 }
 
 section('App.tsx: x/y 平分一行');
 {
   const src = readSrc('src/App.tsx');
   assert(/<PanNumInput label="x" grow /.test(src) && /<PanNumInput label="y" grow /.test(src), 'x/y 均带 grow (平分行宽)');
-  assert(!/<PanNumInput label="Zoom" grow/.test(src), '缩放不 grow (固定宽, 在开关行)');
+  assert(/<PanNumInput label="Zoom" labelKey="app\.playfield_zoom" grow/.test(src), 'v391: 缩放带 grow 与旋转平分一行 (原「不 grow」断言撤销)');
 }
 
 if (failures) { console.error(`V224 FAILED: ${failures}`); process.exit(1); }

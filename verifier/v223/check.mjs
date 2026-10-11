@@ -25,12 +25,12 @@ section('EditorCanvas.tsx: playfieldTransform 叠加变换');
 {
   const src = readSrc('src/components/EditorCanvas.tsx');
   assert(/function playfieldTransform\(/.test(src), '导出 playfieldTransform 包装');
-  assert(/if \(!store\.playfieldPanEnabled \|\| !\(s > 0\)\) return base;/.test(src), '关闭/非法倍率时退回适配视图');
+  assert(/if \(!store\.playfieldPanEnabled \|\| !\(s > 0\)\) return \{ \.\.\.base, rot: 0 \};/.test(src), '关闭/非法倍率时退回适配视图 (v391: 带 rot=0)');
   assert(/scale: base\.scale \* s,/.test(src), '缩放倍率叠乘');
   assert(/ox: base\.ox \+ base\.scale \* store\.playfieldPanX,/.test(src), 'x 偏移按基础适配 scale 换算 (osu px)');
   assert(/oy: base\.oy \+ base\.scale \* store\.playfieldPanY,/.test(src), 'y 偏移同上');
   const n = (src.match(/playfieldTransform\(/g) ?? []).length;
-  assert(n === 8, `渲染/命中/toOsu/__osuToClient/__osuToCanvas/容差共用 (定义 1 + 调用 7; 实际 ${n})`);
+  assert(n === 11, `渲染/命中/toOsu/__osuToClient/__osuToCanvas/容差共用 (实际 ${n}; v391: 旋转锚定 +1 及历史漂移适配)`);
   assert(!/const \{ scale, ox, oy \} = viewTransform\(r\);/.test(src), '调用点不再绕过平移/缩放');
 }
 
@@ -58,7 +58,8 @@ section('App.tsx: 左侧栏开关 + x/y/scale 输入框');
   assert(/<PanNumInput label="x"/.test(src) && /<PanNumInput label="y"/.test(src) && /<PanNumInput label="Zoom" labelKey="app\.playfield_zoom"/.test(src), 'x/y/缩放 三个输入框 (v224: scale 改名缩放; v346: 缩放走 i18n key app.playfield_zoom)');
   assert(/'app\.playfield_zoom': '缩放'/.test(dict), '词典 app.playfield_zoom 译文 = 缩放');
   assert(/min=\{0\.1\} max=\{10\}/.test(src), 'scale 钳 0.1..10');
-  assert(/value=\{text \?\? String\(value\)\}/.test(src) && /onBlur=\{\(\) => setText\(null\)\}/.test(src), '局部文本态: 拖动中实时刷新, 失焦还原');
+  // v391 适配: v367 起非聚焦显示走 digits 格式化 (原断言 value={text ?? String(value)} 已漂移)
+  assert(/value=\{text \?\? \(digits !== undefined \? value\.toFixed\(digits\) : String\(value\)\)\}/.test(src) && /onBlur=\{\(\) => setText\(null\)\}/.test(src), '局部文本态: 拖动中实时刷新, 失焦还原');
 }
 
 if (failures) { console.error(`V223 FAILED: ${failures}`); process.exit(1); }

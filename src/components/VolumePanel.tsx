@@ -2,7 +2,7 @@
 import { store, useEditor } from '@/osu/store';
 import { volumeSettings, type VolumeSettings } from '@/osu/volumeSettings';
 import { useT } from '@/i18n';
-import { DraggableDialog } from './DraggableDialog';
+import { DraggableDialog, ClickPct } from './DraggableDialog'; // v389: ClickPct = 点击 % 数变输入框
 
 const ROWS: { key: keyof VolumeSettings; i18n: string; name: string; desc: string }[] = [
   { key: 'master', i18n: 'master', name: 'Master', desc: 'Affects both music and effects' },
@@ -26,9 +26,7 @@ export function VolumePanel() {
               data-volume-slider={r.key}
               onChange={e => store.setVolume(r.key, parseInt(e.target.value))}
               className="flex-1 accent-sky-500" />
-            <div className="w-10 text-right text-xs text-white/70 tabular-nums" data-volume-value={r.key}>
-              {volumeSettings[r.key]}%
-            </div>
+            <ClickPct value={volumeSettings[r.key]} set={v => store.setVolume(r.key, v)} testid={r.key} />{/* v389: 点击 % 数变输入框直接打数字 */}
           </div>
         ))}
         <div className="text-[10px] text-white/35 pt-1 border-t border-white/10">

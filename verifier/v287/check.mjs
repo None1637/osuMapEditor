@@ -55,7 +55,10 @@ assert(/time > session\.lastEnd \+ 1500/.test(ov), '谱面结束延迟自动退�
 assert(/matchesHotkey\(e, 'test-hit-1'\) \|\| matchesHotkey\(e, 'test-hit-2'\)/.test(ov), 'Z/X 击打键 (v288: 注册表可改键)');
 
 const app = readSrc('src/App.tsx');
-assert(/data-testplay-btn/.test(app), '页签栏测试游玩按钮');
+// v390 适配: 测试游玩按钮从页签栏挪到底栏右下角 (BottomTimeline), App 改传 onTestPlay
+assert(/onTestPlay=\{\(\) => setTestPlay\(true\)\}/.test(app), 'App 传 onTestPlay 给底栏 (v390)');
+const tl = readSrc('src/components/Timelines.tsx');
+assert(/data-testplay-btn/.test(tl) && /onTestPlay/.test(tl), '底栏右下角测试游玩按钮 (v390)');
 assert(/showLibrary \|\| showSkin \|\| testPlay\) return/.test(app), '全局热键门控含 testPlay');
 assert(/testPlayRef\.current\) return/.test(app), '菜单命令门控 (F6 等不打断游玩)');
 assert(/\{testPlay && <TestPlayOverlay/.test(app), 'App 挂载覆盖层');

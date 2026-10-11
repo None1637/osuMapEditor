@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Pause, Play, Square, X } from 'lucide-react'; // v181: ▶/⏸/⏹/✕ → lucide (v221: 删 ⏮/⏭)
+import { Pause, Play, X } from 'lucide-react'; // v181: ▶/⏸/✕ → lucide (v221: 删 ⏮/⏭; v390: 删 ⏹ 回到开头)
 import { store, useEditor, usePlaybackFrame } from '@/osu/store';
 import { timingAt, sliderVelocityAt, snapAcrossRedLine, stableTimestamp, type TimingPoint, type Beatmap, type HitObject } from '@/osu/parser'; // v322: stableTimestamp (F27 跳转时间)
 import { computeCombos, comboColor, invalidatePath, mergedWithPreview, objectEndAt } from '@/osu/renderer';
@@ -24,10 +24,7 @@ import {
 } from '@/osu/timelinePills';
 import { useT } from '@/i18n';
 
-function fmt(ms: number) {
-  const m = Math.floor(ms / 60000), s = Math.floor((ms % 60000) / 1000), mm = Math.floor(ms % 1000);
-  return `${m}:${String(s).padStart(2, '0')}.${String(mm).padStart(3, '0')}`;
-}
+// v390: fmt 删除 — 底栏时间显示改用 stableTimestamp (mm:ss:fff, lazer 布局)
 
 /** v322 (F27): stable Jump to time 解析 — "mm:ss:ms" (分钟可省 = ss:ms; ms 分隔符 : 或 . 均可);
  *  v335: 支持纯毫秒数字 (stable 可打数字不用冒号, 如 "126666" -> 02:06:666); 非法返回 null */
@@ -1090,7 +1087,7 @@ export function TopTimeline() {
 }
 
 // 下方全局时间轴 + 播放控制
-export function BottomTimeline() {
+export function BottomTimeline({ onTestPlay }: { onTestPlay: () => void }) { // v390: 测试游玩按钮挪入底栏右下角 (lazer 布局)
   const t = useT();
   useEditor();
   usePlaybackFrame(); // v252: 播放中逐帧刷新左下角时间/百分比 (播放帧只 bump playbackFrameVersion, 不走 useEditor 的主 version, 原实现播放中时间静止不动)
@@ -1276,16 +1273,21 @@ export function BottomTimeline() {
     return true;
   };
 
+  // v390: 当前时间的 BPM (当前生效红线 60000/beatLength, 取整; 无谱面不显示) — lazer 底栏左侧同款
+  const bmNow = store.beatmap;
+  const bpmNow = bmNow ? Math.round(60000 / timingAt(bmNow.timingPoints, store.currentTime).red.beatLength) : null;
+
   return (
     <div className="flex items-stretch gap-2 h-20 px-2 py-1.5" style={{ background: 'rgba(21,21,32,0.1)' }}>{/* v129: 背景半透明; v271: 0.4→0.25; v272: →0.1 (仍遮挡物件); v284: 固定 (开关移除) */}
-      {/* v155: 左侧当前时间 + 进度百分比 (stable 底部时间轴样式; 原右侧时间显示移到此处) */}
-      <div className="flex flex-col justify-center shrink-0 font-mono text-xs leading-4 select-none w-24" data-bottom-time>
+      {/* v155: 左侧当前时间 + 进度百分比 (stable 底部时间轴样式; 原右侧时间显示移到此处);
+          v390: lazer 底栏布局 — 大号时间 (stableTimestamp mm:ss:fff), 下方紫色进度% + 黄色当前 BPM */}
+      <div className="flex flex-col justify-center shrink-0 font-mono text-xs leading-4 select-none w-fit min-w-24" data-bottom-time>{/* v390-4: 容器宽随时间文字收缩 (w-fit), 下行 justify-between 的 BPM 右缘 = 时间右缘 (原固定 w-28 比文字宽, 差值全在右缘) */}
         {/* v322 (F27): 点击时间 → stable Jump to time 输入框 (Enter 跳转 / Esc·失焦关闭; 打开即全选, 可直接 Ctrl+C 复制 "mm:ss:ms");
             v335: 支持纯 ms 数字; 粘贴复制的物件文本 (lazer/stable 两种格式) → 跳转起始时间并选中对应物件 */}
         {jump === null ? (
-          <span className="text-white/85 cursor-pointer hover:text-cyan-300" data-jump-open
+          <span className="text-white/85 text-xl font-bold leading-6 cursor-pointer hover:text-cyan-300" data-jump-open
             title={t('timeline.jump_title', 'Click to enter a time to jump to (mm:ss:ms or plain milliseconds); you can also paste copied object text to jump to its start time and select the objects')}
-            onClick={() => setJump(stableTimestamp(store.currentTime))}>{fmt(store.currentTime)}</span>
+            onClick={() => setJump(stableTimestamp(store.currentTime))}>{stableTimestamp(store.currentTime)}</span>
         ) : (
           <input autoFocus data-jump-input value={jump}
             className="w-24 -ml-1 bg-black/60 border border-cyan-400/50 rounded px-1 text-cyan-200 font-mono text-xs outline-none"
@@ -1304,7 +1306,10 @@ export function BottomTimeline() {
               else if (e.key === 'Escape') setJump(null);
             }} />
         )}
-        <span className="text-white/45">{store.songLength() > 0 ? (store.currentTime / store.songLength() * 100).toFixed(1) : '0.0'}%</span>
+        <div className="flex items-center justify-between w-full text-[11px]">{/* v390-3: BPM 右缘对齐上方时间右缘 (% 居左, BPM 居右) */}
+          <span className="text-purple-400">{store.songLength() > 0 ? Math.round(store.currentTime / store.songLength() * 100) : 0}%</span>{/* v390-2: 整数百分比 (对齐 lazer 截图) */}
+          {bpmNow !== null && <span className="text-yellow-400 font-bold" data-bottom-bpm>{bpmNow} BPM</span>}{/* v390: 当前时间 BPM */}
+        </div>
       </div>
       <canvas ref={ref} className="flex-1 cursor-pointer rounded border border-white/10"
         onMouseDown={(e) => { if (!store.canvasDragging) seekFromEvent(e); }} // 画布拖拽经过时不 seek
@@ -1313,29 +1318,37 @@ export function BottomTimeline() {
           // v193: 滚轮走 store.wheelSeek (与游玩区/上时间轴同一入口; 原为固定 len/40 与细分无关, v179 起网格步进)
           store.wheelSeek(e.deltaY, e.deltaMode);
         }} />
-      <div className="flex items-center gap-1.5 shrink-0">
+      <div className="flex items-stretch gap-2 shrink-0">
+        {/* v390: lazer 底栏布局 — 圆形播放钮在倍速左侧; 「回到开头」按钮删除 (v1338 原 Square 钮);
+            v256 低调配色意图保留 (非亮色填充) */}
+        <button onClick={() => store.togglePlay()} className="self-center w-9 h-9 rounded-full border-2 border-white/70 hover:border-white hover:bg-white/10 flex items-center justify-center text-white" title={t('timeline.play_title', 'Space')}>
+          {store.playing ? <Pause className="w-4 h-4" fill="currentColor" /> : <Play className="w-4 h-4 ml-0.5" fill="currentColor" />}
+        </button>
         {/* 倍速 (编辑器右侧栏, 25/50/75/100%, 激活加粗)
             v385: 编辑器倍速固定变速不变调 (signalsmith-stretch 保时音高拉伸,
             对齐 lazer 编辑器 PlaybackControl Tempo 语义); v382 的 sinc 变调引擎
             保留给测试游玩 DT/HT (Frequency 语义, 无编辑器 UI 入口) */}
-        <div className="flex flex-col items-center gap-0.5 px-1" title={t('timeline.speed_title', 'Playback speed (tempo-preserving stretch, lazer-editor-like)')}>
-          <span className="text-[10px] text-white/40 leading-3">{t('timeline.speed_label', 'Speed')}</span>
-          <div className="flex rounded overflow-hidden border border-white/10">
+        {/* v390-2: 倍速控件对齐 lazer 截图 — 无边框纯文本页签 (激活白色加粗, 其余半透);
+            v390-3: 标签「播放速度」左缘与下方 25% 页签左缘对齐 (items-start) */}
+        <div className="flex flex-col items-start justify-center gap-1 px-2" title={t('timeline.speed_title', 'Playback speed (tempo-preserving stretch, lazer-editor-like)')}>
+          <span className="text-[10px] text-white/45 leading-3">{t('timeline.speed_label', 'Speed')}</span>
+          <div className="flex items-baseline gap-3">
             {[0.25, 0.5, 0.75, 1].map(v => (
               <button key={v} data-speed-input={v} onClick={() => store.setRate(v)}
-                className={`px-1.5 py-0.5 text-[11px] ${store.playbackRate === v
-                  ? 'font-bold text-white bg-white/15'
-                  : 'text-white/50 hover:text-white/85 bg-transparent'}`}>
+                className={`text-[12px] ${store.playbackRate === v
+                  ? 'font-bold text-white'
+                  : 'text-white/45 hover:text-white/85'}`}>
                 {v * 100}%
               </button>
             ))}
           </div>
         </div>
-        {/* v256: 播放按钮改低调配色 (原亮粉色在深色底栏过于刺眼), 与旁边回到开头按钮一致 */}
-        <button onClick={() => store.togglePlay()} className="px-3 py-1.5 rounded bg-white/10 hover:bg-white/20 text-white text-sm font-bold w-12 flex items-center justify-center" title={t('timeline.play_title', 'Space')}>
-          {store.playing ? <Pause className="w-4 h-4" fill="currentColor" /> : <Play className="w-4 h-4" fill="currentColor" />}
+        {/* v390: 测试游玩按钮挪到右下角 (lazer 黄色全高按钮; 原在页签栏, F5 快捷键不变) */}
+        <button onClick={onTestPlay} data-testplay-btn
+          className="self-stretch px-6 flex items-center bg-yellow-400 hover:bg-yellow-300 text-black text-base font-bold rounded-sm"
+          title={t('app.test_play_title', 'Test play (F5): play the beatmap from 3s before the current time, Esc returns to the editor')}>
+          {t('app.test_play', 'Test Play')}
         </button>
-        <button onClick={() => { store.pause(); store.seek(0); }} className="px-2 py-1.5 rounded bg-white/10 hover:bg-white/20 text-white text-sm flex items-center" title={t('timeline.back_to_start_title', 'Back to Start')}><Square className="w-4 h-4" fill="currentColor" /></button>
       </div>
     </div>
   );

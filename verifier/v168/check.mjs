@@ -45,7 +45,8 @@ section('DisplayPanel.tsx: 亮度滑条行');
   const src = readSrc('src/components/DisplayPanel.tsx');
   assert(/data-display-slider="bgBrightness"/.test(src), '滑条行存在');
   assert(/store\.setDisplayNumber\('bgBrightness', parseInt\(e\.target\.value\)\)/.test(src), '滑条 onChange 接线');
-  assert(/data-display-value="bgBrightness"/.test(src) && /\{displaySettings\.bgBrightness\}%/.test(src), '百分比文本');
+  // v389 适配: 百分比文本改 ClickPct 组件 (点击变输入框), 属性 data-pct-display
+  assert(/<ClickPct value=\{displaySettings\.bgBrightness\} set=\{v => store\.setDisplayNumber\('bgBrightness', v\)\} testid="bgBrightness"/.test(src), '百分比文本 (v389: ClickPct 点击可输入)');
   assert(/const ROWS: \{ key: BoolDisplayKey;/.test(src), '开关行用 BoolDisplayKey (数值项独立成行)');
 }
 

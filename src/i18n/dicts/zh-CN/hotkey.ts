@@ -26,6 +26,7 @@ export const zhCN: Record<string, string> = {
   'hotkey.action.open_rotate': '旋转窗口',
   'hotkey.action.open_scale': '缩放窗口',
   'hotkey.action.polygon': '多边形生成',
+  'hotkey.action.stream': '滑条转连打窗口', // v396
   'hotkey.action.hs_newcombo': '新Combo (放置预设/选中切换)',
   'hotkey.action.hs_whistle': 'Whistle (放置预设/选中切换)',
   'hotkey.action.hs_finish': 'Finish (放置预设/选中切换)',

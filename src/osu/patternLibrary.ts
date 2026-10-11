@@ -84,7 +84,9 @@ export function svAt(points: TimingPoint[], time: number): number {
 
 // ---- 收藏: 选中物件 -> pattern ----
 
-export function makePattern(id: string, name: string, bm: Beatmap, objects: HitObject[], group: string = DEFAULT_GROUP): StoredPattern {
+// v393: opts.noHitsound = 不记录物件音效 (hitSound 归零 + 不存采样/边音效原文; newCombo 仍记录)
+export function makePattern(id: string, name: string, bm: Beatmap, objects: HitObject[], group: string = DEFAULT_GROUP,
+  opts: { noHitsound?: boolean } = {}): StoredPattern {
   const sorted = [...objects].sort((a, b) => a.time - b.time || a.id - b.id);
   const first = sorted[0];
   const tps = bm.timingPoints, mult = bm.difficulty.sliderMultiplier;
@@ -94,8 +96,11 @@ export function makePattern(id: string, name: string, bm: Beatmap, objects: HitO
       type: o.type,
       beatOffset: beatTimeAt(tps, o.time) - startBeat,
       dx: o.x - first.x, dy: o.y - first.y,
-      hitSound: o.hitSound ?? 0, newCombo: o.newCombo ?? false, comboSkip: o.comboSkip ?? 0,
-      hitSampleRaw: o.hitSampleRaw, edgeSoundsRaw: o.edgeSoundsRaw, edgeSetsRaw: o.edgeSetsRaw,
+      hitSound: opts.noHitsound ? 0 : (o.hitSound ?? 0),
+      newCombo: o.newCombo ?? false, comboSkip: o.comboSkip ?? 0,
+      hitSampleRaw: opts.noHitsound ? undefined : o.hitSampleRaw,
+      edgeSoundsRaw: opts.noHitsound ? undefined : o.edgeSoundsRaw,
+      edgeSetsRaw: opts.noHitsound ? undefined : o.edgeSetsRaw,
     };
     if (o.type === 'slider') {
       base.curveType = o.curveType;

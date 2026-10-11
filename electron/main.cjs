@@ -1,7 +1,7 @@
 // Electron 主进程: 独立窗口 + 内嵌 HTTP 服务器 (静态 dist + /api/local-fs/*)
 // 配置存 <userData>/settings.json: { osuPath, songsDir, skinDir }
 // 首跑由渲染进程向导驱动 (IPC: get-settings / pick-osu-dir / list-skin-dirs / save-settings)
-const { app, BrowserWindow, Menu, dialog, ipcMain, shell } = require("electron")
+const { app, BrowserWindow, Menu, dialog, ipcMain, shell, screen } = require("electron")
 const fs = require("node:fs")
 const path = require("node:path")
 const http = require("node:http")
@@ -175,9 +175,25 @@ async function createWindow() {
   // v279: Windows 上 titleBarStyle:'hidden' (WCO) 会连带隐藏应用菜单栏, 且
   // autoHideMenuBar:false + setMenuBarVisibility(true) 实测均不渲染 → 菜单栏改应用内自绘 (见 v280)
   const frameless = !!readSettings().hideTitleBar
+  // v392: 验证器窗口让位 — OSU_VERIFIER=1 (verifier/_lib/env.mjs launchIsolatedElectron 注入) 且
+  //   多屏时窗口初始位置放到非主屏 workArea 中央, 不占用主屏 (单屏/非验证器运行行为不变)
+  let verifierPos = null
+  if (process.env.OSU_VERIFIER === "1") {
+    try {
+      const primary = screen.getPrimaryDisplay()
+      const secondary = screen.getAllDisplays().find((d) => d.id !== primary.id)
+      if (secondary) {
+        verifierPos = {
+          x: secondary.workArea.x + Math.max(0, Math.round((secondary.workArea.width - 1440) / 2)),
+          y: secondary.workArea.y + Math.max(0, Math.round((secondary.workArea.height - 900) / 2)),
+        }
+      }
+    } catch { /* screen 不可用时按默认放置 */ }
+  }
   win = new BrowserWindow({
     width: 1440,
     height: 900,
+    ...(verifierPos ?? {}),
     backgroundColor: "#101016",
     // v281: 两种标题栏模式统一用应用内自绘菜单条 (MenuBar.tsx) — 原生菜单栏默认隐藏;
     // 原生菜单仍 setApplicationMenu (accelerator 全局快捷键保留, Alt 可临时呼出原生菜单)
@@ -385,6 +401,7 @@ const MENU_LABELS = {
   "menu.stream": { en: "Convert Slider to Stream...", "zh-CN": "滑条转连打...", "zh-TW": "滑條轉連打..." },
   "menu.merge": { en: "Merge Sliders", "zh-CN": "合并滑条", "zh-TW": "合併滑條" },
   "menu.sym_slider": { en: "Symmetrical Slider...", "zh-CN": "对称滑条...", "zh-TW": "對稱滑條..." },
+  "menu.convert_b4": { en: "Convert All B4 Sliders to Bezier", "zh-CN": "全部B4滑条转贝塞尔", "zh-TW": "全部B4滑條轉貝塞爾" }, // v387
   "menu.meter": { en: "Time Signature", "zh-CN": "节拍类型", "zh-TW": "節拍類型" },
   "menu.meter_common": { en: "4/4 (common)", "zh-CN": "4/4 (普通/四拍子)", "zh-TW": "4/4 (普通/四拍子)" },
   "menu.meter_waltz": { en: "3/4 (waltz)", "zh-CN": "3/4 (华尔兹/三拍子)", "zh-TW": "3/4 (華爾滋/三拍子)" },
@@ -528,9 +545,10 @@ function buildMenu() {
         })
         return [
           e2("compose-polygon", mT("menu.polygon"), "CmdOrCtrl+Shift+D", editState.hasMap),
-          e2("compose-stream", mT("menu.stream"), null, editState.hasSlider),
+          e2("compose-stream", mT("menu.stream"), "CmdOrCtrl+Shift+F", editState.hasSlider), // v396: 默认快捷键 (改键经 acc() 同步)
           e2("compose-merge", mT("menu.merge"), null, editState.selMulti),
           e2("compose-sym-slider", mT("menu.sym_slider"), null, editState.selSingleSlider), // v236
+          e2("compose-convert-b4", mT("menu.convert_b4"), null, editState.hasMap), // v387: B4 全图转贝塞尔 (无 B4 时渲染端 toast 提示)
         ]
       })(),
     },

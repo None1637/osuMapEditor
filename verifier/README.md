@@ -3904,3 +3904,192 @@
 - 回归适配: v381 check.mjs 的「设置面板通用区开关行」断言改为「HotkeyPanel 不含 + 主进程菜单含」
   (头部注明 v386 挪位), 行为断言不变。
 - 回归: v381/v383/v380/v385 串行全绿; tsc + vite build 通过。
+
+## v387 — 手绘滑条全面对齐 lazer: B4 恢复一等 curveType + stable 兼容警告/一键全图转贝塞尔
+- 起因: 用户要求手绘滑条逻辑完全照搬 lazer; 有 B4 的谱面提示不兼容 stable 并提供一键转换。
+  审计结论: bsplineBuilder.ts / freehandFit.tryCircleArc 已是 lazer 忠实移植, 偏差在蓝图层/存储层。
+- 改动:
+  - src/osu/parser.ts: 撤销 v377 读入 'B<n>' 即转 'B' 与落盘兜底 — B4 读入/写回原样保留;
+    段内类型字母 token (lazer v128 逐段类型, 无 ':') 容错跳过。
+  - src/osu/sliderPath.ts: 新增 parseBSplineType; computeRawPath 恢复 'B<n>' 分支
+    (bsplineRawPath 上浮, 加 degree 参数); resolveSliderCurveType 保持 B4 (编辑锚点不冲掉类型)。
+  - src/components/EditorCanvas.tsx: finishFreehandSlider 非单弧落 'B4' (builder 控制点原样,
+    撤销 v377 的 bsplineToStableBezier 落盘); 手绘幽灵直接 'B4' 渲染 — 预览=落盘同形。
+  - src/osu/freehand/pathApproximator.ts: 新增 bSplineToBezierSegments (Boehm 段列)。
+  - src/osu/convert/bezierPath.ts: sliderToBezierSegments 加 B<n> Boehm 分支 (split/merge/stream/
+    sym 下游全通); convert/symSlider.ts: 拼接保持 'B4' (红锚点接缝 = B 样条分段, 形状无损)。
+  - src/osu/convert/convertB4.ts (新): countBSplineSliders / convertBSplineSlidersToBezier
+    (bsplineToStableBezier 双候选少锚点 + 取整; 对应 lazer LegacyBeatmapExporter.MutateBeatmap)。
+  - src/osu/store.ts: b4SliderCount getter + convertAllBSplineSliders (一次 undo + 2.6s toast)。
+  - UI: App.tsx 右侧栏顶部 B4 警告条 (data-b4-warning, count>0 显示) + 全部转贝塞尔按钮;
+    作图菜单 compose-convert-b4 (main.cjs MENU_LABELS 三语 + electronBridge 命令类型 +
+    electronMenu 分发); Inspector 下拉 B4 选项 (B<n> 按原 degree 显示) + 内联 stable 不可读提示。
+  - i18n: zh-CN app.b4_warning/app.b4_convert_all/convert.b4_none/convert.b4_converted/
+    inspector.curve_bspline/curve_bspline_hint。
+- 与 lazer 已知偏差 (单 curveType 模型): 多段笔画内弧段不逐段替换为 P (形状一致, 锚点略多);
+  批量转换用双候选 (更少锚点, <=1px) 而非纯 Boehm; 保存含 B4 不弹窗, 警告条常驻。
+- 验证: verifier/v387/check.mjs = 纯函数断言 (parseBSplineType / computeRawPath B4≡bsplineRawPath /
+  Boehm 往返零误差 / resolveSliderCurveType 保持 / parser B4 往返+字母容错 / convertB4 计数+形状偏差+取整 /
+  builder 冒烟) + 接线断言 (parser/sliderPath/EditorCanvas/convert/store/UI/i18n 全链路)。
+- 回归适配: v377 (前提反转: 读入/落盘转换撤销, B4 渲染恢复)、v66/v74/v363 (落盘/幽灵断言改 B4)、
+  v236 (symSlider 拼接 curveType 断言改 joinType) 均标注 v387 适配; v73/v75 不受影响。
+  v346: s2t.ts S2T_SAME 补 兼/警/告/挪/拉 五字 (简繁同形; 顺带覆盖 v386 遗留的 挪拉)。
+- 回归: tsc + vite build 通过; 受影响验证器 v66/v73/v74/v75/v236/v363/v377/v346 全绿。
+  全量回归另发现 ~24 个 HEAD 上即失败的陈旧验证器 (v15/v28/v40/v60/v82/v83/v95/v132/v163/v217 等,
+  经 HEAD worktree 基线对照确认非本次回归, 多为 v163/v365/v366 等旧改动后未适配), 未在本次范围内处理。
+
+## v388 — 数值框滚轮优先调值 (不滚背景) + 选中集 B4 一键转贝塞尔
+- 需求: (1) soulten 反馈右侧栏数值框上滚轮滚的是面板/背景, 无法连续调值 — 要求指针在数值框上时
+  滚轮优先改数值; (2) 选中物件含 B4 时 Inspector 加「转为贝塞尔」按钮 (v387 只有全图版)。
+- 改动:
+  - src/osu/numberWheel.ts (新): installNumberWheel — window 全局 wheel 监听 (冒泡阶段非 passive),
+    命中 input[type=number] (非 disabled/readOnly) 时 preventDefault 并按 step 属性加减
+    (缺省/any → 1; Shift×10 / Alt×0.1 与 DraftNum 同款倍率; 按 step 小数位取整防浮点漂移;
+    min/max 属性钳制), 原生 value setter + input 事件触发 React onChange (与 selectWheel v381 同款手法)。
+    挂冒泡阶段: DraftNum (v304) 自带的元素级滚轮处理先执行并 preventDefault, 本监听检查
+    e.defaultPrevented 跳过, 不重复加减; 改键捕获态 (hotkeyCaptureActive) 让位。
+  - src/App.tsx: 挂载 installNumberWheel (紧邻 installSelectWheelCycle)。
+  - src/osu/convert/convertB4.ts: convertBSplineSlidersToBezier 加可选 onlyIds: Set<number>
+    (缺省 = 全图, v387 行为不变)。
+  - src/osu/store.ts: convertSelectedBSplineSliders (选中无 B4 静默; 否则 pushUndo → 按选中集转换 →
+    选中物件 invalidatePath → 2.6s toast → emit; 原地改不换 id)。
+  - src/components/Inspector.tsx: SliderConvertButtons 加 selB4 过滤 + 「B 样条→贝塞尔 ({n} 条)」按钮
+    (data-conv-apply="b4toB"; 单选/多选转换区共用此组件, 两处自动生效)。
+  - i18n: zh-CN inspector.bspline_to_bezier (用字均在 s2t 表内, v346 断言通过)。
+- 验证: verifier/v388/check.mjs = 纯函数断言 (onlyIds 只转选中集/空集不动作/缺省全图兼容) +
+  接线断言 (numberWheel 全要点 + App 挂载 / convertB4.onlyIds / store / Inspector 按钮 / i18n)。
+- 回归: tsc + vite build 通过; v387/v346/v381/v377/v236 全绿。
+  v304 在此环境失败为历史遗留 (esbuild CLI 无法打 store.ts 传递依赖的 ?raw 导入, HEAD 上同样失败,
+  与本次无关)。
+
+## v389 — 滑条右侧 % 数值点击变输入框 (音量设置 / 背景亮度)
+- 需求: soulten 反馈音量窗口最右边的 % 数应该可以打数字调整; 同款滑条 (显示设置背景亮度) 一并支持。
+- 改动:
+  - src/components/DraggableDialog.tsx: 新增共享组件 ClickPct — 平时显示「n%」按钮 (data-pct-display),
+    点击变 input[type=number] (data-pct-input, autoFocus 全选); 键入实时生效 (0..100 取整钳制),
+    Enter/失焦关闭, Esc 恢复编辑前的值; 滚轮调值由 v388 全局 numberWheel 自动覆盖。
+  - VolumePanel.tsx: 主/歌曲/音效三行换用 ClickPct (store.setVolume);
+    DisplayPanel.tsx: 背景亮度行换用 ClickPct (store.setDisplayNumber)。
+    旧 data-volume-value / data-display-value 属性移除。
+  - i18n: zh-CN panels.pct_click_edit (tooltip「点击直接输入数值」, 用字均在 s2t 表内)。
+- 验证: verifier/v389/check.mjs = 接线断言 (ClickPct 组件要点 / 两面板接线 / 旧属性移除 / i18n / v168 适配标注)。
+- 回归适配: v168 (百分比文本断言改 ClickPct 接线, 标注 v389)。
+- 回归: tsc + vite build 通过; v144/v168/v388/v346 全绿。
+
+## v390 — 底栏布局改 lazer 式: 大号时间+当前 BPM / 删「回到开头」/ 测试游玩挪右下角
+- 需求 (截图对齐): 左侧大号时间 + 紫色进度% + 黄色当前 BPM; 右侧圆形播放钮 → 倍速 → 黄色全高测试按钮;
+  删除「回到开头」按钮; 测试游玩按钮从页签栏挪到右下角; 各控件大小与截图对应。
+- 改动:
+  - src/components/Timelines.tsx (BottomTimeline):
+    - 左侧块: 时间改 stableTimestamp (mm:ss:fff 零垫, 与截图 04:13:315 同款) text-xl 粗体;
+      下方一行紫色进度% + 黄色 `{bpm} BPM` (data-bottom-bpm; 当前生效红线 60000/beatLength 取整,
+      timingAt 纯函数; 无谱面不显示); 宽度 w-24→w-28。点击时间跳转输入框 (v322/v335) 保留。
+      fmt() 删除 (无引用)。
+    - 右侧块: 顺序 = 圆形描边播放钮 (w-11 h-11 rounded-full border-2, 低调配色意图保留 v256)
+      → 倍速列 (标签+25/50/75/100%) → 黄色全高测试游玩按钮 (bg-yellow-400 黑字, self-stretch px-6,
+      data-testplay-btn); 「回到开头」按钮删除 (Square 图标导入移除; zh-CN timeline.back_to_start_title 键删除)。
+    - BottomTimeline 加 onTestPlay prop。
+  - src/App.tsx: 页签栏测试游玩按钮删除 (Play 图标导入移除), BottomTimeline 传 onTestPlay; F5 快捷键不变。
+- 验证: verifier/v390/check.mjs = 接线断言 (时间/BPM 块 / 控件顺序 / 回到开头移除 / 按钮挪位 / 适配标注)。
+- 回归适配: v287 (按钮位置断言改 App.onTestPlay + Timelines.data-testplay-btn)、v256 (低调配色断言改描边圆钮)、
+  v252 (签名提取正则适配 onTestPlay 参数) 均标注 v390; s2t.ts S2T_SAME 补 局 (布局, 简繁同形)。
+- 回归: tsc + vite build 通过; v155/v252/v256/v287/v346/v389/v390 全绿。
+- v390-2 (截图精修): 进度% 取整 (98%); 播放圆钮 w-9 h-9 (直径 ≈ 栏高 46%); 倍速控件去边框改纯文本页签
+  (激活白色加粗/其余 white/45, gap-3); v256/v390 断言同步适配。
+- v390-3 (用户复核回调): 时间字体改回 text-xl 粗体等宽 (v390-2 的 28px 细体不如原版); 下行改
+  justify-between — BPM 右缘与上方时间右缘对齐; 倍速标签文案「倍速」→「播放速度」且改 items-start
+  左对齐 25% 页签; s2t S2T_SAME 补 截 (截图)。
+- v390-4: 对齐仍偏差 — 根因是容器固定 w-28 比时间文字实际宽度大, 差值落在右缘; 改容器 w-fit
+  (min-w-24) 随时间文字收缩, justify-between 的 BPM 右缘即时间右缘, 与字体度量无关。
+
+## v391 — 游玩区平移加旋转 + 左侧栏布局 (开关独占行, 缩放/旋转下一行)
+- 需求: 游玩区平移功能加旋转; 游玩区平移按钮单独一行, 下一行放缩放和旋转。
+- 变换模型: screen = O + B·pan + B·s·F(x), F(x) = 绕游玩区中心 (256,192) 转 θ (最内层);
+  平移/缩放语义不变 (pan 在旋转外层, 中键拖动 1:1 跟随光标不受影响)。
+- 改动:
+  - src/osu/pfRotate.ts (新, 纯函数): pfRotFwd/pfRotInv (度, 绕中心; deg=0 原样返回)。
+  - src/osu/store.ts: playfieldRotation = 0 (视图辅助, 不入谱面, 关闭保留值)。
+  - src/components/EditorCanvas.tsx: playfieldTransform 返回 rot (关闭/非法倍率 → {...base, rot: 0});
+    渲染 scale 后最内层 translate(中心)→rotate→translate 回; toOsu 撤销旋转 (命中/放置仍在未旋转
+    osu 系, 全部交互逻辑零改动); __osuToClient/__osuToCanvas 先 pfRotFwd 再仿射;
+    Alt+滚轮缩放锚定补偿改用 F(p) (pan' = pan + (s0−s1)·F(p), rot=0 时退化为原式);
+    静态层缓存键加 m0.b/m0.c, 旋转时放弃紧凑裁剪改整画布 (旋转非常态, 带宽换正确性);
+    中键平移不变。选中框/手柄/网格/穿透链全部经 toOsu 或 ctx 变换, 自动正确。
+  - src/App.tsx: 平移按钮 w-full 独占一行 (撤销 v224 与缩放同行), 下一行 Zoom + Rot 两个
+    PanNumInput grow 平分 (Rot 步进 1, 1 位小数, 不钳范围), x/y 行不变。
+  - i18n: zh-CN app.playfield_rot = 旋转; playfield_pan_title 加旋转说明。
+- 验证: verifier/v391/check.mjs = 纯函数断言 (pfRotFwd/Inv: 零转角引用返回/中心不动点/90°/180°/
+  任意角往返) + 接线断言 (store/变换/渲染/toOsu/正变换×2/锚定补偿/静态层/UI/i18n/适配标注)。
+- 回归适配: v224 (开关整行宽 + 缩放 grow 与旋转同行, 原「同行/不 grow」断言撤销)、v229 (锚定补偿 p→fp)、
+  v367 (Zoom 正则加 grow)、v223 (return 形状 + 计数 11 + v367 漂移的 digits 断言一并适配)、
+  v217 (__osuToClient x→p.x) 均标注 v391。
+- 回归: tsc + vite build 通过; v223/v224/v229/v234/v330/v367/v378(CDP)/v245/v246/v346 全绿。
+  v378 CDP 段首跑 8 处失败、原样重跑全绿 = flaky (时序敏感), 非本次回归。
+  v217 残留 1 处失败 (Timelines e.clientX 穿透代码, HEAD 上即失败, v360/v378 引入) 未在本次范围处理。
+
+## v392 — CDP 测试窗口多屏让位 (不占主屏)
+- 需求: 多屏环境下跑验证器时弹出的编辑器窗口不要占用主屏。
+- 改动:
+  - verifier/_lib/env.mjs launchIsolatedElectron: spawn env 注入 OSU_VERIFIER=1
+    (42 个走共享 helper 的 CDP 验证器全覆盖; 更老的独立 launch 脚本不走 helper, 未覆盖)。
+  - electron/main.cjs createWindow: OSU_VERIFIER=1 且存在非主屏显示器时, 窗口初始位置 =
+    该屏 workArea 中央 (screen.getPrimaryDisplay/getAllDisplays); 单屏或正常运行 (无环境变量) 行为不变。
+- 验证: verifier/v392/check.mjs = 接线断言 (env 注入 / screen 引入 / 非主屏查找 / workArea 居中 / 构造传入)。
+
+## v393 — pattern 库「不记录物件音效」勾选框
+- 需求: pattern 库加勾选框, 勾选后收藏的 pattern 不记录物件音效 (hitSound/自定义采样/滑条边音效)。
+- 改动:
+  - patternLibrary.ts makePattern 加 opts { noHitsound }: 勾选时 hitSound 归零、hitSampleRaw/edgeSoundsRaw/edgeSetsRaw 不存;
+    newCombo/comboSkip/曲线数据不受影响 (不属于音效)。
+  - store: patternNoHitsound (默认 false) + setPatternNoHitsound, addPatternFromSelection 传入选项; 只影响新收藏, 已存 pattern 不变。
+  - PatternPanel.tsx: 对齐选项行追加勾选框 (data-pattern-nohitsound), 行加 flex-wrap 防挤压。
+  - zh-CN 词典: pattern.no_hitsound / no_hitsound_hint。
+- 验证: verifier/v393/check.mjs (纯函数: 默认记录/noHitsound 剥离/落盘默认音效 + 源码断言)。
+  回归: tsc + vite build + v86/v87/v346 全绿。
+
+## v394 — 手动改过曲线类型的滑条不再被节点编辑强制改型
+- 需求 (soulten): 在 L/C 模式放红点、或有红点时放白点会强制切换到贝塞尔; 手动改过的模式不要切换。
+  仅记录本次编辑, 不存档。
+- 改动:
+  - store.ts: manualCurveType: Set<number> (手动改过曲线类型的滑条 id) + markManualCurveType(id); load() 换谱清空。
+  - Inspector.tsx: 曲线类型下拉 onChange 先 markManualCurveType(o.id) 再 upd。
+  - EditorCanvas.tsx: applySliderPoints 对记录内的滑条跳过 resolveSliderCurveType (不再红点=>B / P≠3降级);
+    Ctrl 插点的 L→P 升级 (v240) 同样跳过。
+- 验证: verifier/v394 (纯函数守卫语义 + 源码断言); 适配 v240 (升级断言加守卫)。
+
+## v395 — 多边形生成不限制顶点超出游玩区
+- 需求 (soulten): 多边形顶点超出游玩区不再拦截 (原 lazer 同款「无法创建」)。
+- 改动: polygon.ts 移除出界提前返回 (outOfBounds 恒 false, 字段保留兼容); PolygonDialog 移除红色警告行;
+  zh-CN 词典删 convert.polygon_out_of_bounds; s2t S2T_SAME 补「照」。
+- 验证: verifier/v395 (源码断言 + 复用 v64 纯函数); 适配 v64 (出界段改断言照常生成, 出界源码断言反转)。
+
+## v396 — 滑条转连加快捷键 (默认 Ctrl+Shift+F)
+- 改动: hotkeys.ts 注册 stream 动作 (变换类, 默认 Ctrl+Shift+F, menuId compose-stream 可改键);
+  App.tsx keydown 派发 (选中集含滑条才开窗, 与菜单同规则); main.cjs compose-stream 菜单显示快捷键 (acc() 同步改键);
+  Inspector 滑条转连打按钮加 {key} 提示; zh-CN 词典 hotkey.action.stream / sliders_to_stream 加 {key}。
+- 验证: verifier/v396 (源码断言); 适配 v212 (菜单项断言接受新 accelerator)。
+
+## v397 — 面板前/后位置距离按 1.0x 间距基准 (不受间距控制影响)
+- 需求 (soulten): 右上角详细信息的前位置/后位置距离 (如 1.2x) 不再随当前 DistanceSpacing 变化, 固定按 1.0x 间距计算。
+- 改动: spacing.ts spacingMultiplier 基准 = distPx / (100 * SM * SV * 间隔拍数) (不含 DS; DS<=0 不再返回 null);
+  distanceSnapPxPerBeat / distanceLockDistance (锁定间距放置) 仍含 DS 不变。selectionSpacingInfo 与 previewSpacingInfo 同源生效。
+- 验证: verifier/v397 (纯函数: DS=1/2/0.5/0 同距离同倍率 + 放置基准不变 + 源码断言);
+  适配 v45 (DS=2 仍 0.714x + 公式断言)、v149 (DS=0 不再 null + check 公式断言)、v145 (公式断言)。
+- 回归: tsc + vite build 通过; v45/v55/v64/v65/v145/v149/v212/v240/v242/v286/v346 全绿。
+
+## v398 — 滑条转连打间距曲线重做 (自定义勾选 + 指数底数/倍率/重复+镜像)
+- 需求 (soulten): ①旧「指数」字段是幂指数不是底数, 用起来不像; ②UI 对齐批量复制弹窗风格:
+  不勾「自定义连打间距」= 普通固定间距; 勾选后出三项 — 指数底数 (预设 1 = 线性) /
+  倍率% (旧「变化到%」, 阈值放大到 2000%, 正反方向调节精度相同) / 重复次数 + 是否镜像重复。
+- 改动:
+  - stream.ts: StreamCurve 废弃; StreamParams 改 customSpacing/expoBase/rampPercent(1~2000)/repeats(1~16)/mirrorRepeat;
+    权重 streamSpacingWeight = 1+(k-1)·(B^ph-1)/(B-1) (B=1 线性, B>1 前慢后快, B<1 前快后慢; 相位按重复次数分段,
+    镜像时奇数段反向); migrateStreamParams 迁移遗留参数 (linear→底数1; expo→底数=旧指数值; bell→重复2+镜像;
+    bellInv→倍率 200-end+重复2+镜像; equal→固定间距)。采样: 非镜像段末 (v230 端点语义), 镜像段中点 (保对称)。
+  - StreamDialog.tsx: 曲线下拉框移除, 改自定义勾选框 (data-conv=custom-spacing), 勾选后三行
+    (testid=expo-base 0.01~100 step0.01 / ramp-percent 1~2000 / repeats 1~16 + data-conv=mirror-repeat)。
+  - zh-CN 词典: +stream_custom_spacing/stream_fixed_hint/stream_expo_base/stream_ramp_percent/stream_repeats/stream_mirror;
+    -curve_*/stream_end_percent/stream_exponent; s2t S2T_TABLE 补 旧→舊。
+- 验证: verifier/v398 (底数形状端点/单调性/重复镜像/迁移/固定间距 + 源码断言);
+  适配 v36/v40 (tests+check)/v41/v222 (重写)/v230 (tests+check)/v346 (动态域 curve_*→stream_*)。
+  回归: tsc + vite build + v36/v41/v222/v230/v346 全绿; v40 残留 1 处失败 (Ctrl+点击切换选中, HEAD 遗留非回归)。

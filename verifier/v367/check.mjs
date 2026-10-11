@@ -32,8 +32,8 @@ section('源码: 四处缩放框 step ÷10 + digits=3');
   const sym = read('src/components/convert/SymSliderDialog.tsx');
   assert(/testid="scalePerCopy" min=\{-0\.99\} max=\{5\} step=\{0\.005\} digits=\{3\}/.test(sym), 'SymSliderDialog 每份递增缩放: step÷10 + digits 3');
   const app = read('src/App.tsx');
-  assert(/label="Zoom" labelKey="app\.playfield_zoom" value=\{Math\.round\(store\.playfieldScale \* 1000\) \/ 1000\} step=\{0\.01\} min=\{0\.1\} max=\{10\} digits=\{3\}/.test(app),
-    '游玩区 Zoom: 取整×1000 + step 0.1→0.01 + digits 3');
+  assert(/label="Zoom" labelKey="app\.playfield_zoom" grow value=\{Math\.round\(store\.playfieldScale \* 1000\) \/ 1000\} step=\{0\.01\} min=\{0\.1\} max=\{10\} digits=\{3\}/.test(app),
+    '游玩区 Zoom: 取整×1000 + step 0.1→0.01 + digits 3 (v391: 加 grow 与旋转平分一行)');
 }
 
 section('源码: digits 显示机制 (DraftNum/PanNumInput), 非缩放框不动');

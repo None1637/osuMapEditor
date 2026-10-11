@@ -31,7 +31,8 @@ section('convert/polygon.ts: lazer 公式移植');
   assert(/100 \* sm \* lastSliderSv/.test(src), 'velocity = 100×SM×sv/beatLength (BASE_SCORING_DISTANCE×SliderMultiplier)');
   assert(/lastSliderSv/.test(src) && /end > time \+ 1e-6\) continue/.test(src), 'SV 取最近 endTime<=t 滑条 (lastWithSliderVelocity)');
   assert(/Math\.min\(10, Math\.max\(0\.01, sv\)\)/.test(src), 'SV clamp [0.01,10] (GetPrecisionAdjustedBeatLength)');
-  assert(/x < 0 \|\| y < 0 \|\| x > 512 \|\| y > 384/.test(src), '出界检测 => outOfBounds (禁用创建)');
+  // v395: 出界拦截移除 (soulten: 不限制顶点超出游玩区) — 断言不再有出界检测
+  assert(!/x < 0 \|\| y < 0 \|\| x > 512 \|\| y > 384/.test(src), 'v395: 无出界检测 (顶点超出游玩区照常生成)');
   assert(/snapBeatTime\(bm\.timingPoints, divisor, t \+ timeSpacing\)/.test(src), '每点时间再吸附 (SnapTime(t+timeSpacing))');
   assert(/vertices: \[3, 32\]/.test(src) && /repeats: \[1, 10\]/.test(src) && /distanceSnap: \[0\.1, 6\]/.test(src), 'lazer 参数范围 3-32/1-10/0.1-6');
 }

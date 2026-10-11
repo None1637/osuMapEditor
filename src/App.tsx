@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 // v181: 图标统一用 Lucide (规范: 界面禁用 emoji 图标, 见 AGENTS.md)
-import { Volume2, Eye, Keyboard, Play, FolderOpen, Palette, Ruler, Lock, LockOpen, Crosshair, Box, Magnet, Settings2, Package, AudioWaveform, Star, Undo2, Redo2, Grid3x3, MousePointer2, Circle, Spline, Disc, Move, Target, RefreshCw } from 'lucide-react';
+import { Volume2, Eye, Keyboard, FolderOpen, Palette, Ruler, Lock, LockOpen, Crosshair, Box, Magnet, Settings2, Package, AudioWaveform, Star, Undo2, Redo2, Grid3x3, MousePointer2, Circle, Spline, Disc, Move, Target, RefreshCw } from 'lucide-react'; // v390: Play 移除 (测试游玩按钮挪到底栏)
 import { store, useEditor, type Tool } from '@/osu/store';
 import { loadDifficulty } from '@/osu/library'; // v350: 刷新谱面 (从磁盘重载)
 import { seekByBeats } from '@/osu/seekSnapping';
@@ -44,6 +44,7 @@ import { TransformDialog } from '@/components/TransformDialog'; // v209: 旋转/
 import { FpsCounter } from '@/components/FpsCounter'; // v220: 右下角帧数显示
 import { displaySettings } from '@/osu/displaySettings'; // v253: 帧数显示开关
 import { installSelectWheelCycle } from '@/osu/selectWheel'; // v381: 枚举下拉框滚轮循环
+import { installNumberWheel } from '@/osu/numberWheel'; // v388: 数值框滚轮调值
 import { editorPrefs } from '@/osu/editorPrefs'; // v386: 设置菜单 editorPrefs 勾选状态上报
 import { useT } from '@/i18n'; // v346: 多语言
 
@@ -320,6 +321,10 @@ export default function App() {
         case 'open-scale': e.preventDefault(); store.openTransformDialog('scale'); return;
         case 'duplicate': e.preventDefault(); if (store.selected.size) store.openConversion('duplicate'); return;
         case 'polygon': e.preventDefault(); store.openConversion('polygon'); return;
+        // v396: 滑条转连打 (选中集含滑条才开窗, 与 compose-stream 菜单同规则)
+        case 'stream': e.preventDefault();
+          if (store.beatmap?.hitObjects.some(o => store.selected.has(o.id) && o.type === 'slider')) store.openConversion('stream');
+          return;
         case 'bookmark-add': e.preventDefault(); store.addBookmark(store.currentTime); return;
         case 'bookmark-remove': e.preventDefault(); store.removeBookmarkNear(store.currentTime); return;
         case 'tool-select': case 'tool-circle': case 'tool-slider': case 'tool-spinner':
@@ -422,6 +427,9 @@ export default function App() {
 
   // v381: 枚举下拉框滚轮循环 — 一个全局监听覆盖全部 <select> (悬停滚轮切换, 首尾循环)
   useEffect(() => installSelectWheelCycle(), []);
+
+  // v388: 数值框滚轮调值 — 一个全局监听覆盖全部 input[type=number] (悬停滚轮改值, 不滚背景)
+  useEffect(() => installNumberWheel(), []);
 
   // v156: Timing 菜单勾选状态上报 (节拍类型 radio = 当前生效红线拍号, 节拍器 checkbox; 值变化才发)
   useEffect(() => {
@@ -552,14 +560,6 @@ export default function App() {
           title={t('app.volume_title', 'Volume settings: master / music / effects volume')}>
           <Volume2 className="inline-block w-4 h-4 mr-1 -mt-0.5" />{t('app.volume', 'Volume')}
         </button>
-        {/* v287: 测试游玩 — 快捷键左侧按钮 (F5, lazer EditorPlayer) */}
-        <button onClick={() => setTestPlay(true)}
-          data-testplay-btn
-          style={{ WebkitAppRegion: 'no-drag' } as CSSProperties}
-          className="self-center px-3 py-1 rounded text-sm transition-colors bg-white/10 hover:bg-white/20"
-          title={t('app.test_play_title', 'Test play (F5): play the beatmap from 3s before the current time, Esc returns to the editor')}>
-          <Play className="inline-block w-4 h-4 mr-1 -mt-0.5" />{t('app.test_play', 'Test Play')}
-        </button>
         {/* v286: 快捷键设置 — 显示设置左侧按钮 (自定义改键) */}
         <button onClick={() => store.setHotkeyPanelOpen(!store.hotkeyPanelOpen)}
           data-hotkey-panel-btn
@@ -671,17 +671,23 @@ export default function App() {
           </button>
           <div className="h-px bg-white/15 mx-1 my-0.5" />
           {/* v223: 游玩区平移/缩放 — 开启后按住鼠标中键拖动游玩区域; x/y/缩放输入框实时显示并可设定 (视图辅助, 不入谱面)
-              v224: 开关半宽 + 缩放同行 (放按钮后); x/y 两个输入框平分下一行 */}
+              v224: 开关半宽 + 缩放同行 (放按钮后); x/y 两个输入框平分下一行
+              v391: 加旋转 — 开关改独占一行 (撤销 v224 同行), 下一行缩放/旋转平分, x/y 行不变 */}
           <div className="flex items-center gap-1.5">
             <button onClick={() => { store.playfieldPanEnabled = !store.playfieldPanEnabled; store.emit(); }}
               data-pan-input="toggle"
-              className={`flex-1 min-w-0 text-left px-3 py-1.5 rounded ${store.playfieldPanEnabled ? 'bg-cyan-500/40 border border-cyan-400/50' : 'bg-white/10 hover:bg-white/20'}`}
-              title={t('app.playfield_pan_title', 'Playfield pan: hold the middle mouse button to drag the playfield; x/y = offset (osu px), zoom = scale (default 1.0); turning off restores the default view (values are kept)')}>
+              className={`w-full text-left px-3 py-1.5 rounded ${store.playfieldPanEnabled ? 'bg-cyan-500/40 border border-cyan-400/50' : 'bg-white/10 hover:bg-white/20'}`}
+              title={t('app.playfield_pan_title', 'Playfield pan: hold the middle mouse button to drag the playfield; x/y = offset (osu px), zoom = scale (default 1.0), rot = rotation degrees around the playfield centre; turning off restores the default view (values are kept)')}>
               <Move className="inline-block w-4 h-4 mr-1 -mt-0.5" />{t('app.playfield_pan', 'Playfield Pan')}
             </button>
+          </div>
+          <div className="flex items-center gap-1.5 text-sm text-white/70 px-1">
             {/* v367: 缩放精细度 ×10 — 步进 0.1→0.01, 显示 2 位→3 位小数 (用户反馈调整精细度不够) */}
-            <PanNumInput label="Zoom" labelKey="app.playfield_zoom" value={Math.round(store.playfieldScale * 1000) / 1000} step={0.01} min={0.1} max={10} digits={3}
+            <PanNumInput label="Zoom" labelKey="app.playfield_zoom" grow value={Math.round(store.playfieldScale * 1000) / 1000} step={0.01} min={0.1} max={10} digits={3}
               onCommit={v => { store.playfieldScale = v; store.emit(); }} />
+            {/* v391: 旋转 (度, 绕游玩区中心; 1 位小数) */}
+            <PanNumInput label="Rot" labelKey="app.playfield_rot" grow value={Math.round(store.playfieldRotation * 10) / 10} step={1} digits={1}
+              onCommit={v => { store.playfieldRotation = v; store.emit(); }} />
           </div>
           <div className="flex items-center gap-1.5 text-sm text-white/70 px-1">
             <PanNumInput label="x" grow value={Math.round(store.playfieldPanX * 10) / 10} step={1}
@@ -820,6 +826,15 @@ export default function App() {
                 <span className={(store.placeHitSound & 4) ? 'text-pink-300 font-bold' : ''}>Finish({hotkeyLabel('hs-finish')})</span>
                 <span className={(store.placeHitSound & 8) ? 'text-pink-300 font-bold' : ''}>{t('app.hs_clap', 'Clap')}({hotkeyLabel('hs-clap')})</span>
               </div>
+              {/* v387: B4 (B 样条) 滑条不兼容 stable 常驻警告条 + 一键全图转贝塞尔 (与作图菜单同一 handler) */}
+              {store.b4SliderCount > 0 && (
+                <div className="px-3 py-2 text-[11px] border-b border-white/10 bg-amber-500/10 text-amber-200" data-b4-warning>
+                  <div>{t('app.b4_warning', '{count} B-spline (B4) slider(s) — stable osu! cannot read them', { count: store.b4SliderCount })}</div>
+                  <button onClick={() => store.convertAllBSplineSliders()} className="mt-1 px-2 py-0.5 rounded bg-amber-400/20 hover:bg-amber-400/30 text-amber-100">
+                    {t('app.b4_convert_all', 'Convert all to Bezier')}
+                  </button>
+                </div>
+              )}
               <Inspector />
               <div className="p-3 text-xs text-white/40 space-y-1 border-t border-white/10">
                 <div className="font-bold text-white/60">{t('app.hotkeys', 'Hotkeys')}</div>
@@ -858,7 +873,7 @@ export default function App() {
 
       {/* 下方全局时间轴 + 播放控制(两个页签都显示; v129: 半透明浮层) */}
       <div className="shrink-0 border-t-2 border-white/15 pointer-events-auto">
-        <BottomTimeline />
+        <BottomTimeline onTestPlay={() => setTestPlay(true)} />{/* v390: 测试游玩按钮挪入底栏右下角 */}
       </div>
         </div>{/* /v129 浮层列 */}
       </div>{/* /v129 主区相对容器 */}
