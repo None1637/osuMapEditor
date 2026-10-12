@@ -26,12 +26,11 @@ section('bug1: 框选逻辑随 Alt 实时切换 (syncMarqueeMode)');
   assert(/节点框选收尾[^\n]*\n\s*syncMarqueeMode\(\);/.test(src), 'mouseup 入口同步');
 }
 
-section('bug2: 红锚点 Alt+单击整对切换');
+section('bug2: 红锚点 Alt+单击整组切换 (v401 起扩为同坐标整组)');
 {
-  assert(/v309: 红锚点重复对视为整体切换/.test(src), 'Alt+单击查红锚点配对下标 (注释标注)');
-  assert(/const partner = redPairPartner\(hctrl, hitNode\.idx\);/.test(src), 'redPairPartner 查配对');
-  assert(/if \(hasI \|\| hasP\) \{ \/\/ 已选 → 整对取消/.test(src), '已选 → 整对取消 (两个下标都移除)');
-  assert(/else \{ \/\/ 未选 → 整对加入/.test(src), '未选 → 整对加入 (重复对不拆散)');
+  assert(/v401: 同坐标锚点整组切换/.test(src), 'Alt+单击同坐标整组切换 (注释标注, 取代 v309 单配对切换)');
+  assert(/altNodeToggleGroup\(hctrl, hitNode\.idx/.test(src), 'altNodeToggleGroup 算切换组');
+  assert(!/const partner = redPairPartner\(hctrl, hitNode\.idx\);/.test(src), 'v309 单配对切换已移除 (太密红锚点取消不掉)');
 }
 
 section('bug3: 节点黄框内部按下 = 整组拖');

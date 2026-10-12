@@ -49,7 +49,7 @@ section('源码: 穿透 (EditorCanvas 注册 + TopTimeline 询问)');
   assert(/store\.playfieldNodePress = \(cx, cy, mods\)/.test(ec), '注册 playfieldNodePress');
   assert(/if \(store\.tool !== 'select' \|\| store\.canvasDragging/.test(ec), '穿透仅 select 工具 + 非拖拽中');
   const tl = read('src/components/Timelines.tsx');
-  assert(/store\.playfieldNodePress\?\.\(e\.clientX, e\.clientY, e\)\) return/.test(tl), 'TopTimeline mousedown 先询问穿透');
+  assert(/store\.playfieldAnchorPress\?\.\(e\.clientX, e\.clientY, e\)\) return/.test(tl), 'TopTimeline mousedown 先询问穿透 (v404: 改锚点级, 物件不穿透可交互 UI)');
 }
 
 section('源码: i18n');

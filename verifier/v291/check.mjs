@@ -41,7 +41,7 @@ assert(/enumerateDifficultySkeletons/.test(sl) && /enumerateDifficultySkeletons/
 assert(/difficultyFromFileName/.test(li) && /partial: true/.test(li), 'v299: 骨架条目解析文件名 + partial 标记');
 assert(/store\.mapSource/.test(sl), '默认选中当前打开的谱面 (mapSource)');
 assert(/scrollToSelRef/.test(sl), '条目出现后一次性滚动定位');
-assert(/queryHasConds/.test(sl) && /needsIndexHint/.test(sl), '含条件搜索的索引等待提示');
+assert(/partialQueryNeedsIndex/.test(sl) && /needsIndexHint/.test(sl), '含条件搜索的索引等待提示 (v403: 收窄到骨架不可答的文件内容条件)');
 assert(/listDifficulties\(d\.handle\)/.test(sl), '占位条目打开时懒解析目录 (第一个难度)');
 
 if (failures) { console.error(`\nV291_FAILED: ${failures} 处失败`); process.exit(1); }

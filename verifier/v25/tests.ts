@@ -44,11 +44,15 @@ function eqPts(a: { x: number; y: number }[], b: [number, number][], msg: string
   eqPts(deleteSliderPoint(pts, 1)!, [[100, 100], [300, 300]], '删红点对 (命中对中第一个)');
 }
 
-// ---- 删除保护: 头部不可删; 两点下限 ----
+// ---- 删除保护: 两点下限; v400 起头部可删 (lazer: 下一点变新头) ----
 {
   const pts = [{ x: 100, y: 100 }, { x: 300, y: 100 }];
-  assert(deleteSliderPoint(pts, 0) === null, '头部 (index 0) 不可删');
+  assert(deleteSliderPoint(pts, 0) === null, '仅剩 2 点时头部不可删 (删后不足 2 点)');
   assert(deleteSliderPoint(pts, 1) === null, '删到只剩 1 个点不可删 (至少头部+1 曲线点)');
+  const three = [{ x: 100, y: 100 }, { x: 300, y: 100 }, { x: 300, y: 300 }];
+  eqPts(deleteSliderPoint(three, 0)!, [[300, 100], [300, 300]], 'v400: 删头 = 下一个控制点变新头');
+  const headRed = [{ x: 100, y: 100 }, { x: 100, y: 100 }, { x: 300, y: 300 }];
+  eqPts(deleteSliderPoint(headRed, 0)!, [[100, 100], [300, 300]], 'v400: 头部成对时只删单点, 同坐标点留作新头');
   const withRed = [{ x: 100, y: 100 }, { x: 200, y: 200 }, { x: 200, y: 200 }];
   assert(deleteSliderPoint(withRed, 1) === null, '删红点对后只剩 1 个点: 不可删');
 }

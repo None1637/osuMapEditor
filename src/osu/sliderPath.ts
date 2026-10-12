@@ -387,6 +387,19 @@ export function hasRedPair(pts: Vec2[]): boolean {
   return false;
 }
 
+/**
+ * v401: Alt 点选锚点的切换组 — 与 pts[idx] 同坐标的全部下标视为一个锚点 (红锚点重复对 /
+ * 三连以上 / 多对重合的太密红锚点都覆盖)。返回需要 toggle 的下标:
+ * 整组已全选 → 全部取消; 否则补齐整组选中 (先补全, 再点即可整组取消)。
+ * 修复 v309 只切 redPairPartner 一个配对: 同坐标剩余下标仍选中, 再点又加回 = 永远取消不掉。
+ */
+export function altNodeToggleGroup(pts: Vec2[], idx: number, isSel: (j: number) => boolean): number[] {
+  const group: number[] = [];
+  for (let j = 0; j < pts.length; j++) if (samePt(pts[j], pts[idx])) group.push(j);
+  const allSel = group.every(isSel);
+  return group.filter(j => (allSel ? isSel(j) : !isSel(j)));
+}
+
 /** 点 p 到线段 a->b 的最近点: 返回投影参数 t (钳制 [0,1])、最近点坐标与距离 */
 export function nearestOnSegment(a: Vec2, b: Vec2, p: Vec2): { t: number; x: number; y: number; dist: number } {
   const dx = b.x - a.x, dy = b.y - a.y;
@@ -405,11 +418,17 @@ export function insertSliderPoint(pts: Vec2[], segIndex: number, t: number): Vec
 }
 
 /**
- * 删除节点: 头部 (index 0) 不可删; 删到少于 2 个点不可删;
+ * 删除节点: 删到少于 2 个点不可删;
  * 红点 (重复对) 删除时成对删除 (无论命中对中哪一个), 返回新点列, 不可删返回 null
+ * v400: 头部 (index 0) 可删 — lazer 语义: 删头 = 下一个控制点变成新头 (滑条起点移到该点);
+ *   头部只删单点 (即使 pts[0]==pts[1] 成对, 留下 pts[1] 作新头, 几何起点不变)
  */
 export function deleteSliderPoint(pts: Vec2[], index: number): Vec2[] | null {
-  if (index <= 0 || index >= pts.length) return null;
+  if (index < 0 || index >= pts.length) return null;
+  if (index === 0) {
+    if (pts.length - 1 < 2) return null;
+    return pts.slice(1);
+  }
   let from = index, count = 1;
   if (index > 0 && samePt(pts[index], pts[index - 1])) { from = index - 1; count = 2; }
   else if (index < pts.length - 1 && samePt(pts[index], pts[index + 1])) { from = index; count = 2; }

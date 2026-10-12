@@ -15,8 +15,8 @@ function assert(cond, msg) { if (!cond) { failures++; console.error('  FAIL:', m
 
 const ec = fs.readFileSync(path.join(root, 'src/components/EditorCanvas.tsx'), 'utf8');
 const altLayer = ec.match(/const nodeAltPress = \(p: Pt[\s\S]{0,2600}?\n  \};/)?.[0] ?? ''; // v309: 窗口 1100→1800; v316: F18b 候选修正; v360: 抽函数 nodeAltPress (穿透共用)
-// v309: 单击切换升级为红锚点重复对整对切换 (原只切 nearestNode 返回的单个下标, 框选选中的红锚点永远取消不掉)
-assert(/v309: 红锚点重复对视为整体切换/.test(altLayer) && /store\.toggleSelectedNode\(hitNode\.objId, hitNode\.idx\)/.test(altLayer), 'Alt+点击 = 切换节点选中 (v309: 红锚点整对)');
+// v309: 单击切换升级为红锚点重复对整对切换; v401: 再扩为同坐标整组切换 (altNodeToggleGroup, 太密红锚点可取消)
+assert(/altNodeToggleGroup\(hctrl, hitNode\.idx/.test(altLayer) && /store\.toggleSelectedNode\(hitNode\.objId, j\)/.test(altLayer), 'Alt+点击 = 切换节点选中 (v401: 同坐标整组)');
 assert(!/beginDrag/.test(altLayer), 'Alt 层不再开始拖动 (无 beginDrag)');
 assert(!/setSelectedNodes\(\[\[hitNode/.test(altLayer), 'Alt+点击不再重置选区');
 assert(/nodeMarqueeRef\.current = \{/.test(altLayer), 'Alt+空白节点框选保留');

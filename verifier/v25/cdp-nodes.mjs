@@ -2,7 +2,7 @@
 // 造一个 4 控制点滑条 -> 选中 -> 模拟真实鼠标事件:
 //   1) 点击连接线段中点插入节点 (curvePoints +1 且位置正确)
 //   2) 点击新节点手柄 (无拖拽) 切红 (出现连续重复坐标对, curveType=B)
-//   3) 右键红节点 -> 合并转白 (v29 起); 右键头部不可删; 右键普通点删除
+//   3) 右键红节点 -> 合并转白 (v29 起); 右键头部删除 (v400 起, lazer: 下一点变新头); 右键普通点删除
 //   4) 逐步 undo 全部还原
 // 运行: node verifier/v25/cdp-nodes.mjs   (需要 7100 端口 dev server 已启动)
 import { spawn } from 'child_process';
@@ -121,23 +121,24 @@ try {
   assert(cps[0][0] === 200 && cps[0][1] === 100 && cps[1][0] === 300, '合并后保留 (200,100) 单个白点');
   assert(!(cps[0][0] === cps[1][0] && cps[0][1] === cps[1][1]), '重复对已消除 (转为白点)');
 
-  // 3b) 右键头部 (100,100) -> 不可删
+  // 3b) 右键头部 (100,100) -> v400 起删除头节点: 起点移到下一个控制点 (200,100)
   await evalJs(`window.__rclick(100, 100); 'ok'`);
   cps = JSON.parse(await evalJs('window.__cps()'));
-  assert(cps.length === 4, '头部右键不可删 (curvePoints 仍 4)');
+  assert(cps.length === 3 && cps[0][0] === 300 && cps[1][0] === 300 && cps[2][0] === 100, `v400: 删头后 curvePoints 4->3 (实际 ${JSON.stringify(cps)})`);
+  assert(await evalJs('window.__osuStore.beatmap.hitObjects[0].x') === 200, 'v400: 删头后滑条起点移到 (200,100)');
 
   // 3c) 右键普通节点 (300,300) -> 删除
   await evalJs(`window.__rclick(300, 300); 'ok'`);
   cps = JSON.parse(await evalJs('window.__cps()'));
-  assert(cps.length === 3 && cps[0][0] === 200 && cps[1][0] === 300 && cps[2][0] === 100, `普通点删除: curvePoints 4->3 (实际 ${JSON.stringify(cps)})`);
+  assert(cps.length === 2 && cps[0][0] === 300 && cps[1][0] === 100, `普通点删除: curvePoints 3->2 (实际 ${JSON.stringify(cps)})`);
 
   // 4) 逐步 undo 全部还原
   const undoLens = [];
-  for (let i = 0; i < 4; i++) {
+  for (let i = 0; i < 5; i++) {
     await evalJs(`window.__osuStore.undo(); 'ok'`);
     undoLens.push(JSON.parse(await evalJs('window.__cps()')).length);
   }
-  assert(JSON.stringify(undoLens) === '[4,5,4,3]', `undo 链 curvePoints 长度 3->4->5->4->3 (实际 ${JSON.stringify(undoLens)})`);
+  assert(JSON.stringify(undoLens) === '[3,4,5,4,3]', `undo 链 curvePoints 长度 2->3->4->5->4->3 (实际 ${JSON.stringify(undoLens)})`);
   cps = JSON.parse(await evalJs('window.__cps()'));
   assert(cps[0][0] === 300 && cps[0][1] === 100 && cps[1][0] === 300 && cps[1][1] === 300 && cps[2][0] === 100 && cps[2][1] === 300,
     'undo 到底后恢复原始 curvePoints');

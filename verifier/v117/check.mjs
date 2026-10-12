@@ -38,7 +38,7 @@ assert(/if \(store\.nodeSelectionCount\) v = nodeBounds\(bm, store\.selectedNode
 // EditorCanvas: Alt 层入口 (lockNotes 门控)
 assert(/if \(e\.altKey && !store\.lockNotes\)/.test(cv), 'Alt 分支: lockNotes 门控');
 assert(/const hitNode = nearestNode\(sliders, offs, p\);/.test(cv), 'Alt+点选: nearestNode 命中');
-assert(/store\.toggleSelectedNode\(hitNode\.objId, hitNode\.idx\)/.test(cv), 'Alt+Shift/Ctrl: 加选/减选');
+assert(/store\.toggleSelectedNode\(hitNode\.objId, j\)/.test(cv), 'Alt+Shift/Ctrl: 加选/减选 (v401: 同坐标整组 toggle)');
 assert(/nodeMarqueeRef\.current = \{/.test(cv), 'Alt+空白: 节点框选');
 assert(/orig: snapshotNodes\(bm, withRedPartners\(bm, store\.selectedNodes\)\), moved: false/.test(cv), '节点拖动快照含红锚点对扩展');
 

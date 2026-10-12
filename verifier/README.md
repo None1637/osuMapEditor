@@ -186,7 +186,7 @@
 - 运行: `cd app && node verifier/v25/check.mjs`; `node verifier/v25/cdp-nodes.mjs` (需 7100 dev server 已启动)
 - 内容: P0-4 已建滑条的节点编辑 (选中单个滑条 + 选择工具时生效) —
   1) 插入节点: 点击控制点连接线 (白色多边形线段, 距线段 <6 osu px) → 按投影参数 t 在线段最近点插入白色控制点 (坐标取整, 红锚点零长线段跳过, 手柄 10px 命中优先于线段);
-  2) 删除节点: 右键点击手柄 → 删除; 头部不可删, 删到少于 2 个点不可删; 红锚点 (连续相同坐标对) 成对删除 (命中对中任意一个都删整对);
+  2) 删除节点: 右键点击手柄 → 删除; 头部不可删 (v400 起改为可删: 下一点变新头), 删到少于 2 个点不可删; 红锚点 (连续相同坐标对) 成对删除 (命中对中任意一个都删整对);
   3) 白/红切换: 左键点击手柄且位移 ≤4px (未拖拽) → 切换; 头部不可切换; 白→红在该点后复制相同坐标点形成重复对, 红→白把重复对合并成一个点;
   4) curveType 解析 `resolveSliderCurveType`: 有红点 → 'B' (v15 放置规则同款); 原类型仍合法则保持 ('P' 恰好 3 点合法, 'L'/'B'/'C' ≥2 点合法), 'P' 点数不符按 inferSegmentType 降级 (2→L, 4+→B);
   5) 三个操作均一次 pushUndo + invalidatePath + emit (bump dataVersion, tick 事件重建), 改完滑条保持选中; 点击切换复用 mousedown beginDrag 的快照作为本次 undo, 不可切换时 store.undo() 弹出空快照; 节点拖拽改形 (>4px) 行为不变。
@@ -4093,3 +4093,89 @@
 - 验证: verifier/v398 (底数形状端点/单调性/重复镜像/迁移/固定间距 + 源码断言);
   适配 v36/v40 (tests+check)/v41/v222 (重写)/v230 (tests+check)/v346 (动态域 curve_*→stream_*)。
   回归: tsc + vite build + v36/v41/v222/v230/v346 全绿; v40 残留 1 处失败 (Ctrl+点击切换选中, HEAD 遗留非回归)。
+
+## v399 — 对称滑条开启时拖拽圆弧头节点旋转崩溃修复 (转换预览渲染缓存回收)
+- 需求 (soulten): 开启对称滑条功能时, 拖拽圆弧滑条头节点旋转 n 圈后页面崩溃。
+- 根因: 转换预览物件每次重算都用新 genId, 而渲染层按物件 id 缓存滑条路径 (sliderPath.ts pathCache) /
+  滑条身贴图与描边贴图 (renderer.ts bodyCache/outlineCache, invalidatePath 联动清除) — 旧预览 id 的缓存条目
+  永不失效, 拖动几千帧内存暴涨页崩。已排除 computeSymSlider/SliderPath 纯计算崩溃 (15120 次路径采样复现脚本全过)。
+- 改动: store.ts 新增私有 clearConversionPreviewCache (遍历预览物件逐个 invalidatePath);
+  setConversionPreview 换代前 / applyConversion 应用前 / closeConversion 关闭时三处调用回收。
+  放置幽灵 (v318, id<0, 不走 setConversionPreview) 不受影响。
+- 验证: verifier/v399 (源码断言: 三处回收 + 缓存按 id 键控前提)。
+- 回归: tsc + vite build 通过; v44 (转换预览)/v236/v243 (对称滑条)/v340 (贴图缓存) 全绿。
+
+## v400 — 右键删除滑条头节点 (lazer 语义: 下一点变新头)
+- 需求 (soulten): 支持右键删除滑条头节点 (参考 lazer)。
+- 改动: sliderPath.ts deleteSliderPoint 允许 index 0 — 去掉首点, 下一个控制点变新头 (滑条起点移到该点,
+  applySliderPoints 天然把 pts[0] 写成新头); 头部只删单点 (pts[0]==pts[1] 成对时留下同坐标点作新头, 几何起点不变);
+  删后不足 2 点不可删。EditorCanvas.tsx sliderAnchorContextPress 的 i===0 分支从「吞掉不删」改为删头 +
+  写回 + resnapSliderLength 重吸附 + invalidatePath, 不可删时仍吞掉 (右键头 ≠ 删滑条); 红转白/删白点分支不变。
+  放置中滑条右键 = 完成放置, 不受影响。
+- 验证: verifier/v400 (纯函数: 删头/头部成对/下限保护/非头部行为不变 + 源码断言);
+  适配 v25 (tests: 删头断言替换头部保护; cdp: 右键头部删除后起点移到 (200,100), undo 链改 5 步; README 规格行标注)。
+- 回归: tsc + vite build 通过; v25/v26/v29/v35/v44/v236/v243/v340/v399 全绿;
+  v118/v319/v326 失败为 HEAD 遗留陈旧断言 (git stash 验证与本次改动无关)。
+
+## v401 — Alt 框选后 Alt+点选无法取消红锚点修复 (同坐标锚点整组切换)
+- 需求 (soulten/None1637): 用 Alt 框选锚点后, 按住 Alt+点选不能取消框选锚点; 红色锚点必现, 太密的红色锚点也会遇到。
+- 根因: v309 的 Alt 点选只切换 redPairPartner 一个配对; 同坐标下标 3 个及以上时 (三连重复点 / 两对红锚点
+  同坐标重合 — 太密红锚点滑条常见), 框选把同坐标全部下标选中, 点选只切一对, 剩余下标仍选中 (锚点看起来仍选中),
+  而再点 nearestNode 仍返回同坐标序号在前的下标 → 只把那一对加回, 0→满 死循环永远取消不掉。
+  复现: 纯函数模拟框选+连点, 三连 [1->3->1->3] / 双对重合 [2->4->2->4] 均清不掉 (单红对正常)。
+- 改动: sliderPath.ts 新增 altNodeToggleGroup — 与命中点同坐标的全部下标视为一个锚点整组切换:
+  整组已全选 → 全部取消; 否则先补齐整组 (再点即整组取消)。EditorCanvas nodeAltPress 命中分支改用之
+  (单白点/单红对行为不变); redPairPartner 保留给节点拖拽 (pairWith) 使用。
+- 验证: verifier/v401 (纯函数: 白点/红对/三连/双对重合的切换组 + 端到端模拟连点 4 次 0->满->0->满 稳定交替 + 源码断言);
+  适配 v309 (bug2 段改断同坐标整组)、v266 (Alt 点击断言)、v117 (加选/减选断言)。
+- 回归: tsc + vite build 通过; v266/v304(HEAD 即崩溃)/v309/v316/v317/v360/v371/v401 通过或与 HEAD 持平;
+  v117 残留 1 处 (渲染: 选中节点黄环, HEAD 遗留非回归)。
+
+## v402 — 暂留模式 (关打击动画) 滑条锚点可交互时间范围异常变大修复
+- 需求 (soulten): 关闭打击动画时 Alt 选取锚点的时间范围异常巨大; 不只 Alt 选取, 滑条的互动时间都变长了;
+  开打击动画时正常 (有预览线才能选)。
+- 根因: 锚点交互候选 (Alt 点选 nodeAltPress / 节点框选 / hover 锚点 / 整组拖 nodeGroupDragPress /
+  未选滑条锚点按下 unselectedSliderNodePress / 时间轴覆盖区穿透 playfieldNodePress) 用 isVisibleAt 过滤,
+  而暂留模式 (点击特效开 + 打击动画关) 下 isVisibleAt 为 v215 头/尾圈渲染残留延长到 end+HIT_LINGER(800ms) —
+  滑条身 end+HIT_FADE(240ms) 已消失, 锚点不可见却仍能被框选/点选 (比正常窗口多挂 ~560ms)。
+  渲染侧 hover 预览/锚点高亮环早在 v342 已收紧到 end+HIT_FADE, 交互侧漏改。
+- 改动: lifecycle.ts 新增 sliderAnchorInteractiveAt (= [time-preempt, end+HIT_FADE], 不受暂留模式影响,
+  与 v342 渲染门控同窗); EditorCanvas 锚点候选 5 处 + 节点框选 candidates/keepNodes (v277 例外同口径) 改用之。
+  isVisibleAt 渲染窗口不变 (头/尾圈残留照常渲染); hitTest 物件级过滤不变 (残留期头/尾圈可见, 仍可点选本体);
+  已选中滑条的锚点编辑 (singleSliderNodePress) 不受窗口限制 (选中装饰常驻, 有意为之)。
+- 验证: verifier/v402 (纯函数: 三种开关组合下交互窗边界 + isVisibleAt 不变 + 源码断言);
+  适配 v273/v316 (候选例外断言改锚点窗口文本)。
+- 回归: tsc + vite build 通过; v7/v27/v45/v147/v154/v215/v273/v277/v316/v342/v360/v371 全绿。
+
+## v403 — 曲库: 未索引谱面按文件名信息可搜 + 选中谱面插队解析
+- 需求 (soulten): ①未索引完的谱面要等几分钟才索引到, 应能按文件名中有的信息先搜到;
+  ②索引中的谱面右侧一直显示"索引中", 当前选中谱面应提前插队。
+- 改动 1 (骨架可搜): librarySearch.ts 新增 partialQueryNeedsIndex (查询是否含骨架答不了的文件内容条件:
+  数值/length/keys/mode/tag/source) 与 matchLibraryEntryPartial (仅文件名可答条件参与:
+  自由文本 + [diff] 段 + artist/title/creator/author/mapper/diff 文本键)。SongLibrary 筛选改
+  `e.partial ? matchLibraryEntryPartial : matchLibraryEntry`; 「等待索引」提示 (needsIndexHint) 收窄到
+  仅含文件内容条件时显示。骨架的 beatmapSetID (目录名前缀) 数字兜底搜索同样可用。
+- 改动 2 (选中插队): SongLibrary 新增升级叠加层 (upgradesRef/demandParsedRef/upgradeTick) —
+  选中骨架条目时立即按需枚举+parseIndexEntry 其目录全部 .osu (一目录仅数文件, 秒级), 同 key 覆盖骨架,
+  右侧详情/筛选即时变完整; 不等后台索引队列 (v293 的 prioDir 目录插队保留, 本改动解决"队列还远"的体感)。
+  视图层 viewEntries 叠加 upgradesRef (后台批次到达时同 key 同内容, 幂等); 重扫清空叠加层;
+  scanGen 守卫 (关面板/重扫即取消)。
+- 验证: verifier/v403 (骨架文件名可答条件命中/排除 + 提示条件 + 完整条目行为不变 + 源码断言);
+  适配 v299 (骨架搜索断言)、v291 (提示条件断言)。
+- 回归: tsc + vite build 通过; v290/v291/v293/v297/v299 全绿。
+
+## v404 — 交互优先级: 滑条锚点 > 可交互UI > 物件 > 不可交互UI
+- 需求 (soulten/None1637): v378 让四侧 UI 下物件完整穿透后, 点下方时间轴会选中物件而不是跳转;
+  soulten 定优先级 — 只有滑条点可以无视所有 UI 选取; 物件在快捷键注释这种不能互动的 UI 下能拖曳。
+- 改动:
+  - store.ts: 新增 playfieldAnchorPress 桥字段 (锚点级穿透)。
+  - EditorCanvas.tsx: 注册 playfieldAnchorPress = Alt 锚点切换/框选 → 已选节点整组拖 → 选中单滑条锚点编辑 →
+    未选滑条锚点自动选中 (与 playfieldNodePress 同序, 但不含旋转/缩放手柄与物件本体);
+    window 捕获拦截对 data-ui-interactive 容器只放锚点级穿透 (物件/手柄不再吞事件),
+    data-ui-pass 容器 (不可交互 UI) 维持 playfieldNodePress 完整穿透链; 锚点压过控件不变 (v378)。
+  - Timelines.tsx: TopTimeline mousedown 改问 playfieldAnchorPress (物件本体不再穿透时间轴)。
+  - App.tsx: 四侧容器 (上时间轴行/左栏/右栏/底栏) 标 data-ui-interactive;
+    右栏底部快捷键注释块标 data-ui-pass (其下物件仍可拖拽)。
+- 验证: verifier/v404 (源码断言: 锚点级链组成/捕获优先级顺序/四侧标记/pass 豁免);
+  适配 v360 (TopTimeline 穿透断言)、v378 (onDown 提取窗口 700→1400)、v70 (BottomTimeline prop 形态, HEAD 遗留)。
+- 回归: tsc + vite build 通过; v45/v129/v360/v361/v362/v378(残留 1 处 CDP flaky, 与 HEAD 持平)/v401/v402/v403 全绿或持平。

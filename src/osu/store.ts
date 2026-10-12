@@ -1406,10 +1406,20 @@ class EditorStore {
   /** v378: 四侧覆盖区右键穿透 — 选中单滑条锚点右键 (白点删除/红锚点合并转白), 与画布 onContextMenu 同一逻辑;
       命中锚点时同样压过控件 (与左键同原则), 未命中照常放行 */
   playfieldNodeContext: ((clientX: number, clientY: number) => boolean) | null = null;
+  /** v404: 可交互 UI (时间轴等) 上的锚点级穿透 — 只含滑条锚点交互 (Alt 切换/框选, 整组拖,
+      选中单滑条锚点编辑, 未选滑条锚点), 不含旋转/缩放手柄与物件本体。
+      交互优先级 (soulten): 滑条锚点 > 可交互UI > 物件 > 不可交互UI —
+      物件穿透可交互 UI 会挡住其功能 (None1637: 点下方时间轴选中物件而不是跳转) */
+  playfieldAnchorPress: ((clientX: number, clientY: number, mods: { altKey: boolean; shiftKey: boolean; ctrlKey: boolean; metaKey: boolean }) => boolean) | null = null;
 
   openConversion(d: NonNullable<EditorStore['conversionDialog']>) { this.conversionDialog = d; this.emitSelection(); }
   /** 关闭转换窗口 (清除预览; 不应用) */
-  closeConversion() { this.conversionDialog = null; this.conversionPreview = null; this.emitSelection(); }
+  closeConversion() { this.clearConversionPreviewCache(); this.conversionDialog = null; this.conversionPreview = null; this.emitSelection(); }
+
+  /** v399: 回收转换预览物件的渲染缓存 (预览物件用临时 genId, 不设空回收会让 pathCache/bodyCache 无限累积) */
+  private clearConversionPreviewCache() {
+    if (this.conversionPreview) for (const o of this.conversionPreview.objects) invalidatePath(o.id);
+  }
 
   // ---- v63: 红线/绿线弹窗 (上时间轴 +红/+绿 插入 与 双击 BPM/SV 胶囊编辑 共用, 显示 .osu 行全部参数) ----
   timingPointDialog: { mode: 'add' | 'edit'; index: number; draft: TimingPoint } | null = null;
@@ -1440,7 +1450,13 @@ class EditorStore {
   }
 
   /** 更新转换预览 (参数变化时实时调用; 走 emitSelection 不重建 hitsound 事件表) */
-  setConversionPreview(p: { hideIds: number[]; objects: HitObject[]; timingPoints?: TimingPoint[] } | null) { this.conversionPreview = p; this.emitSelection(); }
+  setConversionPreview(p: { hideIds: number[]; objects: HitObject[]; timingPoints?: TimingPoint[] } | null) {
+    // v399: 预览物件每次重算都用新 genId, 而渲染层按 id 缓存滑条路径/滑条身贴图/描边贴图 —
+    //   旧预览 id 的缓存条目永不失效会无限累积 (开着预览拖节点几千帧 = 内存暴涨页崩, soulten 崩溃反馈),
+    //   换代时把上一代预览 id 的缓存立即回收
+    this.clearConversionPreviewCache();
+    this.conversionPreview = p; this.emitSelection();
+  }
   /** 应用转换: 删除源物件 + 插入结果物件 (+ v68 可选绿线副本; 一次 undo), 选中结果物件, 关闭窗口 */
   applyConversion(removeIds: number[], add: HitObject[], addTiming: TimingPoint[] = []) {
     if (!this.beatmap) return;
@@ -1455,6 +1471,7 @@ class EditorStore {
     }
     removeIds.forEach(id => invalidatePath(id));
     this.selected = new Set(add.map(o => o.id));
+    this.clearConversionPreviewCache(); // v399: 应用前预览物件缓存一并回收
     this.conversionPreview = null;
     this.conversionDialog = null;
     this.emit();

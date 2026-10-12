@@ -808,8 +808,10 @@ export function TopTimeline() {
           if (e.button !== 0) return; // 右键交给 onContextMenu (删除物件), 不能走选中/拖拽预备 (会置 canvasDragging 挡住删除)
           if (store.canvasDragging) return; // 画布拖拽经过 (如拖控制点) 时不响应
           // v360: 锚点穿透 — 时间轴覆盖游玩区预留带, select 工具下按到滑条锚点/节点黄框时让给游玩区处理
-          //   (soulten: 重疊到時間軸的滑條點不能點擊取消/拖動; EditorCanvas 注册的 playfieldNodePress 返回 true 即已处理)
-          if (store.playfieldNodePress?.(e.clientX, e.clientY, e)) return;
+          //   (soulten: 重疊到時間軸的滑條點不能點擊取消/拖動; EditorCanvas 注册的穿透回调返回 true 即已处理)
+          // v404: 改锚点级穿透 (playfieldAnchorPress) — 物件本体不再穿透时间轴
+          //   (None1637: 点击下方时间轴选中物件而不是跳转; 优先级 锚点 > 可交互UI > 物件)
+          if (store.playfieldAnchorPress?.(e.clientX, e.clientY, e)) return;
           // v35: 拖滑条尾端 -> 改折返次数 (优先于物件拖拽; 尾端在物件时长范围内); v115: 锁定物件禁用
           const tailId = store.lockNotes ? null : hitTestTail(e);
           if (tailId !== null) {

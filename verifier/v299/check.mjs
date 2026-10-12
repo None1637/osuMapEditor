@@ -43,7 +43,7 @@ check('定位一次性 (索引期间不自动滚动)',
 // 行外观统一
 check('行渲染无「索引中…」占位样式', !sl.includes('索引中…</span>'));
 check('行渲染统一 (无 pending 分支)', !/const pending = e\.fileName === ''/.test(sl));
-check('条件搜索排除骨架 (partial)', /queryHasConds && e\.partial/.test(sl));
+check('条件搜索排除骨架 (partial)', /e\.partial \? matchLibraryEntryPartial\(query, e\)/.test(sl)); // v403: 改为骨架按文件名可答条件匹配 (数值/内容条件仍排除)
 check('详情面板骨架分支 (partial)', /selEntry\.partial \? \(/.test(sl));
 
 if (fails) { console.error(`v299: ${fails} check(s) failed`); process.exit(1); }

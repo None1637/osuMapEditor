@@ -7,10 +7,10 @@ import {
   getLastPersistError, getLastRestoreReason, getRememberedSongsDir, idbLibraryIndexGet, idbLibraryIndexPut,
   idbSelfTest, isFileSystemAccessSupported, listDifficulties, loadDifficulty,
   persistSongsDirHandle, pickSongsDir, rememberSongsDir, requestReadPermission, restoreSongsDir, scanSongDirs,
-  type FsDirLike,
+  type FsDirLike, type FsFileLike,
 } from '../osu/library';
-import { buildLibraryIndexAuto, enumerateDifficultySkeletons, type LibraryIndexEntry } from '../osu/libraryIndex'; // v290/v297 (worker 索引)/v299 (文件名骨架); v296: runStarQueue 移除 (全局星数计算太慢, 已屏蔽)
-import { matchLibraryEntry, parseLibraryQuery } from '../osu/librarySearch'; // v290
+import { buildLibraryIndexAuto, enumerateDifficultySkeletons, parseIndexEntry, type LibraryIndexEntry } from '../osu/libraryIndex'; // v290/v297 (worker 索引)/v299 (文件名骨架); v296: runStarQueue 移除 (全局星数计算太慢, 已屏蔽); v403: parseIndexEntry (选中谱面插队解析)
+import { matchLibraryEntry, matchLibraryEntryPartial, partialQueryNeedsIndex, parseLibraryQuery } from '../osu/librarySearch'; // v290; v403: 骨架条目文件名可搜
 import { tNow, useT } from '@/i18n'; // v346: 曲库面板 i18n
 
 type DirEntry = { name: string; handle: FsDirLike };
@@ -59,6 +59,11 @@ export function SongLibrary({ onClose }: { onClose: () => void }) {
   const scrollToSelRef = useRef(!libraryCache);      // v291: 初次定位选中项后置 false (缓存恢复走旧滚动位置, 用户操作后不打扰)
   const programmaticScrollRef = useRef(false);       // v296: 程序 scrollTo 标记 (onScroll 里区分用户滚动, 避免误脱离跟随)
   const bgDirRef = useRef<string | null>(null);      // 当前背景所属目录 (同目录选中复用, 不重取)
+  // v403: 选中谱面插队 — 骨架条目 (partial) 被选中时立即按需解析其目录升级, 不等后台索引队列;
+  //   upgradesRef = 升级叠加层 (后台批次同 key 到达时内容一致, 幂等); demandParsedRef 防重复触发
+  const upgradesRef = useRef(new Map<string, LibraryIndexEntry>());
+  const demandParsedRef = useRef(new Set<string>());
+  const [upgradeTick, setUpgradeTick] = useState(0);
   // v164: 记录 mousedown 是否落在遮罩本体上 — 修复搜索框内按下、拖选文本到窗外松开时
   // click 落到共同祖先(遮罩)而误关窗口: 只有按下+松开都在遮罩本体上才关闭
   const backdropDownRef = useRef(false);
@@ -102,6 +107,7 @@ export function SongLibrary({ onClose }: { onClose: () => void }) {
     // v297: 清掉上一次扫描遗留的节流 flush (防过期列表覆盖新扫描)
     if (flushTimerRef.current) { clearTimeout(flushTimerRef.current); flushTimerRef.current = null; }
     pendingEntriesRef.current = null;
+    upgradesRef.current.clear(); demandParsedRef.current.clear(); setUpgradeTick(0); // v403: 新扫描清空插队升级层
     setIndexing(true); setScanError(null);
     setEntries([]);
     // v291: 重扫后选中回退到当前打开的谱面, 并重置自动定位 (条目出现后滚动到位)
@@ -300,14 +306,48 @@ export function SongLibrary({ onClose }: { onClose: () => void }) {
 
   // v290: 查询解析 + 匹配 (空串显示全部)
   const query = useMemo(() => parseLibraryQuery(filter), [filter]);
-  // v291: 含键值条件/[diff] 段的搜索依赖索引字段 — 索引建立中提示等待; 占位条目 (fileName='') 不参与条件过滤
-  // (纯文本搜索无此限制: 占位的目录名/解析出的 artist/title 直接可搜)
-  const queryHasConds = query.filters.length > 0 || query.diff !== null;
-  const needsIndexHint = indexing && filter.trim().length > 0 && queryHasConds;
+  // v291: 含键值条件/[diff] 段的搜索依赖索引字段 — 索引建立中提示等待;
+  // v403: 骨架条目 (partial) 参与文件名可答条件 (自由文本/[diff]/artist/title/creator/diff 键),
+  //   仅数值/length/keys/mode/tag/source 等文件内容条件才排除骨架并提示等待
+  const needsIndexHint = indexing && filter.trim().length > 0 && partialQueryNeedsIndex(query);
+  // v403: 升级叠加层视图 — 插队解析的完整条目覆盖同 key 骨架 (筛选/详情用它, 后台 flush 不互相覆盖)
+  const viewEntries = useMemo(
+    () => (upgradeTick > 0 && upgradesRef.current.size > 0 ? entries.map(e => upgradesRef.current.get(entryKey(e)) ?? e) : entries),
+    [entries, upgradeTick],
+  );
+
+  // v403: 选中骨架条目 → 立即按需解析其目录插队升级 (不等后台索引队列; soulten: 选中谱面右侧一直"索引中")
+  useEffect(() => {
+    const e = selKey ? entries.find(x => entryKey(x) === selKey) : null; // 用原始 entries 判 partial (升级层不触发重跑)
+    if (!e?.partial || !e.fileName) return;
+    const dirName = e.dirName;
+    if (demandParsedRef.current.has(dirName)) return;
+    const d = dirsRef.current.find(x => x.name === dirName);
+    if (!d) return;
+    demandParsedRef.current.add(dirName);
+    const myGen = scanGenRef.current;
+    let cancelled = false;
+    (async () => {
+      const ups: LibraryIndexEntry[] = [];
+      for await (const [name, f] of d.handle.entries()) {
+        if (cancelled || scanGenRef.current !== myGen) return;
+        if (f.kind !== 'file' || !name.toLowerCase().endsWith('.osu')) continue;
+        try {
+          const file = await (f as FsFileLike).getFile();
+          ups.push(parseIndexEntry(await file.text(), dirName, name, file.size, file.lastModified));
+        } catch { /* 跳过损坏文件 */ }
+      }
+      if (cancelled || scanGenRef.current !== myGen) return;
+      for (const u of ups) upgradesRef.current.set(entryKey(u), u);
+      setUpgradeTick(x => x + 1);
+    })();
+    return () => { cancelled = true; };
+  }, [entries, selKey]);
+
   const filtered = useMemo(() => {
     const list = filter.trim()
-      ? entries.filter(e => !(queryHasConds && e.partial) && matchLibraryEntry(query, e)) // v299: 骨架条目不参与条件过滤 (文件内容字段未解析)
-      : [...entries];
+      ? viewEntries.filter(e => (e.partial ? matchLibraryEntryPartial(query, e) : matchLibraryEntry(query, e))) // v403: 骨架条目按文件名可答条件可搜
+      : [...viewEntries];
     switch (sortBy) {
       case 'title': list.sort((a, b) => (a.titleUnicode || a.title).localeCompare(b.titleUnicode || b.title)); break;
       case 'artist': list.sort((a, b) => (a.artistUnicode || a.artist).localeCompare(b.artistUnicode || b.artist)); break;
@@ -317,7 +357,7 @@ export function SongLibrary({ onClose }: { onClose: () => void }) {
       case 'length': list.sort((a, b) => a.lengthMs - b.lengthMs); break;
       case 'diffs': {
         const cnt = new Map<string, number>();
-        for (const e of entries) cnt.set(e.dirName, (cnt.get(e.dirName) ?? 0) + 1);
+        for (const e of viewEntries) cnt.set(e.dirName, (cnt.get(e.dirName) ?? 0) + 1);
         list.sort((a, b) => (cnt.get(b.dirName)! - cnt.get(a.dirName)!) || a.dirName.localeCompare(b.dirName));
         break;
       }
@@ -325,9 +365,9 @@ export function SongLibrary({ onClose }: { onClose: () => void }) {
         list.sort((a, b) => a.dirName.localeCompare(b.dirName) || a.mode - b.mode || a.fileName.localeCompare(b.fileName));
     }
     return list;
-  }, [entries, query, queryHasConds, filter, sortBy]);
+  }, [viewEntries, query, filter, sortBy]);
 
-  const selEntry = useMemo(() => entries.find(e => entryKey(e) === selKey) ?? null, [entries, selKey]);
+  const selEntry = useMemo(() => viewEntries.find(e => entryKey(e) === selKey) ?? null, [viewEntries, selKey]); // v403: 详情走升级叠加层 (插队解析即时生效)
   const dirCount = useMemo(() => new Set(entries.map(e => e.dirName)).size, [entries]);
 
   // 虚拟化可见窗口

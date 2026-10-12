@@ -2,7 +2,7 @@ import { useEffect, useRef, useCallback } from 'react';
 import { store, useEditor } from '@/osu/store';
 import { getSkin, type Skin } from '@/osu/skin'; // v318: hitcircleSpriteWidth 随光秃幽灵移除 (renderer 内部自用)
 import { renderPlayfield, computeCombos, getSliderPath, invalidatePath, mergedWithPreview, drawDistanceGuideRing, drawPendingSpinner, drawSliderControlPoints } from '@/osu/renderer'; // v259: hover 预览滑条点复用控制点绘制; v308: hover 选中环移除
-import { computePendingPath, deleteSliderPoint, toggleSliderPointRed, resolveSliderCurveType, nearestOnSegment, sliderGeometryLength, snapSliderLength, resnapSliderLength, redPairPartner, isRedPairPoint, SliderPath, preserveArcsForBezier, placementLength, snapPlacementTime, spinnerPlacementEnd, BEAT_SNAP_OPTIONS } from '@/osu/sliderPath'; // v319: 插点改 lazer 原位置插入 (旧投影插点函数弃用); v321: BEAT_SNAP_OPTIONS (Ctrl+滚轮循环细分)
+import { computePendingPath, deleteSliderPoint, toggleSliderPointRed, resolveSliderCurveType, nearestOnSegment, sliderGeometryLength, snapSliderLength, resnapSliderLength, redPairPartner, isRedPairPoint, altNodeToggleGroup, SliderPath, preserveArcsForBezier, placementLength, snapPlacementTime, spinnerPlacementEnd, BEAT_SNAP_OPTIONS } from '@/osu/sliderPath'; // v319: 插点改 lazer 原位置插入 (旧投影插点函数弃用); v321: BEAT_SNAP_OPTIONS (Ctrl+滚轮循环细分)
 // v387: bsplineToStableBezier 移出本文件 — 手绘落盘/预览均保留 'B4'; 全图转贝塞尔见 convert/convertB4.ts
 import { objectSnapPoints, snapToNearby, snapDragDelta, type Pt } from '@/osu/objectSnap';
 import { sliderHelperCircle, sliderHelperLines, clipLineToBox, geoHelperSnap, geoHelperSources, geoDistSources, distGuideSnap, geoDragCorrection, GEO_CLIP_BOX, type GeoLine, type GeoCircle } from '@/osu/geometryHelpers';
@@ -13,7 +13,7 @@ import { objectsInRect } from '@/osu/transform';
 import { pickTimeNearestHit } from '@/osu/hitPick'; // v154: 重叠命中挑离当前时间最近者
 import { selectionScaleQuad, scaleHandleAnchors, anchorPoint, hitScaleHandle, anchorAxis, dragToScale, anchorOpposite, minimumEnclosingCircleCenter, movablePoints, snapshotScaleStates, applyScaleDrag, selectionBoxVisible, selectionDisplayQuad, hitRotationHandle, rotationHandlePoints, ROT_HANDLE_OUT, angleDeltaDeg, snapRotation, rotationOrigin, applyRotateDrag, scaledPosition, type ScaleAnchor, type RotateCorner, type ScaleObjectState, type Quad } from '@/osu/selectionBox';
 import { ctrlPoints, nodeEntries, nearestNode, nodesInRect, nodeBounds, withRedPartners, snapshotNodes, transformNodesFromSnapshot, firstFramedSliderId } from '@/osu/nodeSelection';
-import { isVisibleAt, hitObjectEndTime, HIT_FADE } from '@/osu/lifecycle';
+import { isVisibleAt, hitObjectEndTime, sliderAnchorInteractiveAt, HIT_FADE } from '@/osu/lifecycle';
 import { uiZoom, zoomRect, zoomClientX, zoomClientY, fitCanvas } from '@/osu/uiZoom'; // v217; v246: fitCanvas
 import { displaySettings } from '@/osu/displaySettings'; // v168: 背景图亮度
 import { editorPrefs } from '@/osu/editorPrefs'; // v381: 物件移动死区开关
@@ -487,7 +487,7 @@ export function EditorCanvas() {
       const bm = store.beatmap;
       const p = toOsu({ clientX: cx, clientY: cy });
       const offs = getStackOffsets(bm);
-      const sliders = bm.hitObjects.filter(o => o.type === 'slider' && (isVisibleAt(bm, o, store.currentTime) || store.selected.has(o.id) || store.selectedNodes.has(o.id)));
+      const sliders = bm.hitObjects.filter(o => o.type === 'slider' && (sliderAnchorInteractiveAt(bm, o, store.currentTime) || store.selected.has(o.id) || store.selectedNodes.has(o.id)));
       const hitNode = nearestNode(sliders, offs, p);
       if (!hitNode) return false;
       if (mods.altKey) return true; // Alt+点击锚点 = 切换选中 (nodeAltPress)
@@ -503,7 +503,22 @@ export function EditorCanvas() {
       if (store.tool !== 'select' || store.canvasDragging || !store.beatmap) return false;
       return sliderAnchorContextPress(toOsu({ clientX: cx, clientY: cy }));
     };
-    return () => { store.playfieldNodePress = null; store.playfieldAnchorHit = null; store.playfieldNodeContext = null; };
+    // v404: 可交互 UI (时间轴等) 上的锚点级穿透 — 与 playfieldNodePress 同序但到手柄/物件前截止:
+    //   只放滑条锚点交互过 (优先级: 滑条锚点 > 可交互UI > 物件 > 不可交互UI)
+    store.playfieldAnchorPress = (cx, cy, mods) => {
+      if (store.tool !== 'select' || store.canvasDragging || !store.beatmap) return false;
+      const p = toOsu({ clientX: cx, clientY: cy });
+      if (mods.altKey) {
+        if (store.lockNotes) return false;
+        nodeAltPress(p, mods);
+        return true;
+      }
+      if (!store.lockNotes && store.nodeSelectionCount && !mods.shiftKey && !mods.ctrlKey && !mods.metaKey && nodeGroupDragPress(p)) return true;
+      if (singleSliderNodePress(p, mods)) return true;
+      if (unselectedSliderNodePress(p, mods)) return true;
+      return false; // 物件本体/选中框手柄不穿透可交互 UI (时间轴跳转等功能优先)
+    };
+    return () => { store.playfieldNodePress = null; store.playfieldAnchorHit = null; store.playfieldNodeContext = null; store.playfieldAnchorPress = null; };
   }, []); // toOsu 为稳定 useCallback; 各 press 函数只读 store 单例与 refs
 
   // v361: 四侧 UI 覆盖区锚点优先 (用户反馈: 左/右/下侧也要, v360 只挂上时间轴) —
@@ -523,6 +538,13 @@ export function EditorCanvas() {
       if (!el || typeof el.closest !== 'function') return;
       const anchorFirst = !!store.playfieldAnchorHit?.(e.clientX, e.clientY, e); // v378: 锚点压过控件
       if (!anchorFirst && el.closest('button, input, select, textarea, a, label, [role="button"], [data-dialog]')) return; // 控件/对话框优先
+      // v404: 可交互 UI (带 data-ui-interactive: 上下时间轴/左栏/右栏/底栏) 优先于物件 — 其上的
+      //   点击只放锚点级穿透 (playfieldAnchorPress), 物件本体/手柄不吞事件 (修: 点时间轴选中物件而非跳转);
+      //   不可交互 UI (快捷键注释等, 带 data-ui-pass) 维持物件穿透 (playfieldNodePress 完整链)
+      if (!anchorFirst && !el.closest('[data-ui-pass]') && el.closest('[data-ui-interactive]')) {
+        if (store.playfieldAnchorPress?.(e.clientX, e.clientY, e)) { e.preventDefault(); e.stopPropagation(); }
+        return;
+      }
       if (store.playfieldNodePress?.(e.clientX, e.clientY, e)) {
         e.preventDefault();
         e.stopPropagation();
@@ -1396,25 +1418,17 @@ export function EditorCanvas() {
     const offs = getStackOffsets(bm);
     // v316: F18b — 候选在清选区之前取, 且含选中/有已选节点的滑条 (v273 例外): 时间滚走后
     // 这些滑条仍在渲染, Alt+点击应能直接点选其锚点而非落成空白框选
-    const sliders = bm.hitObjects.filter(o => o.type === 'slider' && (isVisibleAt(bm, o, store.currentTime) || store.selected.has(o.id) || store.selectedNodes.has(o.id)));
+    const sliders = bm.hitObjects.filter(o => o.type === 'slider' && (sliderAnchorInteractiveAt(bm, o, store.currentTime) || store.selected.has(o.id) || store.selectedNodes.has(o.id)));
     const hitNode = nearestNode(sliders, offs, p); // 跨滑条最近优先, 并列取序号在前
     if (store.selected.size) { store.selected.clear(); store.emitSelection(); } // v265: 忽略 hit circle/slider
     if (hitNode) {
-      // v309: 红锚点重复对视为整体切换 — Alt 框选会同时选中重复对的两个下标, 而 nearestNode
-      // 只返回序号在前的那个, 单击只切一个下标 => 另一个仍选中, 红锚点永远取消不掉 (用户反馈)
+      // v401: 同坐标锚点整组切换 (altNodeToggleGroup) — v309 只切 redPairPartner 一个配对,
+      //   三连以上/多对重合的太密红锚点总有同坐标下标剩余选中, 再点又加回 = 永远取消不掉 (soulten/None1637 反馈)
       const ho = bm.hitObjects.find(x => x.id === hitNode.objId);
       const hctrl = ho ? [{ x: ho.x, y: ho.y }, ...(ho.curvePoints ?? [])] : [];
-      const partner = redPairPartner(hctrl, hitNode.idx);
       const selN = store.selectedNodes.get(hitNode.objId);
-      const hasI = !!selN?.has(hitNode.idx);
-      const hasP = partner !== null && !!selN?.has(partner);
-      if (hasI || hasP) { // 已选 → 整对取消
-        if (hasI) store.toggleSelectedNode(hitNode.objId, hitNode.idx);
-        if (hasP) store.toggleSelectedNode(hitNode.objId, partner!);
-      } else { // 未选 → 整对加入 (v29 语义: 重复对不拆散)
-        store.toggleSelectedNode(hitNode.objId, hitNode.idx);
-        if (partner !== null) store.toggleSelectedNode(hitNode.objId, partner);
-      }
+      for (const j of altNodeToggleGroup(hctrl, hitNode.idx, jj => !!selN?.has(jj)))
+        store.toggleSelectedNode(hitNode.objId, j);
       return;
     }
     // v371: Alt+点击滑条本体 (未命中锚点) = 点选该滑条 (可复选; 再点取消) —
@@ -1437,7 +1451,7 @@ export function EditorCanvas() {
     const bm = store.beatmap!;
     const offs = getStackOffsets(bm);
     // v273: 已选节点所在滑条即使当前时间不可见也可整组拖 (与物件命中同一例外)
-    const sliders = bm.hitObjects.filter(o => o.type === 'slider' && (isVisibleAt(bm, o, store.currentTime) || store.selected.has(o.id) || store.selectedNodes.has(o.id)));
+    const sliders = bm.hitObjects.filter(o => o.type === 'slider' && (sliderAnchorInteractiveAt(bm, o, store.currentTime) || store.selected.has(o.id) || store.selectedNodes.has(o.id)));
     const hitNode = nearestNode(sliders, offs, p);
     const insideNode = !!(hitNode && store.selectedNodes.get(hitNode.objId)?.has(hitNode.idx)); // 命中已选节点
     // v309: 按下点在节点黄框 (dq) 内同样整组拖 — 原实现只认锚点命中: 框内按下 (如两锚点之间的
@@ -1608,7 +1622,7 @@ export function EditorCanvas() {
     const bm = store.beatmap!;
     const offs = getStackOffsets(bm);
     // 候选与 nodeAltPress 同口径 (可见 / 已选 / 有已选节点的滑条)
-    const sliders = bm.hitObjects.filter(o => o.type === 'slider' && (isVisibleAt(bm, o, store.currentTime) || store.selected.has(o.id) || store.selectedNodes.has(o.id)));
+    const sliders = bm.hitObjects.filter(o => o.type === 'slider' && (sliderAnchorInteractiveAt(bm, o, store.currentTime) || store.selected.has(o.id) || store.selectedNodes.has(o.id)));
     const hitNode = nearestNode(sliders, offs, p);
     if (!hitNode || hitNode.idx === 0 || store.selected.has(hitNode.objId)) return false; // 已选滑条由 singleSliderNodePress 处理
     store.select([hitNode.objId]); // 命中锚点即进入该滑条节点编辑 (替换选区, 与点击物件本体一致; 顺带清节点选区)
@@ -1649,7 +1663,7 @@ export function EditorCanvas() {
   const sliderAnchorContextPress = (p: Pt): boolean => {
     const bm = store.beatmap!;
     if (store.lockNotes) return false; // v115: 锁定物件 — 右键控制点操作与删除全禁
-    // 右键点击控制点手柄: 红锚点 -> 合并为一个白点 (v29); 白点 -> 删除 (头部不可删)
+    // 右键点击控制点手柄: 红锚点 -> 合并为一个白点 (v29); 白点 -> 删除; v400: 头部可删 (lazer: 下一点变新头)
     const selObjs = bm.hitObjects.filter(o => store.selected.has(o.id));
     if (selObjs.length !== 1 || selObjs[0].type !== 'slider') return false;
     const so = selObjs[0];
@@ -1658,7 +1672,18 @@ export function EditorCanvas() {
     const ctrl = [{ x: so.x, y: so.y }, ...(so.curvePoints ?? [])];
     const i = nearestCtrlPoint(ctrl, odx, ody, p); // v35: 与左键拖拽同一命中优先级
     if (i < 0) return false; // 未命中锚点 — 调用方落到通用删除/面板原行为
-    if (i === 0) return true; // 头部手柄: 不可删不可转白, 也不落到通用删除 (右键头 ≠ 删滑条)
+    if (i === 0) {
+      // v400: 右键头部 = 删除头节点 (起点移到下一个控制点; lazer 同款); 仅剩 2 点不可删, 吞掉不落到通用删除
+      const next = deleteSliderPoint(ctrl, 0);
+      if (next) {
+        store.pushUndo();
+        applySliderPoints(so, next);
+        resnapSliderLength(bm, so, store.beatSnap);
+        invalidatePath(so.id);
+        store.emit();
+      }
+      return true;
+    }
     if (isRedPairPoint(ctrl, i)) {
       // 红->白: 重复对合并成一个点 (几何不变, 长度保留; lazer 条件分支: 变短才重吸附)
       const next = toggleSliderPointRed(ctrl, i)!;
@@ -2009,11 +2034,11 @@ export function EditorCanvas() {
         minX: Math.min(nmq.x0, nmq.x1), minY: Math.min(nmq.y0, nmq.y1),
         maxX: Math.max(nmq.x0, nmq.x1), maxY: Math.max(nmq.y0, nmq.y1),
       };
-      const sliders = bm.hitObjects.filter(o => o.type === 'slider' && isVisibleAt(bm, o, store.currentTime));
-      // v277: 已选节点所在滑条当前时间不可见时保留 (框选进行中时间改变/播放, 不掉出选区)
+      const sliders = bm.hitObjects.filter(o => o.type === 'slider' && sliderAnchorInteractiveAt(bm, o, store.currentTime)); // v402: 锚点框选按滑条身窗口 (暂留残留期不可框)
+      // v277: 已选节点所在滑条当前时间不可交互时保留 (框选进行中时间改变/播放, 不掉出选区); v402: 同锚点窗口口径
       const keepNodes = nodeEntries(store.selectedNodes).filter(([objId]) => {
         const o = bm.hitObjects.find(x => x.id === objId);
-        return !!o && !isVisibleAt(bm, o, store.currentTime);
+        return !!o && !sliderAnchorInteractiveAt(bm, o, store.currentTime);
       });
       const inRect0 = nodesInRect(sliders, getStackOffsets(bm), r);
       // v371: 框选范围收窄 —
@@ -2077,7 +2102,7 @@ export function EditorCanvas() {
     }
     if (altHeldRef.current && !store.lockNotes) {
       const offs = getStackOffsets(bm);
-      const sliders = bm.hitObjects.filter(o => o.type === 'slider' && (isVisibleAt(bm, o, store.currentTime) || store.selected.has(o.id) || store.selectedNodes.has(o.id)));
+      const sliders = bm.hitObjects.filter(o => o.type === 'slider' && (sliderAnchorInteractiveAt(bm, o, store.currentTime) || store.selected.has(o.id) || store.selectedNodes.has(o.id)));
       const hn = nearestNode(sliders, offs, cp);
       hoverNodeRef.current = hn ? { objId: hn.objId, idx: hn.idx } : null;
       store.setHoverNode(hoverNodeRef.current); // v381

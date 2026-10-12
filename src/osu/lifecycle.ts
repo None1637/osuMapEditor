@@ -102,6 +102,18 @@ export function isVisibleAt(bm: Beatmap, o: HitObject, time: number): boolean {
 }
 
 /**
+ * v402: 滑条锚点可交互时间窗 (Alt 点选/框选/hover/整组拖的候选过滤) — 与滑条身渲染窗口一致:
+ * [time-preempt, end+HIT_FADE], 不受暂留模式影响。不能用 isVisibleAt: 暂留模式 (点击特效开+
+ * 打击动画关) 下它放到 end+HIT_LINGER(800ms) — 那是头/尾圈的渲染残留 (v215), 滑条身 240ms 已消失,
+ * 锚点不可见却仍能被框选/点选 (soulten: 关打击动画后 alt 选取的时间范围异常巨大)。
+ * (与 v342 hover 预览/锚点高亮环的渲染门控同一窗口)
+ */
+export function sliderAnchorInteractiveAt(bm: Beatmap, o: HitObject, time: number): boolean {
+  const preempt = arToPreempt(bm.difficulty.ar);
+  return time >= o.time - preempt && time <= hitObjectEndTime(bm, o) + HIT_FADE;
+}
+
+/**
  * 折返箭头 (第 s 个 span 的末端, s=1..slides-1) 在 time 时刻的透明度 (0~1)
  * 对齐 lazer (SliderEndCircle.ApplyDefaultsToSelf + DrawableOsuHitObject.ApplyRepeatFadeIn
  * + DrawableSliderRepeat.SuppressHitAnimations):

@@ -598,7 +598,8 @@ export default function App() {
         )}
         <div className="absolute inset-0 z-10 flex flex-col pointer-events-none">
       {/* 上方大时间轴(附近物件) + 右上角选区间距信息 (v45: 同行; v70: 全部页签显示, 原 UI 排在其下; v129: 半透明浮层) */}
-      <div className="shrink-0 border-b border-white/10 flex items-stretch pointer-events-auto">
+      {/* v404: data-ui-interactive — 可交互 UI 优先于物件穿透 (锚点仍可穿透, EditorCanvas 捕获拦截) */}
+      <div className="shrink-0 border-b border-white/10 flex items-stretch pointer-events-auto" data-ui-interactive>
         {/* v127: WaveformPanel 悬浮窗已废弃 — 波形/频谱默认画在 TopTimeline 背景 (右侧按钮切模式/层级) */}
         <div className="flex-1 min-w-0 relative">
           <TopTimeline />
@@ -611,7 +612,7 @@ export default function App() {
           v129: 背景半透明 /75 (能看到背后游玩的物件) + pointer-events-auto (浮层列整体 none) */}
       <div className="flex-1 flex min-h-0">
         {/* 左侧栏 */}
-        <div className="w-56 shrink-0 bg-[#16161d]/75 border-r border-white/10 overflow-y-auto flex flex-col gap-1.5 px-2 py-2 text-sm pointer-events-auto">
+        <div className="w-56 shrink-0 bg-[#16161d]/75 border-r border-white/10 overflow-y-auto flex flex-col gap-1.5 px-2 py-2 text-sm pointer-events-auto" data-ui-interactive>
           {/* 文件 (v151: 曲库/皮肤各半宽, 并排一行) */}
           <div className="flex gap-1.5">
             <button onClick={() => setShowLibrary(true)} className="flex-1 min-w-0 text-left px-3 py-1.5 rounded bg-white/10 hover:bg-white/20" title={t('app.song_library_title', 'Browse the osu! Songs folder, pick a song and difficulty')}><FolderOpen className="inline-block w-4 h-4 mr-1 -mt-0.5" />{t('app.song_library', 'Song Library')}</button>
@@ -815,8 +816,8 @@ export default function App() {
               )}
               {/* v184: 谱面信息已移到页签栏 (song setup 左侧居中), 此处不再渲染 */}
             </div>
-            {/* 右侧检查器 (v129: 背景半透明 /75 + pointer-events-auto) */}
-            <div className="w-56 shrink-0 bg-[#16161d]/75 border-l border-white/10 overflow-auto pointer-events-auto">
+            {/* 右侧检查器 (v129: 背景半透明 /75 + pointer-events-auto; v404: data-ui-interactive 可交互 UI 优先于物件穿透) */}
+            <div className="w-56 shrink-0 bg-[#16161d]/75 border-l border-white/10 overflow-auto pointer-events-auto" data-ui-interactive>
               {/* v244: 放置态指示移到右侧栏顶部且始终显示 (原 v241 在左栏工具区, 仅放置工具时显示) —
                   放置工具下按 Q/W/E/R 预设下次放下物件的 NC (仅一次, 放置后复位) 与音效 (保持) */}
               <div className="px-3 py-2 text-[11px] text-white/45 flex gap-x-2 flex-wrap border-b border-white/10" title={t('app.placement_state_title', "Placement state: with a placement tool, press Q/W/E/R to preset the next placed object's New Combo (one-shot, resets after placement) and hitsounds (sticky)")}>
@@ -836,7 +837,8 @@ export default function App() {
                 </div>
               )}
               <Inspector />
-              <div className="p-3 text-xs text-white/40 space-y-1 border-t border-white/10">
+              {/* v404: data-ui-pass — 快捷键注释是不可交互 UI, 其下方物件仍可穿透拖拽 (soulten) */}
+              <div className="p-3 text-xs text-white/40 space-y-1 border-t border-white/10" data-ui-pass>
                 <div className="font-bold text-white/60">{t('app.hotkeys', 'Hotkeys')}</div>
                 <div>{t('app.hotkeys_customize_hint', 'Use the "Hotkeys" button (top right) to customize bindings')}</div>
                 {/* v321 (F21): 提示全部经 hotkeyLabel 取当前生效绑定, 改键后同步 */}
@@ -871,8 +873,8 @@ export default function App() {
       )}
       </div>{/* /主区域行 (左侧栏 + 内容; v109: 上时间轴之下/下时间轴之上) */}
 
-      {/* 下方全局时间轴 + 播放控制(两个页签都显示; v129: 半透明浮层) */}
-      <div className="shrink-0 border-t-2 border-white/15 pointer-events-auto">
+      {/* 下方全局时间轴 + 播放控制(两个页签都显示; v129: 半透明浮层; v404: data-ui-interactive — 点击跳转优先于物件穿透) */}
+      <div className="shrink-0 border-t-2 border-white/15 pointer-events-auto" data-ui-interactive>
         <BottomTimeline onTestPlay={() => setTestPlay(true)} />{/* v390: 测试游玩按钮挪入底栏右下角 */}
       </div>
         </div>{/* /v129 浮层列 */}

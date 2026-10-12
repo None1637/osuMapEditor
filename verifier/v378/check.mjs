@@ -65,7 +65,7 @@ section('源码: 需求3 右键穿透 + 锚点压过控件');
   assert(/store\.playfieldNodeContext = \(cx, cy\)/.test(ec), '注册 playfieldNodeContext');
   assert(/store\.playfieldAnchorHit = \(cx, cy, mods\)/.test(ec), '注册 playfieldAnchorHit');
   assert(/window\.addEventListener\('contextmenu', onCtx, true\)/.test(ec), 'contextmenu 捕获拦截 (覆盖区右键删锚点)');
-  const onDown = ec.match(/const onDown = \(e: MouseEvent\) => \{[\s\S]{0,700}?\n    \};/)?.[0] ?? '';
+  const onDown = ec.match(/const onDown = \(e: MouseEvent\) => \{[\s\S]{0,1400}?\n    \};/)?.[0] ?? ''; // v404: 窗口 700→1400 (加可交互UI分支)
   assert(/anchorFirst/.test(onDown) && onDown.indexOf('anchorFirst') < onDown.indexOf("el.closest('button"), '锚点命中先于控件优先判定');
   const st = read('src/osu/store.ts');
   assert(/playfieldAnchorHit: \(\(clientX/.test(st) && /playfieldNodeContext: \(\(clientX/.test(st), 'store 桥字段声明');

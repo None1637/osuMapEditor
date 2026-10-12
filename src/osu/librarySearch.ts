@@ -203,3 +203,21 @@ export function matchLibraryEntry(q: LibraryQuery, e: LibraryIndexEntry): boolea
   for (const t of q.terms) if (!matchTerm(t, e)) return false;
   return true;
 }
+
+// ---------- v403: 骨架条目 (partial, 纯文件名解析) 的搜索 ----------
+// 文件名已含 artist/title/creator/version, 这些条件的搜索无需等索引 (soulten: 未索引谱面应能按文件名信息搜到)
+const PARTIAL_TEXT_KEYS = new Set(['artist', 'title', 'creator', 'author', 'mapper', 'diff']);
+
+/** 查询是否含骨架条目答不了的条件 (数值/length/keys/mode/tag/source) — 「等待索引」提示显隐依据 */
+export function partialQueryNeedsIndex(q: LibraryQuery): boolean {
+  return q.filters.some(f => !PARTIAL_TEXT_KEYS.has(f.key));
+}
+
+/** 骨架条目匹配: 仅文件名可答条件参与 (自由文本 + [diff] 段 + artist/title/creator/diff 键); 含其他条件不命中 (等索引) */
+export function matchLibraryEntryPartial(q: LibraryQuery, e: LibraryIndexEntry): boolean {
+  if (partialQueryNeedsIndex(q)) return false;
+  if (q.diff !== null && !e.version.toLowerCase().includes(q.diff.toLowerCase())) return false;
+  for (const f of q.filters) if (!matchTextFilter(f, e)) return false;
+  for (const t of q.terms) if (!matchTerm(t, e)) return false;
+  return true;
+}

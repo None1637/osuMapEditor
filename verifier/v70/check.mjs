@@ -26,7 +26,7 @@ section('App.tsx: 上时间轴全部页签显示');
 {
   const src = readSrc('src/App.tsx');
   assert(src.indexOf('<TopTimeline />') < src.indexOf("tab === 'edit' ? ("), 'TopTimeline 在页签条件之外 (所有页签显示)');
-  assert(src.indexOf('<BottomTimeline />') > -1, 'BottomTimeline 保持全局');
+  assert(src.indexOf('<BottomTimeline ') > -1 || src.indexOf('<BottomTimeline />') > -1 || src.indexOf('<BottomTimeline>') > -1, 'BottomTimeline 保持全局'); // v404: 适配 v390 的 onTestPlay prop 形态 (HEAD 遗留陈旧断言)
 }
 
 section('timingEdit.ts: 格式化 + 生效绿线');
