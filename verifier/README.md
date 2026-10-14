@@ -4179,3 +4179,126 @@
 - 验证: verifier/v404 (源码断言: 锚点级链组成/捕获优先级顺序/四侧标记/pass 豁免);
   适配 v360 (TopTimeline 穿透断言)、v378 (onDown 提取窗口 700→1400)、v70 (BottomTimeline prop 形态, HEAD 遗留)。
 - 回归: tsc + vite build 通过; v45/v129/v360/v361/v362/v378(残留 1 处 CDP flaky, 与 HEAD 持平)/v401/v402/v403 全绿或持平。
+
+## v405 — 旋转/缩放窗口布局对齐 stable (Rotate by / Scale by)
+- 需求: 布局照 stable 截图重构 (顶部提示语 + 滑条与数值框联动 + 分组框), 尽量保留现有功能;
+  「逆时针」「顺时针」按钮用户认不出含义, 改名「逆时针旋转一次」「顺时针旋转一次」。
+- 改动:
+  - transform.ts: 新增纯函数 axisScaleFactors (「应用于 X/Y 轴」勾选换算, 未勾选轴倍率按 1 =
+    stable 的 Apply to X-axis/Y-axis) / angleForDirection (选方向 = 角度取符号绝对值, 顺正逆负) /
+    directionForAngle (输入角度反推方向, 0 保持原方向)。
+  - TransformDialog.tsx: 旋转 = 提示语「输入旋转角度:」+ 滑条(±180°)与角度框联动 + 方向分组
+    (dir-cw/dir-ccw 单选, 与角度符号双向同步, tf-rotate 关窗记忆) + 原点分组 (游玩区中心/选区中心/
+    自定义, 顺序对齐 stable; 节点模式仍隐藏, 原点恒锚点包围盒中心);
+    缩放 = 提示语「按倍率缩放选中物件的间距:」+ 滑条(0.1..2)与 x 倍率框联动 + 原点分组 + 应用于分组
+    (axis-x/axis-y 勾选 + y 倍率框 + x:y 固定, 均并入 tf-scale 关窗落盘);
+    预览/提交统一走 sx/sy = axisScaleFactors(factor, factorY, axisX, axisY); 分组用 fieldset+legend
+    (Group 组件); 滑条 className accent-sky-500 与音量窗口一致; 对称模式不变。
+  - 保留功能锚点: apply-rotate/lock-ratio/factor/factor-y (step 0.005, digits 3) 等 testid 与属性不变;
+    预览会话/选区切换归零/undo 语义不变。
+  - i18n: 新增 angle_prompt/scale_prompt/direction/apply_to/axis_x/axis_y/ccw_once/cw_once;
+    selection/center 改「选区中心/游玩区中心」; 闲置 key angle/factor 移除; s2t S2T_SAME 补「某」。
+- 验证: verifier/v405 (tests.ts 纯函数: axisScaleFactors 四组合/angleForDirection/directionForAngle;
+  check.mjs 源码断言: 滑条联动/分组框/方向同步/轴向勾选/按钮改名/持久化/词典);
+  适配 v282 (提交改传 sx/sy)、v307 (lockRatio 并入 scaleParams)、v315 (tf-scale 持久化新形态)、
+  v360 (节点提交 sx/sy + 原点分组框断言)。
+- 回归: tsc + vite build 通过; v282/v307/v315/v346/v367 全绿; v344/v360/v379 (CDP) 全绿。
+
+## v406 — 滑条尾吸附节拍开关 + 验证器窗口不抢焦点
+- 需求1: 开关控制拉滑条时滑条尾是否吸附节拍细分; 用户确认作用范围 = 放置拖尾 + 节点编辑后重吸附都受控, 默认开 (=现状)。
+- 改动:
+  - editorPrefs.ts: 新增 sliderTailSnap (默认 true, localStorage 'osu-editor:editor-prefs' 持久化)。
+  - sliderPath.ts: placementLength / resnapSliderLength 开头各加闸 — 关时直通 max(1, floor(几何全长)),
+    跳过 snapSliderLength/锁定间距步长。所有调用点 (放置 1877/1927、节点拖拽 1965/1999、插删点、
+    红转白、变换手柄、timingRecalcSliders、TransformDialog、merge) 因共用这两个函数全部受控。
+  - App.tsx: 左栏 Lock Notes 下方新增整宽开关按钮 (data-slider-tail-snap="toggle", Magnet 图标,
+    store.setEditorPref 翻转); i18n app.slider_tail_snap/_title。
+  - electron/main.cjs: OSU_VERIFIER=1 时 BrowserWindow show:false 创建 + maximize 后 showInactive() —
+    验证器窗口不再抢焦点 (用户反馈跑回归测试窗口弹出打断输入); v392 的多屏挪位逻辑保留, isVerifier 提取共用。
+    老脚本若不经 launchIsolatedElectron 可手动 OSU_VERIFIER=1 前缀获得同样行为。
+- 验证: verifier/v406 (tests.ts: 开=吸附 8tick=100 / 关=直通 110 / 锁定间距分支同直通 / 下限 1px;
+  check.mjs: 字段/闸/按钮/词典断言)。回归: v160/v218 残留失败为 HEAD 遗留 (git stash 对比确认, v365/v366 改语义后的陈旧断言),
+  v219/v365/v381/v386/v346 全绿; CDP v344/v379 + 焦点敏感 v332/v336 在 showInactive 下全绿。
+
+## v407 — 时间轴 Alt+拖滑条尾 = 改绿线 SV 调时长 (不加折返)
+- 需求2: 上方时间轴拖滑条尾默认仍改折返; 按住 Alt 拖尾 = 增/改绿线 SV 使滑条持续时间变化而长度/折返数不变
+  (用户确认触发方式 = Alt, 不加开关)。
+- 改动:
+  - 新模块 src/osu/timingSv.ts: svForDuration (由目标时长反解 SV, 钳 [0.1,10], 非法入参 null) /
+    beatLengthForSv (-100/sv) / svAt (svPointAt, 红线重置 stable 语义) / greenLineAt (同刻绿线)。
+  - Timelines.tsx: tailResizeRef 加 mode/svOld/headGreen/headCreated/restore/lastEnd; 按下时 e.altKey 定模式
+    并记 svOld = 头处旧 SV; mousemove SV 分支: 目标尾时间 snapMs 吸附节拍 → applySvTailDrag:
+    头绿线已有则改/否则插入 (采样字段继承现有点, effects=0), 尾时间插恢复绿线还原 svOld (逐帧先摘后插,
+    跨度内有其他 timing 线则不插 — 已知限制, 与 osu duration 头 SV 口径一致), 拖回原时长摘除本次新建头绿线;
+    全程 beginDrag/commitDrag = 一步 undo。折返模式 (不按 Alt) 与单击尾端选尾节点不变。
+- 验证: verifier/v407 (tests.ts: 反解闭环 length/vel=目标时长/slides 入公式/钳制/红线重置;
+  check.mjs: mode 分支/绿线增改/恢复点/摘除逻辑断言)。回归: v35/v79/v213/v320/v322/v345 全绿, tsc 通过。
+
+## v408 — 复制选中滑条锚点, Ctrl+V 按加点规则插入滑条
+- 需求3: 支持复制选中的滑条锚点并插入滑条; Ctrl+V 插入位置与添加单个锚点 (v319/v326) 同规则。
+- 改动:
+  - sliderPath.ts: 新增 insertAnchorGroup(points, segIdx, group) — 整组插到 segIdx 段后, 组内顺序/红对保留。
+  - store.ts: 新增 nodeClipboard (相对首锚点偏移序列) 与 cursorOsu (EditorCanvas toOsu 每次换算时写入);
+    copy() 前置节点分支 — 节点选区非空且属同一条滑条时复制锚点 (不动物件剪贴板/系统剪贴板;
+    跨多条滑条落空), 物件/绿线复制清空锚点剪贴板; paste() 前置锚点分支 — nodeClipboard 非空 +
+    恰好选中一条滑条 + 光标已知 时走 pasteNodesIntoSlider: 段下标 = 距光标最近非零长控制点线段
+    (跳零长红对), 整组平移使首锚点落在光标原位置 (撤堆叠), resolveSliderCurveType 保型
+    (v394 手动改型例外) + resnapSliderLength + invalidatePath, 一次 undo, 粘贴后选中新插入组。
+  - EditorCanvas.tsx: toOsu 写 store.cursorOsu。
+- 验证: verifier/v408 (tests.ts: 插入下标/顺序/红对保留/钳制/不改入参; check.mjs 源码断言);
+  适配 v102 (paste 守卫两语句化)、v322 (copy 正则窗口 1600→2600)。回归: v102/v113/v209(HEAD 即崩, 遗留)/
+  v265/v322/v357/v380/v401 全绿或持平, tsc 通过。
+
+## v409 — 在选中锚点处分割滑条
+- 需求4: 支持在选中的滑条锚点处将滑条分割, 分割后的子滑条将被选锚点各复制一份 (缝点双侧共有)。
+- 改动:
+  - sliderPath.ts: 新增纯函数 splitSliderAtAnchors(o, indices) — 下标按整条控制点数组 (0=头点);
+    排序去重并剔除头尾锚点 (无可切点返回 null); 缝点双侧各一份; curveType: L 段保持 L,
+    P 段恰 3 点保持 P 否则 B, B/B<n>/C 一律 B; slides=1; hitSound/newCombo/comboSkip/hitSampleRaw
+    仅首段; edgeSoundsRaw/edgeSetsRaw 首段继承头端、末段继承尾端、中间缝填 '0'/'0:0' (原串存在才写)。
+  - store.ts: 新增 splitSelectedSliderNodes() — 每条带节点选区的滑条各自分割 (支持多滑条),
+    子滑条时间顺序衔接 (下段开始 = 上段结束, 时长 = length/vel), 每段 resnapSliderLength
+    (遵守 v406 尾吸附开关), 一次 undo, 完成后清空节点选区并选中全部子滑条。
+  - Inspector.tsx: 单选/多选两个 Convert 区新增「在锚点处分割」按钮 (data-conv-apply="split-anchors",
+    nodeSelectionCount>0 时显示); 词典 zh-CN/inspector.ts 加 inspector.split_at_anchors; s2t 补「割」。
+- 验证: verifier/v409 (tests.ts: L/P/B/B4/C 继承/缝点双份/头尾剔除/hitsound 分配/null 情形/不改入参;
+  check.mjs 源码断言)。回归: v213/v401/v37 全绿; v117 选中节点黄环失败已 stash 对比确认为 HEAD 遗留;
+  v346 (补字后) 与 tsc 通过。
+
+## v410 — 不按 Alt 点选滑条锚点 (需求5)
+- 选中滑条后不按 Alt 单击锚点即可选中锚点 (多选也支持); 点选与拖拽共存。
+- 改动 (EditorCanvas.tsx):
+  - singleSliderNodePress: mods 补 shiftKey; 命中锚点按下时 —
+    无修饰: setSelectedNodes 单选替换为该锚点 (物件选区保留), 拖拽走 nodesMoveDragRef 整组拖通道
+    (该点已在节点选区, 红对由 withRedPartners 带上), 未过移动死区松手 = 纯点选 (cancelDragNoop 弹空快照);
+    Shift+点击: altNodeToggleGroup 整组加选/减选 (v401 同坐标语义), 纯切换不开拖拽 (对齐 v266 Alt 纯点选);
+    Ctrl+点击: 保持现状 — nodeDragRef 单点拖 + 松手切红 (v118), 不动节点选区。
+  - nodeGroupDragPress: 直接命中未选锚点时 return false 放行点选 (黄框 dq 内但未命中锚点仍整组拖, v309 不变)。
+  - 未选滑条锚点 (unselectedSliderNodePress) 按下 = 选中该滑条并同时选中该锚点, 拖拽照旧。
+- 验证: verifier/v410 (源码断言 + CDP 冒烟: 无Alt点选=1/Shift加选=2/Shift减选/拖拽位移/单击未选锚点单选替换/Ctrl切红不动选区)。
+  适配 v362 (singleSliderNodePress 签名补 shiftKey)。
+  回归: v25/v266/v309/v401/v402/v404/v360/v361/v305/v306/v307/v277/v344 全绿; v369/v362 复跑转绿 (CDP flaky);
+  v117/v118/v378(2a-2c)/v379(6处) 失败经 stash 对比确认均为 HEAD 遗留 (本机环境); tsc + vite build 通过。
+
+## v411 — 修「时间轴 Alt+拖滑条尾改 SV 无效, 只能拉出橙色框」
+- 根因: TopTimeline mousedown 开头把事件委托给 store.playfieldAnchorPress (v360/v404 穿透链),
+  其 Alt 分支无条件进 nodeAltPress — Alt+空白 = 节点框选 (橙色框), 事件被吞,
+  Timelines 的拖尾分支 (v407, e.altKey 定 SV 模式) 永远执行不到。
+- 修复 (EditorCanvas.tsx): playfieldAnchorPress 的 Alt 分支加命中预检 — 只在命中锚点 (切换选中)
+  或滑条本体 (Alt 点选, v371) 时穿透; Alt+空白 return false 放行给可交互 UI。
+  行为变化: Alt+空白节点框选在时间轴等可交互 UI 上不再触发 (画布内与不可交互 UI 上不变)。
+- 验证: verifier/v411 (源码断言 + CDP: Alt+拖尾 → 选区保留/折返数不变/新增绿线/无框选/不 seek;
+  无修饰拖尾仍改折返)。适配 v404 (anchorPress 正则窗口 1200→2200)。
+  回归: v404/v360/v361/v407/v35/v213/v410 全绿, tsc + vite build 通过。
+
+## v412 — 直线手绘滑条落 'L' 而非 'B4'
+- 问题: 拉一条直线滑条 (按住拖动手绘) 也被标记为 B4 并触发 B4 警告条。
+  根因: finishFreehandSlider 非单弧一律落 'B4'; 直线拖动因共线让 tryCircleArc 圆弧拟合失败
+  (circularArcProperties 退化 invalid), singleArc=false。
+- 修复:
+  - freehandFit.ts: 新增 collinearLinePoints(ctrl, tol=3) — 所有中间点到 首→尾 连线垂直距离 ≤3 osu px
+    判定共线, 返回折叠后的 [首, 尾]; 否则 null。
+  - EditorCanvas finishFreehandSlider: 无红锚点分段 (points 无 red) 且共线时折叠落 'L';
+    有红锚点的共线多段不折叠 (分段语义保留); 单弧 'P' / 其余 'B4' 不变。
+- 验证: verifier/v412 (tests.ts: 共线/微抖/超容差/斜线/两点/退化/不改入参; check.mjs 源码断言)。
+  适配 v377/v66/v74 (落盘类型断言加 linePts 分支)。回归: v387/v388/v377/v66/v73/v74 全绿, tsc 通过。

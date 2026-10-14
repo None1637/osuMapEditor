@@ -38,8 +38,10 @@ section('源码: TransformDialog 节点模式');
   assert(/const nodeMode = mode !== 'symmetry' && store\.nodeSelectionCount > 0/.test(src), 'nodeMode 判定');
   assert(/if \(nodeMode\) store\.beginNodeTransformPreview\(\); else store\.beginTransformPreview\(\)/.test(src), '按模式开预览会话');
   assert(/store\.previewNodeTransform\(\(p, c\) => rotatePt/.test(src) && /store\.previewNodeTransform\(\(p, c\) => scalePt/.test(src), '节点实时预览 (旋转+缩放)');
-  assert(/commitNode\(\(p, c\) => rotatePt\(p, c, angle\)\)/.test(src) && /commitNode\(\(p, c\) => scalePt\(p, c, factor, factorY\)\)/.test(src), '节点提交 (旋转+缩放)');
-  assert(/mode !== 'symmetry' && !nodeMode/.test(src) && /transform\.node_mode_hint/.test(src), '节点模式隐藏原点行 + 提示');
+  // v405 适配: 节点缩放提交改传 axisScaleFactors 换算后的 sx/sy (「应用于 X/Y 轴」勾选)
+  assert(/commitNode\(\(p, c\) => rotatePt\(p, c, angle\)\)/.test(src) && /commitNode\(\(p, c\) => scalePt\(p, c, sx, sy\)\)/.test(src), '节点提交 (旋转+缩放; v405 起缩放经 sx/sy)');
+  // v405 适配: 原点改为分组框 originGroup, 节点模式不渲染 (originGroup = !nodeMode && ...)
+  assert(/const originGroup = !nodeMode && \(/.test(src) && /transform\.node_mode_hint/.test(src), '节点模式隐藏原点行 + 提示 (v405 起原点走 originGroup 分组框)');
 }
 
 section('源码: 穿透 (EditorCanvas 注册 + TopTimeline 询问)');

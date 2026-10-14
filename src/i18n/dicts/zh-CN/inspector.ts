@@ -55,6 +55,8 @@ export const zhCN: Record<string, string> = {
   'inspector.new_combo': '新 Combo',
   'inspector.control_points': '控制点: {n}',
   'inspector.split_slider': '拆分滑条 (等时间)',
+  // v409: 选中锚点处分割 (节点选区存在时显示)
+  'inspector.split_at_anchors': '在锚点处分割',
   'inspector.symmetric_slider': '对称滑条',
   'inspector.delete': '删除 (Del)',
   // v387: B 样条 curveType

@@ -6,12 +6,25 @@
 // v379: 无选区也可快捷键开窗 (store.openTransformDialog 去守卫), 空选区时显示提示且预览/应用 no-op;
 //   开窗状态 Ctrl+Z/Y 可用 (store.undo/redo 预览会话感知); 拖曳起步于预览态时预览固化为独立 undo 步
 //   并以拖拽后几何重立基准 (store.beginDrag/commitDrag) — 撤销链可一步步回到最初谱面, 预览不被拖曳中断
-import { useEffect, useRef, useState } from 'react';
+// v405: 布局对齐 stable 的 Rotate by / Scale by 窗口 — 顶部提示语 + 滑条与数值框联动;
+//   分组框: 旋转 = 方向(顺/逆时针单选, 与角度符号双向同步) + 原点, 缩放 = 原点 + 应用于(X/Y 轴勾选,
+//   未勾选轴按倍率 1 计算, axisScaleFactors); 逆/顺时针按钮改名「逆/顺时针旋转一次」(用户认不出原按钮含义)
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { RotateCcw, RotateCw } from 'lucide-react';
 import { store, useEditor, type TransformOrigin } from '@/osu/store';
 import { useT } from '@/i18n';
-import { rotateObjects, scaleObjects } from '@/osu/transform';
+import { rotateObjects, scaleObjects, axisScaleFactors, angleForDirection, directionForAngle, type RotateDir } from '@/osu/transform';
 import { DraggableDialog, DraftNum, loadParams, useSaveParamsOnClose } from './DraggableDialog';
+
+/** v405: stable 式分组框 (Direction / Origin / Apply to) */
+function Group({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <fieldset className="border border-white/15 rounded px-2 py-1.5 min-w-0">
+      <legend className="text-white/50 px-0.5">{label}</legend>
+      <div className="flex flex-col gap-1">{children}</div>
+    </fieldset>
+  );
+}
 
 export function TransformDialog({ mode }: { mode: 'rotate' | 'scale' | 'symmetry' }) {
   useEditor();
@@ -20,8 +33,13 @@ export function TransformDialog({ mode }: { mode: 'rotate' | 'scale' | 'symmetry
   const [factor, setFactor] = useState(1); // v315: F16 — 默认倍率 1 (原 1.1)
   const [factorY, setFactorY] = useState(1); // v282: 缩放支持仅X/仅Y (另一轴填 1)
   // v315: F16 — xy固定 重开窗口保持上次状态 (localStorage 持久化, 关窗落盘)
-  const [lockRatio, setLockRatio] = useState(() => loadParams('tf-scale', { lockRatio: false }).lockRatio);
-  useSaveParamsOnClose('tf-scale', { lockRatio });
+  // v405: 同键追加「应用于 X/Y 轴」勾选 (默认都勾), 关窗一并落盘
+  const [scaleParams, setScaleParams] = useState(() => loadParams('tf-scale', { lockRatio: false, axisX: true, axisY: true }));
+  const lockRatio = scaleParams.lockRatio, axisX = scaleParams.axisX, axisY = scaleParams.axisY;
+  useSaveParamsOnClose('tf-scale', scaleParams);
+  // v405: 方向单选 (stable Rotate by 的 Direction) — 关窗记忆
+  const [dir, setDir] = useState<RotateDir>(() => loadParams('tf-rotate', { dir: 'cw' as RotateDir }).dir);
+  useSaveParamsOnClose('tf-rotate', { dir });
   const originMode = store.originMode;
   const origin: TransformOrigin = store.currentOrigin();
   // v360: 节点模式 (soulten: 多個滑條點也能快捷鍵縮放旋轉) — 有选中滑条锚点时窗口作用于锚点,
@@ -64,17 +82,26 @@ export function TransformDialog({ mode }: { mode: 'rotate' | 'scale' | 'symmetry
   const scalePt = (p: { x: number; y: number }, c: { x: number; y: number }, sx: number, sy: number) =>
     ({ x: c.x + (p.x - c.x) * sx, y: c.y + (p.y - c.y) * sy });
 
+  // v405: 「应用于 X/Y 轴」勾选后的实际倍率 (未勾选轴 = 1)
+  const { sx, sy } = axisScaleFactors(factor, factorY, axisX, axisY);
+
   // 值/原点变化时刷新预览 (仅用户已改过值后; 开窗不自动变换)
   useEffect(() => {
     if (!previewOn.current || mode === 'symmetry') return;
     if (nodeMode) {
       if (mode === 'rotate') store.previewNodeTransform((p, c) => rotatePt(p, c, angle));
-      else store.previewNodeTransform((p, c) => scalePt(p, c, factor, factorY));
+      else store.previewNodeTransform((p, c) => scalePt(p, c, sx, sy));
     } else if (mode === 'rotate') store.previewTransform((objs, c) => rotateObjects(objs, c, angle), origin);
-    else store.previewTransform((objs, c) => scaleObjects(objs, c, factor, factorY), origin);
-  }, [angle, factor, factorY, originMode, mode, nodeMode, store.customOrigin.x, store.customOrigin.y]); // eslint-disable-line react-hooks/exhaustive-deps
+    else store.previewTransform((objs, c) => scaleObjects(objs, c, sx, sy), origin);
+  }, [angle, sx, sy, originMode, mode, nodeMode, store.customOrigin.x, store.customOrigin.y]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const changeAngle = (v: number) => { previewOn.current = true; setAngle(v); };
+  // v405: 角度与方向单选双向同步 — 打负数自动跳到逆时针, 点方向 = 角度取对应符号的绝对值
+  const changeAngle = (v: number) => { previewOn.current = true; setAngle(v); setDir(d => directionForAngle(v, d)); };
+  const changeDir = (d: RotateDir) => {
+    setDir(d);
+    const v = angleForDirection(angle, d);
+    if (v !== angle) { previewOn.current = true; setAngle(v); }
+  };
   // v307: 比例固定时按改动前的 factor:factorY 联动另一轴 (x=y 时即等比缩放); 保留 4 位小数防长浮点尾
   const round4 = (v: number) => Math.round(v * 10000) / 10000;
   const changeFactor = (v: number) => {
@@ -97,28 +124,30 @@ export function TransformDialog({ mode }: { mode: 'rotate' | 'scale' | 'symmetry
     previewOn.current = false;
   };
 
-  return (
-    <DraggableDialog title={t('transform.dialog_title', '{mode} ({n} selected)', { mode: title, n: selCount })}
-      testid={mode === 'rotate' ? 'rotate-dlg' : mode === 'scale' ? 'scale-dlg' : 'symmetry-dlg'} width={340}
-      onClose={() => store.closeTransformDialog()}>
-      {mode !== 'symmetry' && !nodeMode && (
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-white/50">{t('transform.origin', 'Origin')}</span>
-          {([['selection', t('transform.selection', 'Selection')], ['playfield', t('transform.center', 'Center')], ['custom', t('transform.custom', 'Custom')]] as const).map(([m, label]) => (
-            <label key={m} className="flex items-center gap-0.5 text-white/70">
-              <input type="radio" name="tfdlg-origin" checked={originMode === m} data-tf={`origin-${m}`}
-                onChange={() => store.setOriginMode(m)} />
-              {label}
-            </label>
-          ))}
-          {originMode === 'custom' && (
+  // v405: 原点分组框 (旋转/缩放共用; 节点模式原点恒为锚点包围盒中心, 不显示)
+  const originGroup = !nodeMode && (
+    <Group label={t('transform.origin', 'Origin')}>
+      {([['playfield', t('transform.center', 'Playfield Centre')], ['selection', t('transform.selection', 'Selection Centre')], ['custom', t('transform.custom', 'Custom')]] as const).map(([m, label]) => (
+        <label key={m} className="flex items-center gap-1 text-white/70 flex-wrap">
+          <input type="radio" name="tfdlg-origin" checked={originMode === m} data-tf={`origin-${m}`}
+            onChange={() => store.setOriginMode(m)} />
+          {label}
+          {m === 'custom' && originMode === 'custom' && (
             <span className="flex items-center gap-1">
               <DraftNum value={store.customOrigin.x} set={v => store.setCustomOrigin({ x: v, y: store.customOrigin.y })} testid="custom-x" />
               <DraftNum value={store.customOrigin.y} set={v => store.setCustomOrigin({ x: store.customOrigin.x, y: v })} testid="custom-y" />
             </span>
           )}
-        </div>
-      )}
+        </label>
+      ))}
+    </Group>
+  );
+
+  return (
+    <DraggableDialog title={t('transform.dialog_title', '{mode} ({n} selected)', { mode: title, n: selCount })}
+      testid={mode === 'rotate' ? 'rotate-dlg' : mode === 'scale' ? 'scale-dlg' : 'symmetry-dlg'} width={340}
+      onClose={() => store.closeTransformDialog()}>
+      {/* v360: 节点模式提示 (原点恒 = 锚点包围盒中心) */}
       {mode !== 'symmetry' && nodeMode && (
         <div className="text-white/45">{t('transform.node_mode_hint', 'Applying to selected slider anchors (origin = anchor bounding box center)')}</div>
       )}
@@ -127,45 +156,96 @@ export function TransformDialog({ mode }: { mode: 'rotate' | 'scale' | 'symmetry
         <div className="text-white/45">{t('transform.no_selection_hint', 'No objects selected — changing values has no effect until you select objects on the canvas')}</div>
       )}
       {mode === 'rotate' && (
-        <div className="flex items-center gap-1 flex-wrap">
-          <span className="text-white/50">{t('transform.angle', 'Angle')}</span>
-          <DraftNum value={angle} set={changeAngle} testid="angle" />
-          <button onClick={() => nodeMode ? commitNode((p, c) => rotatePt(p, c, angle)) : commit((objs, c) => rotateObjects(objs, c, angle))} title={t('transform.apply_rotate_title', 'Rotate by the entered angle (positive = clockwise, negative = counter-clockwise)')} data-tf="apply-rotate"
-            className="px-1.5 py-1 rounded bg-white/10 hover:bg-white/20 border border-white/15 text-[11px]">
-            {t('transform.apply_rotate', 'Apply Rotation')}
-          </button>
-          <button onClick={() => nodeMode ? commitNode((p, c) => rotatePt(p, c, -Math.abs(angle))) : commit((objs, c) => rotateObjects(objs, c, -Math.abs(angle)))} title={t('transform.ccw_title', 'Rotate counter-clockwise by the entered angle')}
-            className="px-1.5 py-1 rounded bg-white/10 hover:bg-white/20 border border-white/15 text-[11px]">
-            <RotateCcw className="inline-block w-3.5 h-3.5 mr-0.5 -mt-0.5" />{t('transform.ccw', 'Counter-clockwise')}
-          </button>
-          <button onClick={() => nodeMode ? commitNode((p, c) => rotatePt(p, c, Math.abs(angle))) : commit((objs, c) => rotateObjects(objs, c, Math.abs(angle)))} title={t('transform.cw_title', 'Rotate clockwise by the entered angle')}
-            className="px-1.5 py-1 rounded bg-white/10 hover:bg-white/20 border border-white/15 text-[11px]">
-            <RotateCw className="inline-block w-3.5 h-3.5 mr-0.5 -mt-0.5" />{t('transform.cw', 'Clockwise')}
-          </button>
-        </div>
+        <>
+          {/* v405: stable Rotate by — 提示语 + 滑条/数值框联动 (滑条范围 ±180°, 数值框不限) */}
+          <div>
+            <div className="text-white/50 mb-1">{t('transform.angle_prompt', 'Enter an angle to rotate by:')}</div>
+            <div className="flex items-center gap-2">
+              <input type="range" min={-180} max={180} step={1} value={Math.max(-180, Math.min(180, angle))} data-tf="angle-slider"
+                onChange={e => changeAngle(parseFloat(e.target.value))} className="flex-1 accent-sky-500" />
+              <DraftNum value={angle} set={changeAngle} testid="angle" />
+              <span className="text-white/40">°</span>
+            </div>
+          </div>
+          <div className={originGroup ? 'grid grid-cols-2 gap-2 items-start' : ''}>
+            <Group label={t('transform.direction', 'Direction')}>
+              {([['cw', t('transform.cw', 'Clockwise')], ['ccw', t('transform.ccw', 'Anti-Clockwise')]] as const).map(([d, label]) => (
+                <label key={d} className="flex items-center gap-1 text-white/70">
+                  <input type="radio" name="tfdlg-dir" checked={dir === d} data-tf={`dir-${d}`}
+                    onChange={() => changeDir(d)} />
+                  {label}
+                </label>
+              ))}
+            </Group>
+            {originGroup}
+          </div>
+          <div className="flex items-center gap-1 flex-wrap">
+            <button onClick={() => nodeMode ? commitNode((p, c) => rotatePt(p, c, angle)) : commit((objs, c) => rotateObjects(objs, c, angle))} title={t('transform.apply_rotate_title', 'Rotate by the entered angle (positive = clockwise, negative = counter-clockwise)')} data-tf="apply-rotate"
+              className="px-1.5 py-1 rounded bg-white/10 hover:bg-white/20 border border-white/15 text-[11px]">
+              {t('transform.apply_rotate', 'Apply Rotation')}
+            </button>
+            {/* v405: 改名「逆/顺时针旋转一次」— 原按钮只写「逆时针/顺时针」, 用户认不出含义 */}
+            <button onClick={() => nodeMode ? commitNode((p, c) => rotatePt(p, c, -Math.abs(angle))) : commit((objs, c) => rotateObjects(objs, c, -Math.abs(angle)))} title={t('transform.ccw_title', 'Rotate counter-clockwise once by the entered angle')}
+              className="px-1.5 py-1 rounded bg-white/10 hover:bg-white/20 border border-white/15 text-[11px]">
+              <RotateCcw className="inline-block w-3.5 h-3.5 mr-0.5 -mt-0.5" />{t('transform.ccw_once', 'Rotate once counter-clockwise')}
+            </button>
+            <button onClick={() => nodeMode ? commitNode((p, c) => rotatePt(p, c, Math.abs(angle))) : commit((objs, c) => rotateObjects(objs, c, Math.abs(angle)))} title={t('transform.cw_title', 'Rotate clockwise once by the entered angle')}
+              className="px-1.5 py-1 rounded bg-white/10 hover:bg-white/20 border border-white/15 text-[11px]">
+              <RotateCw className="inline-block w-3.5 h-3.5 mr-0.5 -mt-0.5" />{t('transform.cw_once', 'Rotate once clockwise')}
+            </button>
+          </div>
+        </>
       )}
       {mode === 'scale' && (
-        <div className="flex items-center gap-1 flex-wrap">
-          <span className="text-white/50">{t('transform.factor', 'Factor')}</span>
-          <span className="text-white/40">x</span>
-          <DraftNum value={factor} set={changeFactor} testid="factor" min={0.01} step={0.005} digits={3} /> {/* v367: 步进 0.05→0.005 (精细度×10), 显示 3 位小数 */}
-          <span className="text-white/40">y</span>
-          <DraftNum value={factorY} set={changeFactorY} testid="factor-y" min={0.01} step={0.005} digits={3} /> {/* v367: 同上 */}
-          <label className="flex items-center gap-0.5 text-white/70" title={t('transform.lock_ratio_title', 'Lock x:y ratio — changing one axis scales the other at the current ratio')}>
-            <input type="checkbox" checked={lockRatio} data-tf="lock-ratio" onChange={e => setLockRatio(e.target.checked)} />
-            {t('transform.lock_ratio', 'Lock x:y')}
-          </label>
-          <button onClick={() => nodeMode ? commitNode((p, c) => scalePt(p, c, factor, factorY)) : commit((objs, c) => scaleObjects(objs, c, factor, factorY))} title={t('transform.apply_scale_title', 'Scale by the entered factor (X only: set y to 1; Y only: set x to 1; slider length scales too)')}
-            className="px-1.5 py-1 rounded bg-white/10 hover:bg-white/20 border border-white/15 text-[11px]">
-            {t('transform.apply_scale', 'Apply Scale')}
-          </button>
-        </div>
+        <>
+          {/* v405: stable Scale by — 提示语 + 滑条/数值框联动 (滑条范围 0.1..2, 数值框不限) */}
+          <div>
+            <div className="text-white/50 mb-1">{t('transform.scale_prompt', "Scale the selected objects' spacing by:")}</div>
+            <div className="flex items-center gap-2">
+              <input type="range" min={0.1} max={2} step={0.005} value={Math.max(0.1, Math.min(2, factor))} data-tf="factor-slider"
+                onChange={e => changeFactor(parseFloat(e.target.value))} className="flex-1 accent-sky-500" />
+              <DraftNum value={factor} set={changeFactor} testid="factor" min={0.01} step={0.005} digits={3} /> {/* v367: 步进 0.05→0.005 (精细度×10), 显示 3 位小数 */}
+              <span className="text-white/40">×</span>
+            </div>
+          </div>
+          <div className={originGroup ? 'grid grid-cols-2 gap-2 items-start' : ''}>
+            {originGroup}
+            {/* v405: stable 的 Apply to X-axis/Y-axis — 未勾选轴按倍率 1 计算; y 倍率框与 x:y 固定保留 (v282/v307) */}
+            <Group label={t('transform.apply_to', 'Apply to')}>
+              <label className="flex items-center gap-1 text-white/70">
+                <input type="checkbox" checked={axisX} data-tf="axis-x"
+                  onChange={e => { previewOn.current = true; setScaleParams(p => ({ ...p, axisX: e.target.checked })); }} />
+                {t('transform.axis_x', 'X-axis')}
+              </label>
+              <label className="flex items-center gap-1 text-white/70">
+                <input type="checkbox" checked={axisY} data-tf="axis-y"
+                  onChange={e => { previewOn.current = true; setScaleParams(p => ({ ...p, axisY: e.target.checked })); }} />
+                {t('transform.axis_y', 'Y-axis')}
+              </label>
+              <div className="flex items-center gap-1">
+                <span className="text-white/40">y</span>
+                <DraftNum value={factorY} set={changeFactorY} testid="factor-y" min={0.01} step={0.005} digits={3} /> {/* v367: 同上 */}
+              </div>
+              <label className="flex items-center gap-1 text-white/70" title={t('transform.lock_ratio_title', 'Lock x:y ratio — changing one axis scales the other at the current ratio')}>
+                <input type="checkbox" checked={lockRatio} data-tf="lock-ratio"
+                  onChange={e => setScaleParams(p => ({ ...p, lockRatio: e.target.checked }))} />
+                {t('transform.lock_ratio', 'Lock x:y')}
+              </label>
+            </Group>
+          </div>
+          <div>
+            <button onClick={() => nodeMode ? commitNode((p, c) => scalePt(p, c, sx, sy)) : commit((objs, c) => scaleObjects(objs, c, sx, sy))} title={t('transform.apply_scale_title', 'Scale by the entered factor (uncheck an axis to leave it unscaled; slider length scales too)')} data-tf="apply-scale"
+              className="px-1.5 py-1 rounded bg-white/10 hover:bg-white/20 border border-white/15 text-[11px]">
+              {t('transform.apply_scale', 'Apply Scale')}
+            </button>
+          </div>
+        </>
       )}
       {mode === 'symmetry' && (
         <>
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-white/50">{t('transform.sym_axis', 'Symmetry Axis')}</span>
-            {([['selection', t('transform.selection', 'Selection')], ['center', t('transform.center', 'Center')], ['custom', t('transform.custom', 'Custom')]] as const).map(([m, label]) => (
+            {([['selection', t('transform.selection', 'Selection Centre')], ['center', t('transform.center', 'Playfield Centre')], ['custom', t('transform.custom', 'Custom')]] as const).map(([m, label]) => (
               <label key={m} className="flex items-center gap-0.5 text-white/70">
                 <input type="radio" name="tfdlg-sym" checked={store.symAxisMode === m} data-sym={`axis-${m}`}
                   onChange={() => store.setSymAxisMode(m)} />

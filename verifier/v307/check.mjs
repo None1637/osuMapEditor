@@ -15,7 +15,8 @@ section('TransformDialog.tsx: x:y 比例固定');
 {
   const src = readSrc('src/components/TransformDialog.tsx');
   const zhTransform = readSrc('src/i18n/dicts/zh-CN/transform.ts'); // v346: UI 文本走 i18n, 断言 key + 词典译文
-  assert(/const \[lockRatio, setLockRatio\] = useState\(\(\) => loadParams\('tf-scale', \{ lockRatio: false \}\)\.lockRatio\);/.test(src), 'lockRatio state (v315: 默认关, localStorage 保持上次状态)');
+  // v405 适配: lockRatio 并入 scaleParams 对象持久化 (同键 tf-scale, 追加 axisX/axisY)
+  assert(/loadParams\('tf-scale', \{ lockRatio: false, axisX: true, axisY: true \}\)/.test(src) && /lockRatio = scaleParams\.lockRatio/.test(src), 'lockRatio state (v315: 默认关, localStorage 保持上次状态; v405 起并入 scaleParams)');
   assert(/if \(lockRatio && factor !== 0\) setFactorY\(round4\(v \* factorY \/ factor\)\);\s*\n\s*setFactor\(v\);/.test(src),
     '改 x → y 按当前比例联动');
   assert(/if \(lockRatio && factorY !== 0\) setFactor\(round4\(v \* factor \/ factorY\)\);\s*\n\s*setFactorY\(v\);/.test(src),

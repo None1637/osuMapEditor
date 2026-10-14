@@ -228,6 +228,13 @@ export function Inspector() {
                 className="px-2 py-1 rounded bg-white/10 hover:bg-white/20 border border-white/15">
                 {t('inspector.merge_to_slider', 'Merge into Slider')}
               </button>
+              {/* v409: 在选中锚点处分割 (多选时同样可用 — 各滑条按各自节点选区分割) */}
+              {store.nodeSelectionCount > 0 && (
+                <button data-conv-apply="split-anchors" onClick={() => store.splitSelectedSliderNodes()}
+                  className="px-2 py-1 rounded bg-white/10 hover:bg-white/20 border border-white/15">
+                  {t('inspector.split_at_anchors', 'Split at Selected Anchors')}
+                </button>
+              )}
             </div>
           </div>
         )}
@@ -322,6 +329,13 @@ export function Inspector() {
               className="px-2 py-1 rounded bg-white/10 hover:bg-white/20 border border-white/15">
               {t('inspector.symmetric_slider', 'Symmetric Slider')}
             </button>
+            {/* v409: 在选中锚点处分割 (节点选区存在时显示; 缝点双侧各一份, 时间顺序衔接) */}
+            {store.nodeSelectionCount > 0 && (
+              <button data-conv-apply="split-anchors" onClick={() => store.splitSelectedSliderNodes()}
+                className="px-2 py-1 rounded bg-white/10 hover:bg-white/20 border border-white/15">
+                {t('inspector.split_at_anchors', 'Split at Selected Anchors')}
+              </button>
+            )}
             <SliderConvertButtons sliders={[o]} />
           </div>
         </div>

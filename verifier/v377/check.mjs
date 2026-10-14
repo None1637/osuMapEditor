@@ -40,7 +40,7 @@ section('pathApproximator.ts: bsplineToStableBezier (双候选少锚点)');
 section('EditorCanvas.tsx: 落盘与预览 (v387 适配: B4 恢复一等类型, v377 落盘转 B 已撤销)');
 {
   const src = read('src/components/EditorCanvas.tsx');
-  assert(/const curveType = singleP \? 'P' : 'B4';/.test(src) && !/bsplineToStableBezier\(ctrl\)/.test(src),
+  assert(/const curveType = singleP \? 'P' : linePts \? 'L' : 'B4';/.test(src) && !/bsplineToStableBezier\(ctrl\)/.test(src), // v412: 共线无红锚点 => 'L'
     "finishFreehandSlider 落盘 'B4' (单段圆弧 => P; v387 撤销 v377 转 'B')");
   assert(/sliderGeometryLength\(curveType, finalPts\)/.test(src), '长度按落盘控制点列计算');
   assert(/curveType: bspline \? 'B4' : computed\.curveType/.test(src), "手绘幽灵按 'B4' 渲染 (预览=落盘, v387)");

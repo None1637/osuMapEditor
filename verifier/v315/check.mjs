@@ -20,8 +20,9 @@ const src = readSrc('src/components/TransformDialog.tsx');
 section('F16: 缩放窗口默认值与 xy固定 持久化');
 {
   assert(/useState\(1\)(;| )/.test(src) && !/useState\(1\.1\)/.test(src), '倍率 x/y 默认 1 (原 1.1 已移除)');
-  assert(/loadParams\('tf-scale', \{ lockRatio: false \}\)/.test(src), 'xy固定 初值读 localStorage (默认关)');
-  assert(/useSaveParamsOnClose\('tf-scale', \{ lockRatio \}\)/.test(src), 'xy固定 关窗落盘 (重开保持)');
+  // v405 适配: tf-scale 持久化并入 scaleParams 对象 (追加 axisX/axisY 勾选), 关窗落盘整个对象
+  assert(/loadParams\('tf-scale', \{ lockRatio: false, axisX: true, axisY: true \}\)/.test(src), 'xy固定 初值读 localStorage (默认关; v405 起含轴向勾选)');
+  assert(/useSaveParamsOnClose\('tf-scale', scaleParams\)/.test(src), 'xy固定 关窗落盘 (重开保持; v405 起落盘 scaleParams 整体)');
 }
 
 section('F17a/b: 旋转默认 0° + 应用旋转按钮');

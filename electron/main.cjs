@@ -178,7 +178,8 @@ async function createWindow() {
   // v392: 验证器窗口让位 — OSU_VERIFIER=1 (verifier/_lib/env.mjs launchIsolatedElectron 注入) 且
   //   多屏时窗口初始位置放到非主屏 workArea 中央, 不占用主屏 (单屏/非验证器运行行为不变)
   let verifierPos = null
-  if (process.env.OSU_VERIFIER === "1") {
+  const isVerifier = process.env.OSU_VERIFIER === "1" // v406: 提取共用 (窗口位置 + 不抢焦点)
+  if (isVerifier) {
     try {
       const primary = screen.getPrimaryDisplay()
       const secondary = screen.getAllDisplays().find((d) => d.id !== primary.id)
@@ -194,6 +195,9 @@ async function createWindow() {
     width: 1440,
     height: 900,
     ...(verifierPos ?? {}),
+    // v406: 验证器窗口先隐藏创建, 就绪后 showInactive 显示 — 不抢焦点 (用户反馈: 跑回归测试窗口弹出让当前输入失焦);
+    //   窗口仍真实可见/渲染, CDP 截图与 rAF 不受影响
+    ...(isVerifier ? { show: false } : {}),
     backgroundColor: "#101016",
     // v281: 两种标题栏模式统一用应用内自绘菜单条 (MenuBar.tsx) — 原生菜单栏默认隐藏;
     // 原生菜单仍 setApplicationMenu (accelerator 全局快捷键保留, Alt 可临时呼出原生菜单)
@@ -229,6 +233,7 @@ async function createWindow() {
   win.webContents.on("unresponsive", () => logCrash("unresponsive", "webContents 无响应"))
   win.on("closed", () => { win = null })
   win.maximize() // 启动默认最大化
+  if (isVerifier) win.showInactive() // v406: 验证器窗口以非激活态显示 (最大化状态保留), 全程不抢焦点
   win.loadURL(`http://127.0.0.1:${port}/`)
 }
 

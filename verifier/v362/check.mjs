@@ -33,7 +33,7 @@ section('源码: 幽灵控制点并入幻影点 (Bug A)');
 section('源码: 单滑条锚点穿透 (Bug B)');
 {
   const ec = read('src/components/EditorCanvas.tsx');
-  assert(/const singleSliderNodePress = \(p: Pt, mods: \{ ctrlKey: boolean; metaKey: boolean \}\): boolean/.test(ec), 'singleSliderNodePress 抽函数存在');
+  assert(/const singleSliderNodePress = \(p: Pt, mods: \{ ctrlKey: boolean; metaKey: boolean; shiftKey: boolean \}\): boolean/.test(ec), 'singleSliderNodePress 抽函数存在 (v410: mods 补 shiftKey — Shift+点击 = 锚点加选/减选)');
   assert(/if \(singleSliderNodePress\(p, e\)\) return;/.test(ec), '画布 onMouseDown 调用同一函数 (无逻辑分叉)');
   assert(/nodeDragRef\.current = \{ objId: so\.id, pointIndex: hitIdx, pairWith: redPairPartner\(ctrl, hitIdx\)/.test(ec), '锚点拖拽含红锚点成对语义');
   // v378: 穿透链扩展 (手柄/未选锚点/物件本体) 后窗口 900→1400; 单滑条节点按下由尾返改中间环节

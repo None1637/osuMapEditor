@@ -17,9 +17,10 @@ import { DEFAULT_GROUP, instantiatePattern, loadPatternGroups, loadPatterns, mak
 import { reportMenuState, reportDirtyState } from './electronMenu';
 import { getElectronAPI } from './electronBridge'; // v185: 谱面备份 IPC
 import { defaultNewPoint, effectivePointAt, activePointAt, snapTimeToRedBeat, metronomeBeats, rangeTimes } from './timingEdit'; // v156; v372: rangeTimes
-import { resnapSliderLength, snapPlacementTime, placementLength, pendingSliderTimeline, sliderLengthSnapDivisor, snapSliderLength, parseBSplineType } from './sliderPath'; // v156: 重新计算滑条长度; v357: 粘贴锚点节拍吸附; v364: 调试暴露吸附纯函数; v388: 选中集 B4 判定
+import { resnapSliderLength, snapPlacementTime, placementLength, pendingSliderTimeline, sliderLengthSnapDivisor, snapSliderLength, parseBSplineType, nearestOnSegment, resolveSliderCurveType, insertAnchorGroup, splitSliderAtAnchors } from './sliderPath'; // v156: 重新计算滑条长度; v357: 粘贴锚点节拍吸附; v364: 调试暴露吸附纯函数; v388: 选中集 B4 判定; v408: 锚点粘贴插入; v409: 锚点处分割
 import { sliderVelocityAt, svPointAt } from './parser'; // v366: 调试暴露 (SV 绿线边界验证)
 import { snapshotNodes, withRedPartners, transformNodesFromSnapshot } from './nodeSelection'; // v304: F08 节点选区快捷键变换
+import { computeStackOffsets } from './stacking'; // v408: 锚点粘贴撤堆叠偏移
 import { setDisplayFlag as applyDisplayFlag, setDisplayNumber as applyDisplayNumber, setDisplayString as applyDisplayString, type BoolDisplayKey, type DisplaySettings, type StrDisplayKey } from './displaySettings'; // v132: 显示设置
 import { setEditorPref as applyEditorPref, type EditorPrefKey } from './editorPrefs'; // v381: 通用编辑器偏好
 import { setVolume as applyVolume, musicGain, effectsGain, type VolumeSettings } from './volumeSettings'; // v144: 音量设置
@@ -528,6 +529,11 @@ class EditorStore {
   private clipboard: HitObject[] = [];
   /** v102: 绿线剪贴板 (time 相对 copy 时的共同原点, 与物件共用) */
   private clipboardGreens: TimingPoint[] = [];
+  /** v408: 锚点剪贴板 — 选中滑条锚点相对首锚点的偏移序列 (Ctrl+V 插入选中滑条, 与加点同规则);
+   *  物件复制会清空它 (粘贴优先级: 锚点剪贴板+单滑条选中 > 物件剪贴板) */
+  private nodeClipboard: { x: number; y: number }[] | null = null;
+  /** v408: 最后已知光标的 osu 坐标 (EditorCanvas toOsu 每次换算时写; Ctrl+V 锚点粘贴位置用) */
+  cursorOsu: { x: number; y: number } | null = null;
   private listeners = new Set<() => void>();
 
   subscribe = (fn: () => void) => { this.listeners.add(fn); return () => { this.listeners.delete(fn); }; };
@@ -1515,7 +1521,24 @@ class EditorStore {
   }
 
   copy() {
-    if (!this.beatmap || (!this.selected.size && !this.selectedGreenLines.size)) return;
+    if (!this.beatmap) return;
+    // v408: 节点选区优先 — 单条滑条的选中锚点按下标序复制到锚点剪贴板 (相对首锚点偏移);
+    //   不动物件剪贴板/系统剪贴板; 跨多条滑条的锚点复制不支持, 直接落空
+    if (this.selectedNodes.size) {
+      const ids = [...this.selectedNodes.keys()];
+      const so = ids.length === 1 ? this.beatmap.hitObjects.find(o => o.id === ids[0]) : null;
+      if (so?.type === 'slider') {
+        const ctrl = [{ x: so.x, y: so.y }, ...(so.curvePoints ?? [])];
+        const idxs = [...this.selectedNodes.get(ids[0])!].sort((a, b) => a - b).filter(i => i >= 0 && i < ctrl.length);
+        if (idxs.length) {
+          const base = ctrl[idxs[0]];
+          this.nodeClipboard = idxs.map(i => ({ x: ctrl[i].x - base.x, y: ctrl[i].y - base.y }));
+          this.emitSelection();
+        }
+      }
+      return;
+    }
+    if (!this.selected.size && !this.selectedGreenLines.size) return;
     const objs = this.beatmap.hitObjects.filter(o => this.selected.has(o.id));
     const greens = this.beatmap.timingPoints.filter(tp => !tp.uninherited && this.selectedGreenLines.has(tp.time));
     if (!objs.length && !greens.length) return;
@@ -1538,11 +1561,15 @@ class EditorStore {
       const text = `${stableTimestamp(sorted[0].time)} (${nums.join(',')}) - `;
       if (text) void navigator.clipboard?.writeText(text).catch(() => { /* 剪贴板权限拒绝时忽略, 内部剪贴板仍可用 */ });
     } catch { /* 非安全上下文等忽略 */ }
+    this.nodeClipboard = null; // v408: 物件/绿线复制清空锚点剪贴板 (粘贴优先级互斥)
     this.emitSelection(); // v209: 编辑菜单「粘贴」置灰依赖 hasClipboard, 复制后刷新订阅者
   }
 
   paste(atTime: number) {
-    if (!this.beatmap || (!this.clipboard.length && !this.clipboardGreens.length)) return;
+    if (!this.beatmap) return;
+    // v408: 锚点剪贴板 + 恰好选中一条滑条 → 锚点插入粘贴 (优先于物件粘贴; 插入位置同 Ctrl+加点规则)
+    if (this.nodeClipboard?.length && this.pasteNodesIntoSlider()) return;
+    if (!this.clipboard.length && !this.clipboardGreens.length) return;
     this.pushUndo();
     this.selected.clear();
     this.selectedGreenLines.clear();
@@ -1572,6 +1599,82 @@ class EditorStore {
     }
     this.beatmap.hitObjects.sort((a, b) => a.time - b.time);
     this.beatmap.timingPoints.sort((a, b) => a.time - b.time);
+    this.emit();
+  }
+
+  /** v408: 锚点粘贴 — 把 nodeClipboard 整组插进恰好选中的一条滑条, 一次 undo;
+   *  插入位置与 Ctrl+加点 (v319/v326) 同规则: 段下标 = 距光标最近的非零长控制点线段 (跳过零长红对),
+   *  插入坐标 = 光标原位置 (撤堆叠偏移), 整组平移使首锚点落在光标处; 成功后选中新插入的锚点组 */
+  private pasteNodesIntoSlider(): boolean {
+    const bm = this.beatmap;
+    const clip = this.nodeClipboard;
+    if (!bm || !clip?.length || this.selected.size !== 1 || !this.cursorOsu) return false;
+    const so = bm.hitObjects.find(o => o.id === [...this.selected][0]);
+    if (so?.type !== 'slider') return false;
+    const ctrl = [{ x: so.x, y: so.y }, ...(so.curvePoints ?? [])];
+    if (ctrl.length < 2) return false;
+    const off = computeStackOffsets(bm).get(so.id);
+    const odx = off?.dx ?? 0, ody = off?.dy ?? 0;
+    const p = this.cursorOsu;
+    let best = ctrl.length - 2, bestD = Infinity; // 默认末尾段 (极端: 全部零长段)
+    for (let i = 0; i < ctrl.length - 1; i++) {
+      if (ctrl[i].x === ctrl[i + 1].x && ctrl[i].y === ctrl[i + 1].y) continue; // 零长红锚点重复对跳过
+      const a = { x: ctrl[i].x + odx, y: ctrl[i].y + ody }, b = { x: ctrl[i + 1].x + odx, y: ctrl[i + 1].y + ody };
+      const n = nearestOnSegment(a, b, p);
+      if (n.dist < bestD) { bestD = n.dist; best = i; }
+    }
+    this.pushUndo();
+    const raw = { x: Math.round(p.x - odx), y: Math.round(p.y - ody) }; // lazer: 光标原位置 (撤堆叠偏移)
+    const group = clip.map(d => ({ x: raw.x + d.x, y: raw.y + d.y }));
+    const newPts = insertAnchorGroup(ctrl, best, group);
+    so.x = newPts[0].x; so.y = newPts[0].y;
+    so.curvePoints = newPts.slice(1);
+    // v394: 手动改过曲线类型的不强制改型 (与 EditorCanvas applySliderPoints 同款)
+    if (!this.manualCurveType.has(so.id)) so.curveType = resolveSliderCurveType(newPts, so.curveType ?? 'L');
+    resnapSliderLength(bm, so, this.beatSnap); // lazer: 插入控制点后 SnapTo
+    invalidatePath(so.id);
+    this.selectedNodes.clear();
+    this.selectedNodes.set(so.id, new Set(group.map((_, k) => best + 1 + k))); // 选中新插入组
+    this.emit();
+    return true;
+  }
+
+  /** v409: 在选中锚点处分割滑条 — 每条带节点选区的滑条各自分割 (切点 = 选中锚点下标, 头尾锚点忽略);
+   *  缝点双侧各复制一份; 子滑条时间顺序衔接 (下段开始 = 上段结束, 时长 = length/vel);
+   *  每段长度 resnap (遵守 v406 尾吸附开关); 一次 undo; 完成后选中全部子滑条 */
+  splitSelectedSliderNodes() {
+    const bm = this.beatmap;
+    if (!bm || this.lockNotes || !this.selectedNodes.size) return;
+    const groups: { orig: HitObject; pieces: HitObject[] }[] = [];
+    for (const [id, idxSet] of this.selectedNodes) {
+      const orig = bm.hitObjects.find(o => o.id === id);
+      if (orig?.type !== 'slider') continue;
+      const pieces = splitSliderAtAnchors(orig, [...idxSet]);
+      if (pieces && pieces.length > 1) groups.push({ orig, pieces });
+    }
+    if (!groups.length) return;
+    this.pushUndo();
+    const sm = bm.difficulty.sliderMultiplier;
+    const newIds: number[] = [];
+    for (const { orig, pieces } of groups) {
+      let t = orig.time;
+      for (const p of pieces) {
+        p.id = genId();
+        p.time = Math.round(t);
+        resnapSliderLength(bm, p, this.beatSnap);
+        const vel = sliderVelocityAt(bm.timingPoints, p.time, sm);
+        if (vel > 0) t = p.time + (p.length ?? 0) / vel; // 下段开始 = 上段结束
+        bm.hitObjects.push(p);
+        invalidatePath(p.id);
+        newIds.push(p.id);
+      }
+      bm.hitObjects.splice(bm.hitObjects.indexOf(orig), 1);
+      invalidatePath(orig.id);
+      this.manualCurveType.delete(orig.id);
+    }
+    bm.hitObjects.sort((a, b) => a.time - b.time);
+    this.selectedNodes.clear();
+    this.selected = new Set(newIds);
     this.emit();
   }
 

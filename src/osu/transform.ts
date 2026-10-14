@@ -87,6 +87,22 @@ export function reflectObjectsAcrossLine(objs: HitObject[], p1: Pt, p2: Pt): Hit
   });
 }
 
+// v405: 旋转/缩放窗口布局对齐 stable (Rotate by / Scale by) — 下为窗口用的两个小纯函数
+/** 「应用于 X/Y 轴」勾选换算实际倍率: 未勾选的轴按 1 计算 (stable 的 Apply to X-axis/Y-axis) */
+export function axisScaleFactors(fx: number, fy: number, axisX: boolean, axisY: boolean) {
+  return { sx: axisX ? fx : 1, sy: axisY ? fy : 1 };
+}
+
+export type RotateDir = 'cw' | 'ccw';
+/** 选方向 = 把角度设为对应符号的绝对值 (顺时针为正, 逆时针为负) */
+export function angleForDirection(angle: number, dir: RotateDir): number {
+  return dir === 'cw' ? Math.abs(angle) : -Math.abs(angle);
+}
+/** 输入角度反推方向单选状态 (0 保持原方向) */
+export function directionForAngle(angle: number, prev: RotateDir): RotateDir {
+  return angle > 0 ? 'cw' : angle < 0 ? 'ccw' : prev;
+}
+
 export interface Rect { minX: number; minY: number; maxX: number; maxY: number }
 
 /** 框选: 位置落在矩形内的物件 id (滑条取头部; 转盘固定在游玩区中心); offsets = 堆叠后显示偏移 (传入则按显示位置命中) */

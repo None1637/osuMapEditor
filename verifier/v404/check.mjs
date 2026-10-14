@@ -25,7 +25,7 @@ section('store.ts: playfieldAnchorPress 桥字段');
 section('EditorCanvas.tsx: 锚点级穿透注册');
 {
   const src = readSrc('src/components/EditorCanvas.tsx');
-  const ap = src.match(/store\.playfieldAnchorPress = \(cx, cy, mods\) => \{[\s\S]{0,1200}?\n    \};/)?.[0] ?? '';
+  const ap = src.match(/store\.playfieldAnchorPress = \(cx, cy, mods\) => \{[\s\S]{0,2200}?\n    \};/)?.[0] ?? ''; // v411: Alt 分支加命中预检, 窗口 1200→2200
   assert(ap.length > 0, '注册 playfieldAnchorPress');
   assert(/nodeAltPress\(p, mods\)/.test(ap), '含 Alt 锚点切换/框选');
   assert(/nodeGroupDragPress\(p\)/.test(ap), '含已选节点整组拖');

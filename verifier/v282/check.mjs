@@ -30,7 +30,8 @@ assert(/scaleSelected\(factor, factorY, origin\)/.test(insp), 'Inspector 应用�
 
 const dlg = fs.readFileSync(path.join(root, 'src/components/TransformDialog.tsx'), 'utf8');
 assert(/testid="factor-y"/.test(dlg), '缩放窗口含 y 倍率输入框');
-assert(/commit\(\(objs, c\) => scaleObjects\(objs, c, factor, factorY\)\)/.test(dlg), '缩放窗口应用倍率传双轴 (v301 起预览提交)');
+// v405 适配: 窗口提交改传 axisScaleFactors 换算后的 sx/sy (「应用于 X/Y 轴」勾选, 未勾选轴=1 — 仅X/仅Y 语义不变)
+assert(/commit\(\(objs, c\) => scaleObjects\(objs, c, sx, sy\)\)/.test(dlg) && /axisScaleFactors\(factor, factorY, axisX, axisY\)/.test(dlg), '缩放窗口应用倍率传双轴 (v301 起预览提交; v405 起经 axisScaleFactors 轴向勾选换算)');
 
 if (failures) { console.error(`\nV282_FAILED: ${failures} 处失败`); process.exit(1); }
 console.log('\nV282_ALL_PASSED');

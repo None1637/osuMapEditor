@@ -7,6 +7,9 @@ export interface EditorPrefs {
   /** 物件/note 起始移动死区 = 2px (开 = 2px, 现状; 关 = 1px;
       包围框缩放/旋转手柄与滑条锚点拖拽本就不走此死区, 不受影响) */
   moveDeadzone2px: boolean;
+  /** v406: 滑条尾吸附节拍细分 (开 = 现状, 长度按当前细分 1/2 对齐; 关 = 放置拖尾与节点编辑后
+      长度都直通几何全长, 不吸附) */
+  sliderTailSnap: boolean;
 }
 
 export type EditorPrefKey = keyof EditorPrefs;
@@ -17,6 +20,7 @@ function loadEditorPrefs(): EditorPrefs {
   const def: EditorPrefs = {
     dragAdjustNumbers: true,  // v258/v269 起的行为
     moveDeadzone2px: true,    // v233 起的行为 (2px 起始死区)
+    sliderTailSnap: true,     // v406: 吸附为现状默认
   };
   try {
     const raw = localStorage.getItem(LS_KEY);
@@ -25,6 +29,7 @@ function loadEditorPrefs(): EditorPrefs {
     return {
       dragAdjustNumbers: p.dragAdjustNumbers !== false,
       moveDeadzone2px: p.moveDeadzone2px !== false,
+      sliderTailSnap: p.sliderTailSnap !== false,
     };
   } catch { return def; }
 }

@@ -31,7 +31,7 @@ section('a) parser.ts 单行序列化 + stable 时间戳');
 
 section('b) store.copy() 系统剪贴板带时间');
 {
-  const copy = store.match(/copy\(\) \{[\s\S]{0,1600}?\n  \}/);
+  const copy = store.match(/copy\(\) \{[\s\S]{0,2600}?\n  \}/); // v408 适配: copy() 前置锚点复制分支, 窗口放宽 1600→2600
   assert(!!copy, 'copy() 存在');
   assert(!!copy && /navigator\.clipboard\?\.writeText\(text\)/.test(copy[0]), '写系统剪贴板');
   assert(!!copy && /\$\{stableTimestamp\(sorted\[0\]\.time\)\} \(\$\{nums\.join\(','\)\}\) - /.test(copy[0]), 'v335b: lazer 格式 "mm:ss:fff (combo号,...) - "');

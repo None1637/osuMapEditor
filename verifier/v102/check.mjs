@@ -42,7 +42,8 @@ assert(/selectWithGreens\(ids: number\[\], greenTimes: number\[\]\)/.test(store)
 assert(/private clipboardGreens: TimingPoint\[\] = \[\]/.test(store), 'store: 绿线剪贴板');
 assert(/this\.clipboardGreens = deepCopy\(greens\)\.map\(tp => \(\{ \.\.\.tp, time: tp\.time - t0 \}\)\)/.test(store), 'store: copy 绿线时间相对化');
 assert(/Object\.assign\(existing, deepCopy\(c\), \{ time: t \}\)/.test(store), 'store: 粘贴覆盖同时刻绿线');
-assert(/if \(!this\.beatmap \|\| \(!this\.clipboard\.length && !this\.clipboardGreens\.length\)\) return/.test(store), 'store: 纯绿线也可粘贴');
+// v408 适配: paste 首行改两语句 (先锚点粘贴分支, 再物件/绿线空剪贴板守卫), 语义不变
+assert(/paste\(atTime: number\) \{[\s\S]{0,300}?if \(!this\.clipboard\.length && !this\.clipboardGreens\.length\) return/.test(store), 'store: 纯绿线也可粘贴');
 assert(/this\.selected\.clear\(\); this\.selectedGreenLines\.clear\(\);/.test(store), 'store: 非加选 select 同时清空绿线');
 
 if (failures) { console.error(`\nV102_CHECK_FAILED: ${failures} 处失败`); process.exit(1); }

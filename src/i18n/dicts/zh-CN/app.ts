@@ -41,6 +41,9 @@ export const zhCN: Record<string, string> = {
   'app.distance_snap_multiplier_title': '锁定间距倍率 (DistanceSpacing): 1x = 滑条球每拍行进距离 = 100×SliderMultiplier×当前SV px (lazer 同款, 随 SV 变化)',
   'app.lock_notes': '锁定物件',
   'app.lock_notes_title': '锁定物件 (Lock Notes): 开启后无法移动/修改/删除任何物件; 放置新物件、绿线编辑不受影响',
+  // v406: 滑条尾吸附节拍开关
+  'app.slider_tail_snap': '滑条尾吸附节拍',
+  'app.slider_tail_snap_title': '滑条尾吸附节拍: 开 = 放置与节点编辑后滑条长度吸附当前节拍细分 (细分的 1/2); 关 = 长度跟随几何全长, 不吸附',
   // ---- 左侧栏: 游玩区平移 ----
   'app.playfield_pan': '游玩区平移',
   'app.playfield_pan_title': '游玩区平移: 开启后按住鼠标中键拖动游玩区域; x/y = 偏移 (osu px), 缩放 = 倍率 (默认 1.0), 旋转 = 角度 (度, 绕游玩区中心); 关闭后恢复默认视图 (已设值保留)', // v391: 旋转

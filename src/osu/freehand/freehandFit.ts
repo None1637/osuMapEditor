@@ -111,6 +111,24 @@ export function tryCircleArc(segment: Vec[], degree: number, circleThreshold: nu
 
 export interface FitPoint { x: number; y: number; red: boolean }
 
+/**
+ * v412: 控制点列近似共线判定 — 所有中间点到 首→尾 直线的垂直距离 ≤ tol (osu px) 时
+ * 返回折叠后的 [首, 尾] (直线手绘应落 'L' 直线, 而非 B 样条); 否则 null。
+ * (修复: 直线拖动手绘因共线圆弧拟合失败, 非单弧一律落 'B4' — 直线滑条被标记 B4 还触发警告条)
+ */
+export function collinearLinePoints(ctrl: Vec[], tol = 3): Vec[] | null {
+  if (ctrl.length < 2) return null;
+  const a = ctrl[0], b = ctrl[ctrl.length - 1];
+  const dx = b.x - a.x, dy = b.y - a.y;
+  const len = Math.hypot(dx, dy);
+  if (len < 1e-6) return null;
+  for (let i = 1; i < ctrl.length - 1; i++) {
+    const d = Math.abs(dy * ctrl[i].x - dx * ctrl[i].y + b.x * a.y - b.y * a.x) / len;
+    if (d > tol) return null;
+  }
+  return [{ x: a.x, y: a.y }, { x: b.x, y: b.y }];
+}
+
 // ---------- v73: BezierConverter.ConvertCircleToBezierAnchors 移植 (osu.Game/Rulesets/Objects/BezierConverter.cs:28-40,195-253) ----------
 // 多段滑条内的圆弧段不能像单段那样存 'P' (stable 只有整条滑条一种 curveType),
 // lazer 导出 stable 时用圆预设贝塞尔锚点高精度逼近; 单段整弧仍走原生 'P' (见 fitSegmentsToPoints)

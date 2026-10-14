@@ -670,6 +670,14 @@ export default function App() {
               ? <Lock className="inline-block w-4 h-4 mr-1 -mt-0.5" />
               : <LockOpen className="inline-block w-4 h-4 mr-1 -mt-0.5" />}{t('app.lock_notes', 'Lock Notes')}
           </button>
+          {/* v406: 滑条尾吸附节拍开关 (editorPrefs.sliderTailSnap, localStorage 持久化):
+              关 = 放置拖尾与节点编辑后的滑条长度直通几何全长, 不吸附当前细分; 开 = 现状 (吸附当前细分的 1/2) */}
+          <button onClick={() => store.setEditorPref('sliderTailSnap', !editorPrefs.sliderTailSnap)}
+            data-slider-tail-snap="toggle"
+            className={`w-full text-left px-3 py-1.5 rounded ${editorPrefs.sliderTailSnap ? 'bg-cyan-500/40 border border-cyan-400/50' : 'bg-white/10 hover:bg-white/20'}`}
+            title={t('app.slider_tail_snap_title', 'Slider tail beat snap: on = slider length snaps to the beat divisor (current divisor x1/2) when placing and after node edits; off = length follows the raw geometry')}>
+            <Magnet className="inline-block w-4 h-4 mr-1 -mt-0.5" />{t('app.slider_tail_snap', 'Slider Tail Snap')}
+          </button>
           <div className="h-px bg-white/15 mx-1 my-0.5" />
           {/* v223: 游玩区平移/缩放 — 开启后按住鼠标中键拖动游玩区域; x/y/缩放输入框实时显示并可设定 (视图辅助, 不入谱面)
               v224: 开关半宽 + 缩放同行 (放按钮后); x/y 两个输入框平分下一行

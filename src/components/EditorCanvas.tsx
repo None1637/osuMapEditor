@@ -20,7 +20,7 @@ import { editorPrefs } from '@/osu/editorPrefs'; // v381: 物件移动死区开�
 import { distanceLockRef, distanceLockDistance } from '@/osu/spacing'; // v145
 import { genId, timingAt, csToRadius, arToPreempt, snapAcrossRedLine, type Beatmap, type HitObject } from '@/osu/parser';
 import { IncrementalBSplineBuilder } from '@/osu/freehand/bsplineBuilder';
-import { fitSegmentsToPoints } from '@/osu/freehand/freehandFit';
+import { fitSegmentsToPoints, collinearLinePoints } from '@/osu/freehand/freehandFit'; // v412: 共线折叠 (直线手绘落 'L')
 import { matchesHotkeyMouse, matchesHotkeyWheel } from '@/osu/hotkeys'; // v330: 游玩区平移/缩放/锁定间距可改键
 import { pfRotFwd, pfRotInv } from '@/osu/pfRotate'; // v391: 游玩区旋转正/逆变换
 import { getElectronAPI } from '@/osu/electronBridge'; // v336: exe 下 Alt 态由主进程转发 (DOM 事件被拦)
@@ -420,7 +420,9 @@ export function EditorCanvas() {
     const r = zoomRect(c); // v217: 布局空间 (渲染同系)
     const { scale, ox, oy, rot } = playfieldTransform(r);
     const q = { x: (zoomClientX(e.clientX) - r.left - ox) / scale, y: (zoomClientY(e.clientY) - r.top - oy) / scale };
-    return rot ? pfRotInv(q, rot) : q; // v391: 撤销旋转 — 命中/放置仍在未旋转的 osu 坐标系
+    const out = rot ? pfRotInv(q, rot) : q; // v391: 撤销旋转 — 命中/放置仍在未旋转的 osu 坐标系
+    store.cursorOsu = out; // v408: 最后已知光标 osu 坐标 (Ctrl+V 锚点粘贴位置用; toOsu 调用点全是真实光标事件)
+    return out;
   }, []);
 
   // 暴露给 CDP 测试: osu 坐标 -> client 坐标 / canvas 设备像素 (与渲染/命中共用同一变换, 含 PAD_Y 留白)
@@ -510,6 +512,15 @@ export function EditorCanvas() {
       const p = toOsu({ clientX: cx, clientY: cy });
       if (mods.altKey) {
         if (store.lockNotes) return false;
+        // v411: Alt 穿透只在命中锚点 (切换选中) 或滑条本体 (Alt 点选) 时生效; Alt+空白放行给可交互 UI —
+        //   修: 时间轴 Alt+拖滑条尾改 SV (v407) 被穿透链的 Alt 节点框选吞掉, 用户实测只能拉出橙色框;
+        //   Alt+空白框选在画布/不可交互 UI 上不受影响 (onMouseDown/playfieldNodePress 路径不变)
+        const bm = store.beatmap;
+        const offs = getStackOffsets(bm);
+        const sliders = bm.hitObjects.filter(o => o.type === 'slider' && (sliderAnchorInteractiveAt(bm, o, store.currentTime) || store.selected.has(o.id) || store.selectedNodes.has(o.id)));
+        const hitNode = nearestNode(sliders, offs, p);
+        const hitObj = hitNode ? null : hitTest(p.x, p.y);
+        if (!hitNode && !(hitObj && hitObj.type === 'slider')) return false;
         nodeAltPress(p, mods);
         return true;
       }
@@ -1457,7 +1468,10 @@ export function EditorCanvas() {
     // v309: 按下点在节点黄框 (dq) 内同样整组拖 — 原实现只认锚点命中: 框内按下 (如两锚点之间的
     // 滑条身) 会落到 hitTest 选中滑条并清掉节点选区、转成物件拖拽 (物件钳制在游玩区内, 用户
     // 视角 = 黄框无法拖到 UI 下方; CDP 复现确认)
-    const nbox = !insideNode ? currentQuads(bm) : null;
+    // v410: 直接命中未选锚点时不按黄框内整组拖 — 放行给 singleSliderNodePress/unselectedSliderNodePress
+    //   点选该锚点 (需求5: 不按 Alt 单击选中锚点); 黄框内按下但未命中任何锚点仍整组拖 (v309 不变)
+    if (hitNode && !insideNode) return false;
+    const nbox = currentQuads(bm);
     const insideBox = !!(nbox && p.x >= nbox.dq.x && p.x <= nbox.dq.x + nbox.dq.w && p.y >= nbox.dq.y && p.y <= nbox.dq.y + nbox.dq.h);
     if (!insideNode && !insideBox) return false;
     // 吸附锚: 命中的已选节点, 否则距按下点最近的已选节点 (applyNodesMoveDrag 以其吃吸附)
@@ -1488,7 +1502,7 @@ export function EditorCanvas() {
 
   // v362: 选中单滑条的节点按下 (拖锚点含红锚点成对语义; Ctrl 空白加锚点) — 从 onMouseDown 抽出,
   //   四侧 UI 覆盖区穿透 (playfieldNodePress) 与画布共用同一逻辑; 返回 true = 已处理 (调用方应 return)
-  const singleSliderNodePress = (p: Pt, mods: { ctrlKey: boolean; metaKey: boolean }): boolean => {
+  const singleSliderNodePress = (p: Pt, mods: { ctrlKey: boolean; metaKey: boolean; shiftKey: boolean }): boolean => {
     const bm = store.beatmap!;
     // 优先检测选中滑条的控制点手柄(节点编辑); v115: 锁定物件 — 节点拖拽/插点禁用
     if (store.lockNotes) return false;
@@ -1500,11 +1514,31 @@ export function EditorCanvas() {
     const ctrl = [{ x: so.x, y: so.y }, ...(so.curvePoints ?? [])];
     const hitIdx = nearestCtrlPoint(ctrl, odx, ody, p); // v35: 最近优先, 并列取序号在前
     if (hitIdx >= 0) {
+      // v410: 不按 Alt 也能点选锚点 (需求5) —
+      //   无修饰: 单选替换为该锚点, 拖拽走整组拖通道 (该点已在节点选区, 红对由 withRedPartners 带上);
+      //     未过移动死区松手 = 纯点选 (nodesMoveDragRef 收尾 cancelDragNoop 弹空快照, 选区保留)
+      //   Shift+点击: 整组加选/减选 (v401 altNodeToggleGroup 同坐标整组语义), 纯切换不开拖拽 (对齐 v266 Alt 纯点选)
+      //   Ctrl+点击: 保持现状 — 单点拖拽 + 松手切红 (v118), 不动节点选区
+      if (!mods.ctrlKey && !mods.metaKey) {
+        if (mods.shiftKey) {
+          const selN = store.selectedNodes.get(so.id);
+          for (const j of altNodeToggleGroup(ctrl, hitIdx, jj => !!selN?.has(jj))) store.toggleSelectedNode(so.id, j);
+          return true;
+        }
+        store.setSelectedNodes([[so.id, hitIdx]]);
+        store.beginDrag();
+        store.canvasDragging = true;
+        nodesMoveDragRef.current = {
+          anchor: { objId: so.id, idx: hitIdx }, startX: p.x, startY: p.y,
+          orig: snapshotNodes(bm, withRedPartners(bm, store.selectedNodes)), moved: false, pending: null,
+        };
+        return true;
+      }
       store.beginDrag();
       store.canvasDragging = true;
       // 红锚点记录配对下标: 拖拽时成对移动 (v29: 不再把红点拆成两个白点)
       // v118: toggleRed = 按下时 Ctrl — stable 行为: 按住 Ctrl 点击白点才转红, 直接点击仅选中
-      nodeDragRef.current = { objId: so.id, pointIndex: hitIdx, pairWith: redPairPartner(ctrl, hitIdx), startX: p.x, startY: p.y, moved: false, toggleRed: mods.ctrlKey || mods.metaKey, pending: null };
+      nodeDragRef.current = { objId: so.id, pointIndex: hitIdx, pairWith: redPairPartner(ctrl, hitIdx), startX: p.x, startY: p.y, moved: false, toggleRed: mods.ctrlKey || mods.metaKey, pending: null }; // v410: 此分支仅剩 Ctrl/Meta 按下, toggleRed 恒 true
       return true;
     }
     // v118/v319: 按住 Ctrl 点击选中滑条 = 新增白色节点。对齐 lazer SliderSelectionBlueprint.OnMouseDown:
@@ -1903,7 +1937,7 @@ export function EditorCanvas() {
     ];
   };
 
-  /** 松开鼠标: Finish 后取最终控制点建滑条 (单段圆弧 => 'P' 三点, 否则 builder 控制点原样落 'B4', v387 对齐 lazer) */
+  /** 松开鼠标: Finish 后取最终控制点建滑条 (单段圆弧 => 'P' 三点; 近似共线无红锚点 => 'L' 直线 (v412); 否则 builder 控制点原样落 'B4', v387 对齐 lazer) */
   const finishFreehandSlider = (builder: IncrementalBSplineBuilder) => {
     const bm = store.beatmap;
     const head = store.pendingSlider[0];
@@ -1919,9 +1953,13 @@ export function EditorCanvas() {
     }
     // v387: 非单弧 => 落 'B4' (lazer 编辑器存档同款 BSpline(4), 锚点即 builder 控制点 — 数量少且与拖动预览完全一致;
     //   v377 的 bsplineToStableBezier 落盘转 'B' 已撤销。stable 兼容性由 B4 警告条 + 一键全图转贝塞尔承担)
+    // v412: 直线手绘例外 — 无红锚点分段且控制点近似共线 (容差 3 osu px) 时折叠为 头+尾 两锚点落 'L'
+    //   (修复: 直线拖动因共线圆弧拟合失败被标记 B4 并触发警告条; 有红锚点的共线多段不折叠, 分段语义保留)
+    const noRed = !points.some(p => p.red);
+    const linePts = noRed ? collinearLinePoints(ctrl) : null;
     const singleP = singleArc && ctrl.length === 3;
-    const curveType = singleP ? 'P' : 'B4';
-    const finalPts = ctrl;
+    const curveType = singleP ? 'P' : linePts ? 'L' : 'B4';
+    const finalPts = linePts ?? ctrl;
     // 长度 = 几何全长, 锁定间距时吸细分网格×间距倍率 (v365 起, 原吸整拍; 与 finishSlider 同款规则; lazer endCurve: Finishing 状态 SnapTo)
     // v83: 规则收敛到共享纯函数 placementLength/snapPlacementTime
     const len = placementLength(bm.timingPoints, store.currentTime, bm.difficulty.sliderMultiplier,

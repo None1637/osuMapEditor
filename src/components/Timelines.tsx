@@ -13,6 +13,7 @@ import {
   GREEN_PILL_TOP, PILL_HEIGHT,
 } from '@/osu/timelineSelect';
 import { pendingSliderTimeline, spinnerPlacementEnd } from '@/osu/sliderPath'; // v188: spinnerPlacementEnd 转盘幻影
+import { svForDuration, beatLengthForSv, svAt, greenLineAt } from '@/osu/timingSv'; // v407: Alt+拖尾改绿线 SV
 import { getSkin } from '@/osu/skin';
 import { displaySettings } from '@/osu/displaySettings'; // v132: 显示设置 (皮肤颜色)
 import { drawWave, drawSpectro, type SpectroScroll } from '@/osu/waveformDraw';
@@ -36,6 +37,52 @@ function parseJumpTime(s: string): number | null {
   const min = m[1] ? parseInt(m[1]) : 0, sec = parseInt(m[2]), ms = parseInt(m[3]);
   if (sec >= 60 || ms >= 1000) return null;
   return min * 60000 + sec * 1000 + ms;
+}
+
+/** v407: Alt+拖滑条尾 (SV 模式) 单帧应用 — 增/改滑条头处绿线 SV 使持续时间 = targetEnd - o.time
+ *  (长度/折返数不变); 尾时间处插恢复绿线还原 svOld, 防 SV 泄漏到后续物件。
+ *  已知限制: 滑条跨度内已有其他红/绿线时, 时长按头时刻 SV 口径计算 (与 osu 本体 duration 口径一致),
+ *  且此时不插恢复点 (跨度内已有硬 SV 边界)。全程在一次 beginDrag/commitDrag 快照内 = 一步 undo。 */
+function applySvTailDrag(bm: Beatmap, o: HitObject, tr: {
+  svOld: number; headGreen: TimingPoint | null; headCreated: boolean;
+  restore: TimingPoint | null; lastEnd: number; moved: boolean;
+}, targetEnd: number): void {
+  const tps = bm.timingPoints;
+  const { red } = timingAt(tps, o.time);
+  const svNew = svForDuration(o.length ?? 0, o.slides ?? 1, red.beatLength, bm.difficulty.sliderMultiplier, targetEnd - o.time);
+  if (svNew === null) return; // 尾拖到头之前等非法目标 — 跳过本帧
+  tr.moved = true; tr.lastEnd = targetEnd;
+  // 头绿线: 已有则改, 否则插入 (meter/sampleSet/sampleIndex/volume 继承该时刻现有点, effects=0)
+  if (!tr.headGreen) {
+    const exist = greenLineAt(tps, o.time);
+    if (exist) tr.headGreen = exist;
+    else {
+      const cur = timingAt(tps, o.time);
+      const src = cur.green ?? cur.red;
+      const g: TimingPoint = { time: o.time, beatLength: -100, meter: src.meter, sampleSet: src.sampleSet, sampleIndex: src.sampleIndex, volume: src.volume, uninherited: false, effects: 0 };
+      tps.push(g); tps.sort((a, b) => a.time - b.time);
+      tr.headGreen = g; tr.headCreated = true;
+    }
+  }
+  const sameSv = Math.abs(svNew - tr.svOld) < 1e-9;
+  if (sameSv && tr.headCreated) {
+    // 拖回原时长且头绿线是本次新建的 — 摘除, 不留多余绿线
+    const i = tps.indexOf(tr.headGreen); if (i >= 0) tps.splice(i, 1);
+    tr.headGreen = null; tr.headCreated = false;
+  } else {
+    tr.headGreen.beatLength = beatLengthForSv(svNew); // 已存在的绿线拖回原时长 = 还原其原值 (svNew==svOld)
+  }
+  // 恢复绿线: 先摘上一帧的, 需要时在新尾时间重插 (尾处已有任意 timing 线 = 硬 SV 边界, 不用插)
+  if (tr.restore) { const i = tps.indexOf(tr.restore); if (i >= 0) tps.splice(i, 1); tr.restore = null; }
+  const spanClear = !tps.some(p => p.time > o.time && p.time <= targetEnd && p !== tr.headGreen);
+  if (!sameSv && spanClear) {
+    const cur = timingAt(tps, targetEnd);
+    const src = cur.green ?? cur.red;
+    const g: TimingPoint = { time: targetEnd, beatLength: beatLengthForSv(tr.svOld), meter: src.meter, sampleSet: src.sampleSet, sampleIndex: src.sampleIndex, volume: src.volume, uninherited: false, effects: 0 };
+    tps.push(g); tps.sort((a, b) => a.time - b.time);
+    tr.restore = g;
+  }
+  store.emit(); // 时长派生链 (sliderDurationMemo) 与 SV 药丸随 emit 重建
 }
 
 /** v335: 解析粘贴进跳转框的物件文本 — lazer 格式 (纯 .osu 物件行, 每行 "x,y,time,flags,...") 与
@@ -228,7 +275,14 @@ export function TopTimeline() {
     ids: number[]; orig: Map<number, { time: number; endTime?: number }>;
   } | null>(null);
   // v35: 拖滑条尾端改折返次数 (stable/lazer: 时间轴拉长按整 repeat 伸缩, 单次时长不变)
-  const tailResizeRef = useRef<{ objId: number; dur: number; moved: boolean } | null>(null);
+  // v407: Alt+拖尾 = SV 模式 — 增/改绿线 SV 调滑条持续时间, 长度/折返数不变 (timingSv.ts);
+  //   svOld = 按下时滑条头处生效的旧 SV; headGreen = 头处绿线 (headCreated 标记是否本次新建);
+  //   restore = 尾时间处恢复 svOld 的绿线 (防 SV 泄漏到后续物件); lastEnd = 上一帧目标尾时间 (去抖)
+  const tailResizeRef = useRef<{
+    objId: number; dur: number; moved: boolean;
+    mode: 'slides' | 'sv'; svOld: number;
+    headGreen: TimingPoint | null; headCreated: boolean; restore: TimingPoint | null; lastEnd: number;
+  } | null>(null);
   // v320: F22 — 拖转盘右缘改 endTime (stable 同款; 吸附节拍, 最短 1 tick 与放置同源)
   const spinnerResizeRef = useRef<{ objId: number; moved: boolean } | null>(null);
   // v45: 物件行框选 (css px 坐标; base = 按下时已有选区, Shift 追加)
@@ -829,7 +883,12 @@ export function TopTimeline() {
             const dur = (o.length ?? 0) / vel; // 单次折返时长 (ms)
             if (dur > 0) {
               if (!store.selected.has(tailId)) store.select([tailId]);
-              tailResizeRef.current = { objId: tailId, dur, moved: false };
+              // v407: 按住 Alt 起手 = SV 模式 (改绿线调时长), 否则原折返模式
+              tailResizeRef.current = {
+                objId: tailId, dur, moved: false,
+                mode: e.altKey ? 'sv' : 'slides', svOld: svAt(bm.timingPoints, o.time),
+                headGreen: null, headCreated: false, restore: null, lastEnd: Math.round(objEnd(o)),
+              };
               store.beginDrag();
               store.canvasDragging = true;
               return;
@@ -945,6 +1004,12 @@ export function TopTimeline() {
             const r = zoomRect(ref.current!); // v217: 布局空间
             const win = 6000 / (bm.editor.timelineZoom || 1);
             const ms = store.currentTime - win / 2 + ((zoomClientX(e.clientX) - r.left) / r.width) * win;
+            // v407: SV 模式 (Alt 起手) — 目标尾时间吸附节拍, 改绿线 SV 调时长; 不动折返数
+            if (tr.mode === 'sv') {
+              const targetEnd = Math.round(snapMs(ms));
+              if (targetEnd !== tr.lastEnd) applySvTailDrag(bm, o, tr, targetEnd);
+              return;
+            }
             const slides = Math.max(1, Math.min(100, Math.round((ms - o.time) / tr.dur)));
             if (slides !== (o.slides ?? 1)) {
               o.slides = slides; tr.moved = true;

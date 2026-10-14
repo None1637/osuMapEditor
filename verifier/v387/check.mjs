@@ -52,7 +52,7 @@ section('sliderPath.ts: B4 一等类型');
 section('EditorCanvas.tsx: 手绘落盘 B4 + 幽灵直渲');
 {
   const src = read('src/components/EditorCanvas.tsx');
-  assert(/const curveType = singleP \? 'P' : 'B4';/.test(src), "finishFreehandSlider 落盘 'B4' (单弧 => 'P')");
+  assert(/const curveType = singleP \? 'P' : linePts \? 'L' : 'B4';/.test(src), "finishFreehandSlider 落盘 'B4' (单弧 => 'P'; v412: 共线无红锚点 => 'L')");
   assert(/curveType: bspline \? 'B4' : computed\.curveType/.test(src), "手绘幽灵按 'B4' 渲染 (预览=落盘)");
   assert(!/import \{ bsplineToStableBezier \}/.test(src), 'EditorCanvas 不再引入 bsplineToStableBezier');
 }

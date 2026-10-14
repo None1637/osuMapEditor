@@ -36,7 +36,7 @@ section('EditorCanvas.tsx: B4 落盘 + 一键手绘 + 候选期 canvasDragging')
 {
   const src = readSrc('src/components/EditorCanvas.tsx');
   // v387 适配: 落盘恢复 'B4' (撤销 v377 的 bsplineToStableBezier 转 'B'; stable 兼容改由警告条+一键转换承担)
-  assert(/const curveType = singleP \? 'P' : 'B4';/.test(src) && !/bsplineToStableBezier\(ctrl\)/.test(src),
+  assert(/const curveType = singleP \? 'P' : linePts \? 'L' : 'B4';/.test(src) && !/bsplineToStableBezier\(ctrl\)/.test(src), // v412: 共线无红锚点 => 'L'
     "finishFreehandSlider 落盘 'B4' (v387: 恢复; v377 拟合转 'B' 已撤销)");
   assert(/bspline: true/.test(src), '预览点带 bspline 标记');
   assert(/isHead = store\.pendingSlider\.length === 0/.test(src), '无待放点 => 按下即放头 (isHead 候选)');

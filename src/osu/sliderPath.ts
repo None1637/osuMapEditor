@@ -4,6 +4,7 @@
 import { sliderVelocityAt, timingAt, snapAcrossRedLine, type Beatmap, type HitObject, type TimingPoint, type Vec2 } from './parser';
 import { bSplineToPiecewiseLinear } from './freehand/pathApproximator';
 import { convertCircleToBezierAnchors } from './freehand/freehandFit';
+import { editorPrefs } from './editorPrefs'; // v406: 滑条尾吸附节拍开关
 
 /** v387: 'B<n>' (B 样条) curveType 判定 + degree 提取 (无匹配返回 null) */
 export function parseBSplineType(curveType: string | undefined): number | null {
@@ -417,6 +418,13 @@ export function insertSliderPoint(pts: Vec2[], segIndex: number, t: number): Vec
   return [...pts.slice(0, segIndex + 1), np, ...pts.slice(segIndex + 1)];
 }
 
+/** v408: 锚点粘贴 — 把整组锚点插到 segIdx 段之后 (插入下标 = segIdx+1, 与 v319 单点插入同口径);
+ *  组内顺序/坐标原样保留 (含红锚点重复对), 调用方负责平移到目标位置与 curveType/长度收尾 */
+export function insertAnchorGroup(points: Vec2[], segIdx: number, group: Vec2[]): Vec2[] {
+  const seg = Math.max(0, Math.min(points.length - 1, segIdx));
+  return [...points.slice(0, seg + 1), ...group.map(p => ({ x: p.x, y: p.y })), ...points.slice(seg + 1)];
+}
+
 /**
  * 删除节点: 删到少于 2 个点不可删;
  * 红点 (重复对) 删除时成对删除 (无论命中对中哪一个), 返回新点列, 不可删返回 null
@@ -623,6 +631,8 @@ export function placementLength(
   points: TimingPoint[], currentTime: number, sliderMultiplier: number,
   geometryLength: number, distanceLock: boolean, distanceSpacing: number, beatSnap: number,
 ): number {
+  // v406: 滑条尾吸附关闭 — 直通几何全长 (放置幽灵预览与落盘同走本函数, 天然一致)
+  if (!editorPrefs.sliderTailSnap) return Math.max(1, Math.floor(geometryLength));
   // v366: 与 finishSlider/finishFreehandSlider 落盘时刻同一公式 (就近吸附可落到 currentTime 之前)
   const t = Math.round(snapPlacementTime(points, currentTime, beatSnap));
   const { red } = timingAt(points, t);
@@ -721,6 +731,51 @@ export function snapSliderLength(points: TimingPoint[], time: number, sliderMult
 }
 
 /**
+ * v409: 在选中锚点处分割滑条 (纯函数) — 返回子滑条片段数组, 不含 id/时间衔接/长度重吸附 (调用方负责)
+ * - 下标按整条控制点数组 (0 = 头点 (x,y), 1.. = curvePoints); 排序去重, 剔除 0 与末点; 无可切点返回 null
+ * - 缝点双侧各复制一份: 上段末点 = 下段首点 = 该锚点 (分割后两条子滑条端点重合)
+ * - curveType: L 段保持 L; P 段恰 3 点保持 P 否则 B; B/B<n>/C 一律 B (局部段不再保留原样条/卡特姆语义)
+ * - hitsound: hitSound/newCombo/comboSkip/hitSampleRaw 仅首段;
+ *   edgeSoundsRaw/edgeSetsRaw 首段继承头端、末段继承尾端、中间缝填 '0'/'0:0' (仅当原串存在才写)
+ */
+export function splitSliderAtAnchors(o: HitObject, indices: number[]): HitObject[] | null {
+  if (o.type !== 'slider') return null;
+  const ctrl = [{ x: o.x, y: o.y }, ...(o.curvePoints ?? [])];
+  const n = ctrl.length;
+  if (n < 3) return null; // 少于 3 个控制点没有可切的内部锚点
+  const cuts = [...new Set(indices.filter(i => i > 0 && i < n - 1))].sort((a, b) => a - b);
+  if (!cuts.length) return null;
+  const bounds = [0, ...cuts, n - 1]; // 段 j = ctrl[bounds[j]..bounds[j+1]] (含两端, 缝点双侧各一份)
+  const edgeSounds = o.edgeSoundsRaw !== undefined ? o.edgeSoundsRaw.split('|') : null;
+  const edgeSets = o.edgeSetsRaw !== undefined ? o.edgeSetsRaw.split('|') : null;
+  const out: HitObject[] = [];
+  for (let j = 0; j + 1 < bounds.length; j++) {
+    const pts = ctrl.slice(bounds[j], bounds[j + 1] + 1);
+    if (pts.length < 2) return null;
+    let curveType: string;
+    if (o.curveType === 'L') curveType = 'L';
+    else if (o.curveType === 'P') curveType = pts.length === 3 ? 'P' : 'B';
+    else curveType = 'B';
+    const first = j === 0, last = j + 2 === bounds.length;
+    const seg: HitObject = {
+      id: 0, type: 'slider', // id/时间/长度由调用方填
+      x: Math.round(pts[0].x), y: Math.round(pts[0].y),
+      time: o.time,
+      curveType, curvePoints: pts.slice(1).map(p => ({ x: Math.round(p.x), y: Math.round(p.y) })),
+      slides: 1, length: 0,
+      hitSound: first ? (o.hitSound ?? 0) : 0,
+      newCombo: first && !!o.newCombo,
+      comboSkip: first ? (o.comboSkip ?? 0) : 0,
+    };
+    if (first && o.hitSampleRaw !== undefined) seg.hitSampleRaw = o.hitSampleRaw;
+    if (edgeSounds) seg.edgeSoundsRaw = `${first ? edgeSounds[0] ?? '0' : '0'}|${last ? edgeSounds[edgeSounds.length - 1] ?? '0' : '0'}`;
+    if (edgeSets) seg.edgeSetsRaw = `${first ? edgeSets[0] ?? '0:0' : '0:0'}|${last ? edgeSets[edgeSets.length - 1] ?? '0:0' : '0:0'}`;
+    out.push(seg);
+  }
+  return out;
+}
+
+/**
  * 节点编辑后重算滑条长度: 几何全长 -> 节拍吸附, 写回 o.length
  * (lazer PathControlPointVisualiser 拖拽/插入/删除控制点后均调用 hitObject.SnapTo)
  */
@@ -728,5 +783,7 @@ export function resnapSliderLength(bm: Beatmap, o: HitObject, beatSnap: number):
   if (o.type !== 'slider') return;
   const pts = [{ x: o.x, y: o.y }, ...(o.curvePoints ?? [])];
   const geo = sliderGeometryLength(o.curveType ?? 'L', pts);
+  // v406: 滑条尾吸附关闭 — 长度直通几何全长, 不吸附节拍
+  if (!editorPrefs.sliderTailSnap) { o.length = Math.max(1, Math.floor(geo)); return; }
   o.length = snapSliderLength(bm.timingPoints, o.time, bm.difficulty.sliderMultiplier, geo, beatSnap);
 }
