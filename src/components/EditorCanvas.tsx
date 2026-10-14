@@ -1539,6 +1539,8 @@ export function EditorCanvas() {
       // 红锚点记录配对下标: 拖拽时成对移动 (v29: 不再把红点拆成两个白点)
       // v118: toggleRed = 按下时 Ctrl — stable 行为: 按住 Ctrl 点击白点才转红, 直接点击仅选中
       nodeDragRef.current = { objId: so.id, pointIndex: hitIdx, pairWith: redPairPartner(ctrl, hitIdx), startX: p.x, startY: p.y, moved: false, toggleRed: mods.ctrlKey || mods.metaKey, pending: null }; // v410: 此分支仅剩 Ctrl/Meta 按下, toggleRed 恒 true
+      store.activeNodeDrag = { objId: so.id, idx: hitIdx }; // v415: 信息面板显示被拖节点实时坐标
+      store.emitSelection();
       return true;
     }
     // v118/v319: 按住 Ctrl 点击选中滑条 = 新增白色节点。对齐 lazer SliderSelectionBlueprint.OnMouseDown:
@@ -1547,7 +1549,10 @@ export function EditorCanvas() {
     // v326: stable 语义 — Ctrl+左键点击任何位置都添加锚点, 不再要求命中滑条身
     // (v324 的直接路径命中门槛/落空守卫移除: stable 无命中要求, 用户反馈"增加滑条点仍然很难");
     // 点到已有节点手柄仍优先走上方拖拽/切红分支, 不会误插点
+    // v413: 但 Ctrl+点击命中互动物件 (含本滑条身/其他物件) 时不插点 — 放行给 objectPress 做多选切换
+    //   (soulten: 按住ctrl不能点选多个滑条; 别在物件上生成滑条点, 没有选到互动物件可以生)
     if (mods.ctrlKey || mods.metaKey) {
+      if (hitTest(p.x, p.y)) return false; // v413: 物件上不落锚点 → 落到物件点选/多选
       if (ctrl.length >= 2) {
         let best = ctrl.length - 2, bestD = Infinity; // 默认末尾段 (极端: 全部零长段)
         for (let i = 0; i < ctrl.length - 1; i++) {
@@ -1984,8 +1989,9 @@ export function EditorCanvas() {
     const bm = store.beatmap;
     if (!nmd || !bm) return;
     // v233: 移动阈值 4px→1 格, 与 hitcircle 拖拽一致, 超过即视为拖动; 锚节点吃吸附, delta 取整后同步全部选中节点
+    // v414: 「物件移动死区 2px」关闭时同步移除节点整组拖死区 (与 applyNodeDrag 同款接线)
     if (!nmd.moved) {
-      if (Math.abs(cp.x - nmd.startX) + Math.abs(cp.y - nmd.startY) <= 1) return;
+      if (Math.abs(cp.x - nmd.startX) + Math.abs(cp.y - nmd.startY) <= (editorPrefs.moveDeadzone2px ? 1 : 0)) return;
       nmd.moved = true;
     }
     const offs = getStackOffsets(bm);
@@ -2011,8 +2017,10 @@ export function EditorCanvas() {
     const bm = store.beatmap;
     if (!nd || !bm) return;
     // v233: 移动阈值 4px→1 格, 与 hitcircle 一致; 未移动时 mouseup 视为点击, 白点切红
+    // v414: 「物件移动死区 2px」开关关闭时同步移除滑条点死区 (soulten: 滑条点其实有死区, 关掉一并移除) —
+    //   开 = |dx|+|dy| ≤1 忽略 (2px 起效), 关 = 任何移动立即生效
     if (!nd.moved) {
-      if (Math.abs(p.x - nd.startX) + Math.abs(p.y - nd.startY) <= 1) return;
+      if (Math.abs(p.x - nd.startX) + Math.abs(p.y - nd.startY) <= (editorPrefs.moveDeadzone2px ? 1 : 0)) return;
       nd.moved = true;
     }
     const o = bm.hitObjects.find(x => x.id === nd.objId);
@@ -2536,6 +2544,7 @@ export function EditorCanvas() {
     if (nodeDragRef.current) {
       const nd = nodeDragRef.current;
       nodeDragRef.current = null;
+      store.activeNodeDrag = null; // v415: 拖拽收尾, 信息面板回到选区/hover 显示
       if (nd.pending) { const q = nd.pending; nd.pending = null; applyNodeDrag(q); } // v264: 落点补齐
       if (nd.moved) { store.commitDrag(); return; }
       // 点击手柄 (未拖拽): 仅白点切红 (mousedown 的 beginDrag 快照即本次 undo)

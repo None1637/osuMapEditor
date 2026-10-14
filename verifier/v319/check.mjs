@@ -19,10 +19,11 @@ const ec = readSrc('src/components/EditorCanvas.tsx');
 
 section('F28: Ctrl+点击滑条身即插点 (lazer 对齐)');
 {
-  const blk = ec.match(/v118\/v319: 按住 Ctrl 点击选中滑条[\s\S]{0,2400}?store\.emit\(\);\s*return;/);
+  const blk = ec.match(/v118\/v319: 按住 Ctrl 点击选中滑条[\s\S]{0,2400}?store\.emit\(\);\s*return true;/);
   assert(!!blk, 'v319 插点块存在');
-  // v326 修订: stable 语义 — Ctrl+点击任何位置都插点, v324 的直接路径命中门槛亦移除
-  assert(!!blk && !/onBody|hitTest/.test(blk[0]), '无命中门槛 (v326: 点击任何位置插点)');
+  // v326 修订: stable 语义 — Ctrl+点击任何位置都插点; v413 再修订: 命中互动物件时放行给多选
+  assert(!!blk && /hitTest\(p\.x, p\.y\)\) return false; \/\/ v413/.test(blk[0]), '物件命中放行 (v413 更新 v326 语义: 不在物件上生锚点)');
+  assert(!!blk && !/onBody/.test(blk[0]), '无 onBody 门槛 (v326 保留)');
   assert(!!blk && !/bestD = 6/.test(blk[0]), '6px 线段距离上限移除 (lazer 无上限)');
   assert(!!blk && /const raw = \{ x: p\.x - odx, y: p\.y - ody \};/.test(blk[0]), '插入光标原位置 (撤堆叠偏移, 非投影)');
   assert(!!blk && /\[\.\.\.ctrl\.slice\(0, best \+ 1\), raw, \.\.\.ctrl\.slice\(best \+ 1\)\]/.test(blk[0]), '插入下标 = 最近控制点线段后');

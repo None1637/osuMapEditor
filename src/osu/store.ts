@@ -338,6 +338,10 @@ class EditorStore {
   placementPreview: { x: number; y: number } | null = null;
   /** v381: hover 滑条锚点 (EditorCanvas refreshHover 维护; 右上角信息面板显示该锚点位置) */
   hoverNode: { objId: number; idx: number } | null = null;
+  /** v415: 拖拽中的滑条锚点 (Ctrl 单点拖 nodeDragRef 起手时设置, 收尾清空) —
+   *  右上角信息面板据此显示被拖节点的实时坐标 (修: 拖滑条点时显示的是物件头位置而不是节点位置);
+   *  无修饰拖拽由 v410 节点选区 (nodeInfo 分支) 覆盖, 不走此字段 */
+  activeNodeDrag: { objId: number; idx: number } | null = null;
   /** v381: 写 hover 锚点; 与现值相同则不发通知 (mousemove 高频调用, 防重渲染风暴) */
   setHoverNode(v: { objId: number; idx: number } | null) {
     const cur = this.hoverNode;

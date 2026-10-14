@@ -16,8 +16,8 @@ function readSrc(rel) { return fs.readFileSync(path.join(root, rel), 'utf8'); }
 const src = readSrc('src/components/EditorCanvas.tsx');
 
 console.log('== EditorCanvas.tsx: 节点拖拽阈值降为 1 格');
-assert(src.includes('Math.abs(cp.x - nmd.startX) + Math.abs(cp.y - nmd.startY) <= 1'), 'nodesMoveDragRef 整体拖动阈值 = 1 格');
-assert(src.includes('Math.abs(p.x - nd.startX) + Math.abs(p.y - nd.startY) <= 1'), 'nodeDragRef 单节点拖拽阈值 = 1 格');
+assert(src.includes('Math.abs(cp.x - nmd.startX) + Math.abs(cp.y - nmd.startY) <= (editorPrefs.moveDeadzone2px ? 1 : 0)'), 'nodesMoveDragRef 整体拖动阈值 = 1 格 (v414: 接「物件移动死区 2px」开关, 关 = 无死区)');
+assert(src.includes('Math.abs(p.x - nd.startX) + Math.abs(p.y - nd.startY) <= (editorPrefs.moveDeadzone2px ? 1 : 0)'), 'nodeDragRef 单节点拖拽阈值 = 1 格 (v414: 接开关)');
 assert(!src.includes('Math.hypot(cp.x - nmd.startX, cp.y - nmd.startY) <= 4'), 'nodesMoveDragRef 旧 4px 死区已移除');
 assert(!src.includes('Math.hypot(p.x - nd.startX, p.y - nd.startY) <= 4'), 'nodeDragRef 旧 4px 死区已移除');
 assert(src.includes('Math.hypot(cp.x - cand.x, cp.y - cand.y) <= 4'), 'v66 手绘滑条候选阈值保持 4px 不变');

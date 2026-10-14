@@ -4302,3 +4302,31 @@
     有红锚点的共线多段不折叠 (分段语义保留); 单弧 'P' / 其余 'B4' 不变。
 - 验证: verifier/v412 (tests.ts: 共线/微抖/超容差/斜线/两点/退化/不改入参; check.mjs 源码断言)。
   适配 v377/v66/v74 (落盘类型断言加 linePts 分支)。回归: v387/v388/v377/v66/v73/v74 全绿, tsc 通过。
+
+## v413 — Ctrl+点物件不生成滑条锚点
+- 需求 (soulten): 按住 Ctrl 不能点选多个滑条 — Ctrl+点击落在互动物件上时应做多选切换,
+  不要在物件上生成滑条点; 没有选到互动物件 (空白) 才可以生。
+- 改动 (EditorCanvas.tsx): singleSliderNodePress 的 Ctrl 插点分支 (v118/v319/v326) 前置
+  `if (hitTest(p.x, p.y)) return false;` — 命中任何互动物件 (含本滑条身) 放行给 objectPress
+  走 v40 的 Ctrl toggleSelect; 空白处维持 v326 插点语义不变; 锚点手柄上的 Ctrl 拖拽/切红 (v410)
+  分支在前, 不受影响。
+- 验证: verifier/v413 (源码断言 + CDP: Ctrl 点圆圈=多选不插点 / Ctrl 点空白=插点 / Ctrl 点锚点=切红)。
+  适配 v326/v319 (blk 结尾正则 return;→return true; 消掉 HEAD 遗留失败并转绿,
+  命中门槛断言改写为 v413 新语义)、v402 (锚点候选计数 5→6, v410 点选候选 +1)。回归见 v415 节。
+
+## v414 — 物件移动死区开关同步移除滑条点死区
+- 需求 (soulten): 滑条点其实也有移动死区, 关闭「物件移动死区 2px」选项时把滑条点的死区也移掉。
+- 改动 (EditorCanvas.tsx): applyNodeDrag 与 applyNodesMoveDrag 的起步阈值由恒定 1 osu px 改为
+  `<= (editorPrefs.moveDeadzone2px ? 1 : 0)` — 开关关闭时阈值归零, 任意位移即生效。
+- 验证: verifier/v414 (源码断言两条阈值语句 + CDP: 关开关后 1px 微拖即位移 / 开开关时 1px 不位移)。
+
+## v415 — 拖滑条点时 HUD 显示节点实时坐标
+- 需求 (soulten): 滑条点在移动时右上角信息显示的不是它的资讯, 应该显示位置 (x/y)。
+- 改动:
+  - store.ts: 新增 `activeNodeDrag: { objId: number; idx: number } | null` — Ctrl 单点拖起手时设置
+    (+emitSelection), mouseup 清空; SelectionInfo.nodeInfo 结构补 `x/y` 字段。
+  - Timelines.tsx SelectionInfoPanel: 最高优先级 dragPt 分支 — 拖拽中显示
+    `Slider Point #i/n` + 实时 `x:.. y:..`; 单节点选区 (非拖拽) 的 nodeInfo 分支也渲染坐标行。
+- 验证: verifier/v415 (源码断言 + CDP: 拖拽中面板显示节点坐标 / 松手后恢复物件信息)。
+- v413–v415 回归: v410/v401/v402/v404/v360/v361/v35/v213/v266/v309/v344/v379/v346/v233/v268
+  全绿或持平 (v379 6 处失败为 HEAD 遗留, stash 对比确认); tsc + vite build 通过。

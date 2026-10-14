@@ -18,13 +18,14 @@ function readSrc(rel) { return fs.readFileSync(path.join(root, rel), 'utf8'); }
 
 const ec = readSrc('src/components/EditorCanvas.tsx');
 
-section('F28: Ctrl+点击任何位置插点 (stable 语义, 无命中门槛)');
+section('F28: Ctrl+点击插点 (stable 语义, v413: 物件命中放行)');
 {
-  const blk = ec.match(/v118\/v319: 按住 Ctrl 点击选中滑条[\s\S]{0,2400}?store\.emit\(\);\s*return;/);
+  const blk = ec.match(/v118\/v319: 按住 Ctrl 点击选中滑条[\s\S]{0,2400}?store\.emit\(\);\s*return true;/);
   assert(!!blk, '插点块存在');
   assert(/v326: stable 语义 — Ctrl\+左键点击任何位置都添加锚点, 不再要求命中滑条身/.test(ec), 'v326 注释说明 stable 语义');
-  assert(/if \(e\.ctrlKey \|\| e\.metaKey\) \{\s*if \(ctrl\.length >= 2\) \{/.test(ec), 'Ctrl 分支直接插点 (无 onBody/hitTest 门槛)');
-  assert(!!blk && !/onBody|hitTest|getSliderPath/.test(blk[0]), '插点块内无命中判定');
+  // v413 修订: 命中互动物件时放行给多选 (不再无条件插点), 空白处维持 v326 语义
+  assert(/if \(mods\.ctrlKey \|\| mods\.metaKey\) \{\s*if \(hitTest\(p\.x, p\.y\)\) return false; \/\/ v413[\s\S]{0,120}?if \(ctrl\.length >= 2\) \{/.test(ec), 'Ctrl 分支: 物件命中放行, 空白插点 (v413)');
+  assert(!!blk && /hitTest\(p\.x, p\.y\)\) return false; \/\/ v413/.test(blk[0]), '插点块内仅 v413 物件守卫 (无 onBody/getSliderPath 门槛)');
 }
 
 section('节点手柄优先不误插 (nearestCtrlPoint 分支先行)');
@@ -36,7 +37,7 @@ section('节点手柄优先不误插 (nearestCtrlPoint 分支先行)');
 
 section('插入语义保留 (v319/v240)');
 {
-  const blk = ec.match(/v118\/v319: 按住 Ctrl 点击选中滑条[\s\S]{0,2400}?store\.emit\(\);\s*return;/);
+  const blk = ec.match(/v118\/v319: 按住 Ctrl 点击选中滑条[\s\S]{0,2400}?store\.emit\(\);\s*return true;/);
   assert(!!blk && /const raw = \{ x: p\.x - odx, y: p\.y - ody \};/.test(blk[0]), '插入光标原位置 (撤堆叠偏移)');
   assert(!!blk && /\[\.\.\.ctrl\.slice\(0, best \+ 1\), raw, \.\.\.ctrl\.slice\(best \+ 1\)\]/.test(blk[0]), '插入下标 = 最近控制点线段后');
   assert(!!blk && /ctrl\[i\]\.x === ctrl\[i \+ 1\]\.x && ctrl\[i\]\.y === ctrl\[i \+ 1\]\.y\) continue/.test(blk[0]), '零长红锚点重复对跳过');

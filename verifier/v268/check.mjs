@@ -15,7 +15,7 @@ function assert(cond, msg) { if (!cond) { failures++; console.error('  FAIL:', m
 
 const src = fs.readFileSync(path.join(root, 'src/components/Timelines.tsx'), 'utf8');
 assert(/v268: 节点信息改首末距离/.test(src), 'v268 注释在');
-assert(/let nodeInfo: \{ count: number; firstIdx: number; prevDist: number \| null; lastIdx: number; nextDist: number \| null \} \| null = null/.test(src), 'nodeInfo 结构 (首末索引 + 前后距离, 可空)');
+assert(/let nodeInfo: \{ count: number; firstIdx: number; prevDist: number \| null; lastIdx: number; nextDist: number \| null; x: number \| null; y: number \| null \} \| null = null/.test(src), 'nodeInfo 结构 (首末索引 + 前后距离 + 单节点坐标 (v415), 可空)');
 assert(/groups\.push\(\{ time: o\.time, ctrl: \[/.test(src), '每滑条一组 (时间 + ctrl + 选中索引)');
 assert(/groups\.sort\(\(a, b\) => a\.time - b\.time\)/.test(src), '跨滑条按物件时间排序');
 assert(/const dist = \(c: \{ x: number; y: number \}\[\], a: number, b: number\) =>/.test(src) && /Math\.round\(Math\.hypot/.test(src), '距离 = 相邻点欧氏距离取整 px');

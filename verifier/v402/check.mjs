@@ -43,7 +43,7 @@ section('EditorCanvas.tsx: 锚点候选过滤改用锚点窗口');
 {
   const src = readSrc('src/components/EditorCanvas.tsx');
   const n = (src.match(/sliderAnchorInteractiveAt\(bm, o, store\.currentTime\) \|\| store\.selected\.has\(o\.id\) \|\| store\.selectedNodes\.has\(o\.id\)/g) ?? []).length;
-  assert(n === 5, `锚点候选 5 处全部改用 sliderAnchorInteractiveAt (实际 ${n}: playfieldNodePress/nodeAltPress/nodeGroupDragPress/unselectedSliderNodePress/hoverNode)`);
+  assert(n === 6, `锚点候选 6 处全部改用 sliderAnchorInteractiveAt (实际 ${n}: playfieldNodePress/nodeAltPress/nodeGroupDragPress/singleSliderNodePress(v410)/unselectedSliderNodePress/hoverNode)`); // v410: 单滑条点选候选 +1 (5→6)
   assert(!/isVisibleAt\(bm, o, store\.currentTime\) \|\| store\.selected\.has\(o\.id\) \|\| store\.selectedNodes/.test(src),
     '锚点候选不再用 isVisibleAt (残留窗)');
   assert(/const sliders = bm\.hitObjects\.filter\(o => o\.type === 'slider' && sliderAnchorInteractiveAt\(bm, o, store\.currentTime\)\); \/\/ v402/.test(src),

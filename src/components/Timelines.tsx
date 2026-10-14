@@ -1433,7 +1433,7 @@ export function SelectionInfoPanel() {
   const pv = !info && bm && store.placementPreview ? previewSpacingInfo(bm, store.placementPreview, store.currentTime) : null;
   // v268: 节点信息改首末距离 (用户反馈: 不要逐节点列出, 要「所有选中节点中最前一个节点到前一节点的距离」
   // 与「最后一个节点到后一节点的距离」; 跨滑条时按物件时间排序取两端; 索引语义同 v260: ctrl=[头,...curvePoints])
-  let nodeInfo: { count: number; firstIdx: number; prevDist: number | null; lastIdx: number; nextDist: number | null } | null = null;
+  let nodeInfo: { count: number; firstIdx: number; prevDist: number | null; lastIdx: number; nextDist: number | null; x: number | null; y: number | null } | null = null;
   if (bm && store.nodeSelectionCount) {
     const groups: { time: number; ctrl: { x: number; y: number }[]; idxs: number[] }[] = [];
     for (const [objId, idxs] of store.selectedNodes) {
@@ -1447,17 +1447,31 @@ export function SelectionInfoPanel() {
         c[a] && c[b] ? Math.round(Math.hypot(c[a].x - c[b].x, c[a].y - c[b].y)) : null;
       const gf = groups[0], gl = groups[groups.length - 1];
       const firstIdx = gf.idxs[0], lastIdx = gl.idxs[gl.idxs.length - 1];
+      // v415: 单节点选区 (含 v410 无修饰点选/拖拽) 附节点实时坐标 — 拖拽中面板显示节点位置而非物件头
+      const single = groups.length === 1 && gf.idxs.length === 1 ? gf.ctrl[firstIdx] : null;
       nodeInfo = {
         count: groups.reduce((n, g) => n + g.idxs.length, 0),
         firstIdx, prevDist: dist(gf.ctrl, firstIdx - 1, firstIdx),
         lastIdx, nextDist: dist(gl.ctrl, lastIdx, lastIdx + 1),
+        x: single ? Math.round(single.x) : null, y: single ? Math.round(single.y) : null,
       };
+    }
+  }
+  // v415: 拖拽中的滑条锚点 (Ctrl 单点拖) — 最高优先级显示被拖节点实时坐标
+  //   (修: 拖滑条点时面板显示的 x/y 是物件头位置, 不是节点位置); 无修饰拖拽由 nodeInfo 分支覆盖 (v410 点选)
+  let dragPt: { idx: number; x: number; y: number; total: number } | null = null;
+  if (bm && store.activeNodeDrag) {
+    const ho = bm.hitObjects.find(x => x.id === store.activeNodeDrag!.objId);
+    if (ho && ho.type === 'slider') {
+      const ctrl = [{ x: ho.x, y: ho.y }, ...(ho.curvePoints ?? [])];
+      const pt = ctrl[store.activeNodeDrag!.idx];
+      if (pt) dragPt = { idx: store.activeNodeDrag!.idx, x: Math.round(pt.x), y: Math.round(pt.y), total: ctrl.length };
     }
   }
   // v381: hover 滑条锚点位置信息 (EditorCanvas refreshHover 维护 store.hoverNode; 优先级低于节点选区信息,
   //   高于物件/预览信息 — 拖拽进行中 canvasDragging 会清空 hoverNode, 不会盖掉实时拖拽数据)
   let hoverPt: { idx: number; x: number; y: number; total: number } | null = null;
-  if (!nodeInfo && bm && store.hoverNode) {
+  if (!dragPt && !nodeInfo && bm && store.hoverNode) {
     const ho = bm.hitObjects.find(x => x.id === store.hoverNode!.objId);
     if (ho && ho.type === 'slider') {
       const ctrl = [{ x: ho.x, y: ho.y }, ...(ho.curvePoints ?? [])];
@@ -1467,9 +1481,17 @@ export function SelectionInfoPanel() {
   }
   return (
     <div className="w-40 shrink-0 border-l border-white/10 flex flex-col items-end justify-center px-2 font-mono text-[11px] leading-5 text-white/85 select-none whitespace-nowrap" style={{ background: 'rgba(12,12,17,0.15)' }}>{/* v129: 背景半透明; v284: 固定 (开关移除) */}
-      {nodeInfo ? (
+      {dragPt ? (
+        <>
+          {/* v415: 拖拽中的锚点 — 实时坐标 (hover 锚点同款两行) */}
+          <div className="text-white/60">{t('timeline.hover_node', 'Slider Point #{i}/{n}', { i: dragPt.idx, n: dragPt.total - 1 })}</div>
+          <div>x:{dragPt.x} y:{dragPt.y}</div>
+        </>
+      ) : nodeInfo ? (
         <>
           <div className="text-white/60">{t('timeline.slider_nodes', 'Slider Points ×{n}', { n: nodeInfo.count })}</div>
+          {/* v415: 单节点选区附实时坐标 (拖拽中随动) */}
+          {nodeInfo.x !== null && <div>x:{nodeInfo.x} y:{nodeInfo.y}</div>}
           {/* v268: 最前选中节点到前一节点的距离 / 最后选中节点到后一节点的距离 (无端点显示 —) */}
           <div className="text-white/60">{t('timeline.node_first', 'First #{i} ←', { i: nodeInfo.firstIdx })} <span className="text-cyan-300">{nodeInfo.prevDist === null ? '—' : `${nodeInfo.prevDist}px`}</span></div>
           <div className="text-white/60">{t('timeline.node_last', 'Last #{i} →', { i: nodeInfo.lastIdx })} <span className="text-cyan-300">{nodeInfo.nextDist === null ? '—' : `${nodeInfo.nextDist}px`}</span></div>
