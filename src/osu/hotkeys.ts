@@ -50,7 +50,7 @@ export const HOTKEY_ACTIONS: HotkeyAction[] = [
   { id: 'cut', label: '剪切', en: 'Cut', category: '编辑', defaults: ['Ctrl+X'], menuId: 'edit-cut' },
   { id: 'copy', label: '复制', en: 'Copy', category: '编辑', defaults: ['Ctrl+C'], menuId: 'edit-copy' },
   { id: 'paste', label: '粘贴', en: 'Paste', category: '编辑', defaults: ['Ctrl+V'], menuId: 'edit-paste' },
-  { id: 'delete', label: '删除所选', en: 'Delete Selected', category: '编辑', defaults: ['Delete', 'Backspace'], menuId: 'edit-delete' },
+  { id: 'delete', label: '删除所选 (物件/选中锚点)', en: 'Delete Selected (objects / selected anchors)', category: '编辑', defaults: ['Delete', 'Backspace'], menuId: 'edit-delete' }, // v424: 节点选区非空时删锚点
   { id: 'select-all', label: '全选物件', en: 'Select All Objects', category: '编辑', defaults: ['Ctrl+A'], menuId: 'edit-select-all' },
   { id: 'cancel', label: '取消/清除选择', en: 'Cancel / Clear Selection', category: '编辑', defaults: ['Escape'] },
   { id: 'duplicate', label: '批量复制窗口', en: 'Batch Duplicate Window', category: '编辑', defaults: ['Ctrl+D'], menuId: 'edit-duplicate' },

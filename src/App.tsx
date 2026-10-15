@@ -362,7 +362,11 @@ export default function App() {
           const bm = store.beatmap; if (!bm || bm.hitObjects.length === 0) return;
           store.seek(Math.max(...bm.hitObjects.map(o => o.time))); return;
         }
-        case 'delete': store.deleteSelected(); return;
+        case 'delete':
+          // v424: 节点选区非空优先批量删锚点 (物件+节点同选时优先节点 — 节点选区是更精确的
+          //   用户意图, 避免误删整个物件); 节点选区为空维持删物件/绿线现状
+          if (store.selectedNodes.size) { store.deleteSelectedNodes(); return; }
+          store.deleteSelected(); return;
         case 'cancel':
           // v117: 节点选区优先退出 (Esc 退出节点层, 再按才清物件选区)
           if (store.selectedNodes.size) { store.clearNodeSelection(); return; }

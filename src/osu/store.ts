@@ -17,7 +17,7 @@ import { DEFAULT_GROUP, instantiatePattern, loadPatternGroups, loadPatterns, mak
 import { reportMenuState, reportDirtyState } from './electronMenu';
 import { getElectronAPI } from './electronBridge'; // v185: 谱面备份 IPC
 import { defaultNewPoint, effectivePointAt, activePointAt, snapTimeToRedBeat, metronomeBeats, rangeTimes } from './timingEdit'; // v156; v372: rangeTimes
-import { resnapSliderLength, snapPlacementTime, placementLength, pendingSliderTimeline, sliderLengthSnapDivisor, snapSliderLength, parseBSplineType, nearestOnSegment, resolveSliderCurveType, insertAnchorGroup, splitSliderAtAnchors } from './sliderPath'; // v156: 重新计算滑条长度; v357: 粘贴锚点节拍吸附; v364: 调试暴露吸附纯函数; v388: 选中集 B4 判定; v408: 锚点粘贴插入; v409: 锚点处分割
+import { resnapSliderLength, snapPlacementTime, placementLength, pendingSliderTimeline, sliderLengthSnapDivisor, snapSliderLength, parseBSplineType, nearestOnSegment, resolveSliderCurveType, insertAnchorGroup, splitSliderAtAnchors, deleteSliderPoints } from './sliderPath'; // v156: 重新计算滑条长度; v357: 粘贴锚点节拍吸附; v364: 调试暴露吸附纯函数; v388: 选中集 B4 判定; v408: 锚点粘贴插入; v409: 锚点处分割; v424: 批量删锚点
 import { sliderVelocityAt, svPointAt } from './parser'; // v366: 调试暴露 (SV 绿线边界验证)
 import { snapshotNodes, withRedPartners, transformNodesFromSnapshot } from './nodeSelection'; // v304: F08 节点选区快捷键变换
 import { computeStackOffsets } from './stacking'; // v408: 锚点粘贴撤堆叠偏移
@@ -1121,6 +1121,39 @@ class EditorStore {
       this.beatmap.timingPoints = this.beatmap.timingPoints.filter(tp => tp.uninherited || !this.selectedGreenLines.has(tp.time));
       this.selectedGreenLines.clear();
     }
+    this.emit();
+  }
+
+  /**
+   * v424: 批量删除选中滑条锚点 (Delete 键, 节点选区非空时 App 路由到这里, 见 App.tsx 'delete' 分支) —
+   *  - 同坐标配对组整组删 (withRedPartners 展开, 与 v401 选中语义一致);
+   *  - 头/尾被删: 剩余首/尾点成新头/尾 (v400 同款数组平移);
+   *  - 删后剩余 <2 控制点 → 删整个滑条物件 (避免非法物件);
+   *  - curveType 保型/重解析与右键单点删除同口径 (resolveSliderCurveType, v394 manualCurveType 例外);
+   *    resnapSliderLength (遵守 v406 尾吸附开关); invalidatePath; 一次 undo;
+   *  - 清空节点选区, 物件选区保留; lockNotes 时不动 (与 deleteSelected 物件层一致)。
+   */
+  deleteSelectedNodes() {
+    const bm = this.beatmap;
+    if (!bm || this.lockNotes || !this.selectedNodes.size) return;
+    const sel = withRedPartners(bm, this.selectedNodes); // v401: 同坐标整组
+    this.pushUndo();
+    const delIds = new Set<number>();
+    for (const [id, idxSet] of sel) {
+      const o = bm.hitObjects.find(x => x.id === id);
+      if (!o || o.type !== 'slider') continue;
+      const ctrl = [{ x: o.x, y: o.y }, ...(o.curvePoints ?? [])];
+      const next = deleteSliderPoints(ctrl, idxSet);
+      if (!next) { delIds.add(id); invalidatePath(id); continue; } // 剩余 <2 → 删整物件
+      o.x = next[0].x; o.y = next[0].y;
+      o.curvePoints = next.slice(1).map(p => ({ ...p }));
+      // v394: 手动改过曲线类型的滑条不强制改型 (与 EditorCanvas applySliderPoints 同口径)
+      if (!this.manualCurveType.has(o.id)) o.curveType = resolveSliderCurveType(next, o.curveType ?? 'L');
+      resnapSliderLength(bm, o, this.beatSnap); // lazer: 删除控制点后 SnapTo (v406 开关在 resnap 内)
+      invalidatePath(o.id);
+    }
+    if (delIds.size) bm.hitObjects = bm.hitObjects.filter(o => !delIds.has(o.id));
+    this.selectedNodes.clear(); // 清空节点选区, 物件选区保留
     this.emit();
   }
 

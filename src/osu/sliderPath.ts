@@ -445,6 +445,23 @@ export function deleteSliderPoint(pts: Vec2[], index: number): Vec2[] | null {
 }
 
 /**
+ * v424: 批量删除选中锚点 (Delete 键, 节点选区非空时) — 与右键单点删除 (deleteSliderPoint) 口径差异:
+ *  - indices 按「同坐标配对组」整组删 (调用方用 withRedPartners 展开, v401 选中语义一致:
+ *    红锚点对选其一等于选整组, 删也整组删; 含头部成对时头对整组删, 与 v400 右键头部只删单点不同,
+ *    取舍: 批量语义以选区为准, 用户框选整串红对时预期整串消失);
+ *  - 头/尾被删: 剩余首/尾点自然成为新头/尾 (数组平移, v400 同款, 无特殊处理);
+ *  - 删后剩余 <2 → null (调用方删整个滑条物件, 避免非法物件);
+ *  - 不改入参 (返回新数组)。
+ */
+export function deleteSliderPoints(pts: Vec2[], indices: Iterable<number>): Vec2[] | null {
+  const del = new Set<number>();
+  for (const i of indices) if (i >= 0 && i < pts.length) del.add(i);
+  if (!del.size) return pts.slice();
+  const next = pts.filter((_, i) => !del.has(i));
+  return next.length >= 2 ? next : null;
+}
+
+/**
  * 切换白/红: 头部不可切换; 白->红 在该点后复制一个相同坐标点 (形成重复对);
  * 红->白 把重复对合并成一个点 (命中对中任意一个均可), 返回新点列, 不可切换返回 null
  */

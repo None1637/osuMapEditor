@@ -4449,3 +4449,26 @@
   注释改纯 ASCII 措辞后转绿 (词典本身无需补字); 全量 25 个验证器回归见本节末结论
   (v287/v288/v289/v294/v295/v298/v300/v390/v385/v147/v178/v401/v402/v404/v410/v413/
   v346/v416–v419/v420–v423 全绿)。
+
+## v424 — 批量删除选中滑条锚点 (Delete 键)
+- 需求 (soulten): 框选了一串滑条锚点按 Delete 想一次性删掉, 现状只能右键逐个点删
+  (且节点+物件同选时 Delete 会误删整条滑条)。
+- 语义 (对齐 v401 选中语义/lazer, 取舍见代码注释):
+  - 同坐标配对组整组删 (withRedPartners 展开 — 红锚点对选其一等于选整组, 删也整组删;
+    含头部成对时头对整组删, 与 v400 右键头部只删单点不同 — 批量语义以选区为准);
+  - 头/尾被删: 剩余首/尾点数组平移成新头/尾 (v400 同款); 删后剩余 <2 控制点 → 删整个滑条
+    (避免非法物件); curveType 保型/重解析同右键单点口径 (resolveSliderCurveType,
+    v394 manualCurveType 例外); resnapSliderLength (v406 尾吸附开关); invalidatePath;
+    一次 undo; 清节点选区保物件选区; lockNotes 不动; 右键单点删除路径不变。
+- 改动:
+  - sliderPath.ts: 新增纯函数 deleteSliderPoints(pts, indices) — 越界忽略/空集返回副本/
+    剩余 <2 返回 null/不改入参。
+  - store.ts: 新增 deleteSelectedNodes() — 上述语义全量落地 (App 'delete' 分支路由目标)。
+  - App.tsx: 'delete' 分支 — 节点选区非空优先 deleteSelectedNodes (物件+节点同选优先节点,
+    注释说明), 否则维持 deleteSelected 删物件/绿线现状。
+  - hotkeys.ts: 'delete' 条目标签补「(物件/选中锚点)」(快捷键帮助面板说明; 无新 i18n key)。
+- 验证: verifier/v424 (tests.ts: 批量删中间/头/尾/头尾同删/红配对整组/剩余<2 null/越界/
+  不改入参/withRedPartners 展开; check.mjs 源码断言 + CDP: 选红对一个点 Delete 整组删/
+  undo 还原/全选节点 Delete 删整物件/空节点选区维持删物件)。
+- 回归: v400/v401/v402/v404/v409/v410/v411/v413/v414/v415/v266/v309/v346/v416–v423 全绿;
+  tsc + vite build 通过。
