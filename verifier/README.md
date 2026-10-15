@@ -4330,3 +4330,122 @@
 - 验证: verifier/v415 (源码断言 + CDP: 拖拽中面板显示节点坐标 / 松手后恢复物件信息)。
 - v413–v415 回归: v410/v401/v402/v404/v360/v361/v35/v213/v266/v309/v344/v379/v346/v233/v268
   全绿或持平 (v379 6 处失败为 HEAD 遗留, stash 对比确认); tsc + vite build 通过。
+
+## v416 — 测试游玩 HUD: 皮肤光标 + 光标拖尾 + 隐藏系统光标
+- 需求: 游玩时光标对齐 osu! stable/lazer — 皮肤 cursor.png 居中绘制, cursortrail.png 拖尾
+  (最近 ~120ms 轨迹渐缩渐隐, 按住击打键更密/更不透明), 覆盖层隐藏系统光标。
+- 改动:
+  - osu/skin.ts: Skin 接口加可选 `cursor`/`cursortrail` 字段, SKIN_FILES 注册
+    cursor.png/cursortrail.png (默认皮肤与用户皮肤目录共用既有通道, 用户目录 @2x 优先,
+    skinScaleAdjust 半尺寸绘制); resetToProcedural 显式清两字段 (可选字段不在程序化底内,
+    不换肤清场会旧肤残留)。
+  - osu/gameplay/hud.ts (新建): TRAIL_MS=120 / updateTrail (按住逐帧采样, 未按住 8ms 节流)
+    / trailAlpha (渐隐, 按住 0.8 vs 0.45) / trailScale (1→0.3 渐缩) — 纯函数可单测。
+  - TestPlayOverlay.tsx: 拖尾先画光标后画; 光标尺寸 = 固有尺寸 (@2x 减半) 上限圈径
+    (与 v298 判定弹出同一取舍, 保持简单), 按住 ×1.15; 皮肤缺失回退原白圈 (按住略缩),
+    拖尾皮肤缺失不画; 覆盖层根 div 与 canvas 加 cursor-none, mod 栏/退出/跳过按钮
+    本就有/补 cursor-pointer。
+- 验证: verifier/v416 (tests.ts: 节流/逐帧/修剪/渐隐渐缩数值; check.mjs: skin.ts 字段注册
+  与清场、绘制顺序、回退、cursor 样式断言)。
+
+## v417 — 测试游玩 HUD: 谱面背景 + 压暗
+- 需求: 测试游玩绘制谱面背景图 (编辑器已有的 store.backgroundImg), cover 铺满 512×384
+  osu 坐标区 (居中), 其上 0.7 黑压暗; 转盘期间 renderer 既有额外压暗照旧叠加;
+  背景未加载/不存在维持纯黑。
+- 改动:
+  - osu/gameplay/hud.ts: coverRect(imgW, imgH, boxW, boxH) — cover 适配矩形 (max 比例,
+    居中, 退化尺寸回退整盒防 NaN)。
+  - TestPlayOverlay.tsx: 渲染循环内在 renderPlayfield 之前绘制背景 + rgba(0,0,0,0.7)
+    压暗 (条件绘制, 缺图维持纯黑); 每帧读 store.backgroundImg, 异步加载完成自动出现。
+- 验证: verifier/v417 (tests.ts: 16:9/竖图/同比例/0 尺寸; check.mjs: 绘制顺序、压暗层、
+  条件绘制、转盘压暗保留断言)。
+
+## v418 — 测试游玩 HUD: 歌曲进度条
+- 需求: 画面底部 (避开左下 combo) 横向进度条 — 细轨道 + 已播放高亮填充, 进度 =
+  (currentTime - 首物件时间) / (末物件结束时间 - 首物件时间), 钳 [0,1], 白色半透明。
+- 改动:
+  - osu/gameplay/testPlaySession.ts: 新增只读 `firstTime` (构造时首物件时间, 复用既有
+    first 局部变量)。
+  - osu/gameplay/hud.ts: playProgress(time, firstTime, lastEnd) — 钳 [0,1], 无效区间返 0。
+  - TestPlayOverlay.tsx: HUD 段 combo 之后画进度条 — 60% 宽居中 (避开左下 combo),
+    轨道 rgba(255,255,255,0.25) + 填充 rgba(255,255,255,0.85)。
+- 验证: verifier/v418 (tests.ts: 边界/中点/钳制/无效区间; check.mjs: 公式、颜色、布局、
+  绘制顺序断言)。
+
+## v419 — 测试游玩 HUD: Skip 跳过按钮
+- 需求: currentTime 在首个物件前且距离 >3000ms 时, 画面下方中间显示 DOM 按钮「跳过」
+  (i18n); 点击 store.seek(首物件时间 - 2000); 点按钮不触发击打判定。
+- 改动:
+  - osu/gameplay/hud.ts: canSkip(time, firstTime) (time < firstTime - 3000) /
+    skipTarget(firstTime) (firstTime - 2000) — 跳过落地 (2000 < 3000) 后按钮自然隐藏。
+  - TestPlayOverlay.tsx: showSkip state + skipRef (rAF 内可见性变化才 setState);
+    firstTimeRef 供 onClick; mousedown 防护 `[data-mods-bar],[data-skip-btn]`;
+    按钮样式仿 mod 栏 (bottom-16 居中, font-mono, cursor-pointer 恢复 v416 隐藏的光标)。
+  - i18n: zh-CN/panels.ts 加 'testplay.skip': '跳过' (跳同形/过在字表, s2t 无需补字)。
+- 验证: verifier/v419 (tests.ts: 显示边界/落地隐藏; check.mjs: 源码断言 + CDP:
+  造首物件 10s 的图 → 进测试游玩 → 按钮出现且文案 en=Skip → 点击 seek≈8000 →
+  按钮隐藏 → 退出还原 editorTime=0)。
+- v416–v419 回归: tsc (tsconfig.app.json) + vite build 通过; v287/v288/v289/v294/v295/v298/
+  v300/v390/v385/v147/v178/v401/v402/v404/v410/v413/v346 全绿 (exit 0)。v346 期间因新词条
+  注释混入「過/射」字触发 s2t 覆盖率断言 (扫描含注释), 改注释措辞后转绿, 词典本身无需补字。
+
+## v420 — 测试游玩: Hit lighting 命中泛光
+- 需求: 物件命中时在命中位置画皮肤 hitlighting.png (@2x 优先), 加色混合 lighter,
+  约 240ms 内放大淡出, 画在物件爆炸下层; miss 不触发; 皮肤缺失不画。
+- 改动:
+  - osu/skin.ts: Skin 接口加可选 `hitlighting`, SKIN_FILES 注册 hitlighting.png
+    (@2x 走 fileVariants/skinScaleAdjust 既有通道), resetToProcedural 显式清场。
+  - osu/gameplay/hud.ts: HIT_LIGHTING_MS=240 / hitLightingState(age) — null 不画,
+    alpha 1→0, scale 1→1.8 线性。
+  - osu/renderer.ts: drawSceneObjects gameplay 分支, 物件本体 (drawCircle/drawSlider 分派)
+    之前绘制 — gi.state==='hit' 且距 gi.hitAt ≤240ms 时以 lighter 混合画于命中位置
+    (含堆叠偏移); 尺寸 = 固有尺寸 (@2x 减半) 128-box 上限 256, 同 v150 hitcircle 族取舍。
+    滑条泛光锚定头命中位置; 转盘 gi.state 永不为 'hit', 天然不触发。
+- 验证: verifier/v420 (tests.ts: 状态函数边界/单调性; check.mjs: 皮肤注册/lighter/
+  命中条件/绘制顺序断言)。
+
+## v421 — 测试游玩 HUD: Combo 数字弹出动画
+- 需求: 左下 combo 计数在 combo 增加时弹跳 — 瞬时 ~1.6x, 150~200ms 缓动回 1.0
+  (lazer ComboCounter pop); 归零/断连击不弹跳。
+- 改动:
+  - osu/gameplay/hud.ts: COMBO_POP_MS=180 / comboPopScale(age) = 1+0.6(1-k)² (ease-out)。
+  - TestPlayOverlay.tsx: 会话内 prevCombo/comboPopAt 追踪, rAF 每帧算缩放; combo 绘制
+    (皮肤数字与文字回退) 以左下锚点为中心包 save/translate/scale/restore, popS=1 时不变换。
+- 验证: verifier/v421 (tests.ts: 1.6x/180ms/单调回落; check.mjs: 触发条件与包裹断言)。
+
+## v422 — 测试游玩: 被动掉血 (HP drain)
+- 需求: 游玩中随时间缓慢掉血, 速率随 HP 难度缩放 (EZ/HR 调过的 hp 直接用); 首物件前不掉,
+  break 段内不掉; 血量钳 [0,1], 永不失败规则不变。
+- 量纲取舍: 按需求给定 hpDrainRate × 0.018/s 实现。已核对 lazer 源码
+  (osu.Game/Rulesets/Scoring/DrainingHealthProcessor.cs): lazer 实为按谱面命中序列
+  二元搜索自适应速率 (目标最低血 HP0≈99%/HP5≈90%/HP10≈40%, 且 drain 期间不产生失败),
+  固定 0.018/s 比 lazer 激进 (HP5 ≈ 0.09/s), 但简单且无判负风险, 测试游玩场景可接受 —
+  取舍已在 hud.hpDrainPerMs 注释注明。
+- 改动:
+  - osu/gameplay/hud.ts: hpDrainPerMs(hp) = hp × 0.018 / 1000 (注释注明出处与取舍)。
+  - osu/gameplay/judgement.ts: TestScore.drain(amount) — 钳 [0,1], 负数忽略。
+  - osu/gameplay/testPlaySession.ts: update() 顶部按帧差结算 — 条件
+    `time > drainT && time >= firstTime && !inBreak(time)` (首物件门控 + v423 breaks 段内不掉;
+    seek 倒退不掉), drainT 每帧更新 (break 边界误差 ≤1 帧)。
+- 验证: verifier/v422 (tests.ts: 量纲/钳制/session 集成 — 首物件门控/HP0/break 段内外/
+  seek 倒退; check.mjs 源码断言)。
+
+## v423 — 测试游玩: Break 休息段提示
+- 需求: break 进行时画面中央偏上显示剩余秒数 + 「Break」字样 (i18n); 血量 >50% 绿向上箭头
+  否则红向下 (lazer break 末 pass/fail 箭头简化, 画简单三角); 无 break 段不显示。
+- 数据方案 (改动最小): break 不经 parser 建模 — parser 本就 byte 级保留 [Events] 原文
+  (rawSections.Events), store.resetBreaks 同款正则 (2,start,end / Break,start,end);
+  TestPlaySession 构造时 parseBreaks(bm.rawSections?.['Events']) 解析为 breaks: BreakSpan[],
+  inBreak() 供 v422 drain 门控共用。
+- 改动:
+  - osu/gameplay/hud.ts: BreakSpan / parseBreaks (大小写兼容, 倒置/非法丢弃) / breakAt (含边界)。
+  - osu/gameplay/testPlaySession.ts: readonly breaks + inBreak()。
+  - TestPlayOverlay.tsx: HUD 段末尾 — breakAt(session.breaks, time) 命中时画
+    pass/fail 三角 (中央偏上 0.26H) + t('testplay.break','Break') + 剩余秒数 (ceil)。
+  - i18n: zh-CN/panels.ts 加 'testplay.break': '休息' (s2t 已覆盖, 无需补字)。
+- 验证: verifier/v423 (tests.ts: 解析数字/关键字/大小写/注释/背景行/倒置/边界命中;
+  check.mjs: 会话解析入口/覆盖层绘制/i18n 断言)。
+- v420–v423 回归: tsc + vite build 通过; v346 因注释混入「均」字触发覆盖率断言,
+  注释改纯 ASCII 措辞后转绿 (词典本身无需补字); 全量 25 个验证器回归见本节末结论
+  (v287/v288/v289/v294/v295/v298/v300/v390/v385/v147/v178/v401/v402/v404/v410/v413/
+  v346/v416–v419/v420–v423 全绿)。

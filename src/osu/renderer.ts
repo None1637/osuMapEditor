@@ -9,6 +9,7 @@ import { sliderTickPoints } from './clock/hitSounds';
 import { tintedSprite, skinScaleAdjust, skinSpriteWidth, hitcircleSpriteWidth, getSkinContentSeq, type Skin, type SkinImage } from './skin';
 import { displaySettings } from './displaySettings'; // v132: 显示设置 (皮肤颜色/轨迹线/缩圈/渐出/点击特效)
 import type { GameplayObjRender } from './gameplay/testPlaySession'; // v287: 测试游玩渲染数据
+import { hitLightingState } from './gameplay/hud'; // v420: 命中泛光状态 (纯函数)
 
 // v353: lazer 滑条身颜色公式 (本地检出 D:/Projects/osuMapEditor/osu/.../LegacySliderBody.cs)
 // framework Color4.Lighten/Darken: c*(1+0.5a)+a (clamp 0..255), Darken(n) = Lighten(-n)
@@ -262,7 +263,7 @@ export function renderPlayfield(rc: RenderCtx, pending?: { x: number; y: number;
 //   'both' 两端都命中才画 (平移拖拽层: 随层整体平移), 'xor' 恰好一端命中 (拖拽层外实时补画)
 function drawSceneObjects(rc: RenderCtx, visible: HitObject[], radius: number, preempt: number,
   skip?: Set<number>, only?: Set<number>, fpMode: 'either' | 'both' | 'xor' = 'either') {
-  const { g, bm, time } = rc;
+  const { g, bm, time, skin } = rc;
   drawFollowPoints(rc, radius, skip, only, fpMode);
 
   for (let i = visible.length - 1; i >= 0; i--) {
@@ -295,6 +296,23 @@ function drawSceneObjects(rc: RenderCtx, visible: HitObject[], radius: number, p
     const ci = rc.comboInfo.get(o.id) ?? { combo: 0, comboWithOffset: 0, index: 1 };
     // v201: 皮肤色索引用 ComboIndex (不含跳色位), 谱面 [Colours] 用 ComboIndexWithOffsets (lazer 同款区分)
     const color = comboColor(bm, displaySettings.skinColors ? ci.combo : ci.comboWithOffset, displaySettings.skinColors ? rc.skin.comboColors : undefined); // v132: 皮肤颜色开关
+
+    // v420: hit lighting 命中泛光 (皮肤 hitlighting.png, @2x 优先) — 加色混合 lighter, 240ms 放大淡出,
+    //       画在物件爆炸下层 (本物件本体之前); 与爆炸同条件 (gi.state==='hit', miss 不触发); 皮肤缺失不画
+    if (rc.gameplay && skin.hitlighting) {
+      const gi = rc.gameplay.get(o.id);
+      const ls = gi?.state === 'hit' ? hitLightingState(time - gi.hitAt) : null;
+      if (ls) {
+        const so = stackOffset(rc, o.id);
+        // 固有尺寸 (@2x 减半), 128-box 单位, 上限 256 — 同 hitcircle 族 v150 取舍
+        const lwBase = Math.min(skin.hitlighting.width / (skinScaleAdjust.get(skin.hitlighting) ?? 1), 256) / 128;
+        g.save();
+        g.globalCompositeOperation = 'lighter';
+        g.globalAlpha *= ls.alpha;
+        drawSprite(g, skin.hitlighting, o.x + so.dx, o.y + so.dy, radius * 2 * lwBase * ls.scale);
+        g.restore();
+      }
+    }
 
     if (o.type === 'circle') drawCircle(rc, o, radius, color, ci.index, dt, preempt, hitFade);
     else if (o.type === 'slider') drawSlider(rc, o, radius, color, ci.index, dt, preempt, sliderNodeLinger);

@@ -13,6 +13,7 @@ import {
   hitWindows, judgeDelta, spinnerRequired, spinnerResult, TestScore,
   type HitWindows, type MainResult,
 } from './judgement';
+import { hpDrainPerMs, parseBreaks, breakAt, type BreakSpan } from './hud'; // v422/v423
 
 /** 时钟起点相对编辑器时间的回退量 (用户需求: 从当前时间的前几秒开始游玩) */
 export const TESTPLAY_LEAD_BACK = 3000;
@@ -46,6 +47,8 @@ export class TestPlaySession {
   readonly editorTime: number;
   readonly startTime: number;    // 时钟起点 (editorTime - LEAD_BACK, 钳 0; editorTime 在首物件前则从头)
   readonly lastEnd: number;      // 末物件结束时间
+  readonly firstTime: number;    // v418/v419: 首物件时间 (进度条起点 / 跳过按钮目标)
+  readonly breaks: BreakSpan[];  // v423: 休息段 (解析 [Events] 原文 break 行; v422 段内不掉血)
   readonly radius: number;       // csToRadius(cs)
   readonly win: HitWindows;
   readonly score = new TestScore();
@@ -55,14 +58,17 @@ export class TestPlaySession {
   private spinReq = new Map<number, { spinsRequired: number; maxBonusSpins: number }>();
   private renderCache = new Map<number, GameplayObjRender>();
   private stackOffsets?: Map<number, { dx: number; dy: number }>;
+  private drainT: number | null = null; // v422: 上一帧 drain 基准时刻
 
   constructor(bm: Beatmap, editorTime: number, stackOffsets?: Map<number, { dx: number; dy: number }>) {
     this.stackOffsets = stackOffsets;
     this.bm = bm;
     this.editorTime = editorTime;
     const first = bm.hitObjects.length ? Math.min(...bm.hitObjects.map(o => o.time)) : 0;
+    this.firstTime = first; // v418/v419
     this.startTime = editorTime <= first ? 0 : Math.max(0, editorTime - TESTPLAY_LEAD_BACK);
     this.lastEnd = bm.hitObjects.length ? Math.max(...bm.hitObjects.map(o => endTimeOf(bm, o))) : 0;
+    this.breaks = parseBreaks(bm.rawSections?.['Events']); // v423
     this.radius = csToRadius(bm.difficulty.cs);
     this.win = hitWindows(bm.difficulty.od);
 
@@ -110,6 +116,9 @@ export class TestPlaySession {
     return kind === 'tick' ? 'smallTickHit' : kind === 'repeat' ? 'largeTickHit' : 'sliderTailHit';
   }
 
+  /** v423: time 是否处于 break 休息段内 */
+  inBreak(time: number): boolean { return breakAt(this.breaks, time) !== null; }
+
   /** 击打动作 (Z/X/鼠标按下): 判 meh 窗口内且光标在物件半径内的最近物件; 过早点击忽略 (lazer 语义) */
   hit(time: number, p: Vec2) {
     let best: { o: HitObject; rt: ObjRt; delta: number; result: MainResult } | null = null;
@@ -137,6 +146,12 @@ export class TestPlaySession {
   update(time: number, cursor: Vec2, keyHeld: boolean, relax = false) {
     // v294: Relax — 光标在半径内且进 meh 窗口即自动击打 (按实际 delta 判 300/100/50, lazer 同款, 非全 300)
     if (relax) this.hit(time, cursor);
+    // v422: 被动 HP drain — 速率 hp × 0.018/s (hp 已经 EZ/HR adjustDifficulty 调整; 量纲取舍见 hud.hpDrainPerMs);
+    //   首物件前与 break 段内不掉 (lazer DrainStartTime / PeriodTracker 语义);
+    //   按帧差结算 (逐帧调用粒度 ~16ms, break 边界误差 ≤1 帧); 时间倒退 (seek) 不掉
+    if (this.drainT !== null && time > this.drainT && time >= this.firstTime && !this.inBreak(time))
+      this.score.drain(hpDrainPerMs(this.bm.difficulty.hp) * (time - this.drainT));
+    this.drainT = time;
     for (const o of this.bm.hitObjects) {
       const rt = this.rt.get(o.id)!;
       if (rt.kind === 'circle') {

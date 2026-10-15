@@ -137,6 +137,12 @@ export class TestScore {
     this.counts.great++; // 预填全部按 great 计入 (lazer MaxResult)
   }
 
+  /** v422: 被动掉血 (lazer DrainingHealthProcessor 语义) — 血量钳 [0,1]; 永不失败规则不变 (掉空不判负) */
+  drain(amount: number) {
+    if (amount <= 0) return;
+    this.hp = Math.min(1, Math.max(0, this.hp - amount));
+  }
+
   get accuracy(): number { return this.maxBaseScore > 0 ? this.baseScore / this.maxBaseScore : 1; }
   get score(): number { return Math.round(1_000_000 * this.accuracy); }
 }

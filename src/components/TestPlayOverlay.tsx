@@ -6,6 +6,15 @@
 // v294: Mod 支持 (左上角 mod 栏, 切换即重开会话, localStorage 持久化):
 //   EZ/HR 调 difficulty (lazer 比率, HR 垂直翻转), HT/DT 调 store.playbackRate (退出恢复),
 //   RX 免按键自动击打, AP 光标自动, AT=RX+AP; 互斥规则见 gameplay/mods.ts。
+// v416: 皮肤光标 (cursor.png, 缺失回退白圈) + 光标拖尾 (cursortrail.png, ~120ms 渐缩渐隐,
+//   按住更密/更不透明) + 覆盖层隐藏系统光标 (DOM 按钮显式 cursor-pointer)。
+// v417: 谱面背景图 cover 铺满游玩区 + 0.7 压暗 (转盘期间 renderer 额外压暗照旧叠加)。
+// v418: 底部歌曲进度条 (首物件→末物件结束, 钳 [0,1], 避开左下 combo)。
+// v419: 首物件前 >3s 显示「跳过」按钮 (点击 seek 到首物件前 2s, 不触发击打判定)。
+// v420: 命中泛光 hitlighting.png (renderer gameplay 分支, lighter 加色, 240ms 放大淡出)。
+// v421: 左下 combo 增加时弹跳 (瞬时 1.6x, 180ms 缓动回 1.0; 断连击不弹)。
+// v422: 被动 HP drain (hp×0.018/s, 首物件前/break 段不掉; 掉空不判负)。
+// v423: break 休息段提示 (中央偏上: pass/fail 三角 + Break 字样 + 剩余秒数)。
 import { useEffect, useRef, useState } from 'react';
 import { store } from '@/osu/store';
 import { getSkin, skinScaleAdjust, type SkinImage } from '@/osu/skin';
@@ -13,6 +22,11 @@ import { computeCombos, renderPlayfield } from '@/osu/renderer';
 import { computeStackOffsets } from '@/osu/stacking';
 import { TestPlaySession } from '@/osu/gameplay/testPlaySession';
 import type { MainResult } from '@/osu/gameplay/judgement';
+import {
+  updateTrail, trailAlpha, trailScale, coverRect, playProgress, canSkip, skipTarget,
+  comboPopScale, breakAt,
+  type TrailPoint,
+} from '@/osu/gameplay/hud'; // v416–v423: HUD 纯函数助手
 import {
   TEST_MODS, adjustDifficulty, applyHardRockFlip, clockRate, isAutopilot, isRelax,
   loadTestMods, saveTestMods, toggleMod, type TestModId,
@@ -54,6 +68,9 @@ export function TestPlayOverlay({ onClose }: { onClose: () => void }) {
   const exitRef = useRef<() => void>(() => {});
   const [mods, setMods] = useState<TestModId[]>(loadTestMods); // v294
   const editorTimeRef = useRef<number | null>(null); // v294: 初次进入时的编辑器时间 (换 mod 重开不变)
+  const [showSkip, setShowSkip] = useState(false); // v419: 跳过按钮可见性 (rAF 内按时间更新)
+  const skipRef = useRef(false); // v419: 上一份可见性 (避免每帧 setState)
+  const firstTimeRef = useRef(0); // v419: 会话首物件时间 (跳过按钮 onClick 用)
 
   useEffect(() => {
     const bm0 = store.beatmap;
@@ -71,6 +88,9 @@ export function TestPlayOverlay({ onClose }: { onClose: () => void }) {
 
     const stackOffsets = computeStackOffsets(bm);
     const session = new TestPlaySession(bm, editorTime, stackOffsets);
+    firstTimeRef.current = session.firstTime; // v419
+    const trail: TrailPoint[] = []; // v416: 光标拖尾轨迹 (最近 ~120ms)
+    let prevCombo = 0, comboPopAt = -1; // v421: combo 弹跳 (追踪上一份 combo 与上次增长时刻)
     const comboInfo = computeCombos(bm);
     const skin = getSkin();
     const relax = isRelax(mods);
@@ -103,7 +123,7 @@ export function TestPlayOverlay({ onClose }: { onClose: () => void }) {
 
     const onMouseMove = (e: MouseEvent) => { if (!autopilot) cursorRef.current = toOsu(e); }; // v294: AP 时光标自动
     const onMouseDown = (e: MouseEvent) => {
-      if ((e.target as HTMLElement).closest?.('[data-mods-bar]')) return; // v294: 点 mod 栏不触发击打
+      if ((e.target as HTMLElement).closest?.('[data-mods-bar],[data-skip-btn]')) return; // v294/v419: 点 mod 栏/跳过按钮不触发击打
       if (!isHitButton(e)) return; // v289: 鼠标击打键走注册表 (默认左键)
       heldRef.current.mouse++;
       if (!autopilot) cursorRef.current = toOsu(e);
@@ -140,6 +160,9 @@ export function TestPlayOverlay({ onClose }: { onClose: () => void }) {
       const held = heldRef.current.mouse > 0 || heldRef.current.keys > 0;
       session.update(time, cursorRef.current, held, relax);
       if (time > session.lastEnd + 1500) { exit(); return; } // lazer: 完成后延迟退出, 直接返回编辑器
+      // v419: 首物件前 >3s 显示跳过按钮 (可见性变化才 setState)
+      const sk = canSkip(time, session.firstTime);
+      if (sk !== skipRef.current) { skipRef.current = sk; setShowSkip(sk); }
 
       const r = zoomRect(c);
       const { sx, sy } = fitCanvas(c, r);
@@ -150,6 +173,15 @@ export function TestPlayOverlay({ onClose }: { onClose: () => void }) {
       g.save();
       g.translate(ox, oy);
       g.scale(scale, scale);
+      // v417: 谱面背景图 cover 铺满 512×384 + 0.7 压暗 (未加载/不存在维持纯黑;
+      //       转盘期间 renderer drawSpinner 的额外压暗照旧叠加在其上)
+      const bg = store.backgroundImg;
+      if (bg) {
+        const br = coverRect(bg.width, bg.height, PW, PH);
+        g.drawImage(bg, br.x, br.y, br.w, br.h);
+        g.fillStyle = 'rgba(0,0,0,0.7)';
+        g.fillRect(0, 0, PW, PH);
+      }
       renderPlayfield({
         g, bm, skin, time, selected: new Set(), cacheKey: String(store.getVersion()),
         comboInfo, stackOffsets, gameplay: session.renderInfo(),
@@ -179,15 +211,39 @@ export function TestPlayOverlay({ onClose }: { onClose: () => void }) {
         g.restore();
       }
 
-      // 光标 (白圈, 按住略缩)
+      // v416: 光标拖尾 (皮肤 cursortrail.png, 最近 ~120ms 轨迹渐缩渐隐, 按住更密/更不透明;
+      //       皮肤缺失不画拖尾) — 先画拖尾再画光标本体
       const cur = cursorRef.current;
-      g.save();
-      g.strokeStyle = 'rgba(255,255,255,0.95)';
-      g.lineWidth = 2.5;
-      g.beginPath();
-      g.arc(cur.x, cur.y, held ? 7 : 10, 0, Math.PI * 2);
-      g.stroke();
-      g.restore();
+      updateTrail(trail, cur.x, cur.y, time, held);
+      const trailImg = skin.cursortrail;
+      if (trailImg) {
+        // 拖尾基准尺寸: 固有尺寸 (@2x 减半), 上限圈径 — 与判定弹出同一取舍 (防巨型皮肤图)
+        const tb = Math.min(trailImg.width / (skinScaleAdjust.get(trailImg) ?? 1), rad * 2);
+        for (const p of trail) {
+          const a = trailAlpha(p.t, time, held);
+          if (a <= 0) continue;
+          const d = tb * trailScale(p.t, time);
+          g.save();
+          g.globalAlpha = a;
+          g.drawImage(trailImg, p.x - d / 2, p.y - d / 2, d, d);
+          g.restore();
+        }
+      }
+      // v416: 皮肤光标 (cursor.png, 居中; 尺寸取固有尺寸 (@2x 减半), 上限圈径 —
+      //       与判定弹出同一量级取舍, 保持简单; 缺失回退白圈, 按住略缩)
+      const cursorImg = skin.cursor;
+      if (cursorImg) {
+        const cd = Math.min(cursorImg.width / (skinScaleAdjust.get(cursorImg) ?? 1), rad * 2) * (held ? 1.15 : 1);
+        g.drawImage(cursorImg, cur.x - cd / 2, cur.y - cd / 2, cd, cd);
+      } else {
+        g.save();
+        g.strokeStyle = 'rgba(255,255,255,0.95)';
+        g.lineWidth = 2.5;
+        g.beginPath();
+        g.arc(cur.x, cur.y, held ? 7 : 10, 0, Math.PI * 2);
+        g.stroke();
+        g.restore();
+      }
       g.restore();
 
       // HUD (布局 px 坐标): 左上血条, 右上分数/acc, 左下 combo
@@ -239,10 +295,51 @@ export function TestPlayOverlay({ onClose }: { onClose: () => void }) {
         g.font = `${Math.round(14 * scale)}px monospace`;
         g.fillText(`${(sc.accuracy * 100).toFixed(2)}%`, ox + PW * scale - 8, oy + 50 * scale);
       }
+      // v421: combo 弹跳 (lazer ComboCounter pop) — combo 增加时瞬时 ~1.6x, 180ms 缓动回 1.0;
+      //       归零/断连击不弹 (combo 减小不触发)
+      if (sc.combo > prevCombo) comboPopAt = time;
+      prevCombo = sc.combo;
+      const popS = comboPopScale(time - comboPopAt);
+      g.save();
+      if (popS !== 1) { // 以 combo 左下锚点为中心缩放
+        g.translate(ox + 8, oy + PH * scale - 10 * scale);
+        g.scale(popS, popS);
+        g.translate(-(ox + 8), -(oy + PH * scale - 10 * scale));
+      }
       if (!drawSkinNumber(`${sc.combo}x`, ox + 8, oy + PH * scale - 30 * scale, 20 * scale, false)) {
         g.textAlign = 'left';
         g.font = `bold ${Math.round(20 * scale)}px monospace`;
         g.fillText(`${sc.combo}x`, ox + 8, oy + PH * scale - 10);
+      }
+      g.restore();
+      // v418: 底部歌曲进度条 (居中横向, 避开左下 combo; 细轨道 + 已播放高亮, 白色半透明)
+      {
+        const p = playProgress(time, session.firstTime, session.lastEnd);
+        const bw = PW * scale * 0.6, bh = 3 * scale;
+        const bx = ox + (PW * scale - bw) / 2, by = oy + PH * scale - 8 * scale;
+        g.fillStyle = 'rgba(255,255,255,0.25)';
+        g.fillRect(bx, by, bw, bh);
+        g.fillStyle = 'rgba(255,255,255,0.85)';
+        g.fillRect(bx, by, bw * p, bh);
+      }
+      // v423: break 休息段提示 — 中央偏上: 血量 pass/fail 三角 (>50% 绿向上, 否则红向下;
+      //       lazer break 末 pass/fail 箭头简化) + 「Break」字样 + 剩余秒数; 无 break 段不画
+      const brk = breakAt(session.breaks, time);
+      if (brk) {
+        const bcx = ox + PW * scale / 2, bcy = oy + PH * scale * 0.26;
+        g.textAlign = 'center'; g.textBaseline = 'middle';
+        const up = sc.hp > 0.5;
+        const asz = 10 * scale, ay = bcy - 34 * scale;
+        g.fillStyle = up ? '#7fff7f' : '#ff5f5f';
+        g.beginPath();
+        if (up) { g.moveTo(bcx, ay - asz); g.lineTo(bcx - asz, ay + asz); g.lineTo(bcx + asz, ay + asz); }
+        else { g.moveTo(bcx, ay + asz); g.lineTo(bcx - asz, ay - asz); g.lineTo(bcx + asz, ay - asz); }
+        g.closePath(); g.fill();
+        g.fillStyle = 'rgba(255,255,255,0.9)';
+        g.font = `bold ${Math.round(22 * scale)}px sans-serif`;
+        g.fillText(t('testplay.break', 'Break'), bcx, bcy);
+        g.font = `${Math.round(16 * scale)}px monospace`;
+        g.fillText(String(Math.ceil((brk.end - time) / 1000)), bcx, bcy + 26 * scale);
       }
       g.restore();
     };
@@ -264,9 +361,9 @@ export function TestPlayOverlay({ onClose }: { onClose: () => void }) {
   }, [mods]); // v294: 换 mod 重开会话
 
   return (
-    <div className="fixed inset-0 z-[80] bg-black" data-testid="testplay-overlay"
+    <div className="fixed inset-0 z-[80] bg-black cursor-none" data-testid="testplay-overlay" // v416: 游玩时隐藏系统光标
       onContextMenu={(e) => e.preventDefault()}>
-      <canvas ref={canvasRef} className="w-full h-full block" />
+      <canvas ref={canvasRef} className="w-full h-full block cursor-none" /> {/* v416 */}
       {/* v294: mod 栏 (左上角; 切换即重开会话) */}
       <div className="absolute top-2 left-3 flex gap-1" data-mods-bar>
         {TEST_MODS.map(m => (
@@ -297,6 +394,17 @@ export function TestPlayOverlay({ onClose }: { onClose: () => void }) {
       >
         {t('testplay.exit', 'Exit (Esc)')}
       </button>
+      {/* v419: 跳过按钮 (首物件前 >3s; 样式参照 mod 栏; data-skip-btn 防触发击打判定; v416 恢复 cursor) */}
+      {showSkip && (
+        <button
+          className="absolute bottom-16 left-1/2 -translate-x-1/2 px-5 py-1.5 rounded bg-white/10 hover:bg-white/20 text-white/80 text-sm font-mono cursor-pointer"
+          data-testid="testplay-skip"
+          data-skip-btn
+          onClick={() => store.seek(skipTarget(firstTimeRef.current))}
+        >
+          {t('testplay.skip', 'Skip')}
+        </button>
+      )}
     </div>
   );
 }

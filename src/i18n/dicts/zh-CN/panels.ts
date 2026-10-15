@@ -27,6 +27,8 @@ export const zhCN: Record<string, string> = {
   'testplay.mod_at': 'Autoplay: 全自动',
   'testplay.hint': '测试游玩 · {hit1}/{hit2} 击打 (含鼠标绑定) · {exit} 返回编辑器',
   'testplay.exit': '退出 (Esc)',
+  'testplay.skip': '跳过', // v419: 首物件前跳过按钮 (跳同形, 过在字表, s2t 已覆盖)
+  'testplay.break': '休息', // v423: break 休息段提示 (s2t 已覆盖)
   // DraggableDialog
   'dialog.close_no_apply': '关闭 (不应用)',
 };

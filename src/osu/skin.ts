@@ -24,6 +24,11 @@ export interface Skin {
   /** v300: acc 附加字形 score-percent / score-dot (缺失则 acc 回退文字) */
   scorePercent?: SkinImage;
   scoreDot?: SkinImage;
+  /** v416: 游玩光标 / 光标拖尾 (测试游玩; 缺失回退程序化白圈 / 不画拖尾) */
+  cursor?: SkinImage;
+  cursortrail?: SkinImage;
+  /** v420: 命中泛光 hitlighting (测试游玩; 缺失不画) */
+  hitlighting?: SkinImage;
   reversearrow: SkinImage;
   sliderstartcircle: SkinImage;
   sliderstartcircleoverlay: SkinImage;
@@ -242,6 +247,10 @@ const SKIN_FILES: [keyof Skin, string][] = [
   ['scoreX', 'score-x.png'],
   ['scorePercent', 'score-percent.png'], // v300
   ['scoreDot', 'score-dot.png'], // v300
+  // v416: 游玩光标/拖尾 (@2x 走 fileVariants/skinScaleAdjust 既有通道; 缺失保留 undefined → 调用方回退)
+  ['cursor', 'cursor.png'],
+  ['cursortrail', 'cursortrail.png'],
+  ['hitlighting', 'hitlighting.png'], // v420: 命中泛光
 ];
 
 /** 1x1 全透明占位图 (lazer: sliderstart/endcircle 存在但对应 overlay 缺失时 = 无 overlay, 不回退 hitcircleoverlay) */
@@ -417,6 +426,9 @@ function resetToProcedural() {
   for (const u of skinObjectUrls) URL.revokeObjectURL(u);
   skinObjectUrls = [];
   Object.assign(skin, makeProceduralBase());
+  skin.cursor = undefined; // v416: 可选字段不在程序化底内, 换肤时显式清掉防旧肤残留
+  skin.cursortrail = undefined;
+  skin.hitlighting = undefined; // v420
   bumpSkinContentSeq(); // v340
 }
 
