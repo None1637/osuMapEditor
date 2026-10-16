@@ -153,6 +153,22 @@ export function DuplicateDialog() {
           <span className="text-white/40">{t('convert.draggable_on_canvas', 'Draggable on canvas')}</span>
         </Row>
       )}
+      {/* v437: 镜像重复 — 第 2/4/6… 份绕锚点轴向镜像 (几何含滑条形状; 平移向量不受影响) */}
+      <Row label={t('convert.dup_mirror', 'Mirror repeat')}>
+        <label className="flex items-center gap-1">
+          <input type="checkbox" checked={params.mirrorRepeat} data-conv="mirrorRepeat"
+            onChange={e => upd({ mirrorRepeat: e.target.checked })} />
+          {t('convert.dup_mirror_hint', 'Even copies mirrored around anchor axis')}
+        </label>
+        {params.mirrorRepeat && (
+          <select value={params.mirrorAxis} data-conv="mirrorAxis"
+            onChange={e => upd({ mirrorAxis: e.target.value as 'vertical' | 'horizontal' })}
+            className="bg-black/40 border border-white/15 rounded px-1 py-0.5 text-white">
+            <option value="vertical">{t('convert.dup_mirror_v', 'Vertical axis (flip left-right)')}</option>
+            <option value="horizontal">{t('convert.dup_mirror_h', 'Horizontal axis (flip up-down)')}</option>
+          </select>
+        )}
+      </Row>
       <div className="text-white/40">
         {t('convert.dup_summary', 'Will create {a} × {b} = {n} copies (originals kept, shown in preview)', { a: objs.length, b: params.count, n: result.length })}
       </div>

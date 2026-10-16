@@ -58,6 +58,10 @@ export const zhCN: Record<string, string> = {
   'convert.dup_green_scale': '绿线缩放',
   'convert.dup_add_scale_lines': '添加绿线缩放滑条',
   'convert.dup_anchor': '旋转锚点',
+  'convert.dup_mirror': '镜像重复', // v437
+  'convert.dup_mirror_hint': '第 2/4/6… 份绕锚点镜像 (平移不受影响)', // v437
+  'convert.dup_mirror_v': '竖直轴 (左右翻转)', // v437
+  'convert.dup_mirror_h': '水平轴 (上下翻转)', // v437
   'convert.origin_selection': '选区中心',
   'convert.origin_playfield': '游玩区中心',
   'convert.dup_summary': '将生成 {a} × {b} = {n} 个副本 (原物件保留, 预览已显示)',
