@@ -25,7 +25,7 @@ export function UnsavedDialog() {
   };
 
   return (
-    <div className="fixed inset-0 z-[60] bg-black/70 flex items-center justify-center" data-unsaved-dialog="root">
+    <div className="fixed inset-0 z-[60] bg-black/70 flex items-center justify-center" data-unsaved-dialog="root" data-dialog="unsaved"> {/* v431: data-dialog = 弹窗不穿透到画布 */}
       <div ref={cz.ref} style={cz.style} className="w-[420px] max-w-[92vw] bg-[#16161d] border border-[#333] rounded-lg p-5 shadow-2xl">
         <div className="text-sm font-semibold mb-1 flex items-center gap-1.5"><TriangleAlert className="w-4 h-4" />{t('unsaved.title', 'Unsaved Changes')}</div>
         <div className="text-xs text-slate-400 mb-4 break-all">

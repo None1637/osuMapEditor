@@ -20,8 +20,10 @@ const iMainEnd = app.indexOf('{/* /主区域行');
 assert(iMainEnd > iSide && app.indexOf('<BottomTimeline />') > iMainEnd, '下时间轴在主区域行(含左侧栏)之后');
 
 // 宽度与右侧栏一致 (均 w-56)
-assert(/w-56 shrink-0 bg-\[#16161d\]\/75 border-r border-white\/10/.test(app), '左侧栏 w-56');
-assert(/w-56 shrink-0 bg-\[#16161d\]\/75 border-l border-white\/10/.test(app), '右侧 Inspector 栏 w-56 (同宽)');
+// v428 适配: 左栏 w-56 改 style width:224/uiZoom (同 v426 右栏, 视觉恒定 224px)
+assert(/shrink-0 bg-\[#16161d\]\/75 border-r border-white\/10[\s\S]{0,140}?width: 224 \/ uiZoom/.test(app), '左侧栏视觉恒定 224 (v428: 224/uiZoom)');
+// v426 适配: 右栏 w-56 改 style width:224/uiZoom (视觉恒定 224px, 与左栏 w-56 在 zoom=1 时同宽)
+assert(/shrink-0 bg-\[#16161d\]\/75 border-l border-white\/10[\s\S]{0,140}?width: 224 \/ uiZoom/.test(app), '右侧 Inspector 栏视觉恒定 224 (v426: 224/uiZoom)');
 assert(!/w-44 shrink-0 bg-\[#16161d\]/.test(app), '旧 w-44 侧栏已移除');
 
 // setup/timing 页包 flex-1 容器 (侧栏始终显示, 页面填满剩余宽)

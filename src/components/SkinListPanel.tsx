@@ -78,7 +78,7 @@ export function SkinListPanel({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center" onClick={onClose}>
+    <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center" onClick={onClose} data-dialog="skin-list"> {/* v431 */}
       <div ref={cz.ref} style={cz.style} className="w-[480px] max-w-[92vw] bg-[#16161d] border border-[#333] rounded-lg flex flex-col overflow-hidden"
            onClick={e => e.stopPropagation()}>
         <div className="flex items-center gap-3 px-4 py-2.5 border-b border-[#2c2c38]">

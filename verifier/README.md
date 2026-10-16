@@ -4472,3 +4472,144 @@
   undo 还原/全选节点 Delete 删整物件/空节点选区维持删物件)。
 - 回归: v400/v401/v402/v404/v409/v410/v411/v413/v414/v415/v266/v309/v346/v416–v423 全绿;
   tsc + vite build 通过。
+
+## v425 — 右栏 (Inspector) 按钮组件化: Btn 组件
+- 需求: 右栏按钮三处手写样式 (v146 模块级 Btn / 转换区 cls / 删除按钮) 高矮不齐;
+  数字输入框与按钮不等高; 图标靠 -mt-0.5 hack 对齐。
+- 改动:
+  - 新建 src/components/Btn.tsx: variant normal (bg-white/10 系) / primary
+    (bg-pink-500 hover:bg-pink-400 font-bold, 仿转换弹窗主按钮) / danger (bg-red-500/30 系,
+    仅删除用); 统一 h-7 px-2 rounded text-[11px] inline-flex items-center justify-center
+    gap-1 whitespace-nowrap select-none disabled:opacity-40; data-* 属性经 rest spread
+    透传 (data-conv-*/data-tf 等 CDP 钩子原样保留)。不用闲置 shadcn ui/button
+    (亮色 HSL token 与深色 UI 不搭)。
+  - Inspector.tsx: 全部手写按钮 (模块级 Btn/cls/删除) 替换为新组件 (删除 variant="danger");
+    图标 14px + 文本 gap-1 居中 (去掉对齐 hack); NumIn h-7 与按钮等高 (原 py-0.5 矮一截)。
+- 取舍: primary 用白字 — 需求描述含「黑字」但项目弹窗主按钮 (SplitDialog/StreamDialog 等)
+  均为 text-white font-bold, 从「仿弹窗主按钮」目标与项目现状。
+- 验证: verifier/v425 (纯源码断言: 组件存在/三 variant/旧样式串清零/danger 接线/
+  NumIn h-7/CDP 钩子 split-anchors×2·polygon×2·data-tf·data-hs 全保留)。
+
+## v426 — 右栏视觉宽度恒定 (224/zoom) + 变换/转换区布局韧性
+- 需求: 右栏固定 224 布局 px (w-56), 根容器 CSS zoom (v217) 缩小后右栏被同比压窄,
+  变换行 flex-wrap 混排互相挤压。
+- 改动:
+  - App.tsx: 右栏 w-56 改 style={{ width: 224 / uiZoom }} (uiZoom 取 v217 useUiZoom 通道) —
+    布局宽随 zoom 反比, 视觉恒定 224px; 只改右栏, 左栏 w-56 不动。
+  - Inspector.tsx 变换区: 旋转/缩放/镜像三行改 label+输入框一行 (NumIn 默认
+    flex-1 min-w-0 吸收剩余宽, 调用点固定 w-16/w-14 清零; 自定义原点输入对 w-full 整行)、
+    按钮独占下一行 — 旋转/镜像 grid grid-cols-2 (按钮 w-full), 缩放单按钮 w-full;
+    label 加 whitespace-nowrap。
+  - 转换/生成 4 处按钮排 (单选/多选各 2): flex gap-1.5 flex-wrap 改 flex flex-col gap-1,
+    每枚按钮整行不再挤一排。
+- 验证: verifier/v426 (源码断言: 224/uiZoom 接线且仅一处/右栏不再 w-56/grid×2/flex-col×4/
+  NumIn flex-1/固定宽清零/CDP 钩子保留; probe-width.mjs 一次性 CDP 抽测: 2560×1560 下
+  getBoundingClientRect 宽 = 224.0 视觉 px)。
+
+## v427 — Inspector 英文长文案缩短
+- 需求: 英文按钮文案过长 (Counterclockwise 16 字符等), 且不接受 CCW 类纯字母缩写。
+- 改动 (en 内联默认值 + zh-CN 词典同步):
+  - 旋转按钮: 文本只留 Rotate (en/zh 均同词), 方向靠 RotateCcw/RotateCw 图标表达;
+    完整文案进 title tooltip (en 'Rotate 90° counterclockwise'/'Rotate 90° clockwise',
+    zh '逆时针旋转一次'/'顺时针旋转一次')。
+  - 镜像按钮: 'Horizontal ({key})'/'Vertical ({key})' 砍 ({key}) 修饰 (半宽按钮放不下
+    'Horizontal (Ctrl+H)'), hotkey 挪进 tooltip — 'Flip horizontally ({key})'/
+    zh '水平镜像 ({key})', 仍经 hotkeyLabel 随 v321 改键同步; 快捷键在下方 hint 行也可见。
+  - 'Split at Selected Anchors' → 'Split at Anchors' (×2 处, zh '在锚点处分割' 不变)。
+  - 其余逐个判断保留: 'Apply Factor'/'Sliders to Stream'/'Merge into Slider' 等 ≤17 字符
+    已够短; 'Split Slider (Equal Time)'(25)/'Polygon Generator ({key})' 整行按钮放得下;
+    hint/tooltip 段落可换行不动。词典新用字 (次) 已在 s2t S2T_SAME 表内, 无需补字。
+- 验证: verifier/v427 (词典/源码断言 + en 长度巡检: >25 字符仅限 tip/hint/整行按钮类);
+  v346 (A-G 全绿, 含 s2t 覆盖率与四语言 CDP 切换)。
+- v425–v427 回归: tsc (tsconfig.app.json) + vite build 通过; v346/v409/v213/v410/v413/
+  v401/v402/v404 全绿。宽扫 30 个 Inspector 相关旧验证器: 本次改破 v404 (右栏 div 换行接
+  style)/v108/v109 (右栏 w-56 断言)/v146 (Btn 模块顶层断言→独立模块导入) 均已适配并标注,
+  适配后 v404/v146 全绿, v108/v109 各残留 1 条与 HEAD 持平 (下时间轴位置旧断言, HEAD 即红);
+  v115(3)/v117(1)/v321(4)/v36(1) 失败经 git stash 对比确认均为 HEAD 遗留 (数目持平);
+  其余 23 个全绿。
+
+## v428 — 左侧栏视觉宽度恒定 (224/zoom) + 抗挤压
+- 需求 (用户截图): 左栏「Grid Snap」带图标按钮文字换行成两行、控件被挤压; 根因同右栏 —
+  v426 只改了右栏, 左栏 (App.tsx w-56) 仍固定 224 布局 px 随 zoom 缩小。
+- 改动 (src/App.tsx, 只改样式不改功能):
+  - 左栏 w-56 改 style={{ width: 224 / uiZoom }} — 与 v426 右栏同方案, 视觉恒定 224px,
+    zoom=1 排版在任意缩放级别一致。
+  - 栏内 15 枚 px-3 py-1.5 按钮 (曲库/皮肤半宽/工具/各开关/Grid Snap) + 6 条标签行
+    (节拍/倍率/ZoomRot/xy/间距旋转/原点坐标) + 撤销重做半宽钮统一 whitespace-nowrap;
+    PanNumInput 外层 span 同步 nowrap。
+  - v430 首跑实测驱动的两处修复: en 'Song Library'→'Library' (半宽钮 101px 放不下 117px
+    内容, 砍修饰词, 全名在 title; zh 曲库不变); 锁定间距倍率 range 加 h-7 (原生默认太矮,
+    0.6 档视觉 9.6px <14 不可用阈值)。
+- 验证: verifier/v428 (源码断言: 左栏 224/uiZoom 接线/不再 w-56/左右共 2 处/nowrap 计数);
+  v430 ui-audit 两档尺寸复跑左栏零违规。
+- 旧断言适配 (均标注): v108/v109 (左栏 w-56→224/uiZoom), v217 (左右栏 w-56 计数→224/uiZoom
+  计数, 该断言 v426 时已破), v149 (range 类串 +h-7), v351 (CDP 按 'Song Library' 找钮→
+  兼容 'Library')。
+
+## v429 — 右栏按钮快捷键从文本挪到 tooltip
+- 需求: 右栏按钮文本不再显示快捷键 ('Delete (Del)'/'Sliders to Stream (1, Ctrl+Shift+F)'/
+  'Polygon Generator (Ctrl+Shift+D)'), 悬停 tooltip 显示 功能详情+快捷键 (hotkeyLabel
+  通道, 随 v321 改键同步); 与 v427 旋转/镜像同一模式。项目无现成 tooltip 组件, 用原生 title。
+- 改动 (src/components/Inspector.tsx + zh-CN/inspector.ts):
+  - stream: 文本 'Sliders to Stream ({n})', title=inspector.stream_tip
+    ('Convert sliders to a circle stream ({key})'/'把滑条转成连打单点 ({key})');
+  - polygon ×2: 文本 'Polygon Generator', title=inspector.polygon_tip;
+  - delete: 文本 'Delete'/'删除', title=inspector.delete_tip ('Delete selected objects
+    ({key})'/'删除选中物件 ({key})');
+  - 词典注释的「曾」字补进 s2t S2T_SAME (v346 E 覆盖率)。
+  - 范围外说明: duplicate 按钮文本本无快捷键后缀 (Ctrl+D 在菜单/快捷键面板可见), 未动。
+- 验证: verifier/v429 (源码+词典断言); v346 A-G 全绿。
+
+## v430 — 界面不可用控件/按钮换行检测 (常驻 UI 审计)
+- 新建 verifier/ui-audit/check.mjs (CDP, launchIsolatedElectron): 2560×1440 (zoom 1) 与
+  1280×720 (zoom 0.6 档) 两种尺寸 (Emulation.setDeviceMetricsOverride — setWindowBounds
+  对启动最大化窗口不生效, 实测) × 全选/单选滑条两种选区态遍历 DOM:
+  - 按钮换行: Range.getClientRects 行顶去重, 容差 max(8, 0.7×字号) — 同行为 baseline 对齐的
+    混合字号 (text-lg+text-xs 页签/工具钮) 不误报; nowrap 横向溢出 (scrollWidth>clientWidth)
+    也算违规;
+  - 不可用控件: 视觉高 <14 或宽 <20 (checkbox/radio 原生小控件豁免) / 被 overflow:hidden
+    祖先裁剪 (最近滚动容器 auto/scroll 停止上溯 — 右栏滚动可达内容不误报); disabled 豁免;
+  - 输出 选择器路径+文本+实测尺寸(+裁剪几何), 白名单机制 (path/text 子串+kind, 逐条注明原因)。
+- 首跑发现与处置:
+  - [修, v428] 'Song Library' 半宽钮横向溢出 117>101 → en 改 'Library';
+  - [修, v428] 锁定间距 range 0.6 档 9.6px 高 → h-7;
+  - [误报修复] 混合字号按钮 (页签/工具) 行高容差 2px→max(8,0.7fs); 右栏滚动内容裁剪误判
+    → 最近滚动容器语义;
+  - [白名单遗留, 非左/右栏] 上时间轴紧凑按钮 (data-wave=mode/layer/close, data-tp-add,
+    缩放 +/-) 0.6 档视觉 9.6px; 底栏控制行 1280×720 横向超宽 — data-speed-input 速度钮与
+    data-testplay-btn 被右侧裁切 (实测元素 x=1263..1487 > 视口 1280)。待单独版本处理。
+- 最终: 两档尺寸 UI_AUDIT_CLEAN (exit 0, 白名单 7 条打印不计失败)。
+- v428–v430 回归: tsc + vite build 通过; v346/v425–v429/v404/v409/v213/v103/v151/v223/v224/
+  v235/v351/v367/v380/v381/v406/v45/v56/v77/v78/v84/v86/v90/v94/v97 全绿; v426/v149/v351/
+  v108/v109/v217 适配后转绿或与 HEAD 持平; v108(1)/v115(3)/v163(2)/v391(1) 失败经 git stash
+  对比均为 HEAD 遗留 (数目持平)。
+
+## v431 — 独立弹窗交互层级高于物件/锚点 (点击穿透屏蔽)
+- 需求: 所有独立弹窗 (Rotate/Scale/Duplicate/多边形/滑条转连打/分割/显示设置/音量设置等)
+  压在游玩区上时, 点弹窗任意位置 (含 padding/空白) 不得穿透到背后的物件/锚点; 右键同理。
+- 根因 (EditorCanvas window 捕获穿透链, v361/v378/v404):
+  1) onDown: v378 让 anchorFirst (锚点命中 playfieldAnchorHit) 先于控件判定计算并压过一切,
+     而 [data-dialog] 排除排在其后 — 弹窗正好压在锚点上时左键穿透 (选中锚点/开拖);
+  2) onCtx (v378 右键穿透): 完全没有对话框排除 — 弹窗上右键穿透删锚点/红转白
+     (sliderAnchorContextPress, 选中单滑条时白锚点 curvePoints-1)。
+  弹窗普通区域 (无锚点) 的左键原本已被旧 :551 控件/对话框排除挡住 (回归保留)。
+- 修复 (最小改动):
+  - EditorCanvas onDown: `if (el.closest('[data-dialog]')) return;` 提前到 anchorFirst 计算
+    之前; 旧控件选择器里的 [data-dialog] 移除 (已由提前排除覆盖);
+  - EditorCanvas onCtx: 同款 [data-dialog] 排除;
+  - 非 DraggableDialog 的弹窗根元素补 data-dialog: SongLibrary/FirstRunWizard/UnsavedDialog/
+    SkinListPanel/SkinPicker/LangFirstRun (DraggableDialog 自带 data-dialog={testid},
+    Rotate/Scale/Duplicate/Polygon/Stream/Split/SymSlider/显示/音量/热键/图案/几何/Timing 点
+    等全部共用, 自动覆盖)。shadcn ui/dialog 系仅被未引用的 command.tsx 残留使用, 跳过。
+- 不穿透面边界: hover/wheel 本就不穿透 — 弹窗渲染在 App 根层 (EditorCanvas 兄弟),
+  画布 onMouseMove/onWheel 是画布容器上的 React 监听, 弹窗事件不冒泡经过; window 级
+  wheel (numberWheel/selectWheel) 按 target 过滤 input/select; window mousemove 只在
+  拖拽进行中续喂 (v228/v313 有意设计, 含批量复制向量/对称锚点标记拖拽, 不动)。
+- 验证 (verifier/v431/check.mjs): 源码断言 (排除先于 anchorFirst / onCtx 排除 / 各弹窗
+  data-dialog 覆盖) + CDP (端口 9501): 8 锚点滑条环绕游玩区中心 + 显示设置面板 (视口居中
+  必盖住锚点) — A 弹窗上左键不穿透 (selected/nodes 不变; 修复前 nodes>0), B 弹窗上右键
+  不删锚点 (curvePoints 8→8; 修复前 8→7), C padding 点击无 seek/选区/拖拽副作用,
+  D 关窗后同位置点击恢复选中物件。全绿。
+- 回归: tsc + vite build 通过; v360/v401/v402/v404/v411/v413/v409/v410/v346 全绿;
+  ui-audit UI_AUDIT_CLEAN; v361 两处失败为适配 (v431 移动 [data-dialog] 写法 + v428 左栏
+  去 w-56 class 致 `div.w-56` 选择器失效 → 改几何特征查找), 适配后全绿。

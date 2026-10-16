@@ -547,8 +547,11 @@ export function EditorCanvas() {
       if (!c || e.target === c) return; // 游玩区画布自身走 React onMouseDown
       const el = e.target as Element | null;
       if (!el || typeof el.closest !== 'function') return;
+      // v431: 弹窗 (data-dialog) 挡住一切画布穿透, 含锚点 — v378 让锚点压过控件, 但弹窗压在锚点上时
+      //   点弹窗任意位置 (含 padding/空白) 不应误触背后的锚点/物件, 故排除必须先于 anchorFirst 计算
+      if (el.closest('[data-dialog]')) return;
       const anchorFirst = !!store.playfieldAnchorHit?.(e.clientX, e.clientY, e); // v378: 锚点压过控件
-      if (!anchorFirst && el.closest('button, input, select, textarea, a, label, [role="button"], [data-dialog]')) return; // 控件/对话框优先
+      if (!anchorFirst && el.closest('button, input, select, textarea, a, label, [role="button"]')) return; // 控件优先 (对话框由上方 v431 排除)
       // v404: 可交互 UI (带 data-ui-interactive: 上下时间轴/左栏/右栏/底栏) 优先于物件 — 其上的
       //   点击只放锚点级穿透 (playfieldAnchorPress), 物件本体/手柄不吞事件 (修: 点时间轴选中物件而非跳转);
       //   不可交互 UI (快捷键注释等, 带 data-ui-pass) 维持物件穿透 (playfieldNodePress 完整链)
@@ -566,6 +569,7 @@ export function EditorCanvas() {
       if (!c || e.target === c) return; // 游玩区画布自身走 React onContextMenu
       const el = e.target as Element | null;
       if (!el || typeof el.closest !== 'function') return;
+      if (el.closest('[data-dialog]')) return; // v431: 弹窗上的右键不穿透删锚点/红转白
       // 右键只穿透锚点交互 (删除/红转白) — 命中即吞 (控件也不优先); 未命中照常放行
       if (store.playfieldNodeContext?.(e.clientX, e.clientY)) {
         e.preventDefault();

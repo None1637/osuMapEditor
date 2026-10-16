@@ -18,9 +18,10 @@ const iInspector = src.indexOf('export function Inspector()');
 
 section('Btn/NumIn 提升为模块顶层组件 (组件类型稳定, 重渲染不重建 DOM)');
 {
-  const iBtn = src.indexOf('const Btn = ({ label, title, onClick }');
+  // v425 适配: Btn 移出为独立模块 ./Btn 导入 (组件类型天然稳定, 比文件内模块顶层更彻底); NumIn 仍模块顶层
+  const iBtn = src.indexOf("import { Btn } from './Btn'");
   const iNumIn = src.indexOf('const NumIn = ({ value, set, w');
-  assert(iBtn >= 0 && iBtn < iInspector, 'Btn 定义在 Inspector 之前 (模块顶层)');
+  assert(iBtn >= 0 && iBtn < iInspector, 'Btn 独立模块导入 (v425, 组件类型稳定)');
   assert(iNumIn >= 0 && iNumIn < iInspector, 'NumIn 定义在 Inspector 之前 (模块顶层)');
   // Inspector 函数体内不再有内层组件定义
   const body = src.slice(iInspector);

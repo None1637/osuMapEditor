@@ -55,7 +55,8 @@ section('Timelines.tsx / App.tsx: 接线与标记');
   assert(/store\.playfieldAnchorPress\?\.\(e\.clientX, e\.clientY, e\)\) return/.test(tl), 'TopTimeline 改锚点级穿透');
   assert(!/store\.playfieldNodePress\?\.\(e\.clientX, e\.clientY, e\)\) return/.test(tl), 'TopTimeline 不再物件级穿透');
   const app = readSrc('src/App.tsx');
-  const n = (app.match(/pointer-events-auto" data-ui-interactive>/g) ?? []).length;
+  // v426 适配: 右栏改 style width:224/uiZoom 后 data-ui-interactive 属性后换行接 style, 断言放宽为 [\s>]
+  const n = (app.match(/pointer-events-auto" data-ui-interactive[\s>]/g) ?? []).length;
   assert(n === 4, `四侧容器标 data-ui-interactive (实际 ${n}: 上时间轴行/左栏/右栏/底栏)`);
   assert(/data-ui-pass/.test(app), '快捷键注释标 data-ui-pass (物件可穿透)');
 }

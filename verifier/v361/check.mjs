@@ -23,7 +23,9 @@ section('源码: window 捕获拦截');
   const ec = read('src/components/EditorCanvas.tsx');
   assert(/window\.addEventListener\('mousedown', onDown, true\)/.test(ec), 'window 捕获阶段 mousedown');
   assert(/if \(!c \|\| e\.target === c\) return;/.test(ec), '游玩区画布自身放行 (React onMouseDown)');
-  assert(/el\.closest\('button, input, select, textarea, a, label, \[role="button"\], \[data-dialog\]'\)/.test(ec), '交互控件/对话框优先');
+  // v431 适配: [data-dialog] 排除从控件选择器里提出, 提前到 anchorFirst 之前 (弹窗压过锚点); 控件优先语义不变
+  assert(/el\.closest\('button, input, select, textarea, a, label, \[role="button"\]'\)/.test(ec), '交互控件优先');
+  assert(/if \(el\.closest\('\[data-dialog\]'\)\) return;/.test(ec), '对话框优先 (v431 提前排除)');
   assert(/e\.preventDefault\(\);\s*\n\s*e\.stopPropagation\(\);/.test(ec), '命中后吞事件 (面板/时间轴收不到)');
 }
 
@@ -69,7 +71,9 @@ section('CDP: 下时间轴 + 左侧栏锚点穿透, 控件优先');
       const bottomC = document.querySelector('canvas.flex-1');
       const br = bottomC.getBoundingClientRect();
       const a1 = toOsu(br.left + br.width / 2, br.top + br.height / 2); // 下时间轴条正中
-      const side = document.querySelector('div.w-56');
+      // v428 适配: 左栏去 w-56 class 改 style 宽度 (224/uiZoom) — 按几何特征找 (贴左缘/高等同主区/宽 ~224 的 data-ui-interactive 列)
+      const side = [...document.querySelectorAll('[data-ui-interactive]')]
+        .find(el => { const r = el.getBoundingClientRect(); return r.left <= 2 && r.height > window.innerHeight * 0.5 && r.width > 100 && r.width < 400; });
       const sr = side.getBoundingClientRect();
       const a2 = toOsu(sr.left + sr.width / 2, sr.top + Math.min(300, sr.height / 2)); // 左侧栏中部
       const base = store.beatmap;
@@ -122,7 +126,8 @@ section('CDP: 下时间轴 + 左侧栏锚点穿透, 控件优先');
       store.toggleSelectedNode(961002, 1);
       const o = store.beatmap.hitObjects.find(x => x.id === 961002);
       const pt = window.__osuToClient(o.curvePoints[0].x, o.curvePoints[0].y);
-      const side = document.querySelector('div.w-56');
+      const side = [...document.querySelectorAll('[data-ui-interactive]')] // v428 适配: 同 setup, 几何特征找左栏
+        .find(el => { const r = el.getBoundingClientRect(); return r.left <= 2 && r.height > window.innerHeight * 0.5 && r.width > 100 && r.width < 400; });
       const consumed = !side.dispatchEvent(new MouseEvent('mousedown', { clientX: pt.x, clientY: pt.y, button: 0, bubbles: true, cancelable: true }));
       const started = store.canvasDragging;
       window.dispatchEvent(new MouseEvent('mousemove', { clientX: pt.x, clientY: pt.y + 60, bubbles: true }));
@@ -135,7 +140,9 @@ section('CDP: 下时间轴 + 左侧栏锚点穿透, 控件优先');
     // C: 控件优先 — 侧栏按钮上的 mousedown 不被穿透吞掉
     const rC = await evalJs(`(() => {
       const store = window.__osuStore;
-      const btn = document.querySelector('div.w-56 button');
+      const btn = [...document.querySelectorAll('[data-ui-interactive]')] // v428 适配: 左栏几何查找后取其内按钮
+        .find(el => { const r = el.getBoundingClientRect(); return r.left <= 2 && r.height > window.innerHeight * 0.5 && r.width > 100 && r.width < 400; })
+        .querySelector('button');
       const r = btn.getBoundingClientRect();
       const consumed = !btn.dispatchEvent(new MouseEvent('mousedown', { clientX: r.left + r.width / 2, clientY: r.top + r.height / 2, button: 0, bubbles: true, cancelable: true }));
       return { consumed, dragging: store.canvasDragging };

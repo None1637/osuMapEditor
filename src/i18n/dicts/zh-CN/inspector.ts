@@ -8,18 +8,19 @@ export const zhCN: Record<string, string> = {
   'inspector.origin_playfield': '中心',
   'inspector.origin_custom': '自定义',
   'inspector.rotate': '旋转',
-  'inspector.rotate_ccw': '逆时针',
-  'inspector.rotate_ccw_tip': '按输入角度逆时针旋转',
-  'inspector.rotate_cw': '顺时针',
-  'inspector.rotate_cw_tip': '按输入角度顺时针旋转',
+  // v427: 按钮文案缩短 (en), 完整文案进 tooltip
+  'inspector.rotate_ccw': '旋转',
+  'inspector.rotate_ccw_tip': '逆时针旋转一次',
+  'inspector.rotate_cw': '旋转',
+  'inspector.rotate_cw_tip': '顺时针旋转一次',
   'inspector.scale': '缩放',
   'inspector.apply_scale': '应用倍率',
   'inspector.apply_scale_tip': '按输入倍率缩放 (仅X: y 填 1; 仅Y: x 填 1; 滑条长度同步)',
   'inspector.flip': '镜像',
-  'inspector.flip_h': '水平 ({key})',
-  'inspector.flip_h_tip': '水平镜像',
-  'inspector.flip_v': '垂直 ({key})',
-  'inspector.flip_v_tip': '垂直镜像',
+  'inspector.flip_h': '水平',
+  'inspector.flip_h_tip': '水平镜像 ({key})',
+  'inspector.flip_v': '垂直',
+  'inspector.flip_v_tip': '垂直镜像 ({key})',
   'inspector.transform_hotkeys_hint': '快捷键 {ccw}/{cw} 旋转90°, {flipH}/{flipV} 镜像, 围绕游玩区中心 (stable 同款); 上方按钮用所选原点; {reverse} 反转 (lazer 同款)',
   'inspector.mixed': '混合',
   'inspector.auto_inherit': 'Auto 继承',
@@ -29,7 +30,8 @@ export const zhCN: Record<string, string> = {
   'inspector.sample_index': '采样序号',
   'inspector.volume': '音量',
   'inspector.sample_file': '采样文件: {filename}',
-  'inspector.sliders_to_stream': '滑条转连打 ({n} 条, {key})', // v396: +快捷键提示
+  'inspector.sliders_to_stream': '滑条转连打 ({n} 条)', // v429: 快捷键挪进 tooltip (v396 曾加在文本)
+  'inspector.stream_tip': '把滑条转成连打单点 ({key})', // v429
   'inspector.arc_to_bezier': '圆弧→贝塞尔 ({n} 条)',
   'inspector.bspline_to_bezier': 'B 样条→贝塞尔 ({n} 条)', // v388: 选中集 B4 一键转 stable 兼容贝塞尔
   'inspector.selected_n': '已选中 {n} 个物件',
@@ -37,7 +39,8 @@ export const zhCN: Record<string, string> = {
   'inspector.convert_title': '转换',
   'inspector.merge_to_slider': '合并为滑条',
   'inspector.generate_title': '生成',
-  'inspector.polygon_generate': '多边形生成 ({key})',
+  'inspector.polygon_generate': '多边形生成', // v429: 快捷键挪进 tooltip
+  'inspector.polygon_tip': '生成多边形单点 ({key})', // v429
   'inspector.duplicate': '批量复制',
   'inspector.duplicate_count': '批量复制 ({n} 个)',
   'inspector.type_circle': '单点 Circle',
@@ -58,7 +61,8 @@ export const zhCN: Record<string, string> = {
   // v409: 选中锚点处分割 (节点选区存在时显示)
   'inspector.split_at_anchors': '在锚点处分割',
   'inspector.symmetric_slider': '对称滑条',
-  'inspector.delete': '删除 (Del)',
+  'inspector.delete': '删除', // v429: (Del) 挪进 tooltip
+  'inspector.delete_tip': '删除选中物件 ({key})', // v429
   // v387: B 样条 curveType
   'inspector.curve_bspline': '{t} B 样条 (lazer)',
   'inspector.curve_bspline_hint': 'B 样条滑条 stable osu! 无法读取 (可用右侧警告条/作图菜单一键转贝塞尔)',

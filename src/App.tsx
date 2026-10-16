@@ -68,7 +68,7 @@ function PanNumInput({ label, labelKey, value, step, min, max, grow, digits, onC
   const t = useT(); // v346
   const [text, setText] = useState<string | null>(null);
   return (
-    <span className={`flex items-center gap-0.5 ${grow ? 'flex-1 min-w-0' : 'shrink-0'}`}>
+    <span className={`flex items-center gap-0.5 whitespace-nowrap ${grow ? 'flex-1 min-w-0' : 'shrink-0'}`}>
       <span className="text-white/50 shrink-0">{labelKey ? t(labelKey, label) : label}</span>
       <input type="number" step={step} data-pan-input={label}
         value={text ?? (digits !== undefined ? value.toFixed(digits) : String(value))}
@@ -616,11 +616,14 @@ export default function App() {
           v129: 背景半透明 /75 (能看到背后游玩的物件) + pointer-events-auto (浮层列整体 none) */}
       <div className="flex-1 flex min-h-0">
         {/* 左侧栏 */}
-        <div className="w-56 shrink-0 bg-[#16161d]/75 border-r border-white/10 overflow-y-auto flex flex-col gap-1.5 px-2 py-2 text-sm pointer-events-auto" data-ui-interactive>
+        {/* v428: 同 v426 右栏方案 — 视觉宽度恒定 224px (布局宽 = 224/zoom 抵消根容器 CSS zoom), 小窗口下左栏控件不再被压换行;
+            栏内按钮/标签行统一 whitespace-nowrap (含曲库皮肤半宽/工具/各开关/Grid Snap/间距旋转行/撤销重做, PanNumInput 同步), 只改样式不改功能 */}
+        <div className="shrink-0 bg-[#16161d]/75 border-r border-white/10 overflow-y-auto flex flex-col gap-1.5 px-2 py-2 text-sm pointer-events-auto" data-ui-interactive
+          style={{ width: 224 / uiZoom }}>
           {/* 文件 (v151: 曲库/皮肤各半宽, 并排一行) */}
           <div className="flex gap-1.5">
-            <button onClick={() => setShowLibrary(true)} className="flex-1 min-w-0 text-left px-3 py-1.5 rounded bg-white/10 hover:bg-white/20" title={t('app.song_library_title', 'Browse the osu! Songs folder, pick a song and difficulty')}><FolderOpen className="inline-block w-4 h-4 mr-1 -mt-0.5" />{t('app.song_library', 'Song Library')}</button>
-            <button onClick={() => setShowSkin(true)} className="flex-1 min-w-0 text-left px-3 py-1.5 rounded bg-white/10 hover:bg-white/20" title={t('app.skin_title', 'Pick an osu! skin folder (textures + hitsounds); the choice is remembered')}><Palette className="inline-block w-4 h-4 mr-1 -mt-0.5" />{t('app.skin', 'Skin')}</button>
+            <button onClick={() => setShowLibrary(true)} className="flex-1 min-w-0 text-left px-3 py-1.5 rounded whitespace-nowrap bg-white/10 hover:bg-white/20" title={t('app.song_library_title', 'Browse the osu! Songs folder, pick a song and difficulty')}><FolderOpen className="inline-block w-4 h-4 mr-1 -mt-0.5" />{t('app.song_library', 'Library')}</button>{/* v428: en 'Song Library'→'Library' — 半宽钮 101px 放不下 (v430 实测 117), 砍修饰词; zh 曲库不变, 全名在 title */}
+            <button onClick={() => setShowSkin(true)} className="flex-1 min-w-0 text-left px-3 py-1.5 rounded whitespace-nowrap bg-white/10 hover:bg-white/20" title={t('app.skin_title', 'Pick an osu! skin folder (textures + hitsounds); the choice is remembered')}><Palette className="inline-block w-4 h-4 mr-1 -mt-0.5" />{t('app.skin', 'Skin')}</button>
           </div>
           {/* v81: 旧「打开文件」「导出」按钮已删除 (无用: 打开走曲库/拖拽, 保存走 Ctrl+S) */}
           <div className="h-px bg-white/15 mx-1 my-0.5" />
@@ -629,14 +632,14 @@ export default function App() {
             {TOOLS.map(tool => (
               <button key={tool.id}
                 onClick={() => { store.tool = tool.id; store.pendingSlider = []; store.pendingSpinner = null; store.emit(); }}
-                className={`w-full text-left px-3 py-1.5 rounded ${store.tool === tool.id ? 'bg-pink-500/30 border border-pink-400/40 font-bold' : 'bg-white/10 hover:bg-white/20'}`}>
+                className={`w-full text-left px-3 py-1.5 rounded whitespace-nowrap ${store.tool === tool.id ? 'bg-pink-500/30 border border-pink-400/40 font-bold' : 'bg-white/10 hover:bg-white/20'}`}>
                 <tool.icon className="inline-block w-4 h-4 mr-1.5 -mt-0.5" />{t(tool.labelKey, tool.label)} <span className="opacity-50 text-xs">{hotkeyLabel(tool.action)}</span>
               </button>
             ))}
           </div>
           <div className="h-px bg-white/15 mx-1 my-0.5" />
           {/* 节拍吸附 */}
-          <label className="flex items-center gap-1.5 text-sm text-white/70 px-1">
+          <label className="flex items-center gap-1.5 text-sm text-white/70 px-1 whitespace-nowrap">
             {t('app.beat_snap_divisor', 'Beat Snap Divisor 1/')}
             <select value={store.beatSnap} onChange={e => { store.beatSnap = parseInt(e.target.value); store.emit(); }}
               className="bg-black/40 border border-white/15 rounded px-1.5 py-1">
@@ -646,16 +649,16 @@ export default function App() {
           <div className="h-px bg-white/15 mx-1 my-0.5" />
           {/* 锁定间距 (v351: 高亮改橘色, 与锁定物件同色系 — 用户反馈左栏颜色太杂) */}
           <button onClick={() => { store.distanceLock = !store.distanceLock; store.emit(); }}
-            className={`w-full text-left px-3 py-1.5 rounded ${store.distanceLock ? 'bg-amber-500/40 border border-amber-400/50' : 'bg-white/10 hover:bg-white/20'}`}
+            className={`w-full text-left px-3 py-1.5 rounded whitespace-nowrap ${store.distanceLock ? 'bg-amber-500/40 border border-amber-400/50' : 'bg-white/10 hover:bg-white/20'}`}
             title={t('app.distance_snap_title', 'Distance Snap: keep a fixed distance between the new object and the previous one')}>
             <Ruler className="inline-block w-4 h-4 mr-1 -mt-0.5" />{t('app.distance_snap', 'Distance Snap')}
           </button>
           {/* v45: 锁定间距倍率控制 (DistanceSpacing), 与右上角 Prev/Next 同单位; v149: 上限 10x, 滑条拉满控件宽度 */}
-          <label className="w-full flex items-center gap-1.5 text-sm text-white/70 px-1" title={t('app.distance_snap_multiplier_title', 'Distance snap multiplier: 1x = distance the slider ball travels per beat = 100×SliderMultiplier×current SV px (same as lazer, varies with SV)')}>
+          <label className="w-full flex items-center gap-1.5 text-sm text-white/70 px-1 whitespace-nowrap" title={t('app.distance_snap_multiplier_title', 'Distance snap multiplier: 1x = distance the slider ball travels per beat = 100×SliderMultiplier×current SV px (same as lazer, varies with SV)')}>
             <input type="range" min={0.1} max={10} step={0.05} disabled={!bm} data-ds-input="range"
               value={bm?.editor.distanceSpacing ?? 1}
               onChange={e => store.setEditorField('distanceSpacing', parseFloat(e.target.value))} // v345: 入 undo (拖动连写自动合并)
-              className="flex-1 min-w-0 accent-amber-400" />
+              className="flex-1 min-w-0 h-7 accent-amber-400" /> {/* v428: h-7 — 原生 range 默认太矮, 0.6 档视觉 <14px (v430 实测 9.6), 与右栏控件同高 */}
             <input type="number" min={0.1} max={10} step={0.05} disabled={!bm} data-ds-input="number"
               value={bm ? Math.round(bm.editor.distanceSpacing * 100) / 100 : 1}
               onChange={e => {
@@ -668,7 +671,7 @@ export default function App() {
           {/* v115: 锁定物件 (stable 「编辑 > Lock Notes」): 开启后无法移动/修改/删除任何已有物件; 放置新物件/粘贴/绿线编辑不受影响 */}
           <button onClick={() => { store.lockNotes = !store.lockNotes; store.emitSelection(); }}
             data-lock-notes="toggle"
-            className={`w-full text-left px-3 py-1.5 rounded ${store.lockNotes ? 'bg-amber-500/40 border border-amber-400/50' : 'bg-white/10 hover:bg-white/20'}`}
+            className={`w-full text-left px-3 py-1.5 rounded whitespace-nowrap ${store.lockNotes ? 'bg-amber-500/40 border border-amber-400/50' : 'bg-white/10 hover:bg-white/20'}`}
             title={t('app.lock_notes_title', 'Lock Notes: objects cannot be moved/modified/deleted while on; placing new objects and inherited timing point editing are unaffected')}>
             {store.lockNotes
               ? <Lock className="inline-block w-4 h-4 mr-1 -mt-0.5" />
@@ -678,7 +681,7 @@ export default function App() {
               关 = 放置拖尾与节点编辑后的滑条长度直通几何全长, 不吸附当前细分; 开 = 现状 (吸附当前细分的 1/2) */}
           <button onClick={() => store.setEditorPref('sliderTailSnap', !editorPrefs.sliderTailSnap)}
             data-slider-tail-snap="toggle"
-            className={`w-full text-left px-3 py-1.5 rounded ${editorPrefs.sliderTailSnap ? 'bg-cyan-500/40 border border-cyan-400/50' : 'bg-white/10 hover:bg-white/20'}`}
+            className={`w-full text-left px-3 py-1.5 rounded whitespace-nowrap ${editorPrefs.sliderTailSnap ? 'bg-cyan-500/40 border border-cyan-400/50' : 'bg-white/10 hover:bg-white/20'}`}
             title={t('app.slider_tail_snap_title', 'Slider tail beat snap: on = slider length snaps to the beat divisor (current divisor x1/2) when placing and after node edits; off = length follows the raw geometry')}>
             <Magnet className="inline-block w-4 h-4 mr-1 -mt-0.5" />{t('app.slider_tail_snap', 'Slider Tail Snap')}
           </button>
@@ -689,12 +692,12 @@ export default function App() {
           <div className="flex items-center gap-1.5">
             <button onClick={() => { store.playfieldPanEnabled = !store.playfieldPanEnabled; store.emit(); }}
               data-pan-input="toggle"
-              className={`w-full text-left px-3 py-1.5 rounded ${store.playfieldPanEnabled ? 'bg-cyan-500/40 border border-cyan-400/50' : 'bg-white/10 hover:bg-white/20'}`}
+              className={`w-full text-left px-3 py-1.5 rounded whitespace-nowrap ${store.playfieldPanEnabled ? 'bg-cyan-500/40 border border-cyan-400/50' : 'bg-white/10 hover:bg-white/20'}`}
               title={t('app.playfield_pan_title', 'Playfield pan: hold the middle mouse button to drag the playfield; x/y = offset (osu px), zoom = scale (default 1.0), rot = rotation degrees around the playfield centre; turning off restores the default view (values are kept)')}>
               <Move className="inline-block w-4 h-4 mr-1 -mt-0.5" />{t('app.playfield_pan', 'Playfield Pan')}
             </button>
           </div>
-          <div className="flex items-center gap-1.5 text-sm text-white/70 px-1">
+          <div className="flex items-center gap-1.5 text-sm text-white/70 px-1 whitespace-nowrap">
             {/* v367: 缩放精细度 ×10 — 步进 0.1→0.01, 显示 2 位→3 位小数 (用户反馈调整精细度不够) */}
             <PanNumInput label="Zoom" labelKey="app.playfield_zoom" grow value={Math.round(store.playfieldScale * 1000) / 1000} step={0.01} min={0.1} max={10} digits={3}
               onCommit={v => { store.playfieldScale = v; store.emit(); }} />
@@ -702,7 +705,7 @@ export default function App() {
             <PanNumInput label="Rot" labelKey="app.playfield_rot" grow value={Math.round(store.playfieldRotation * 10) / 10} step={1} digits={1}
               onCommit={v => { store.playfieldRotation = v; store.emit(); }} />
           </div>
-          <div className="flex items-center gap-1.5 text-sm text-white/70 px-1">
+          <div className="flex items-center gap-1.5 text-sm text-white/70 px-1 whitespace-nowrap">
             <PanNumInput label="x" grow value={Math.round(store.playfieldPanX * 10) / 10} step={1}
               onCommit={v => { store.playfieldPanX = v; store.emit(); }} />
             <PanNumInput label="y" grow value={Math.round(store.playfieldPanY * 10) / 10} step={1}
@@ -713,7 +716,7 @@ export default function App() {
               v151: 吸附开关与类型下拉各半宽放一行; 间距与旋转放一行 */}
           <div className="flex gap-1.5">
             <button onClick={() => { store.gridSnap = !store.gridSnap; store.emit(); }}
-              className={`flex-1 min-w-0 text-left px-3 py-1.5 rounded ${store.gridSnap ? 'bg-cyan-500/40 border border-cyan-400/50' : 'bg-white/10 hover:bg-white/20'}`}
+              className={`flex-1 min-w-0 text-left px-3 py-1.5 rounded whitespace-nowrap ${store.gridSnap ? 'bg-cyan-500/40 border border-cyan-400/50' : 'bg-white/10 hover:bg-white/20'}`}
               title={t('app.grid_snap_title', 'Grid Snap: snap placement/dragging to a position grid (priority: object snap > distance snap > grid)')}>
               <Grid3x3 className="inline-block w-4 h-4 mr-1 -mt-0.5" />{t('app.grid_snap', 'Grid Snap')}
             </button>
@@ -731,7 +734,7 @@ export default function App() {
               <option value="none">{t('app.grid_none', 'No Grid')}</option>
             </select>
           </div>
-          <div className="flex items-center gap-1.5 text-sm text-white/70 px-1">
+          <div className="flex items-center gap-1.5 text-sm text-white/70 px-1 whitespace-nowrap">
             <span className="flex items-center gap-1" title={t('app.grid_spacing_title', 'Grid spacing (lazer GridLineSpacing 4..256, written back to [Editor] GridSize)')}>
               {t('app.grid_spacing', 'Spacing')} <GridSpacingInput disabled={!bm} /> px
             </span>
@@ -751,12 +754,12 @@ export default function App() {
           {/* v78: 自定义网格中心 (lazer StartPositionX/Y 可配): 开关 + x/y 输入; 画布上青色标记可拖拽 */}
           <button onClick={() => store.setGridOriginCustom(!store.gridOriginCustom)} disabled={!bm}
             data-grid-input="origin-toggle"
-            className={`w-full text-left px-3 py-1.5 rounded disabled:opacity-30 ${store.gridOriginCustom ? 'bg-cyan-500/40 border border-cyan-400/50' : 'bg-white/10 hover:bg-white/20'}`}
+            className={`w-full text-left px-3 py-1.5 rounded whitespace-nowrap disabled:opacity-30 ${store.gridOriginCustom ? 'bg-cyan-500/40 border border-cyan-400/50' : 'bg-white/10 hover:bg-white/20'}`}
             title={t('app.grid_origin_title', 'Custom grid origin: grid/snapping uses the given point as origin (default: playfield center); the cyan marker on the canvas is draggable')}>
             <Crosshair className="inline-block w-4 h-4 mr-1 -mt-0.5" />{t('app.grid_origin', 'Grid Origin')}
           </button>
           {store.gridOriginCustom && (
-            <label className="flex items-center gap-1.5 text-sm text-white/70 px-1" title={t('app.grid_origin_coords_title', 'Grid origin coordinates (osu px; synced with the draggable canvas marker)')}>
+            <label className="flex items-center gap-1.5 text-sm text-white/70 px-1 whitespace-nowrap" title={t('app.grid_origin_coords_title', 'Grid origin coordinates (osu px; synced with the draggable canvas marker)')}>
               <input type="number" step={1} data-grid-input="origin-x" value={store.gridOrigin.x}
                 onChange={e => { const v = parseFloat(e.target.value); if (isFinite(v)) store.setGridOrigin({ x: v, y: store.gridOrigin.y }); }}
                 className="w-14 bg-black/40 border border-white/15 rounded px-1 py-0.5 text-right" />
@@ -768,14 +771,14 @@ export default function App() {
           {/* v235: 吸附到物件总开关 (默认开) — 控制放置/拖拽/节点拖拽的物件中心·滑条尾吸附 + 几何辅助/间距辅助线吸附 */}
           <button onClick={() => store.setObjectSnapEnabled(!store.objectSnapEnabled)} disabled={!bm}
             data-grid-input="object-snap-toggle"
-            className={`w-full text-left px-3 py-1.5 rounded disabled:opacity-30 ${store.objectSnapEnabled ? 'bg-cyan-500/40 border border-cyan-400/50' : 'bg-white/10 hover:bg-white/20'}`}
+            className={`w-full text-left px-3 py-1.5 rounded whitespace-nowrap disabled:opacity-30 ${store.objectSnapEnabled ? 'bg-cyan-500/40 border border-cyan-400/50' : 'bg-white/10 hover:bg-white/20'}`}
             title={t('app.object_snap_title', "Snap to objects: snap to other objects' centers and slider ends when placing/dragging (incl. geometry/distance guide snapping); off = grid snap only (default on)")}>
             <Target className="inline-block w-4 h-4 mr-1 -mt-0.5" />{t('app.object_snap', 'Snap to Objects')}
           </button>
           {/* v163: 限制物件在游玩区域内 (默认开 = 既有行为); 关闭后可拖动/放置物件到游玩区外 */}
           <button onClick={() => store.setLimitToPlayfield(!store.limitToPlayfield)} disabled={!bm}
             data-grid-input="limit-playfield"
-            className={`w-full text-left px-3 py-1.5 rounded disabled:opacity-30 ${store.limitToPlayfield ? 'bg-cyan-500/40 border border-cyan-400/50' : 'bg-white/10 hover:bg-white/20'}`}
+            className={`w-full text-left px-3 py-1.5 rounded whitespace-nowrap disabled:opacity-30 ${store.limitToPlayfield ? 'bg-cyan-500/40 border border-cyan-400/50' : 'bg-white/10 hover:bg-white/20'}`}
             title={t('app.limit_playfield_title', 'Limit objects to the playfield: objects stay inside the playfield when placed/dragged (default on); off allows placing outside (for shaping)')}>
             <Box className="inline-block w-4 h-4 mr-1 -mt-0.5" />{t('app.limit_playfield', 'Limit to Playfield')}
           </button>
@@ -783,13 +786,13 @@ export default function App() {
           {/* v84/v90: 辅助线 — 按钮 = 显示/隐藏总开关 (高亮=开); 旁「辅助线配置」开面板 (圆心点/三点圆/直线延伸线 + 显示范围) */}
           <button onClick={() => store.setGeoEnabled(!store.geoEnabled)} disabled={!bm}
             data-geo-input="toggle"
-            className={`w-full text-left px-3 py-1.5 rounded disabled:opacity-30 ${store.geoEnabled ? 'bg-red-500/40 border border-red-400/50' : 'bg-white/10 hover:bg-white/20'}`}
+            className={`w-full text-left px-3 py-1.5 rounded whitespace-nowrap disabled:opacity-30 ${store.geoEnabled ? 'bg-red-500/40 border border-red-400/50' : 'bg-white/10 hover:bg-white/20'}`}
             title={t('app.geo_lines_title', 'Geometry guides: show/hide guide points and lines (circle centers / 3-point circles / line extensions of selected sliders; snappable when placing and dragging)')}>
             <Magnet className="inline-block w-4 h-4 mr-1 -mt-0.5" />{t('app.geo_lines', 'Guides')}
           </button>
           <button onClick={() => store.setGeoPanelOpen(!store.geoPanelOpen)} disabled={!bm}
             data-geo-input="panel-toggle"
-            className={`w-full text-left px-3 py-1.5 rounded disabled:opacity-30 ${store.geoPanelOpen ? 'bg-red-500/40 border border-red-400/50' : 'bg-white/10 hover:bg-white/20'}`}
+            className={`w-full text-left px-3 py-1.5 rounded whitespace-nowrap disabled:opacity-30 ${store.geoPanelOpen ? 'bg-red-500/40 border border-red-400/50' : 'bg-white/10 hover:bg-white/20'}`}
             title={t('app.geo_config_title', 'Guide settings: toggles for the three guide shapes + display scope')}>
             <Settings2 className="inline-block w-4 h-4 mr-1 -mt-0.5" />{t('app.geo_config', 'Guide Settings')}
           </button>
@@ -797,22 +800,22 @@ export default function App() {
           {/* v86: pattern 库 — 收藏选中物件为 pattern, 缩略图拖到游玩区落盘 (节拍时序, 跨 BPM 保结构) */}
           <button onClick={() => { store.loadPatternsIfNeeded(); store.setPatternPanelOpen(!store.patternPanelOpen); }} disabled={!bm}
             data-pattern-input="panel-toggle"
-            className={`w-full text-left px-3 py-1.5 rounded disabled:opacity-30 ${store.patternPanelOpen ? 'bg-emerald-500/40 border border-emerald-400/50' : 'bg-white/10 hover:bg-white/20'}`}
+            className={`w-full text-left px-3 py-1.5 rounded whitespace-nowrap disabled:opacity-30 ${store.patternPanelOpen ? 'bg-emerald-500/40 border border-emerald-400/50' : 'bg-white/10 hover:bg-white/20'}`}
             title={t('app.pattern_library_title', 'Pattern library: bookmark selected objects, drag from the panel onto the playfield to place (recorded by beat intervals, supports SV/scale alignment)')}>
             <Package className="inline-block w-4 h-4 mr-1 -mt-0.5" />pattern
           </button>
           {/* v127: 波形/频谱显示开关 — 画在上方时间轴 (默认背景层, 时间轴右侧按钮切模式/层级); 原悬浮窗 (v103) 已废弃 */}
           <button onClick={() => store.setWavePanelOpen(!store.wavePanelOpen)} disabled={!bm}
             data-wave-input="toggle"
-            className={`w-full text-left px-3 py-1.5 rounded disabled:opacity-30 ${store.wavePanelOpen ? 'bg-emerald-500/40 border border-emerald-400/50' : 'bg-white/10 hover:bg-white/20'}`}
+            className={`w-full text-left px-3 py-1.5 rounded whitespace-nowrap disabled:opacity-30 ${store.wavePanelOpen ? 'bg-emerald-500/40 border border-emerald-400/50' : 'bg-white/10 hover:bg-white/20'}`}
             title={t('app.waveform_title', 'Waveform: show the audio waveform/spectrogram on the top timeline (buttons on the right side of the timeline switch waveform/spectrogram and background/overlay)')}>
             <AudioWaveform className="inline-block w-4 h-4 mr-1 -mt-0.5" />{t('app.waveform', 'Waveform')}
           </button>
           <div className="h-px bg-white/15 mx-1 my-0.5" />
           {/* 历史 */}
           <div className="flex gap-1.5">
-            <button onClick={() => store.undo()} disabled={!store.canUndo} className="flex-1 px-2 py-1.5 rounded bg-white/10 hover:bg-white/20 disabled:opacity-30" title={hotkeyLabel('undo')}><Undo2 className="inline-block w-4 h-4 mr-1 -mt-0.5" />{t('app.undo', 'Undo')}</button>
-            <button onClick={() => store.redo()} disabled={!store.canRedo} className="flex-1 px-2 py-1.5 rounded bg-white/10 hover:bg-white/20 disabled:opacity-30" title={hotkeyLabel('redo')}><Redo2 className="inline-block w-4 h-4 mr-1 -mt-0.5" />{t('app.redo', 'Redo')}</button>
+            <button onClick={() => store.undo()} disabled={!store.canUndo} className="flex-1 px-2 py-1.5 rounded whitespace-nowrap bg-white/10 hover:bg-white/20 disabled:opacity-30" title={hotkeyLabel('undo')}><Undo2 className="inline-block w-4 h-4 mr-1 -mt-0.5" />{t('app.undo', 'Undo')}</button>
+            <button onClick={() => store.redo()} disabled={!store.canRedo} className="flex-1 px-2 py-1.5 rounded whitespace-nowrap bg-white/10 hover:bg-white/20 disabled:opacity-30" title={hotkeyLabel('redo')}><Redo2 className="inline-block w-4 h-4 mr-1 -mt-0.5" />{t('app.redo', 'Redo')}</button>
           </div>
         </div>
 
@@ -829,7 +832,9 @@ export default function App() {
               {/* v184: 谱面信息已移到页签栏 (song setup 左侧居中), 此处不再渲染 */}
             </div>
             {/* 右侧检查器 (v129: 背景半透明 /75 + pointer-events-auto; v404: data-ui-interactive 可交互 UI 优先于物件穿透) */}
-            <div className="w-56 shrink-0 bg-[#16161d]/75 border-l border-white/10 overflow-auto pointer-events-auto" data-ui-interactive>
+            {/* v426: 视觉宽度恒定 224px — 布局宽 = 224/zoom 抵消根容器 CSS zoom (v217), 小窗口下右栏不再被压窄; 只改右栏, 左栏不动 */}
+            <div className="shrink-0 bg-[#16161d]/75 border-l border-white/10 overflow-auto pointer-events-auto" data-ui-interactive
+              style={{ width: 224 / uiZoom }}>
               {/* v244: 放置态指示移到右侧栏顶部且始终显示 (原 v241 在左栏工具区, 仅放置工具时显示) —
                   放置工具下按 Q/W/E/R 预设下次放下物件的 NC (仅一次, 放置后复位) 与音效 (保持) */}
               <div className="px-3 py-2 text-[11px] text-white/45 flex gap-x-2 flex-wrap border-b border-white/10" title={t('app.placement_state_title', "Placement state: with a placement tool, press Q/W/E/R to preset the next placed object's New Combo (one-shot, resets after placement) and hitsounds (sticky)")}>

@@ -24,7 +24,7 @@ assert(iTb === -1 && !/osu! 谱面编辑器/.test(app), 'v127: 顶部标题行 (
 // 布局骨架: 页签栏 → 上时间轴 → 主区域行(左侧栏 + 内容) → 下时间轴 (v109 适配: 侧栏移入主区域行; v127: 工具栏行删除)
 assert(iSide > 0 && iEdit > iSide, '结构顺序: 左侧栏 → 页签内容');
 assert(/flex-1 flex min-h-0/.test(app), '主区域 = 横向 flex 行 (左栏 + 内容)');
-assert(/w-56 shrink-0 bg-\[#16161d\]\/75 border-r border-white\/10 overflow-y-auto flex flex-col/.test(app), '左侧栏容器 (v109: w-56 与右栏一致, 纵向滚动)');
+assert(/shrink-0 bg-\[#16161d\]\/75 border-r border-white\/10 overflow-y-auto flex flex-col[\s\S]{0,140}?width: 224 \/ uiZoom/.test(app), '左侧栏容器 (v428: 视觉恒定 224 = 224/uiZoom, 纵向滚动)'); // v428 适配: w-56 改 style 宽度
 assert(app.indexOf('页签栏') < iSide && app.indexOf('<TopTimeline />') < iSide, 'v109: 页签栏/上时间轴在左侧栏之前 (侧栏在上时间轴下方)');
 assert(app.indexOf('<BottomTimeline />') > iEdit, 'v109: 下时间轴在主区域行之后 (侧栏在下时间轴上方)');
 
@@ -56,7 +56,8 @@ assert(seps >= 7, `功能组分隔线 ≥7 条 (实际 ${seps})`);
 
 // 主区域行闭合 + 右侧 Inspector 同宽
 assert(app.includes('{/* /主区域行'), '主区域行在下时间轴前闭合');
-assert(/w-56 shrink-0 bg-\[#16161d\]\/75 border-l border-white\/10 overflow-auto/.test(app), '右侧 Inspector 栏 w-56 (左右栏同宽)');
+// v426 适配: 右栏 w-56 改 style width:224/uiZoom (视觉恒定 224px, 小窗口不再压窄)
+assert(/shrink-0 bg-\[#16161d\]\/75 border-l border-white\/10 overflow-auto[\s\S]{0,140}?width: 224 \/ uiZoom/.test(app), '右侧 Inspector 栏视觉恒定 224 (v426: 224/uiZoom)');
 
 // v127 适配: 原「连带产品修复」波形面板 offsetY 断言随 WaveformPanel 废弃删除
 // (面板不再存在; 波形画在 TopTimeline 内, 见 v127)

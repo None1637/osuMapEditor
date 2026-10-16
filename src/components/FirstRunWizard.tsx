@@ -64,7 +64,7 @@ export function FirstRunWizard({ onDone }: { onDone: () => void }) {
   };
 
   return (
-    <div className="fixed inset-0 z-[60] bg-black/80 flex items-center justify-center">
+    <div className="fixed inset-0 z-[60] bg-black/80 flex items-center justify-center" data-dialog="first-run-wizard"> {/* v431 */}
       <div ref={cz.ref} style={cz.style} className="w-[520px] max-w-[92vw] bg-[#16161d] border border-[#333] rounded-lg flex flex-col overflow-hidden">
         <div className="px-4 py-2.5 border-b border-[#2c2c38]">
           <span className="text-sm font-semibold flex items-center gap-1.5"><Music className="w-4 h-4" />{t('wizard.title', 'First-Time Setup')}</span>

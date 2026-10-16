@@ -14,7 +14,7 @@ export function LangFirstRun() {
   if (!show) return null;
   const pick = (id: Lang) => { setLang(id); setShow(false); };
   return (
-    <div data-lang-first-run className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70">
+    <div data-lang-first-run data-dialog="lang-first-run" className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70"> {/* v431: data-dialog */}
       <div className="bg-[#1b1b24] border border-white/15 rounded-lg px-8 py-6 flex flex-col items-center gap-5 shadow-xl">
         <div className="text-sm text-slate-200 text-center leading-relaxed">
           <div>{translate('zh-CN', TITLE_KEY, TITLE_EN)}</div>

@@ -124,7 +124,7 @@ export function SkinPicker({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center" onClick={onClose}>
+    <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center" onClick={onClose} data-dialog="skin-picker"> {/* v431 */}
       <div className="w-[520px] max-w-[92vw] bg-[#16161d] border border-[#333] rounded-lg flex flex-col overflow-hidden"
            onClick={e => e.stopPropagation()}
            onDragOver={e => { e.preventDefault(); e.stopPropagation(); setDropActive(true); }}

@@ -70,7 +70,7 @@ section('B: CDP DOM 配色类名');
     await normalizeEnv(evalJs); // v383: 就绪等待 + 环境归一 (语言 en / 默认皮肤 / 关曲库遮罩 / 清污染键)
 
     const clsOf = (re) => evalJs(`(() => { const b = [...document.querySelectorAll('button')].find(x => ${re}.test(x.textContent)); return b ? b.className : null; })()`);
-    const libCls = await clsOf('/Song Library|曲库|曲庫/');
+    const libCls = await clsOf('/^Library$|Song Library|曲库|曲庫/'); // v428 适配: en 按钮文案 'Song Library'→'Library' (半宽钮放不下)
     assert(libCls && libCls.includes('bg-white/10') && !libCls.includes('pink'), `曲库无粉色 (实得 ${String(libCls).slice(0, 80)})`);
     // 工具激活态: 当前默认 select → 类名含 pink-500/30
     const toolCls = await evalJs(`(() => { const store = window.__osuStore; const btns = [...document.querySelectorAll('button')]; const b = btns.find(x => /Select|选择|選擇/.test(x.textContent) && x.className.includes('rounded')); return b ? b.className : null; })()`);

@@ -62,7 +62,8 @@ section('Timelines.tsx: 布局空间绘制/命中');
 section('回归: 四周面板布局未被破坏');
 {
   const src = readSrc('src/App.tsx');
-  assert((src.match(/w-56 shrink-0/g) ?? []).length >= 2, '左右栏 w-56 shrink-0 保留 (基准分辨率下尺寸不变)');
+  // v428 适配: 左右栏 w-56 先后改 style width:224/uiZoom (v426 右栏/v428 左栏), 基准分辨率下视觉尺寸不变
+  assert((src.match(/width: 224 \/ uiZoom/g) ?? []).length === 2, '左右栏 width:224/uiZoom (基准分辨率下视觉 224 不变)');
   assert(/flex-1 flex min-h-0/.test(src), '中间弹性行保留 (不等比余量吸收处)');
 }
 

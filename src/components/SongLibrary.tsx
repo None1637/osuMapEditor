@@ -504,7 +504,7 @@ export function SongLibrary({ onClose }: { onClose: () => void }) {
   const fmtLen = (ms: number) => `${Math.floor(ms / 60000)}:${String(Math.floor(ms / 1000) % 60).padStart(2, '0')}`;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center"
+    <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center" data-dialog="song-library" // v431: 弹窗层级高于物件/锚点 (含 backdrop)
          onMouseDown={e => { backdropDownRef.current = e.target === e.currentTarget; }}
          onMouseUp={e => { if (e.target === e.currentTarget && backdropDownRef.current) onClose(); backdropDownRef.current = false; }}>
       <div className="w-[1380px] max-w-[94vw] h-[78vh] bg-[#16161d] border border-[#333] rounded-lg flex flex-col overflow-hidden" // v291: 宽度 +50%
