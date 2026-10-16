@@ -1,9 +1,12 @@
 // 验证器 v430: 界面不可用控件/按钮换行检测 (常驻 UI 审计)
-// 两种窗口尺寸 (2560×1440 = zoom 1 档 / 1280×720 = zoom 0.6 下限档) 下遍历 DOM:
+// 两种窗口尺寸 (2560×1440 = zoom 1 档 / 1280×720 = zoom 0.6 下限档) × 两种语言 (en/zh-CN, v432) 下遍历 DOM:
 //   - 按钮换行: button/[role=button] 文本渲染多行 (Range.getClientRects 行顶去重) → 违规;
 //     nowrap 按钮横向溢出 (scrollWidth > clientWidth+1) → 违规;
 //   - 不可用控件: button/input/select 可见但视觉尺寸过小 (高 <14 或宽 <20; checkbox/radio 原生小控件豁免),
 //     或被 overflow:hidden 祖先裁剪 (getBoundingClientRect 超出裁剪框) → 违规; disabled 不算违规。
+//   - v432: 数字框内容被裁 (num-clip: type=number 且 scrollWidth > clientWidth+1 — 值不可读;
+//     文本框横向滚动是设计行为不查); 左/右栏容器横向滚动 (col-hscroll: 栏 scrollWidth > clientWidth+1,
+//     栏内横向溢出原被 clippedBy 的「滚动可达」豁免漏掉 — v432 左栏 Rotation 输入溢出即此洞)。
 // 每种尺寸跑两遍选区态: 全选 (多选 Inspector 分支) + 单选首条滑条 (单选分支), 覆盖右栏全部按钮。
 // 白名单: 范围外 (菜单条/页签/弹窗内等) 或原生控件设计尺寸的遗留项, 逐条注明原因 — 打印但不失败。
 // 运行: npm run build 后 node verifier/ui-audit/check.mjs
@@ -98,6 +101,27 @@ const AUDIT_JS = `(() => {
     if (r.height < 14 || r.width < 20) violations.push({ kind: 'tiny', path: pathOf(el), text: textOf(el), size: r.width.toFixed(1) + 'x' + r.height.toFixed(1) });
     const clip = clippedBy(el, r);
     if (clip) violations.push({ kind: 'clipped', path: pathOf(el), text: textOf(el), size: r.width.toFixed(0) + 'x' + r.height.toFixed(0), by: clip });
+    // v432: 数字框内容被裁 (值不可读 = 真 bug; 文本框横向滚动是设计行为, 不查) — v432 用户反馈
+    //   'Zoom 1.00I' 即此类: input 太窄裁掉尾位。阈值 +3: Chromium number input 的 scrollWidth
+    //   固有比 clientWidth 大 ~2 (spin button 内部占位), 167px 宽框显示 '90' 也报 +2 — 滤掉固有差
+    if (el.type === 'number' && el.scrollWidth > el.clientWidth + 3)
+      violations.push({ kind: 'num-clip', path: pathOf(el), text: textOf(el), size: r.width.toFixed(0) + 'x' + r.height.toFixed(0), scroll: el.scrollWidth + '>' + el.clientWidth });
+  }
+  // v432: 左/右栏容器横向滚动 = bug (任何一行超出栏宽; 栏内 clippedBy 对滚动容器豁免,
+  //   横向溢出会被「滚动可达」逻辑漏掉 — v432 左栏 Rotation 输入溢出到栏外正是此洞)
+  for (const col of document.querySelectorAll('[data-ui-interactive]')) {
+    const cr = col.getBoundingClientRect();
+    const isSide = cr.height > window.innerHeight * 0.5 && cr.width > 100 && cr.width < 500
+      && (cr.left <= 2 || cr.right >= window.innerWidth - 2);
+    if (!isSide || col.scrollWidth <= col.clientWidth + 1) continue;
+    // 找直接子行里最超出者作诊断 (行本身或其内容超出栏右缘)
+    let worst = '';
+    for (const row of col.querySelectorAll(':scope > *')) {
+      const rr = row.getBoundingClientRect();
+      const over = Math.max(rr.right - cr.right, row.scrollWidth - row.clientWidth);
+      if (over > 1) { worst = ' [最超出行 ' + (row.className + '').slice(0, 40) + ' 超 ' + over.toFixed(0) + 'px]'; break; }
+    }
+    violations.push({ kind: 'col-hscroll', path: pathOf(col), text: '', size: cr.width.toFixed(0) + 'x' + cr.height.toFixed(0), scroll: col.scrollWidth + '>' + col.clientWidth + worst });
   }
   return violations;
 })()`;
@@ -135,31 +159,38 @@ try {
     await sleep(900); // resize → useUiZoom 重渲染
   };
 
-  for (const [w, h] of [[2560, 1440], [1280, 720]]) {
-    await setSize(w, h);
-    const dims = await evalJs('({ iw: window.innerWidth, ih: window.innerHeight })');
-    console.log(`== ${w}×${h} (内尺寸 ${dims.iw}×${dims.ih})`);
-    // 两种选区态: 全选 (多选分支) / 单选首条滑条 (单选分支)
-    for (const selMode of ['all', 'slider']) {
-      await evalJs(`(() => {
+  // v432: 双语遍历 — normalizeEnv 归一为 en, 但溢出类 bug 与文案宽度强相关
+  //   ('Spacing'/'Rotation' 英文比中文宽很多; v432 左栏溢出只在英文下出现), zh/en 都要跑
+  for (const lang of ['en', 'zh-CN']) {
+    await evalJs(`window.__osuSetLang && window.__osuSetLang('${lang}')`);
+    await sleep(700); // 语言切换全树重渲染
+    console.log(`== 语言 ${lang}`);
+    for (const [w, h] of [[2560, 1440], [1280, 720]]) {
+      await setSize(w, h);
+      const dims = await evalJs('({ iw: window.innerWidth, ih: window.innerHeight })');
+      console.log(`== ${w}×${h} (内尺寸 ${dims.iw}×${dims.ih})`);
+      // 两种选区态: 全选 (多选分支) / 单选首条滑条 (单选分支)
+      for (const selMode of ['all', 'slider']) {
+        await evalJs(`(() => {
         const store = window.__osuStore;
         const objs = store.beatmap.hitObjects;
         if ('${selMode}' === 'all') store.select(objs.map(o => o.id));
         else { const s = objs.find(o => o.type === 'slider') ?? objs[0]; store.select(s ? [s.id] : []); }
       })()`);
-      await sleep(400);
-      const violations = await evalJs(AUDIT_JS);
-      const fresh = violations.filter(v => {
-        const key = `${w}x${h}|${v.kind}|${v.path}|${v.text}`;
-        if (seen.has(key)) return false;
-        seen.add(key);
-        return true;
-      });
-      for (const v of fresh) {
-        const wl = WHITELIST.find(x => (v.path.includes(x.path ?? '￿') || v.text.includes(x.text ?? '￿')) && (!x.kind || x.kind === v.kind));
-        const line = `  [${v.kind}] ${v.path} | "${v.text}" | ${v.size}${v.lines ? ` | ${v.lines} 行` : ''}${v.scroll ? ' | scroll ' + v.scroll : ''}${v.by ? ' | 裁剪自 ' + v.by : ''} (${selMode} 选区)`;
-        if (wl) console.log(line + `  — 白名单: ${wl.reason}`);
-        else { failures++; console.error(line); }
+        await sleep(400);
+        const violations = await evalJs(AUDIT_JS);
+        const fresh = violations.filter(v => {
+          const key = `${lang}|${w}x${h}|${v.kind}|${v.path}|${v.text}`;
+          if (seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        });
+        for (const v of fresh) {
+          const wl = WHITELIST.find(x => (v.path.includes(x.path ?? '￿') || v.text.includes(x.text ?? '￿')) && (!x.kind || x.kind === v.kind));
+          const line = `  [${v.kind}] ${v.path} | "${v.text}" | ${v.size}${v.lines ? ` | ${v.lines} 行` : ''}${v.scroll ? ' | scroll ' + v.scroll : ''}${v.by ? ' | 裁剪自 ' + v.by : ''} (${selMode} 选区)`;
+          if (wl) console.log(line + `  — 白名单: ${wl.reason}`);
+          else { failures++; console.error(line); }
+        }
       }
     }
   }

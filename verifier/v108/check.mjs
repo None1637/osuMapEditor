@@ -24,7 +24,7 @@ assert(iTb === -1 && !/osu! 谱面编辑器/.test(app), 'v127: 顶部标题行 (
 // 布局骨架: 页签栏 → 上时间轴 → 主区域行(左侧栏 + 内容) → 下时间轴 (v109 适配: 侧栏移入主区域行; v127: 工具栏行删除)
 assert(iSide > 0 && iEdit > iSide, '结构顺序: 左侧栏 → 页签内容');
 assert(/flex-1 flex min-h-0/.test(app), '主区域 = 横向 flex 行 (左栏 + 内容)');
-assert(/shrink-0 bg-\[#16161d\]\/75 border-r border-white\/10 overflow-y-auto flex flex-col[\s\S]{0,140}?width: 224 \/ uiZoom/.test(app), '左侧栏容器 (v428: 视觉恒定 224 = 224/uiZoom, 纵向滚动)'); // v428 适配: w-56 改 style 宽度
+assert(/shrink-0 bg-\[#16161d\]\/75 border-r border-white\/10 overflow-y-auto( overflow-x-clip)? flex flex-col[\s\S]{0,140}?width: 224 \/ uiZoom/.test(app), '左侧栏容器 (v428: 视觉恒定 224 = 224/uiZoom, 纵向滚动; v432: overflow-x-clip 横向兜底)'); // v428 适配: w-56 改 style 宽度; v432 适配: 加 overflow-x-clip
 assert(app.indexOf('页签栏') < iSide && app.indexOf('<TopTimeline />') < iSide, 'v109: 页签栏/上时间轴在左侧栏之前 (侧栏在上时间轴下方)');
 assert(app.indexOf('<BottomTimeline />') > iEdit, 'v109: 下时间轴在主区域行之后 (侧栏在下时间轴上方)');
 

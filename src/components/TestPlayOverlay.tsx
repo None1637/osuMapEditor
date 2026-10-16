@@ -362,6 +362,8 @@ export function TestPlayOverlay({ onClose }: { onClose: () => void }) {
 
   return (
     <div className="fixed inset-0 z-[80] bg-black cursor-none" data-testid="testplay-overlay" // v416: 游玩时隐藏系统光标
+      data-dialog="testplay" // v436: 游玩测试只读 — EditorCanvas window 捕获穿透链 (v431) 遇 data-dialog 直接放行,
+      //   游玩中左/右键不再能选中/拖动物件与滑条锚点 (此前实测可拖节点); 击打输入由本覆盖层自处理不受影响
       onContextMenu={(e) => e.preventDefault()}>
       <canvas ref={canvasRef} className="w-full h-full block cursor-none" /> {/* v416 */}
       {/* v294: mod 栏 (左上角; 切换即重开会话) */}

@@ -28,7 +28,8 @@ section('App.tsx: 左栏控件 whitespace-nowrap 韧性');
 {
   const src = readSrc('src/App.tsx');
   assert((src.match(/text-left px-3 py-1\.5 rounded whitespace-nowrap/g) ?? []).length === 15, '栏内 px-3 py-1.5 按钮 ×15 nowrap (曲库皮肤/工具/各开关)');
-  assert((src.match(/flex items-center gap-1\.5 text-sm text-white\/70 px-1 whitespace-nowrap/g) ?? []).length === 6, '标签行 ×6 nowrap (节拍/倍率/ZoomRot/xy/间距旋转/原点坐标)');
+  // v432 适配: ZoomRot 拆两行 + 间距旋转拆两行 (英文溢出修复) — 标签行 6 → 8
+  assert((src.match(/flex items-center gap-1\.5 text-sm text-white\/70 px-1 whitespace-nowrap/g) ?? []).length === 8, '标签行 ×8 nowrap (节拍/倍率/Zoom/Rot/xy/间距/旋转/原点坐标; v432 两行各拆二)');
   assert((src.match(/flex-1 px-2 py-1\.5 rounded whitespace-nowrap bg-white\/10/g) ?? []).length === 2, '撤销/重做半宽按钮 ×2 nowrap');
   assert(/flex items-center gap-0\.5 whitespace-nowrap \$\{grow/.test(src), 'PanNumInput nowrap');
   // Grid Snap 按钮 (截图问题原件) 在 15 枚集合内, 单独确认钩子

@@ -77,14 +77,7 @@ export const zhCN: Record<string, string> = {
   'hotkey.add_binding': '再绑一个键',
   'hotkey.remove_binding': '删除该绑定 (删光恢复默认)',
   'hotkey.fixed.title': '固定键位 (不可修改)',
-  'hotkey.fixed.alt_click_anchor': 'Alt+点击 — 选中/取消滑条锚点',
-  'hotkey.fixed.alt_drag_anchor': 'Alt+拖动 — 框选滑条锚点',
-  'hotkey.fixed.alt_shift_drag_anchor': 'Alt+Shift+拖动 — 锚点框选减选',
-  'hotkey.fixed.ctrl_click_anchor': 'Ctrl+点击 (选中滑条) — 插入锚点',
-  'hotkey.fixed.ctrl_wheel': 'Ctrl+滚轮 — 游玩区循环节拍细分',
-  'hotkey.fixed.shift_number_snap': 'Shift+数字1-8 — 设节拍细分',
-  'hotkey.fixed.wheel_seek': '滚轮 — 移动时间',
-  'hotkey.fixed.right_click': '右键 — 完成滑条 / 删除物件',
+  // v434: 旧 hotkey.fixed.* 明细条目移除 — 固定手势复用 app.hk_* 词条 (与右栏速查面板同源)
   'hotkey.footer_hint': '点击键位后按下新组合即可改键; + 可为同一动作再绑一个键; 关闭编辑器后保留',
   'hotkey.reset_all': '全部恢复默认',
   // 键名展示 (formatCombo)

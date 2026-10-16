@@ -106,7 +106,8 @@ function GridSpacingInput({ disabled }: { disabled: boolean }) {
         }
       }}
       onBlur={() => setText(null)}
-      className="w-12 bg-black/40 border border-white/15 rounded px-1 py-0.5 text-right" />
+      // v432: w-12 → flex-1 min-w-0 (Spacing 独占一行后拉满; 固定宽堆砌是 v432 栏横向溢出源)
+      className="flex-1 min-w-0 bg-black/40 border border-white/15 rounded px-1 py-0.5 text-right" />
   );
 }
 
@@ -618,7 +619,10 @@ export default function App() {
         {/* 左侧栏 */}
         {/* v428: 同 v426 右栏方案 — 视觉宽度恒定 224px (布局宽 = 224/zoom 抵消根容器 CSS zoom), 小窗口下左栏控件不再被压换行;
             栏内按钮/标签行统一 whitespace-nowrap (含曲库皮肤半宽/工具/各开关/Grid Snap/间距旋转行/撤销重做, PanNumInput 同步), 只改样式不改功能 */}
-        <div className="shrink-0 bg-[#16161d]/75 border-r border-white/10 overflow-y-auto flex flex-col gap-1.5 px-2 py-2 text-sm pointer-events-auto" data-ui-interactive
+        {/* v432: overflow-x-clip 兜底 — 左栏出现横向滚动 = bug (v432 实测 Rotation 输入溢出栏外 61px), 各行已重构为
+            label shrink-0 + 输入框 flex-1 min-w-0 (主修复); 裁剪只是最后防线, 会掩盖未来的视觉溢出,
+            但 ui-audit col-hscroll 按 scrollWidth 口径检测, 超出行照样被抓 — 有恃无恐才加裁剪 */}
+        <div className="shrink-0 bg-[#16161d]/75 border-r border-white/10 overflow-y-auto overflow-x-clip flex flex-col gap-1.5 px-2 py-2 text-sm pointer-events-auto" data-ui-interactive
           style={{ width: 224 / uiZoom }}>
           {/* 文件 (v151: 曲库/皮肤各半宽, 并排一行) */}
           <div className="flex gap-1.5">
@@ -697,6 +701,8 @@ export default function App() {
               <Move className="inline-block w-4 h-4 mr-1 -mt-0.5" />{t('app.playfield_pan', 'Playfield Pan')}
             </button>
           </div>
+          {/* v432 曾拆两行防英文溢出; v435: 恢复单行紧凑 — Zoom/Rot 两个输入框平分一行 (同 x/y 行),
+              用户反馈独占一行的输入框过大; en 标签本来就短 (Zoom/Rot), zh 缩放/旋转更短 */}
           <div className="flex items-center gap-1.5 text-sm text-white/70 px-1 whitespace-nowrap">
             {/* v367: 缩放精细度 ×10 — 步进 0.1→0.01, 显示 2 位→3 位小数 (用户反馈调整精细度不够) */}
             <PanNumInput label="Zoom" labelKey="app.playfield_zoom" grow value={Math.round(store.playfieldScale * 1000) / 1000} step={0.01} min={0.1} max={10} digits={3}
@@ -713,7 +719,7 @@ export default function App() {
           </div>
           <div className="h-px bg-white/15 mx-1 my-0.5" />
           {/* v56: 网格吸附 (lazer OsuGridToolboxGroup): 开关 + 类型 + 间距 (写回 GridSize) + 旋转 (圆形禁用);
-              v151: 吸附开关与类型下拉各半宽放一行; 间距与旋转放一行 */}
+              v151: 吸附开关与类型下拉各半宽放一行; 间距/旋转原同行, v432 拆两行 (英文放不下) */}
           <div className="flex gap-1.5">
             <button onClick={() => { store.gridSnap = !store.gridSnap; store.emit(); }}
               className={`flex-1 min-w-0 text-left px-3 py-1.5 rounded whitespace-nowrap ${store.gridSnap ? 'bg-cyan-500/40 border border-cyan-400/50' : 'bg-white/10 hover:bg-white/20'}`}
@@ -734,22 +740,21 @@ export default function App() {
               <option value="none">{t('app.grid_none', 'No Grid')}</option>
             </select>
           </div>
-          <div className="flex items-center gap-1.5 text-sm text-white/70 px-1 whitespace-nowrap">
-            <span className="flex items-center gap-1" title={t('app.grid_spacing_title', 'Grid spacing (lazer GridLineSpacing 4..256, written back to [Editor] GridSize)')}>
-              {t('app.grid_spacing', 'Spacing')} <GridSpacingInput disabled={!bm} /> px
-            </span>
-            <span className="flex-1" />
-            <span className="flex items-center gap-1" title={t('app.grid_rotation_title', 'Grid rotation (degrees; disabled for circle grid — lazer GridLinesRotation.Disabled)')}>
-              {t('app.grid_rotation', 'Rotation')}
-              <input type="number" step={1} disabled={!bm || store.gridType === 'circle' || store.gridType === 'none'} data-grid-input="rotation"
-                value={Math.round(store.gridRotation * 10) / 10}
-                onChange={e => {
-                  const v = parseFloat(e.target.value);
-                  if (isFinite(v)) store.setGridRotation(Math.max(-180, Math.min(180, v))); // v278: 走 setter 持久化 (内含 emit)
-                }}
-                className="w-14 bg-black/40 border border-white/15 rounded px-1 py-0.5 text-right disabled:opacity-30" />
-              °
-            </span>
+          {/* v432 曾拆两行防英文溢出; v435: 恢复单行紧凑 — en 'Rotation' 简写为 'Rot' (用户点名认可,
+              与 Playfield Pan 的 Rot 一致), Spacing/Rot 输入框 flex-1 平分剩余宽度, 不再独占整行 */}
+          <div className="flex items-center gap-1.5 text-sm text-white/70 px-1 whitespace-nowrap" title={t('app.grid_spacing_title', 'Grid spacing (lazer GridLineSpacing 4..256, written back to [Editor] GridSize)')}>
+            <span className="shrink-0">{t('app.grid_spacing', 'Space')}</span> {/* v435b: en 'Spacing'→'Space' (用户反馈, 更短) */}
+            <GridSpacingInput disabled={!bm} />
+            <span className="shrink-0">px</span>
+            <span className="shrink-0" title={t('app.grid_rotation_title', 'Grid rotation (degrees; disabled for circle grid — lazer GridLinesRotation.Disabled)')}>{t('app.grid_rotation', 'Rot')}</span>
+            <input type="number" step={1} disabled={!bm || store.gridType === 'circle' || store.gridType === 'none'} data-grid-input="rotation"
+              value={Math.round(store.gridRotation * 10) / 10}
+              onChange={e => {
+                const v = parseFloat(e.target.value);
+                if (isFinite(v)) store.setGridRotation(Math.max(-180, Math.min(180, v))); // v278: 走 setter 持久化 (内含 emit)
+              }}
+              className="flex-1 min-w-0 bg-black/40 border border-white/15 rounded px-1 py-0.5 text-right disabled:opacity-30" />
+            <span className="shrink-0">°</span>
           </div>
           {/* v78: 自定义网格中心 (lazer StartPositionX/Y 可配): 开关 + x/y 输入; 画布上青色标记可拖拽 */}
           <button onClick={() => store.setGridOriginCustom(!store.gridOriginCustom)} disabled={!bm}
@@ -861,12 +866,12 @@ export default function App() {
                 {/* v321 (F21): 提示全部经 hotkeyLabel 取当前生效绑定, 改键后同步 */}
                 <div>{hotkeyLabel('play-pause')} {t('app.hk_play_pause', 'play/pause')}</div>
                 <div>{TOOLS.map(tool => hotkeyLabel(tool.action)).join('/')} {t('app.hk_switch_tool', 'switch tool')}</div>
-                <div>{hotkeyLabel('copy')}/{hotkeyLabel('paste')} {t('app.hk_copy_paste', 'copy/paste')}</div>
+                <div>{hotkeyLabel('copy')}/{hotkeyLabel('paste')} {t('app.hk_copy_paste', 'copy/paste (objects / selected anchors)')}</div>
                 <div>{hotkeyLabel('undo')}/{hotkeyLabel('redo')} {t('app.undo', 'Undo')}/{t('app.redo', 'Redo')}</div>
                 <div>{hotkeyLabel('save')} {t('app.hk_save', 'save beatmap')}</div>
                 <div>{hotkeyLabel('bookmark-add')} {t('app.hk_bookmark_add', 'add bookmark')} · {hotkeyLabel('bookmark-remove')} {t('app.hk_bookmark_remove', 'remove bookmark')}</div>
                 <div>{hotkeyLabel('bookmark-prev')}/{hotkeyLabel('bookmark-next')} {t('app.hk_bookmark_jump', 'jump to previous/next bookmark')}</div>
-                <div>{hotkeyLabel('delete')} {t('app.hk_delete', 'delete selection')}</div>
+                <div>{hotkeyLabel('delete')} {t('app.hk_delete', 'delete selection (objects / selected anchors)')}</div>
                 <div>{t('app.hk_box_select', 'drag on empty area: box select (Shift to add)')}</div>
                 <div>{t('app.hk_ctrl_click', 'Ctrl+click object: add/remove from selection')}</div>
                 <div>{hotkeyLabel('reverse')} {t('app.hk_reverse', 'reverse selection (time mirror + path reversal)')}</div>
@@ -879,6 +884,23 @@ export default function App() {
                 <div>{hotkeyLabel('seek-left')}/{hotkeyLabel('seek-right')} {t('app.hk_seek', 'move time by beats (Shift = 4 beats)')}</div>
                 <div>{hotkeyLabel('ctrl-left')}/{hotkeyLabel('ctrl-right')} {t('app.hk_jump_object', 'jump to previous/next object')}</div>
                 <div>{t('app.hk_node_edit', 'with a slider selected, drag the white nodes to edit its shape')}</div>
+                {/* v433: 固定手势盘点补全 — 不在可改键注册表 (hotkeys.ts) 的鼠标手势/修饰组合/固定按键,
+                    此前面板只列可改键动作, Alt+拖滑条尾改 SV (v407) 等固定手势无处可查; 按区两组补全。
+                    可改键的固定默认 (中键平移/Alt+滚轮缩放/QWER 放置预设等) 在快捷键设置面板可见, 不重复 */}
+                <div className="font-bold text-white/50 pt-1">{t('app.hk_grp_playfield', 'Playfield gestures')}</div>
+                <div>{t('app.hk_rc_delete', 'right-click object: delete (deletes selection if selected)')}</div>
+                <div>{t('app.hk_handles', 'selection handles: drag to rotate/scale (Shift = snap 15°/lock ratio, Alt = default origin)')}</div>
+                <div>{t('app.hk_anchor_select', 'anchors: click to select · Alt+click to toggle · Alt+drag empty area = box select · Shift = subtract')}</div>
+                <div>{t('app.hk_anchor_ctrl', 'Ctrl+click slider: insert anchor · Ctrl+click anchor: drag, release to toggle red')}</div>
+                <div>{t('app.hk_anchor_rc', 'right-click anchor: delete white point / merge red to white')}</div>
+                <div>{t('app.hk_snap_wheel', 'Ctrl+wheel: beat snap ×2/÷2 · Shift+1..8: set snap divisor directly')}</div>
+                <div>{t('app.hk_slider_place', 'slider placement: Ctrl+click = red anchor · hold & drag = freehand · double-click last point = red · right-click/click head = finish')}</div>
+                <div>{t('app.hk_marker_drag', 'dialog markers (duplicate vector / symmetry anchors / grid origin) are draggable on the playfield')}</div>
+                <div className="font-bold text-white/50 pt-1">{t('app.hk_grp_timeline', 'Timeline gestures')}</div>
+                <div>{t('app.hk_tl_drag', 'drag object/bar/green line: retime · drag spinner right edge: duration')}</div>
+                <div>{t('app.hk_tl_tail', 'drag slider tail: repeat count · Alt+drag tail: SV (green line) · click repeat circle: select node')}</div>
+                <div>{t('app.hk_tl_pill', 'double-click BPM/SV pill: edit dialog · right-click object/green line: delete')}</div>
+                <div>{t('app.hk_tl_seek', 'bottom timeline: click/drag to seek')}</div>
               </div>
             </div>
           </div>

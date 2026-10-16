@@ -204,19 +204,29 @@ export function HotkeyPanel() {
           </div>
         ))}
       </div>
-      {/* v321 (F18c): 固定键位分区 (不可改键的鼠标/系统组合, 仅展示) */}
+      {/* v321 (F18c): 固定键位分区 (不可改键的鼠标/系统组合, 仅展示);
+          v434: 按 v433 盘点 (verifier/v433/inventory.md) 补全固定手势 — 复用右栏速查面板 app.hk_* 词条, 游玩区/时间轴两子组 */}
       <div className="mt-2 border-t border-osu-border pt-2" data-testid="hotkey-fixed-section">
         <div className="mb-1 text-[13px] font-bold uppercase tracking-wider text-osu-textdim">{t('hotkey.fixed.title', 'Fixed Bindings (Not Customizable)')}</div>
         <div className="grid grid-cols-2 gap-x-4 gap-y-0.5 text-[12px] text-osu-textdim">
-          <span>{t('hotkey.fixed.alt_click_anchor', 'Alt+Click — Select/Deselect Slider Anchors')}</span>
-          <span>{t('hotkey.fixed.alt_drag_anchor', 'Alt+Drag — Box Select Slider Anchors')}</span>
-          <span>{t('hotkey.fixed.alt_shift_drag_anchor', 'Alt+Shift+Drag — Box Select (Subtract) Anchors')}</span>
-          <span>{t('hotkey.fixed.ctrl_click_anchor', 'Ctrl+Click (Selected Slider) — Insert Anchor')}</span>
-          {/* v330: 中键平移/Alt+滚轮缩放/锁定间距移入可改键列表 (游玩区分类) */}
-          <span>{t('hotkey.fixed.ctrl_wheel', 'Ctrl+Wheel — Cycle Beat Snap Divisor (Playfield)')}</span>
-          <span>{t('hotkey.fixed.shift_number_snap', 'Shift+1-8 — Set Beat Snap Divisor')}</span>
-          <span>{t('hotkey.fixed.wheel_seek', 'Wheel — Seek Time')}</span>
-          <span>{t('hotkey.fixed.right_click', 'Right Click — Finish Slider / Delete Object')}</span>
+          <span className="col-span-2 mt-0.5 font-bold">{t('app.hk_grp_playfield', 'Playfield gestures')}</span>
+          <span>{t('app.hk_rc_delete', 'right-click object: delete (deletes selection if selected)')}</span>
+          <span>{t('app.hk_handles', 'selection handles: drag to rotate/scale (Shift = snap 15°/lock ratio, Alt = default origin)')}</span>
+          <span>{t('app.hk_box_select', 'drag on empty area: box select (Shift to add)')}</span>
+          <span>{t('app.hk_ctrl_click', 'Ctrl+click object: add/remove from selection')}</span>
+          <span>{t('app.hk_anchor_select', 'anchors: click to select · Alt+click to toggle · Alt+drag empty area = box select · Shift = subtract')}</span>
+          <span>{t('app.hk_anchor_ctrl', 'Ctrl+click slider: insert anchor · Ctrl+click anchor: drag, release to toggle red')}</span>
+          <span>{t('app.hk_anchor_rc', 'right-click anchor: delete white point / merge red to white')}</span>
+          <span>{t('app.hk_snap_wheel', 'Ctrl+wheel: beat snap ×2/÷2 · Shift+1..8: set snap divisor directly')}</span>
+          <span>{t('app.hk_wheel', 'mouse wheel: move time by beats')}</span>
+          <span>{t('app.hk_node_edit', 'with a slider selected, drag the white nodes to edit its shape')}</span>
+          <span>{t('app.hk_slider_place', 'slider placement: Ctrl+click = red anchor · hold & drag = freehand · double-click last point = red · right-click/click head = finish')}</span>
+          <span>{t('app.hk_marker_drag', 'dialog markers (duplicate vector / symmetry anchors / grid origin) are draggable on the playfield')}</span>
+          <span className="col-span-2 mt-1 font-bold">{t('app.hk_grp_timeline', 'Timeline gestures')}</span>
+          <span>{t('app.hk_tl_drag', 'drag object/bar/green line: retime · drag spinner right edge: duration')}</span>
+          <span>{t('app.hk_tl_tail', 'drag slider tail: repeat count · Alt+drag tail: SV (green line) · click repeat circle: select node')}</span>
+          <span>{t('app.hk_tl_pill', 'double-click BPM/SV pill: edit dialog · right-click object/green line: delete')}</span>
+          <span>{t('app.hk_tl_seek', 'bottom timeline: click/drag to seek')}</span>
         </div>
       </div>
       <div className="mt-2 flex items-center justify-between">

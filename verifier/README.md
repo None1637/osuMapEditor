@@ -4613,3 +4613,82 @@
 - 回归: tsc + vite build 通过; v360/v401/v402/v404/v411/v413/v409/v410/v346 全绿;
   ui-audit UI_AUDIT_CLEAN; v361 两处失败为适配 (v431 移动 [data-dialog] 写法 + v428 左栏
   去 w-56 class 致 `div.w-56` 选择器失效 → 改几何特征查找), 适配后全绿。
+
+## v432 — 左栏英文横向溢出修复 (Zoom 输入被裁 / Grid Rotation 溢出栏外)
+- 用户反馈 (英文界面截图): ① Playfield Pan 'Zoom [1.000] Rot [0.0]' 同行, 英文 label 把输入框
+  挤到 ~55px, '1.000' 尾位被裁; ② Grid Snap 'Spacing [32] px … Rotation [90.0] °' 同行,
+  实测 ~276px 超栏内容宽 223px, 左栏出现横向滚动条, Rotation 输入溢出栏外要滚动才摸得到。
+- 根因: 左栏视觉宽恒定 224px (v428), 两行按中文宽度设计 ('间距'/'旋转' 2 字 ≈ 'Spacing'/
+  'Rotation' 一半宽), 英文必然溢出; 旧 ui-audit 漏检 — clippedBy 对滚动容器豁免
+  (overflow-y:auto 连带横向也可滚 → 「滚动可达」不算裁切)。
+- 修复 (行重构为主, 裁剪兜底为辅):
+  - App.tsx: Zoom/Rot 拆两行, Spacing/Rotation 拆两行 — 各 label shrink-0 + 输入框
+    flex-1 min-w-0 拉满剩余宽 (x/y 行不变); GridSpacingInput w-12 → flex-1 min-w-0,
+    rotation input w-14 → flex-1 min-w-0 (消灭固定宽堆砌);
+  - 左栏容器加 overflow-x-clip 兜底, 注释注明: 裁剪会掩盖未来视觉问题, 但 ui-audit
+    col-hscroll 按 scrollWidth 口径检测不受影响, 有恃无恐才加。
+- ui-audit 扩展 (verifier/ui-audit/check.mjs):
+  - 双语遍历 en/zh-CN (原只靠 normalizeEnv 归一 en; 溢出与文案宽度强相关, 两种都要跑);
+  - col-hscroll: 左/右栏容器 scrollWidth > clientWidth+1 → 违规 (附最超出行诊断) —
+    堵「滚动可达」豁免漏洞;
+  - num-clip: type=number 且 scrollWidth > clientWidth+3 → 违规 (数字裁位不可读;
+    +3 阈值滤 Chromium spin button 固有 ~2px 占位 — 167px 宽框显示 '90' 也报 +2 的
+    固有差实测确认)。
+- en 首跑抓到 (全部即本版修复对象): Zoom num-clip 59>53, 左栏 col-hscroll 276>223
+  (最超出行超 61px), spacing num-clip 47>45 (固有差, 阈值化后消); zh 无新增。
+- 验证 (verifier/v432/check.mjs): 源码断言 (两行各自独占/无 w-12/w-14 固定宽/左栏
+  overflow-x-clip/ui-audit 三能力) + ui-audit 子进程双语两档 UI_AUDIT_CLEAN + tsc。
+- 回归: tsc + vite build 通过; v426/v425/v149/v346/v361 全绿; v428/v108 适配后绿或与
+  HEAD 持平 (v428 标签行 6→8, v108 容器 class 加 overflow-x-clip); v217(1)/v108(1)/
+  v109(1) 失败经 git stash 对比均为 HEAD 遗留 (数目持平)。
+
+## v433 — 快捷键速查面板补全固定手势 (Alt+拖滑条尾改 SV 等)
+- 用户反馈: 「Alt+左键拖动上方时间轴滑条尾改绿线 SV」(v407) 在快捷键速查面板看不到描述。
+  要求系统盘点所有固定交互 (不在可改键注册表 hotkeys.ts 的鼠标手势/修饰组合/固定按键),
+  凡速查面板未列的全补。
+- 盘点 (grep EditorCanvas/Timelines/App 全部修饰键/鼠标分支, 对照表 verifier/v433/inventory.md):
+  41 项 — ✅已有 5 (框选/Ctrl+点选/滚轮走时间等) / 📋注册表 10 (Alt+滚轮缩放、中键平移、
+  Q/W/E/R 放置预设、时间轴缩放滚轮等 — 设置面板可见可改, 不重复) / — 不单列 4 (基础拖动、
+  转盘右键完成等, 注明原因) / ➕新增 12 条 + 2 条文案更新。
+- 新增条目 (App.tsx 右栏 cheatsheet, 两个子分组):
+  - 游玩区手势: 右键物件删除 (v30/v114) / 选框手柄旋转缩放+Shift/Alt 修饰 (v49/v50) /
+    锚点点选·Alt 切换·Alt 框选·Shift 减选 (v371/v410/v266/v317) / Ctrl+点击插锚点·Ctrl+点锚点
+    转红 (v319/v326/v413/v118) / 右键锚点删白点红转白 (v29/v400) / Ctrl+滚轮吸附加倍减半·
+    Shift+1..8 设细分 (v334/v321) / 滑条放置 Ctrl=红点·拖动=手绘·双击末点置红·右键完成
+    (v208/v66/v318) / 弹窗标记可拖动 (v313);
+  - 时间轴手势: 拖物件/连体条/绿线改时间·拖转盘右缘改时长 (v32/v142/v102/v320) /
+    拖滑条尾改折返·**Alt+拖尾改 SV**·点折返圆选节点 (v35/v407/v213 ← 用户点名) /
+    双击 BPM/SV 药丸编辑·右键物件/绿线删除 (v63/v31/v113) / 下时间轴点击拖动跳转;
+  - 文案更新: hk_copy_paste/hk_delete 补「物件/选中锚点」(v408/v424)。
+- 用户候选答复: 在锚点处分割 (v409) 无快捷键 (Inspector 按钮); Ctrl+拖拽无此手势;
+  双击时间轴仅药丸编辑; Q/W/E/R 与中键/Alt+滚轮均在注册表。
+- 词典: zh-CN app.ts +16 key; s2t 补 势补绘 (S2T_TABLE) + 末 (S2T_SAME); en 走 t() 回退。
+- 验证 (verifier/v433/check.mjs): 新增 key ⊆ zh 词典且面板引用 / 更新文案含锚点中英对应 /
+  注册表与画布无 v433 痕迹 (纯文档) / 对照表覆盖全部用户候选 / tsc。全绿。
+- 回归: tsc + vite build 通过; v346 (含 s2t 覆盖率/CDP 四语言) / ui-audit (面板变长无换行溢出,
+  双语两档 CLEAN) / v432 / v428 全绿。
+
+## v434 — 快捷键设置界面固定键位区补全
+- 用户指正: v433 补的是右栏速查面板, 但要看的是**快捷键设置界面** (HotkeyPanel)。
+- 改动: HotkeyPanel.tsx 固定键位区重构为「游玩区/时间轴」两子组, 复用 v433 速查面板的
+  app.hk_* 词条 (同源, 双语一致); 旧 hotkey.fixed.* 八条明细 (与新条目重复) 从组件与 zh-CN/hotkey.ts
+  词典移除, 仅留 fixed.title。右栏速查面板 v433 内容保留。
+- 验证: tsc 通过 (本轮起应用户要求不跑回归批测, 太慢)。
+
+## v435 — 左栏 Playfield Pan / Grid Snap 恢复紧凑单行
+- 用户反馈: v432 拆两行后输入框独占整行过大; 「为什么不简写英文的旋转为 rot 而是要改大输入框」。
+- 改动 (App.tsx): Zoom/Rot 恢复单行 (两个 grow PanNumInput 平分, 同 x/y 行; en 标签本就 Zoom/Rot);
+  Grid Snap 的 Spacing/Rotation 恢复单行, en 标签 'Rotation'→'Rot' (与 Playfield Pan 一致, zh 旋转 不变),
+  输入框 flex-1 min-w-0 平分剩余宽度。v432 的 overflow-x-clip 兜底与 ui-audit col-hscroll/num-clip 检测保留。
+- 适配: verifier/v432/check.mjs 两段结构断言改写为 v435 单行口径 (注释标注)。
+- 验证: tsc 通过。
+
+## v436 — 测试游玩只读 (禁改任何物件)
+- 用户实测: 游玩测试界面中还能拖动滑条节点。
+- 根因: EditorCanvas 的 window 捕获穿透链 (v378/v404) 不感知 TestPlayOverlay,
+  覆盖层全屏但左/右键事件仍被链上锚点/物件分支消费。
+- 修复 (TestPlayOverlay.tsx): 根元素加 data-dialog="testplay" — v431 的弹窗排除
+  (`el.closest('[data-dialog]') return`, 左键 onDown :552 / 右键 onCtx :572) 直接放行,
+  游玩中无法选中/拖动/删除物件与锚点; 击打输入由覆盖层自处理不受影响; 键盘与菜单本就有
+  testPlay 屏蔽 (App.tsx:278/412)。
+- 验证: tsc 通过; 源码确认 v431 排除点在锚点判定之前。
