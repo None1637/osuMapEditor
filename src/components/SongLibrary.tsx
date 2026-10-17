@@ -487,7 +487,7 @@ export function SongLibrary({ onClose }: { onClose: () => void }) {
       const r = await loadDifficulty(d.handle, fileName);
       if (!r) return;
       // v67: 记录谱面来源 (目录 + 原文件名), Ctrl+S 保存时写回该文件
-      store.load(r.bm, r.audioUrl, r.bgUrl, r.samples, { dir: d.handle, fileName });
+      store.load(r.bm, r.audioUrl, r.bgUrl, r.samples, { dir: d.handle, fileName }, r.audioKey); // v444
       say(tNow('library.loaded', 'Loaded: {name}', { name: fileName }));
       if (r.audioMissing) alert(tNow('library.audio_missing', 'Beatmap loaded, but no audio file was found (a synthesized metronome will be used).'));
       onClose();

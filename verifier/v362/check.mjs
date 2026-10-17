@@ -88,7 +88,9 @@ section('CDP: 覆盖区单锚点拖拽/Alt/Ctrl/seek/幽灵预览');
       const bottomC = document.querySelector('canvas.flex-1');
       const br = bottomC.getBoundingClientRect();
       const a1 = toOsu(br.left + br.width / 2, br.top + br.height / 2);
-      const side = document.querySelector('div.w-56');
+      // v442 适配 (同 v361/v428): 左栏去 w-56 class 改 style 宽度 (224/uiZoom) — 按几何特征找 (贴左缘/高等同主区/宽 ~224 的 data-ui-interactive 列)
+      const side = [...document.querySelectorAll('[data-ui-interactive]')]
+        .find(el => { const r = el.getBoundingClientRect(); return r.left <= 2 && r.height > window.innerHeight * 0.5 && r.width > 100 && r.width < 400; });
       const sr = side.getBoundingClientRect();
       const a2 = toOsu(sr.left + sr.width / 2, sr.top + Math.min(300, sr.height / 2));
       const base = store.beatmap;
@@ -132,7 +134,8 @@ section('CDP: 覆盖区单锚点拖拽/Alt/Ctrl/seek/幽灵预览');
       store.select([962002]);
       const o = store.beatmap.hitObjects.find(x => x.id === 962002);
       const pt = window.__osuToClient(o.curvePoints[0].x, o.curvePoints[0].y);
-      const side = document.querySelector('div.w-56');
+      const side = [...document.querySelectorAll('[data-ui-interactive]')] // v442 适配 (同 v361/v428): 左栏去 w-56 class, 按几何特征找
+        .find(el => { const r = el.getBoundingClientRect(); return r.left <= 2 && r.height > window.innerHeight * 0.5 && r.width > 100 && r.width < 400; });
       const consumed = !side.dispatchEvent(new MouseEvent('mousedown', { clientX: pt.x, clientY: pt.y, button: 0, bubbles: true, cancelable: true }));
       const started = store.canvasDragging;
       window.dispatchEvent(new MouseEvent('mousemove', { clientX: pt.x, clientY: pt.y + 60, bubbles: true }));
@@ -154,9 +157,10 @@ section('CDP: 覆盖区单锚点拖拽/Alt/Ctrl/seek/幽灵预览');
       const bottomC = document.querySelector('canvas.flex-1');
       const consumed = !bottomC.dispatchEvent(new MouseEvent('mousedown', { clientX: pt.x, clientY: pt.y, button: 0, altKey: true, bubbles: true, cancelable: true }));
       window.dispatchEvent(new MouseEvent('mouseup', { clientX: pt.x, clientY: pt.y, bubbles: true }));
-      return { consumed, nodeSel: !!store.selectedNodes.get(962001)?.has(1), objSelCleared: store.selected.size === 0 };
+      return { consumed, nodeSel: !!store.selectedNodes.get(962001)?.has(1), objSelKept: store.selected.has(962001) };
     })()`);
-    assert(rC.consumed && rC.nodeSel && rC.objSelCleared, 'C: 下时间轴 Alt+点击锚点 = 切换节点选中 (穿透, 不 seek)');
+    // v441 适配: Alt 点选不再清物件选区 (原断言 objSelCleared 废除, 改为物件选区保留)
+    assert(rC.consumed && rC.nodeSel && rC.objSelKept, 'C: 下时间轴 Alt+点击锚点 = 切换节点选中 (穿透, 不 seek); v441: 物件选区保留');
 
     // D: 无锚点处下时间轴点击 — 正常 seek (穿透不影响原行为); 先清节点选区避免整组拖拽黄框语义
     const rD = await evalJs(`(() => {
@@ -192,7 +196,9 @@ section('CDP: 覆盖区单锚点拖拽/Alt/Ctrl/seek/幽灵预览');
     // F: 控件优先 — 侧栏按钮上的 mousedown 不被穿透吞掉
     const rF = await evalJs(`(() => {
       const store = window.__osuStore;
-      const btn = document.querySelector('div.w-56 button');
+      const btn = [...document.querySelectorAll('[data-ui-interactive]')] // v442 适配 (同 v361/v428): 左栏去 w-56 class, 按几何特征找
+        .find(el => { const r = el.getBoundingClientRect(); return r.left <= 2 && r.height > window.innerHeight * 0.5 && r.width > 100 && r.width < 400; })
+        .querySelector('button');
       const r = btn.getBoundingClientRect();
       const consumed = !btn.dispatchEvent(new MouseEvent('mousedown', { clientX: r.left + r.width / 2, clientY: r.top + r.height / 2, button: 0, bubbles: true, cancelable: true }));
       return { consumed, dragging: store.canvasDragging };

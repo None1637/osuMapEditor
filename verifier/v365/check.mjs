@@ -66,6 +66,7 @@ section('CDP: spacing×beatSnap 矩阵 / 预览=落盘 / v219 例外 / spacing=1
     }
     if (!ready) throw new Error('应用未就绪 (含 __osuSnap)');
     await normalizeEnv(evalJs); // v383: 环境归一
+    await evalJs(`window.__osuStore.setEditorPref('sliderHalfSnap', true)`); // v443 适配: 本验证器断言 v218 ×2 网格, 显式开启 (v443 起默认关)
     await sleep(800); // 布局稳定
 
     // 校准 beatPx (锁定关, d=1 超短滑条 → v219 对齐 1 tick = beatPx/2)

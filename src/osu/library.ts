@@ -405,6 +405,8 @@ export interface LoadedSong {
   audioMissing: boolean;
   /** 谱面目录自带的 hitsound 采样 (可能为空 Map) */
   samples: Map<string, File>;
+  /** v444: 音频文件身份 (name:size:lastModified) — 刷新谱面/换难度时识别同一文件, 复用解码结果 */
+  audioKey: string | null;
 }
 
 /** 在目录里找文件: 精确名 -> 大小写不敏感 -> 扩展名兜底 */
@@ -464,5 +466,6 @@ export async function loadDifficulty(dir: FsDirLike, fileName: string): Promise<
     bgUrl: bg ? URL.createObjectURL(bg) : null,
     audioMissing: !audio,
     samples,
+    audioKey: audio ? `${audio.name}:${audio.size}:${audio.lastModified}` : null, // v444
   };
 }

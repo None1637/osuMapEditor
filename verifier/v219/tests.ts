@@ -1,7 +1,10 @@
 // v219 纯函数测试: 亚 tick 长度对齐 + 预览路径截断
 // 布景: 红线 1000/500, SM=1 => vel=0.2 px/ms, 拍=100px; v218 长度细分 = beatSnap×2 => snap4 tick=12.5px
 import { snapSliderLength, placementLength, truncatePathAtLength, sliderLengthSnapDivisor } from '../../src/osu/sliderPath';
+import { editorPrefs } from '../../src/osu/editorPrefs';
 import type { TimingPoint } from '../../src/osu/parser';
+
+editorPrefs.sliderHalfSnap = true; // v443 适配: 本套件断言 v218 ×2 行为, 显式开启 (v443 起默认关)
 
 let failures = 0;
 function assert(cond: boolean, msg: string) {

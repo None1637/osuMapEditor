@@ -45,7 +45,8 @@ section('F18b: Alt+点击候选修正');
   const altLayer = ec.match(/const nodeAltPress = \(p: Pt[\s\S]{0,2600}?\n  \};/);
   assert(!!altLayer, 'Alt 分支存在');
   assert(!!altLayer && /F18b/.test(altLayer[0]) && /\|\| store\.selected\.has\(o\.id\) \|\| store\.selectedNodes\.has\(o\.id\)/.test(altLayer[0]), '候选含选中/已选节点滑条');
-  assert(!!altLayer && altLayer[0].indexOf('nearestNode(sliders, offs, p)') < altLayer[0].indexOf('store.selected.clear()'), '候选先于清空物件选区');
+  // v441 适配: 「候选先于清空物件选区」废除 — Alt 点选/框选不再清物件选区 (soulten: alt選取不清普通選取狀態)
+  assert(!!altLayer && !/store\.selected\.clear\(\)/.test(altLayer[0]), 'v441: Alt 层不清物件选区 (v265 语义废除)');
 }
 
 section('F20: hover 预览随可见窗消失');

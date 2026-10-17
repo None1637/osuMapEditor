@@ -1,7 +1,10 @@
 // 验证器 v95 纯函数测试: placementLength 非锁定分支走 snapSliderLength (lazer FindSnappedDistance)
 // 布景: 红线 1000/500, SM=1 => vel=0.2 px/ms; v218: 长度吸附细分 = beatSnap×2 => snap 4/2/1 对应 tick 12.5/25/50px
 import { placementLength } from '../../src/osu/sliderPath';
+import { editorPrefs } from '../../src/osu/editorPrefs';
 import type { TimingPoint } from '../../src/osu/parser';
+
+editorPrefs.sliderHalfSnap = true; // v443 适配: 本套件断言 v218 ×2 行为, 显式开启 (v443 起默认关)
 
 let failures = 0;
 function assert(cond: boolean, msg: string) {
@@ -35,8 +38,9 @@ section('下限与锁定间距分支不变');
 {
   assert(placementLength(TPS, 2000, 1, 0, false, 1, 4) === 13, '0 -> v219 亚 tick 对齐 1 tick=12.5 取整 13 (旧: 钳到 1)');
   assert(placementLength(TPS, 2000, 1, 0, false, 1, 1) === 50, 'snap1: 0 -> v219 对齐 1 tick=50 (细分×2=2)');
-  assert(placementLength(TPS, 2000, 1, 130, true, 1, 4) === 100, '锁 130 -> 1 拍 100');
-  assert(placementLength(TPS, 2000, 1, 160, true, 1, 4) === 100, '锁 160 -> v160 退一拍 100 (2 拍 200 超几何+容差)');
+  // v443 适配: v365 起锁定间距步长 = 倍率 × 细分 tick (spacing=1 ≡ 无锁网格), 不再吸整拍
+  assert(placementLength(TPS, 2000, 1, 130, true, 1, 4) === 125, '锁 130 -> 10 tick 125 (v365 细分网格; 旧: 1 拍 100)');
+  assert(placementLength(TPS, 2000, 1, 160, true, 1, 4) === 150, '锁 160 -> 12 tick 150 (13 tick=162.5 超几何+容差退一格; 旧: 退一拍 100)');
 }
 
 if (failures) { console.error(`\nTESTS_V95_FAILED: ${failures} 处失败`); process.exit(1); }

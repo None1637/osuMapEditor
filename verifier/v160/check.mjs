@@ -38,8 +38,9 @@ section('sliderPath.ts: placementLength 两分支均钳制');
 {
   const src = readSrc('src/osu/sliderPath.ts');
   assert(/geoCap = Math\.max\(1, Math\.floor\(geometryLength\)\)/.test(src), 'geoCap = floor(几何全长)');
-  assert(/beats \* beatPx > geometryLength \+ vel \* 1\) beats -= 1/.test(src), '锁定间距分支: 超 1ms 退一拍 (原 round 直接向上入)');
-  assert(/Math\.min\(Math\.max\(20, Math\.round\(beats \* beatPx\)\), geoCap\)/.test(src), '锁定分支 min(..., geoCap)');
+  // v443 适配: v365 起锁定分支重写为 步长=倍率×细分 tick (steps/stepPx), beats/beatsPx 旧码已不存在
+  assert(/if \(steps \* stepPx > geometryLength \+ vel \* 1\) steps -= 1/.test(src), '锁定间距分支: 超 1ms 退一步 (v365 步进网格; 原 round 直接向上入)');
+  assert(/const snapped = Math\.round\(steps \* stepPx\);[\s\S]{0,400}?Math\.min\(Math\.max\(20, snapped\), geoCap\)/.test(src), '锁定分支 min(..., geoCap) (v365: snapped 抽变量与非锁定共用钳制行)');
   assert(/return Math\.min\(Math\.max\(20, snapped\), geoCap\)/.test(src), '非锁定分支 min(..., geoCap) (v219: 亚 tick 分支例外, 先行返回 1 tick)');
   assert(!/Math\.max\(beatPx, Math\.round\(geometryLength \/ beatPx\) \* beatPx\)/.test(src), '旧的直接向上入已移除');
 }

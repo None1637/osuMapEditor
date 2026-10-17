@@ -4,6 +4,9 @@
 //   没有选到互动物件可以生; 锚点手柄上的 Ctrl 拖拽/切红 (v118) 保留。
 // 修复: singleSliderNodePress 的 Ctrl 插点分支前置 hitTest — 命中互动物件 return false
 //   放行给 objectPress (Ctrl+点击 = toggleSelect 多选); 空白处维持 v326 插点。
+// v439 适配: 「命中对象是本滑条自己」不再放行 — v413 把选中滑条自己的本体也算作互动物件,
+//   导致选中滑条后 Ctrl+点滑条身加不了点 (soulten 回归反馈)。现命中本滑条 (hit.id === so.id)
+//   继续插点 (v326 stable 语义), 命中其他物件才 return false 走多选; 新增 CDP 用例 B2。
 // 运行: npm run build 后 node verifier/v413/check.mjs
 import { fileURLToPath } from 'url';
 import path from 'path';
@@ -17,12 +20,12 @@ function assert(cond, msg) { if (!cond) { failures++; console.error('  FAIL:', m
 function section(name) { console.log('== ' + name); }
 const read = (rel) => fs.readFileSync(path.join(root, rel), 'utf8');
 
-section('源码: Ctrl 插点前置物件命中守卫');
+section('源码: Ctrl 插点前置物件命中守卫 (v439: 本滑条身除外)');
 {
   const ec = read('src/components/EditorCanvas.tsx');
-  assert(/v413: 但 Ctrl\+点击命中互动物件/.test(ec), 'v413 版本注释');
+  assert(/v439: 命中对象是本滑条自己/.test(ec), 'v439 版本注释');
   const fn = ec.match(/const singleSliderNodePress = \(p: Pt[\s\S]*?\n  \};/)?.[0] ?? '';
-  assert(/if \(mods\.ctrlKey \|\| mods\.metaKey\) \{\s*if \(hitTest\(p\.x, p\.y\)\) return false;/.test(fn), 'Ctrl+命中物件 → 放行多选');
+  assert(/if \(mods\.ctrlKey \|\| mods\.metaKey\) \{\s*const hitObj = hitTest\(p\.x, p\.y\);\s*if \(hitObj && hitObj\.id !== so\.id\) return false;/.test(fn), 'Ctrl+命中其他物件 → 放行多选; 命中本滑条身 → 继续插点 (v439)');
   assert(/newPts = \[\.\.\.ctrl\.slice\(0, best \+ 1\), raw, \.\.\.ctrl\.slice\(best \+ 1\)\]/.test(fn), '空白插点逻辑保留 (v326)');
 }
 
@@ -91,6 +94,28 @@ section('CDP: Ctrl+点物件 = 多选 / Ctrl+点空白 = 插点 / Ctrl+点锚点
     })()`);
     assert(rA.selA && rA.selB, 'A: Ctrl+点物件 = 多选 (两个都选中)');
     assert(rA.pts === 1, `A: 物件上不生成锚点 (curvePoints 仍 ${rA.pts})`);
+
+    // B2 (v439 新增): Ctrl+点击选中滑条自己的本体 — 继续插点 (v413 误把本滑条身也放行, 加不了点)
+    const rB2 = await evalJs(`(() => {
+      const store = window.__osuStore;
+      store.select([965001]); // 回到只选滑条
+      const c = document.querySelector('canvas.cursor-crosshair');
+      const pt = window.__osuToClient(200, 100); // 滑条身中点 (直线路径正中, 距两端锚点 100px)
+      c.dispatchEvent(new MouseEvent('mousedown', { clientX: pt.x, clientY: pt.y, button: 0, ctrlKey: true, bubbles: true, cancelable: true }));
+      window.dispatchEvent(new MouseEvent('mouseup', { clientX: pt.x, clientY: pt.y, ctrlKey: true, bubbles: true }));
+      const a = store.beatmap.hitObjects.find(x => x.id === 965001);
+      return { pts: a.curvePoints.length, selOnlyA: store.selected.size === 1 && store.selected.has(965001) };
+    })()`);
+    assert(rB2.pts === 2, `B2: Ctrl+点本滑条身 = 插锚点 (v439; curvePoints → ${rB2.pts})`);
+    assert(rB2.selOnlyA, 'B2: 选区未被改动');
+    // 复位: 还原滑条到初始 1 控制点 (后续 B/C 用例基于初始状态断言)
+    await evalJs(`(() => {
+      const store = window.__osuStore;
+      const a = store.beatmap.hitObjects.find(x => x.id === 965001);
+      a.curvePoints = [{ x: 300, y: 100 }]; a.curveType = 'L';
+      store.select([965001]);
+      store.emit();
+    })()`);
 
     // B: Ctrl+点击空白 (400,300 附近无物件) — 给选中的滑条插点 (v326 保留)
     const rB = await evalJs(`(() => {

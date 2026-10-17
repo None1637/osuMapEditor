@@ -41,7 +41,8 @@ section('源码: 需求1 未选滑条锚点直接拖');
   assert(/const unselectedSliderNodePress = \(p: Pt/.test(ec), 'unselectedSliderNodePress 抽函数存在');
   assert(/if \(unselectedSliderNodePress\(p, e\)\) return;/.test(ec), '画布 onMouseDown 接入 (物件命中前)');
   assert(/if \(unselectedSliderNodePress\(p, mods\)\) return true;/.test(ec), '穿透链接入 (playfieldNodePress)');
-  assert(/hitNode\.idx === 0/.test(ec), '头部锚点排除 (头部 = 物件本体抓取点, v369 语义不变)');
+  // v438 适配: 头节点排除已废除 (soulten: 未选滑条头节点也要能直接拖/右键删) — 原 v369 语义由 v438 取代
+  assert(!/hitNode\.idx === 0/.test(ec), 'v438: 头节点不再排除 (原 v369 头部=物件抓取点语义废除)');
   assert(/store\.select\(\[hitNode\.objId\]\)/.test(ec), '命中锚点自动选中该滑条');
 }
 
@@ -167,7 +168,9 @@ section('CDP: 六项行为实测');
       const s2r = mk(378007, h2r.x, h2r.y, [[h2r.x + 80, h2r.y + 100]], 30, Math.round(Math.hypot(80, 100)));
 
       // 378003: 尾锚点压在左侧栏 select (节拍吸附下拉) 中心
-      const sel3 = document.querySelector('div.w-56 select');
+      const sel3 = [...document.querySelectorAll('[data-ui-interactive]')] // v442 适配 (同 v361/v428): 左栏去 w-56 class, 按几何特征找
+        .find(el => { const r = el.getBoundingClientRect(); return r.left <= 2 && r.height > window.innerHeight * 0.5 && r.width > 100 && r.width < 400; })
+        .querySelector('select');
       const s3r = sel3.getBoundingClientRect();
       const a3 = toOsu(s3r.left + s3r.width / 2, s3r.top + s3r.height / 2);
       const s3 = mk(378003, a3.x, a3.y + 200, [[a3.x, a3.y]], 14);
@@ -242,7 +245,8 @@ section('CDP: 六项行为实测');
     assert(r1b.head.x !== r1b.h0.x && r1b.tail.x !== r1b.t0.x && (r1b.tail.x - r1b.head.x) === (r1b.t0.x - r1b.h0.x),
       `1d: 滑条身中段按下仍是物件整体拖拽 (头 ${r1b.h0.x}→${r1b.head.x}, 尾同步)`);
 
-    // ---- 需求2a: 下时间轴覆盖区物件本体拖拽 (单点; 不再 seek) ----
+    // ---- 需求2a: 下时间轴覆盖区物件本体 (单点) ----
+    // v442 适配: v404 起可交互 UI (下时间轴) 只放锚点级穿透, 物件本体不再穿透 — 反转为不吞事件/正常 seek/不拖拽
     const r2a = await evalJs(`(async () => {
       const store = window.__osuStore;
       const sleep = (ms) => new Promise(r => setTimeout(r, ms));
@@ -261,9 +265,9 @@ section('CDP: 六项行为实测');
       await sleep(100);
       return { consumed, dragging, sel: [...store.selected], dx: o.x - x0, seeked: store.currentTime !== t0 };
     })()`);
-    assert(r2a.consumed && r2a.dragging, '2a: 下时间轴按下单点 = 穿透拖拽 (事件被吞)');
-    assert(r2a.sel.includes(378004) && Math.abs(r2a.dx - 40 / setup.szx) <= 4, `2a: 单点被选中并随拖动位移 (dx ${r2a.dx} ≈ ${(40 / setup.szx).toFixed(1)})`);
-    assert(!r2a.seeked, '2a: 穿透命中后下时间轴不 seek');
+    assert(!r2a.consumed && !r2a.dragging, '2a: 下时间轴按下单点物件本体 = 不穿透 (v404: 事件不吞, 不拖拽)');
+    assert(r2a.dx === 0, `2a: 单点不随拖动位移 (dx ${r2a.dx})`);
+    assert(r2a.seeked, '2a: 下时间轴正常 seek (v404 语义)');
 
     // ---- 需求2b: 下时间轴覆盖区缩放手柄 ----
     const r2b = await evalJs(`(async () => {
@@ -300,8 +304,9 @@ section('CDP: 六项行为实测');
         hitEl: inBottomEl ? inBottomEl.tagName + '.' + String(inBottomEl.className).slice(0, 60) : null };
     })()`);
     assert(r2b.inBottom, `2b: 缩放手柄落点确实在下时间轴覆盖带上 (pt ${JSON.stringify(r2b.pt)}, 带 ${JSON.stringify(r2b.brNow)}, 命中 ${r2b.hitEl})`);
-    assert(r2b.consumed && r2b.dragging, '2b: 下时间轴按下缩放手柄 = 穿透 (事件被吞)');
-    assert(r2b.len1 > r2b.len0 + 5, `2b: 拖 br 手柄滑条被放大 (控制点距头 ${r2b.len0.toFixed(1)} → ${r2b.len1.toFixed(1)})`);
+    // v442 适配: v404 起下时间轴只放锚点级穿透, 手柄不穿透 — 不吞事件, 长度不变
+    assert(!r2b.consumed && !r2b.dragging, '2b: 下时间轴按下缩放手柄 = 不穿透 (v404: 事件不吞)');
+    assert(r2b.len1 === r2b.len0, `2b: 手柄不被拖动, 滑条长度不变 (${r2b.len0.toFixed(1)} → ${r2b.len1.toFixed(1)})`);
 
     // ---- 需求2c: 下时间轴覆盖区旋转手柄 (独立滑条 378007, 几何未被 2b 改动) ----
     const r2c = await evalJs(`(async () => {
@@ -333,9 +338,10 @@ section('CDP: 六项行为实测');
         inBottom: pt.y > bcr.top && pt.y < bcr.bottom };
     })()`);
     assert(r2c.inBottom, '2c: 旋转手柄落点在下时间轴覆盖带内');
-    assert(r2c.consumed && r2c.dragging, '2c: 下时间轴按下旋转手柄 = 穿透 (事件被吞)');
-    assert(r2c.h1.x === r2c.h0.x && r2c.h1.y === r2c.h0.y && (r2c.cp1.x !== r2c.cp0.x || r2c.cp1.y !== r2c.cp0.y),
-      `2c: 拖旋转手柄滑条被旋转 (头不动, 控制点 ${JSON.stringify(r2c.cp0)} → ${JSON.stringify(r2c.cp1)})`);
+    // v442 适配: v404 起下时间轴只放锚点级穿透, 手柄不穿透 — 不吞事件, 滑条不旋转
+    assert(!r2c.consumed && !r2c.dragging, '2c: 下时间轴按下旋转手柄 = 不穿透 (v404: 事件不吞)');
+    assert(r2c.h1.x === r2c.h0.x && r2c.h1.y === r2c.h0.y && r2c.cp1.x === r2c.cp0.x && r2c.cp1.y === r2c.cp0.y,
+      `2c: 滑条不被旋转 (头 ${JSON.stringify(r2c.h0)} → ${JSON.stringify(r2c.h1)}, 控制点 ${JSON.stringify(r2c.cp0)} → ${JSON.stringify(r2c.cp1)})`);
 
     // ---- 需求3a: 下时间轴覆盖区右键删锚点 ----
     const r3a = await evalJs(`(() => {
@@ -359,7 +365,9 @@ section('CDP: 六项行为实测');
       store.seek(${setup.t3});
       store.clearSelection(); store.setSelectedNodes([]);
       const o = store.beatmap.hitObjects.find(x => x.id === 378003);
-      const sel3 = document.querySelector('div.w-56 select');
+      const sel3 = [...document.querySelectorAll('[data-ui-interactive]')] // v442 适配 (同 v361/v428): 左栏去 w-56 class, 按几何特征找
+        .find(el => { const r = el.getBoundingClientRect(); return r.left <= 2 && r.height > window.innerHeight * 0.5 && r.width > 100 && r.width < 400; })
+        .querySelector('select');
       const pt = window.__osuToClient(o.curvePoints[0].x, o.curvePoints[0].y);
       const cp0 = { x: o.curvePoints[0].x, y: o.curvePoints[0].y };
       const consumed = !sel3.dispatchEvent(new MouseEvent('mousedown', { clientX: pt.x, clientY: pt.y, button: 0, bubbles: true, cancelable: true }));
@@ -376,7 +384,9 @@ section('CDP: 六项行为实测');
 
     // ---- 需求3b 负例: 非锚点处控件仍优先 ----
     const r3c = await evalJs(`(() => {
-      const btn = document.querySelector('div.w-56 button');
+      const btn = [...document.querySelectorAll('[data-ui-interactive]')] // v442 适配 (同 v361/v428): 左栏去 w-56 class, 按几何特征找
+        .find(el => { const r = el.getBoundingClientRect(); return r.left <= 2 && r.height > window.innerHeight * 0.5 && r.width > 100 && r.width < 400; })
+        .querySelector('button');
       const r = btn.getBoundingClientRect();
       const consumed = !btn.dispatchEvent(new MouseEvent('mousedown', { clientX: r.left + r.width / 2, clientY: r.top + r.height / 2, button: 0, bubbles: true, cancelable: true }));
       return { consumed, dragging: window.__osuStore.canvasDragging };

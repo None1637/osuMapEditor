@@ -177,7 +177,7 @@ export default function App() {
     try {
       const r = await loadDifficulty(src.dir, src.fileName);
       const t0 = store.currentTime;
-      store.load(r.bm, r.audioUrl, r.bgUrl, r.samples, src);
+      store.load(r.bm, r.audioUrl, r.bgUrl, r.samples, src, r.audioKey); // v444: 音频未变则复用解码
       const lastEnd = r.bm.hitObjects.reduce((m, o) => Math.max(m, o.endTime || o.time), 0);
       store.seek(Math.min(t0, lastEnd + 5000));
     } catch (e) {
@@ -451,16 +451,16 @@ export default function App() {
     return store.subscribe(report);
   }, []);
 
-  // v386: 设置菜单 editorPrefs 勾选状态上报 (数值框拖动调值 / 物件移动死区 2px; 值变化才发, 主进程据此重建勾选)
+  // v386: 设置菜单 editorPrefs 勾选状态上报 (数值框拖动调值 / 物件移动死区 2px / v443 滑条长度 1/2 细分; 值变化才发, 主进程据此重建勾选)
   useEffect(() => {
     const api = getElectronAPI();
     if (!api) return;
     let last = '';
     const report = () => {
-      const key = `${editorPrefs.dragAdjustNumbers}|${editorPrefs.moveDeadzone2px}`;
+      const key = `${editorPrefs.dragAdjustNumbers}|${editorPrefs.moveDeadzone2px}|${editorPrefs.sliderHalfSnap}`;
       if (key === last) return;
       last = key;
-      api.menuEditorPrefsState({ dragAdjustNumbers: editorPrefs.dragAdjustNumbers, moveDeadzone2px: editorPrefs.moveDeadzone2px });
+      api.menuEditorPrefsState({ dragAdjustNumbers: editorPrefs.dragAdjustNumbers, moveDeadzone2px: editorPrefs.moveDeadzone2px, sliderHalfSnap: editorPrefs.sliderHalfSnap });
     };
     report();
     return store.subscribe(report);

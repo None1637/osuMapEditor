@@ -605,8 +605,10 @@ export const BEAT_SNAP_OPTIONS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 12, 16];
  * v218: 滑条长度吸附细分 = 当前节拍细分的 1/2 (分母 ×2, 如 1/4 -> 1/8);
  * 仅当 ×2 后的细分存在于配置项 (BEAT_SNAP_OPTIONS) 中, 否则退回当前细分 (如 1/12 -> 1/12, 1/16 -> 1/16)。
  * 仅作用于长度吸附; 放置时刻 (snapPlacementTime) 与控制点位置仍按原规则, 不参与此对齐。
+ * v443: ×2 改为开关 (editorPrefs.sliderHalfSnap, 设置菜单 checkbox), 默认关 = 按当前细分整格吸附。
  */
 export function sliderLengthSnapDivisor(beatSnap: number): number {
+  if (!editorPrefs.sliderHalfSnap) return beatSnap; // v443
   const half = beatSnap * 2;
   return BEAT_SNAP_OPTIONS.includes(half) ? half : beatSnap;
 }

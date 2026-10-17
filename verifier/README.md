@@ -4706,3 +4706,100 @@
   - i18n: zh-CN/convert.ts +4 key (镜像重复/提示/两轴名)。
 - 验证: verifier/v437 (tests.ts 纯函数 9 组: 不开镜像不变/竖直/水平/隔份/平移不镜像/滑条控制点/
   旋转逐份递增后镜像/转盘不动/不改入参; check.mjs 源码断言 + tsc)。全绿; 按用户要求未跑回归批测。
+
+## v438 — 未选滑条锚点全部可直接拖 + 右键删点
+- 需求 (soulten): 没选取滑条时要能直接跟所有滑条点互动 (含头节点), 也要能直接右键删滑条点。
+- 改动 (EditorCanvas.tsx):
+  - unselectedSliderNodePress 删掉 `hitNode.idx === 0` 排除 — 未选滑条头节点也可直接拖
+    (原 v369/v378 头部=物件抓取点语义废除), 命中自动选中后走 singleSliderNodePress 节点拖拽。
+  - playfieldAnchorHit 未选分支改为 `!mods.shiftKey && !store.selected.has(hitNode.objId)` (头不再排除)。
+  - sliderAnchorContextPress 重构: 删除逻辑抽成内嵌 deleteSliderAnchor (保留 v400 删头/v29 红转白/
+    白点删除/仅剩2点吞掉); 新增未选滑条路径 (候选排除已选、跨滑条最近优先), 右键删点不动选区。
+- 验证: verifier/v438 (源码断言 + CDP: A 拖头自动选中且尾不动 / B 右键删未选中锚点 /
+  C 右键删头新头递补 / D 仅2点吞掉 / E 落空删整物件 v30 不变)。全绿。
+- 连带适配: verifier/v378 (`hitNode.idx === 0` 源码断言反转为不存在; CDP 2a/2b/2c 见 v442 节的 v404 反转)。
+
+## v439 — Ctrl+点击选中滑条本体恢复插锚点
+- 需求 (soulten): Ctrl+左键点击已选中滑条的身体应能加锚点 (v326 行为), v413 的守卫把它一并挡掉了。
+- 根因: v413 为「Ctrl+点其他物件 = 多选不插点」在 singleSliderNodePress Ctrl 分支一刀切 return false,
+  命中本滑条身也被放行成多选。
+- 改动 (EditorCanvas.tsx): Ctrl 分支改 `hitTest(p)` 按 id 排除本滑条 — 命中本滑条身继续插点,
+  命中其他物件才放行多选 (v413 保留)。
+- 验证: verifier/v439 (源码断言 + CDP: A Ctrl+点本滑条身插点 1→2 且选区不动 / B Ctrl+点其他物件加选不插点)。全绿。
+- 连带适配: verifier/v413 (源码正则改 v439 新码; 新增 CDP 用例 B2 覆盖 Ctrl+点本滑条身插点)。
+
+## v440 — Alt 框选只框已选滑条的锚点
+- 需求 (soulten): 点选 slider (可复选) 后, Alt 框选只能框选被点选 slider 的点。
+- 改动 (EditorCanvas.tsx): recomputeMarqueeSelection 节点框选收窄链最前加 selSliderIds
+  (物件选区内的滑条), 优先级: 已选滑条 > Alt 点选滑条 (v371a) > 第一框到滑条 (v371b)。
+- 依赖 v441 (Alt 不再清物件选区) — 否则「已选滑条」前提在进入 Alt 框选时即被清空。
+- 验证: verifier/v440 (源码断言 + CDP: A 无已选 → 第一框到收窄不变 / B 已选 440002 → 只框它的锚点且物件选区保留 /
+  C 复选两滑条 → 两条锚点都框进)。全绿。
+
+## v441 — Alt 点选/框选不再清空物件选区
+- 需求 (soulten): alt 選取不應清掉普通選取狀態。
+- 改动 (EditorCanvas.tsx): 删两处 `store.selected.clear()` — nodeAltPress 入口 (v265 语义废除) 与
+  syncMarqueeMode 物件框→节点框迁移。Delete/旋转/缩放本就节点优先 (App.tsx), 安全。
+- 验证: verifier/v441 (源码断言 + CDP: A Alt+点锚点切节点选中且物件选区保留 / B Alt+空白单击 /
+  C Alt+框选 / D 框选中途按 Alt 迁移 — 物件选区全保留)。全绿。
+- 连带适配: verifier/v316 (F18b 改断言 nodeAltPress 无 selected.clear)、v362 (用例 C 改 objSelKept)。
+
+## v442 — 刷新后下方时间轴约 3 秒才变成正常大小
+- 需求 (soulten): 刷新後要等三秒下方時間軸才會是正常大小。
+- 根因: songLength() 优先取 audioBuffer.duration, 但 decodeAudioData 是秒级耗时; 解码完成前
+  既无 audioBuffer 也无降级 this.audio, 只能退回「谱面末物件+2s」的短长度 — 时间轴全程按错误的
+  短长度画, 解码完成后整体重排, 用户感知为"3 秒后才正常"。探针实测 (CPU 6x 降速):
+  谱面长度 144s → 解码就绪 (≈2.9s) 跳变到音频时长 158s; 底栏 canvas 尺寸本身全程正常。
+- 改动 (store.ts): setAudio 起解码的同时挂 `<audio preload=metadata>` 探针 (loadedmetadata ~100ms 级),
+  拿到时长写入新字段 audioMetaDuration 并 emit (带 audioUrl 换歌守卫, 拿到即 removeAttribute('src') 释放);
+  songLength() 在解码完成前退回该探针时长; 换歌重置为 0。
+- 验证: verifier/v442 (源码断言 + CDP CPU 6x 降速刷新全程采样: 探针时长 2079ms 到位,
+  早于解码就绪 2883ms, 解码前后 songLength 一致 158114ms)。全绿。
+- 连带适配 (与 v438-v442 代码无关的环境腐化, 一并修): v362/v378 的 `div.w-56` 左栏选择器
+  在 v428 (左栏去 w-56 class 改 style 宽度 224/uiZoom) 后失效 — 按 v361 同款几何特征查找
+  (贴左缘/高等同主区/宽 100-400 的 data-ui-interactive 列) 替换共 6 处;
+  v378 CDP 2a/2b/2c (下时间轴物件本体/缩放/旋转手柄穿透) 在 v404 (可交互 UI 只放锚点级穿透) 后
+  语义已反转 — 断言改为不吞事件/正常 seek/不拖拽不缩放不旋转 (v404 验证器覆盖新语义)。
+  旧码+旧验证器基线实测同样失败, 证实为腐化非本次回归。
+- 回归: tsc + vite build + v438/v439/v440/v441/v442 新验证器 + 单跑 v413/v316/v362/v378/v410/v401/v402/v400/v404 全绿;
+  按惯例未跑大批量回归。
+
+## v443 — 滑条长度吸附细分 ×2 开关 (设置菜单 checkbox, 默认关)
+- 需求 (soulten「两倍精度的slider做个开关」): v218 的「滑条长度按当前节拍细分 1/2 (分母 ×2) 吸附」
+  做成开关放进设置菜单, 且默认改为关闭 (关 = 按当前细分整格吸附; 开 = 恢复 v218 行为)。
+- 改动:
+  - editorPrefs.ts: +sliderHalfSnap (默认 false; 持久化 `p.sliderHalfSnap === true` — 遗留数据无此键取关)。
+    注释标明从属关系: sliderTailSnap (v406) 总开关关 = 长度直通几何全长不走吸附网格, 本开关无效果。
+  - sliderPath.ts: sliderLengthSnapDivisor 开头 `if (!editorPrefs.sliderHalfSnap) return beatSnap;` —
+    全部 ×2 吸附点 (placementLength 的 tickPx / snapSliderLength 的 div, resnapSliderLength 经后者)
+    都经此函数, 单点接线; v218 ×2 查找逻辑 (配置内 ×2, 否则退回) 保留在开关开启路径。
+  - 设置菜单 (v386 通道): main.cjs editorPrefsState + sliderHalfSnap (默认 false, 上报 `=== true` 解析),
+    词典 +menu.slider_half_snap (en/zh-CN/zh-TW), 设置菜单 checkbox 项;
+    electronBridge.ts ElectronEditorPrefsState + menu-cmd key 联合类型各加 sliderHalfSnap;
+    App.tsx 勾选状态上报带上该键。
+- 验证: verifier/v443 (tests.ts 纯函数: 默认关/两态 divisor/整格与 1/2 细分吸附数值;
+  check.mjs 源码断言 + CDP 运行期 setEditorPref 翻转即时生效并持久化)。全绿。
+- 连带适配:
+  - 本版改破: verifier/v35 (右键命中断言随 v438 重构的 deleteSliderAnchor/soff 变量更新)。
+  - 默认关直接影响的: v364/v365 CDP 段开头显式 setEditorPref('sliderHalfSnap', true)
+    (断言对象是 v218 ×2 网格本身); v26/v83/v95/v160/v219 tests.ts 顶部同样显式开启。
+  - 既有腐化 (基线实测同样失败, 非本次回归): v218/v95 的 placementLength 源码断言
+    (v366 起形参 currentTime→t); v334 onWheel 正则窗口 2000→4000 (处理器被后续版本加长);
+    v83/v95/v160 锁定间距断言按 v365 语义 (步长=倍率×细分 tick, spacing=1 ≡ 无锁网格) 重算期望值
+    (130→125 / 160→150 / 210→210 / 亚步长对齐 1 步允许超几何); v160 锁定分支源码断言随 v365 重写更新;
+    v364 sliderLengthSnapDivisor 源码断言纳入 v443 守卫行。
+- 回归: tsc + vite build + v443 + 单跑 v218/v219/v334/v364/v365/v406/v26/v83/v95/v160/v35 全绿;
+  按惯例未跑大批量回归。
+
+## v444 — 刷新谱面音频文件未变时不重新解码
+- 用户提出: 刷新谱面如果音频文件没变不该重新解码。
+- 根因: loadDifficulty 每次 `URL.createObjectURL` 新建 blob URL, setAudio 按 URL 判新旧,
+  刷新必重新 fetch + decodeAudioData (秒级, 正是 v442 用探针绕过的那段耗时)。
+- 修复:
+  - library.ts: LoadedSong + `audioKey` (`name:size:lastModified` 文件身份)。
+  - store.ts: 单条缓存 `audioCache`; setAudio(url, audioKey) 命中即直接复用 AudioBuffer
+    (跳过 fetch/解码/v442 元数据探针, 时长直填 buffer.duration, 预热变速引擎照旧), 解码成功才写缓存。
+  - 三条 loadDifficulty 链路 (App 刷新/曲库打开/菜单与启动恢复) 全部透传 audioKey;
+    同曲换难度同样命中。
+- 遗留说明: hitsound 采样 (decodeSamples) 与背景图刷新仍每次重载 (解码量小, 未做缓存)。
+- 验证: verifier/v444 (纯源码断言 + tsc) 全绿; vite build 通过。

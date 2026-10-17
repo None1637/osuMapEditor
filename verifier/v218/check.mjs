@@ -43,7 +43,8 @@ section('sliderPath.ts: snapSliderLength 走 1/2 细分, 其余入口共用');
   assert(!/tickPx = vel \* red\.beatLength \/ beatSnap/.test(fn), '长度不再直接按 beatSnap 取 tick');
   assert(/if \(ticks \* tickPx > geometryLength \+ vel \* 1\) ticks -= 1;/.test(fn), '保留 1ms 容差退一格 (不超几何全长)');
   assert(/snapped <= geometryLength \? snapped : Math\.floor\(geometryLength\)/.test(fn), '保留硬钳到几何全长');
-  assert(/const snapped = snapSliderLength\(points, currentTime, sliderMultiplier, geometryLength, beatSnap\);/.test(src), 'placementLength 非锁定分支仍走 snapSliderLength (游玩区/时间轴预览共用)');
+  // v443 适配: v366 起基准时间变量为 t (吸附后落盘时刻), 原 currentTime 形参名失效
+  assert(/const snapped = snapSliderLength\(points, t, sliderMultiplier, geometryLength, beatSnap\);/.test(src), 'placementLength 非锁定分支仍走 snapSliderLength (游玩区/时间轴预览共用)');
   assert(/o\.length = snapSliderLength\(bm\.timingPoints, o\.time/.test(src), 'resnapSliderLength (节点编辑重吸附) 共用同一规则');
 }
 

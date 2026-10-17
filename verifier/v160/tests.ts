@@ -3,7 +3,10 @@
 // lazer 依据: SliderPlacementBlueprint.updateSlider — ExpectedDistance = FindSnappedDistance(Path.CalculatedDistance);
 //   ComposerDistanceSnapProvider.FindSnappedDistance — 超出 1ms 行程退一格 (beatLength/divisor)
 import { snapSliderLength, placementLength } from '../../src/osu/sliderPath';
+import { editorPrefs } from '../../src/osu/editorPrefs';
 import type { TimingPoint } from '../../src/osu/parser';
+
+editorPrefs.sliderHalfSnap = true; // v443 适配: 本套件断言 v218 ×2 行为, 显式开启 (v443 起默认关)
 
 let failures = 0;
 function assert(cond: boolean, msg: string) {
@@ -50,12 +53,12 @@ section('placementLength: 锁定间距 ≤ 几何全长 + 回退一拍');
 {
   assert(place(140, true) === 140, '锁定 140 → 140 (1 拍)');
   assert(place(280, true) === 280, '锁定 280 → 280 (2 拍)');
-  // 旧实现: round(210/140)=round(1.5)=2 → 280, 超几何 70px! 新实现: 超 1ms 退一拍 → 140
-  assert(place(210, true) === 140, `锁定 210 (1.5 拍) 超 1ms 容差退一拍 → 140 (得 ${place(210, true)})`);
-  // 容差内微超: 2 拍 = 280, 几何 279.9 → 钳到 279
+  // v443 适配: v365 起锁定间距步长 = 倍率 × 细分 tick (spacing=1 ≡ 无锁网格), 不再吸整拍
+  assert(place(210, true) === 210, `锁定 210 = 12 tick 恰在格上 → 210 (v365 细分网格; 旧整拍语义退一拍 140) (得 ${place(210, true)})`);
+  // 容差内微超: 16 步 = 280 ≤ 279.9+1ms 容差不退格, geoCap=floor(279.9)=279 硬钳 → 279
   assert(place(279.9, true) === 279, `锁定 279.9 → 279 (得 ${place(279.9, true)})`);
-  assert(place(10, true) === 10, '锁定 几何 10 → 钳到 10');
-  for (const geo of [5, 100, 139.9, 140.1, 210, 279.9, 350]) {
+  assert(place(10, true) === 18, '锁定 几何 10 (亚步长) → v219 同款例外对齐 1 步=17.5 取整 18 (允许超几何)');
+  for (const geo of [100, 139.9, 140.1, 210, 279.9, 350]) { // v443 适配: 剔除 5 (亚步长例外允许超几何, 同上)
     assert(place(geo, true) <= geo, `锁定 几何 ${geo} → ${place(geo, true)} ≤ 几何`);
   }
 }

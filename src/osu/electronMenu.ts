@@ -56,7 +56,7 @@ export async function openServerDifficulty(folderRel: string, file: string): Pro
     const r = await loadDifficulty(dir, file);
     if (!r) return false;
     // 与曲库 openDiff 相同: 记录来源, Ctrl+S 写回该文件
-    store.load(r.bm, r.audioUrl, r.bgUrl, r.samples, { dir, fileName: file });
+    store.load(r.bm, r.audioUrl, r.bgUrl, r.samples, { dir, fileName: file }, r.audioKey); // v444
     if (r.audioMissing) console.warn('已加载谱面但未找到音频文件:', file);
     return true;
   } catch (e) {

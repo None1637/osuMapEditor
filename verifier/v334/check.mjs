@@ -38,7 +38,8 @@ section('sliderPath.ts: 配置项对齐 stable 全集');
 
 section('EditorCanvas: Ctrl+滚轮 ×2/÷2');
 {
-  const wheel = ec.match(/onWheel=\{\(e\) => \{[\s\S]{0,2000}?\n      \}\}/);
+  // v443 适配: onWheel 窗口 2000→4000 (v229/v330/v391 陆续加滚轮功能, 处理器变长超旧窗口)
+  const wheel = ec.match(/onWheel=\{\(e\) => \{[\s\S]{0,4000}?\n      \}\}/);
   assert(!!wheel, 'EditorCanvas onWheel 存在');
   const ctrl = wheel && wheel[0].match(/if \(e\.ctrlKey\) \{[\s\S]{0,600}?\n        \}/);
   assert(!!ctrl, 'Ctrl 分支存在');

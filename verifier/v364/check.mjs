@@ -26,7 +26,7 @@ const read = (rel) => fs.readFileSync(path.join(root, rel), 'utf8');
 section('源码: 吸附规则与调用链 (v218/v219 语义不动)');
 {
   const sp = read('src/osu/sliderPath.ts');
-  assert(/export function sliderLengthSnapDivisor\(beatSnap: number\): number \{\n\s+const half = beatSnap \* 2;\n\s+return BEAT_SNAP_OPTIONS\.includes\(half\) \? half : beatSnap;/.test(sp), '长度吸附细分 = 当前细分 1/2 (×2 在配置内), 否则退回当前细分');
+  assert(/export function sliderLengthSnapDivisor\(beatSnap: number\): number \{\n\s+if \(!editorPrefs\.sliderHalfSnap\) return beatSnap; \/\/ v443\n\s+const half = beatSnap \* 2;\n\s+return BEAT_SNAP_OPTIONS\.includes\(half\) \? half : beatSnap;/.test(sp), '长度吸附细分 = 当前细分 1/2 (v443 开关开启时 ×2 在配置内), 否则退回当前细分');
   assert(/const div = sliderLengthSnapDivisor\(beatSnap\); \/\/ v218: 长度按当前细分的 1\/2 对齐/.test(sp), 'snapSliderLength 用 sliderLengthSnapDivisor (非整拍除数)');
   assert(/ticks === 1 && tickPx > geometryLength \+ vel \* 1/.test(sp), 'v219 例外保留: 亚 tick 几何对齐 1 tick (允许超几何)');
   const ec = read('src/components/EditorCanvas.tsx');
@@ -77,6 +77,7 @@ section('CDP: 吸附网格扫描 / 交互预览=落盘 / freehand / distanceLock
     if (!ready) throw new Error('应用未就绪 (含 __osuSnap)');
     await sleep(800); // 布局稳定
     await normalizeEnv(evalJs); // v383: 环境归一
+    await evalJs(`window.__osuStore.setEditorPref('sliderHalfSnap', true)`); // v443 适配: 本验证器断言 v218 ×2 网格, 显式开启 (v443 起默认关)
 
     // v380 适配: 归一谱面 — 启动会恢复上次打开的谱面 (localStorage 持久化, 跨运行污染), C/D 段的
     //   SV=4 / beatPx=1120 校准依赖确定性 timing。载入固定谱面: 红线 1000/500ms + 绿线 1001/-25

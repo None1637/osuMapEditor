@@ -26,7 +26,8 @@ section('sliderPath.ts: placementLength 加 beatSnap, 非锁走 snapSliderLength
 {
   const src = readSrc('src/osu/sliderPath.ts');
   assert(/geometryLength: number, distanceLock: boolean, distanceSpacing: number, beatSnap: number,/.test(src), 'placementLength 第 7 参 beatSnap');
-  assert(/const snapped = snapSliderLength\(points, currentTime, sliderMultiplier, geometryLength, beatSnap\);/.test(src), '非锁定分支 = snapSliderLength 节拍吸附 (v219: 亚 tick 直接返回, 否则 20px 下限 + v160 geoCap 钳制)');
+  // v443 适配: v366 起基准时间变量为 t (吸附后落盘时刻), 原 currentTime 形参名失效
+  assert(/const snapped = snapSliderLength\(points, t, sliderMultiplier, geometryLength, beatSnap\);/.test(src), '非锁定分支 = snapSliderLength 节拍吸附 (v219: 亚 tick 直接返回, 否则 20px 下限 + v160 geoCap 钳制)');
   assert(/return Math\.min\(Math\.max\(20, snapped\), geoCap\)/.test(src), '常规路径: 20px 下限 + v160 钳到几何全长 geoCap');
   assert(/computePendingPath\(pend, cursor\)\.length, distanceLock, distanceSpacing, beatSnap\)/.test(src), 'pendingSliderTimeline 透传 beatSnap (预览=落盘)');
 }

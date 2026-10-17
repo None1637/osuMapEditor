@@ -371,6 +371,10 @@ class EditorStore {
   // Web Audio: 采样级时钟, 消除播放offset
   private actx: AudioContext | null = null;
   private audioBuffer: AudioBuffer | null = null;
+  // v442: decodeAudioData 完成前先由 <audio preload=metadata> 探针拿到的歌曲时长 (秒), 让时间轴立刻按真实长度绘制
+  private audioMetaDuration = 0;
+  // v444: 音频解码缓存 (单条) — 刷新谱面/同曲换难度时文件没变就直接复用, 不再秒级重新解码
+  private audioCache: { key: string; buffer: AudioBuffer } | null = null;
   private source: AudioBufferSourceNode | null = null;
   // v216: 每条播放 source 独立的淡入淡出增益 — 播放中 seek 用 per-source 交叉淡变,
   // 不再 dip 共享音乐总线 (滚轮连击时总线被反复瞬时拉零, 听感破碎/发闷如低码率)
@@ -576,7 +580,7 @@ class EditorStore {
     }
   }
 
-  load(bm: Beatmap, audioUrl: string | null, backgroundUrl: string | null = null, samples?: Map<string, File>, source: MapSource | null = null) {
+  load(bm: Beatmap, audioUrl: string | null, backgroundUrl: string | null = null, samples?: Map<string, File>, source: MapSource | null = null, audioKey: string | null = null) {
     invalidatePath(); // v378: 换谱几何缓存全部失效 — pathCache 按物件 id 缓存, 新谱物件 id 与旧谱滑条
     //   重合时 hitTest/渲染沿用旧几何 (点不中/画错形状); restore() 已有同款清理, load 漏了
     this.beatmap = bm;
@@ -598,7 +602,7 @@ class EditorStore {
     this.slideLoops = [];
     this.loopCursor = 0;
     if (samples?.size) this.decodeSamples(samples);
-    this.setAudio(audioUrl);
+    this.setAudio(audioUrl, audioKey); // v444: audioKey 命中缓存则跳过重新解码
     this.setBackground(backgroundUrl);
     this.emit();
     void reportMenuState(bm, source); // v77: Electron 原生 "文件" 菜单状态 (非 Electron 无操作)
@@ -617,7 +621,7 @@ class EditorStore {
     }));
   }
 
-  setAudio(url: string | null) {
+  setAudio(url: string | null, audioKey: string | null = null) {
     this.stopSource();
     if (this.audio) { this.audio.pause(); this.audio = null; }
     // 歌曲更换: 旧变速节点持有旧 PCM, 销毁待重建
@@ -627,8 +631,30 @@ class EditorStore {
     this.rateLoading = null;
     this.audioUrl = url;
     this.audioBuffer = null;
+    this.audioMetaDuration = 0; // v442: 换歌即作废旧探针时长
     this.degradedSync = false;
+    // v444: 文件身份未变 (刷新谱面/同曲换难度) — 直接复用解码结果, 跳过 fetch+decodeAudioData 秒级耗时;
+    //   时长已知 (buffer.duration), v442 的元数据探针也不必跑
+    if (url && audioKey && this.audioCache?.key === audioKey) {
+      this.audioBuffer = this.audioCache.buffer;
+      this.audioMetaDuration = this.audioBuffer.duration;
+      this.ensureClock();
+      if (this.rateAdjustPitch) this.ensureRateNode(); else this.ensureTempoNode();
+      this.emit();
+      return;
+    }
     if (url) {
+      // v442: 解码是秒级耗时, 先用元数据探针尽早拿到时长, 避免时间轴先按谱面长度画、解码后整体跳变
+      const probe = new Audio();
+      probe.preload = 'metadata';
+      probe.src = url;
+      probe.addEventListener('loadedmetadata', () => {
+        if (this.audioUrl === url && isFinite(probe.duration) && probe.duration > 0) {
+          this.audioMetaDuration = probe.duration;
+          this.emit();
+        }
+        probe.removeAttribute('src'); // 拿到元数据即释放, 不占用连接
+      });
       // 优先 Web Audio 解码 (采样级精度); 失败退回 HTMLAudio (降级模式)
       fetch(url).then(r => r.arrayBuffer()).then(buf => {
         if (this.audioUrl !== url) return;
@@ -638,6 +664,7 @@ class EditorStore {
       }).then(decoded => {
         if (decoded && this.audioUrl === url) {
           this.audioBuffer = decoded;
+          if (audioKey) this.audioCache = { key: audioKey, buffer: decoded }; // v444: 解码成功入缓存
           // v382: 预热当前模式的变速引擎 (变调=sinc 重采样, 不变调=signalsmith), 首次变速播放即可用
           if (this.rateAdjustPitch) this.ensureRateNode(); else this.ensureTempoNode();
           this.emit();
@@ -2644,6 +2671,8 @@ class EditorStore {
   songLength(): number {
     if (this.audioBuffer) return this.audioBuffer.duration * 1000;
     if (this.audio && this.audio.duration && isFinite(this.audio.duration)) return this.audio.duration * 1000;
+    // v442: 解码完成前用元数据探针的时长, 时间轴不必等 decodeAudioData (~秒级) 才变成正常大小
+    if (this.audioMetaDuration > 0) return this.audioMetaDuration * 1000;
     const bm = this.beatmap;
     if (!bm) return 60000;
     const last = bm.hitObjects[bm.hitObjects.length - 1];

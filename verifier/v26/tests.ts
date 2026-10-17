@@ -1,6 +1,9 @@
 // v26 单元断言: 滑条长度节拍吸附 (lazer SnapTo + FindSnappedDistance 对齐)
 import { sliderGeometryLength, snapSliderLength, resnapSliderLength } from '../../src/osu/sliderPath';
+import { editorPrefs } from '../../src/osu/editorPrefs';
 import type { Beatmap, HitObject, TimingPoint } from '../../src/osu/parser';
+
+editorPrefs.sliderHalfSnap = true; // v443 适配: 本套件断言 v218 ×2 行为, 显式开启 (v443 起默认关)
 
 let failures = 0;
 function assert(cond: boolean, msg: string) {
