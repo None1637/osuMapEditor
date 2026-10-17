@@ -27,9 +27,9 @@ assert(/export function coverRect/.test(hud) && /Math\.max\(boxW \/ imgW, boxH \
 
 const ov = read('src/components/TestPlayOverlay.tsx');
 assert(/store\.backgroundImg/.test(ov), '取编辑器已有背景图 (store.backgroundImg)');
-assert(/coverRect\(bg\.width, bg\.height, PW, PH\)/.test(ov), 'cover 铺满 512×384 osu 区');
+assert(/coverRect\(bg\.width, bg\.height, lc\.width, lc\.height\)/.test(ov), 'cover 铺满 (v446: 目标改为整个覆盖层画布, 原 512×384 游玩区)');
 assert(/rgba\(0,0,0,0\.7\)/.test(ov), '0.7 黑压暗层');
-assert(/if \(bg\) \{/.test(ov), '背景缺失维持纯黑 (条件绘制)');
+assert(/if \(bg && !__skip\?\.bg\) \{/.test(ov), '背景缺失维持纯黑 (条件绘制; v445: 画面走离屏预渲染层, __tpSkip 为 profile 跳过开关)');
 // 背景在 renderPlayfield 之前 (物件在背景之上)
 assert(ov.indexOf('store.backgroundImg') < ov.indexOf('renderPlayfield({'), '背景先于物件绘制');
 

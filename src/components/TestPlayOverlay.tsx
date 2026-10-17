@@ -15,9 +15,11 @@
 // v421: 左下 combo 增加时弹跳 (瞬时 1.6x, 180ms 缓动回 1.0; 断连击不弹)。
 // v422: 被动 HP drain (hp×0.018/s, 首物件前/break 段不掉; 掉空不判负)。
 // v423: break 休息段提示 (中央偏上: pass/fail 三角 + Break 字样 + 剩余秒数)。
+// v446: 背景图 cover 铺满整个覆盖层画布 (原只铺游玩区; 0.7 压暗照旧, 固定不随适配变换);
+//   编辑器侧同步全屏 (EditorCanvas 全屏背景层), 游玩区内额外 0.45 压暗保留保证物件可读性。
 import { useEffect, useRef, useState } from 'react';
 import { store } from '@/osu/store';
-import { getSkin, skinScaleAdjust, type SkinImage } from '@/osu/skin';
+import { getSkin, getSkinContentSeq, skinScaleAdjust, type SkinImage } from '@/osu/skin';
 import { computeCombos, renderPlayfield } from '@/osu/renderer';
 import { computeStackOffsets } from '@/osu/stacking';
 import { TestPlaySession } from '@/osu/gameplay/testPlaySession';
@@ -46,6 +48,20 @@ function isHitButton(e: MouseEvent): boolean {
 }
 
 const PW = 512, PH = 384;
+
+// v445: 背景离屏预渲染层 — cover + 0.7 压暗预合成到设备像素位图; 命中时每帧 1 次 1:1 blit
+//   (v417 原实现每帧从 2000px 级原图 cover 重采样上屏, 大图重采样带宽在低端机上是帧数杀手)。
+//   v446: 层改为铺满整个覆盖层画布 (原只铺游玩区映射区), 固定不随适配变换 — 键只含
+//   背景图引用 + 画布 backing 尺寸 (scale/ox/oy 出键), 窗口尺寸/谱面背景变化才重建。
+let bgLayer: { key: string; c: HTMLCanvasElement; x: number; y: number; empty: boolean } | null = null;
+const bgLayerImgIds = new WeakMap<HTMLImageElement, number>();
+let bgLayerImgSeq = 0;
+
+// v445: HUD 皮肤数字串离屏缓存 — score/acc/combo 整串预合成; 按槽位复用同一张位图
+//   (串内容/高度/设备缩放/皮肤内容变化才 clearRect+重排进位图, 不换键不新建画布, 避免贴图分配抖动),
+//   命中时每帧 1 次 blit (原逐字形 drawImage, score 8 位 + acc 6 位 + combo 每帧 ~19 次小图上屏);
+//   位图按设备像素构建, 回贴随当前变换 1:1 上屏不糊; 皮肤内容序号入键, 换肤自动重绘
+const hudNumSlots = new Map<string, { key: string; c: HTMLCanvasElement; w: number }>();
 const RESULT_COLORS: Record<MainResult, string> = { great: '#ffffff', ok: '#7fff7f', meh: '#5f9fff', miss: '#ff5f5f' };
 const RESULT_TEXT: Record<MainResult, string> = { great: '300', ok: '100', meh: '50', miss: 'MISS' };
 const POPUP_LIFE = 600;
@@ -76,6 +92,7 @@ export function TestPlayOverlay({ onClose }: { onClose: () => void }) {
     const bm0 = store.beatmap;
     const c = canvasRef.current;
     if (!bm0 || !c) { onClose(); return; }
+    store.testPlayOpen = true; // v445: 暂停编辑器画布/时间轴底层渲染 (退出时清理恢复)
     const g = c.getContext('2d')!;
     if (editorTimeRef.current === null) editorTimeRef.current = store.currentTime;
     const editorTime = editorTimeRef.current;
@@ -151,9 +168,22 @@ export function TestPlayOverlay({ onClose }: { onClose: () => void }) {
     window.addEventListener('blur', onBlur);
 
     let raf = 0;
+    // v445: profile 钩子 — window.__tpPerf (分段耗时采样: clear/bg/scene/popup/trail/hud/frame)
+    //   / window.__tpSkip (分阶段跳过, 定位瓶颈用); 缺省不采样, 每帧仅几次布尔判断
+    const __tpw = window as unknown as { __tpPerf?: Record<string, number[]>; __tpSkip?: Record<string, boolean> };
+    const __mark = (k: string, s: number) => {
+      const p = __tpw.__tpPerf;
+      if (!p) return;
+      const a = (p[k] ??= []); a.push(performance.now() - s);
+      if (a.length > 1800) a.splice(0, a.length - 1800);
+    };
     const loop = () => {
       raf = requestAnimationFrame(loop);
       if (closed) return;
+      const __perfOn = !!__tpw.__tpPerf;
+      const __skip = __tpw.__tpSkip;
+      const __t0 = __perfOn ? performance.now() : 0;
+      let __ts = __t0;
       const time = store.positionMs();
       // v294: Autopilot — 滑条跟球 / 跳向下一物件 (在 update 前取)
       if (autopilot) cursorRef.current = session.autoCursorPos(time) ?? cursorRef.current;
@@ -167,50 +197,80 @@ export function TestPlayOverlay({ onClose }: { onClose: () => void }) {
       const r = zoomRect(c);
       const { sx, sy } = fitCanvas(c, r);
       g.setTransform(sx, 0, 0, sy, 0, 0);
-      g.fillStyle = '#000';
-      g.fillRect(0, 0, r.width, r.height);
+      if (!__skip?.clear) { // v445: profile 分阶段跳过
+        g.fillStyle = '#000';
+        g.fillRect(0, 0, r.width, r.height);
+      }
+      __mark('clear', __ts); __ts = __perfOn ? performance.now() : 0; // v445
       const { scale, ox, oy } = viewTransform(r); // v300: 与编辑器同一适配变换 (游玩区大小一致)
       g.save();
       g.translate(ox, oy);
       g.scale(scale, scale);
-      // v417: 谱面背景图 cover 铺满 512×384 + 0.7 压暗 (未加载/不存在维持纯黑;
-      //       转盘期间 renderer drawSpinner 的额外压暗照旧叠加在其上)
+      // v417: 谱面背景图 + 0.7 压暗 (未加载/不存在维持纯黑; 转盘期间 renderer drawSpinner 的
+      //       额外压暗照旧叠加在其上); v446: cover 目标从 512×384 游玩区改为整个覆盖层画布
       const bg = store.backgroundImg;
-      if (bg) {
-        const br = coverRect(bg.width, bg.height, PW, PH);
-        g.drawImage(bg, br.x, br.y, br.w, br.h);
-        g.fillStyle = 'rgba(0,0,0,0.7)';
-        g.fillRect(0, 0, PW, PH);
+      if (bg && !__skip?.bg) { // v445: profile 分阶段跳过
+        // v446: cover + 0.7 压暗铺满整个覆盖层画布 (原只铺游玩区) — 离屏层整画布尺寸,
+        //   固定不随适配变换 (与编辑器全屏背景一致; lazer 游玩背景即全屏)
+        let bid = bgLayerImgIds.get(bg);
+        if (bid === undefined) bgLayerImgIds.set(bg, (bid = ++bgLayerImgSeq));
+        const key = [bid, c.width, c.height].join('|');
+        if (!bgLayer || bgLayer.key !== key) {
+          if (!bgLayer) bgLayer = { key, c: document.createElement('canvas'), x: 0, y: 0, empty: true };
+          bgLayer.key = key;
+          bgLayer.x = 0; bgLayer.y = 0;
+          bgLayer.empty = false;
+          const lc = bgLayer.c;
+          if (lc.width !== c.width || lc.height !== c.height) { lc.width = Math.max(1, c.width); lc.height = Math.max(1, c.height); }
+          const lg = lc.getContext('2d')!;
+          lg.setTransform(1, 0, 0, 1, 0, 0);
+          lg.clearRect(0, 0, lc.width, lc.height);
+          const br = coverRect(bg.width, bg.height, lc.width, lc.height); // v446: cover 整画布 (原 PW×PH 游玩区)
+          lg.drawImage(bg, br.x, br.y, br.w, br.h);
+          lg.fillStyle = 'rgba(0,0,0,0.7)'; // 压暗照旧 (0.7), 现覆盖全屏
+          lg.fillRect(0, 0, lc.width, lc.height);
+        }
+        g.save();
+        g.setTransform(1, 0, 0, 1, 0, 0);
+        g.drawImage(bgLayer.c, bgLayer.x, bgLayer.y);
+        g.restore();
       }
-      renderPlayfield({
-        g, bm, skin, time, selected: new Set(), cacheKey: String(store.getVersion()),
-        comboInfo, stackOffsets, gameplay: session.renderInfo(),
-      });
+      __mark('bg', __ts); __ts = __perfOn ? performance.now() : 0; // v445
+      if (!__skip?.scene) // v445: profile 分阶段跳过
+        renderPlayfield({
+          g, bm, skin, time, selected: new Set(), cacheKey: String(store.getVersion()),
+          comboInfo, stackOffsets, gameplay: session.renderInfo(),
+        });
+      __mark('scene', __ts); __ts = __perfOn ? performance.now() : 0; // v445
 
       // 判定弹出 (v298: 皮肤 hit300/hit100/hit50/hit0 贴图优先, 缺失回退文字; 上浮渐隐)
       const rad = session.radius;
-      g.textAlign = 'center'; g.textBaseline = 'middle';
-      for (const p of session.popups) {
-        const age = time - p.at;
-        if (age < 0 || age > POPUP_LIFE) continue;
-        const k = age / POPUP_LIFE;
-        const py = p.y - rad * 0.6 - k * rad * 0.7;
-        g.save();
-        g.globalAlpha = 1 - k * k;
-        const img = { great: skin.hit300, ok: skin.hit100, meh: skin.hit50, miss: skin.hit0 }[p.result];
-        if (img) {
-          // 按贴图固有尺寸 (1x osu 像素, @2x 减半 — stable 判定图小于圈), 上限圈径×1.2 防巨型皮肤图
-          const h = Math.min(img.height / (skinScaleAdjust.get(img) ?? 1), rad * 2.4);
-          const w = h * (img.width / img.height);
-          g.drawImage(img, p.x - w / 2, py - h / 2, w, h);
-        } else {
-          g.fillStyle = RESULT_COLORS[p.result];
-          g.font = `bold ${(rad * 0.85).toFixed(1)}px sans-serif`;
-          g.fillText(RESULT_TEXT[p.result], p.x, py);
+      if (!__skip?.popup) { // v445: profile 分阶段跳过
+        g.textAlign = 'center'; g.textBaseline = 'middle';
+        for (const p of session.popups) {
+          const age = time - p.at;
+          if (age < 0 || age > POPUP_LIFE) continue;
+          const k = age / POPUP_LIFE;
+          const py = p.y - rad * 0.6 - k * rad * 0.7;
+          g.save();
+          g.globalAlpha = 1 - k * k;
+          const img = { great: skin.hit300, ok: skin.hit100, meh: skin.hit50, miss: skin.hit0 }[p.result];
+          if (img) {
+            // 按贴图固有尺寸 (1x osu 像素, @2x 减半 — stable 判定图小于圈), 上限圈径×1.2 防巨型皮肤图
+            const h = Math.min(img.height / (skinScaleAdjust.get(img) ?? 1), rad * 2.4);
+            const w = h * (img.width / img.height);
+            g.drawImage(img, p.x - w / 2, py - h / 2, w, h);
+          } else {
+            g.fillStyle = RESULT_COLORS[p.result];
+            g.font = `bold ${(rad * 0.85).toFixed(1)}px sans-serif`;
+            g.fillText(RESULT_TEXT[p.result], p.x, py);
+          }
+          g.restore();
         }
-        g.restore();
       }
+      __mark('popup', __ts); __ts = __perfOn ? performance.now() : 0; // v445
 
+      if (!__skip?.trail) { // v445: profile 分阶段跳过 (拖尾 + 光标本体)
       // v416: 光标拖尾 (皮肤 cursortrail.png, 最近 ~120ms 轨迹渐缩渐隐, 按住更密/更不透明;
       //       皮肤缺失不画拖尾) — 先画拖尾再画光标本体
       const cur = cursorRef.current;
@@ -244,9 +304,12 @@ export function TestPlayOverlay({ onClose }: { onClose: () => void }) {
         g.stroke();
         g.restore();
       }
+      } // v445: trail 跳过块收尾
+      __mark('trail', __ts); __ts = __perfOn ? performance.now() : 0; // v445
       g.restore();
 
       // HUD (布局 px 坐标): 左上血条, 右上分数/acc, 左下 combo
+      if (!__skip?.hud) { // v445: profile 分阶段跳过
       g.setTransform(sx, 0, 0, sy, 0, 0);
       const sc = session.score;
       g.save();
@@ -267,7 +330,8 @@ export function TestPlayOverlay({ onClose }: { onClose: () => void }) {
         g.fillRect(ox, oy - 14, PW * scale * sc.hp, 8);
       }
       // v298: 皮肤数字 (score-0..9 / score-x / v300 score-percent/score-dot), 任一字形缺失整串回退文字
-      const drawSkinNumber = (text: string, x0: number, y0: number, h: number, alignRight: boolean): boolean => {
+      // v445: slot = 缓存槽位 ('score'/'acc'/'combo') — 槽位复用位图, 内容变化才重绘
+      const drawSkinNumber = (slot: string, text: string, x0: number, y0: number, h: number, alignRight: boolean): boolean => {
         const imgs: (SkinImage | null)[] = [];
         for (const ch of text) {
           if (ch >= '0' && ch <= '9') imgs.push(skin.scoreDigits[+ch]);
@@ -277,19 +341,35 @@ export function TestPlayOverlay({ onClose }: { onClose: () => void }) {
           else return false;
         }
         if (imgs.some(i => !i)) return false;
-        const ws = imgs.map(i => h * (i!.width / i!.height));
-        let x = alignRight ? x0 - ws.reduce((a, b) => a + b, 0) : x0;
-        for (let i = 0; i < imgs.length; i++) { g.drawImage(imgs[i]!, x, y0, ws[i]!, h); x += ws[i]!; }
+        // v445: 整串离屏缓存 — 命中时 1 次 blit (原逐字形上屏 ~19 次/帧)
+        const key = [text, h.toFixed(2), sx.toFixed(4), sy.toFixed(4), getSkinContentSeq()].join('|');
+        let e = hudNumSlots.get(slot);
+        if (!e || e.key !== key) {
+          const ws = imgs.map(i => h * (i!.width / i!.height));
+          const w = ws.reduce((a, b) => a + b, 0);
+          const bw = Math.max(1, Math.ceil(w * sx)), bh = Math.max(1, Math.ceil(h * sy));
+          const dc = e?.c ?? document.createElement('canvas');
+          if (dc.width !== bw || dc.height !== bh) { dc.width = bw; dc.height = bh; } // 重设尺寸即清空
+          const dg = dc.getContext('2d')!;
+          dg.setTransform(1, 0, 0, 1, 0, 0);
+          dg.clearRect(0, 0, dc.width, dc.height);
+          dg.setTransform(sx, 0, 0, sy, 0, 0); // 设备像素构建, 回贴 1:1 不糊
+          let dx = 0;
+          for (let i = 0; i < imgs.length; i++) { dg.drawImage(imgs[i]!, dx, 0, ws[i]!, h); dx += ws[i]!; }
+          e = { key, c: dc, w };
+          hudNumSlots.set(slot, e);
+        }
+        g.drawImage(e.c, alignRight ? x0 - e.w : x0, y0, e.w, h);
         return true;
       };
-      if (!drawSkinNumber(String(sc.score).padStart(8, '0'), ox + PW * scale - 8, oy + 8 * scale, 22 * scale, true)) {
+      if (!drawSkinNumber('score', String(sc.score).padStart(8, '0'), ox + PW * scale - 8, oy + 8 * scale, 22 * scale, true)) {
         g.textAlign = 'right'; g.textBaseline = 'alphabetic';
         g.fillStyle = '#fff';
         g.font = `bold ${Math.round(22 * scale)}px monospace`;
         g.fillText(String(sc.score).padStart(8, '0'), ox + PW * scale - 8, oy + 30 * scale);
       }
       // v300: acc 同样走皮肤数字 (score-percent/score-dot), 缺失回退文字
-      if (!drawSkinNumber(`${(sc.accuracy * 100).toFixed(2)}%`, ox + PW * scale - 8, oy + 36 * scale, 14 * scale, true)) {
+      if (!drawSkinNumber('acc', `${(sc.accuracy * 100).toFixed(2)}%`, ox + PW * scale - 8, oy + 36 * scale, 14 * scale, true)) {
         g.textAlign = 'right'; g.textBaseline = 'alphabetic';
         g.fillStyle = '#fff';
         g.font = `${Math.round(14 * scale)}px monospace`;
@@ -306,7 +386,7 @@ export function TestPlayOverlay({ onClose }: { onClose: () => void }) {
         g.scale(popS, popS);
         g.translate(-(ox + 8), -(oy + PH * scale - 10 * scale));
       }
-      if (!drawSkinNumber(`${sc.combo}x`, ox + 8, oy + PH * scale - 30 * scale, 20 * scale, false)) {
+      if (!drawSkinNumber('combo', `${sc.combo}x`, ox + 8, oy + PH * scale - 30 * scale, 20 * scale, false)) {
         g.textAlign = 'left';
         g.font = `bold ${Math.round(20 * scale)}px monospace`;
         g.fillText(`${sc.combo}x`, ox + 8, oy + PH * scale - 10);
@@ -342,10 +422,13 @@ export function TestPlayOverlay({ onClose }: { onClose: () => void }) {
         g.fillText(String(Math.ceil((brk.end - time) / 1000)), bcx, bcy + 26 * scale);
       }
       g.restore();
+      } // v445: hud 跳过块收尾
+      __mark('hud', __ts); __mark('frame', __t0); // v445
     };
     raf = requestAnimationFrame(loop);
 
     return () => {
+      store.testPlayOpen = false; // v445: 恢复编辑器/时间轴渲染循环
       cancelAnimationFrame(raf);
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('mousedown', onMouseDown, true);

@@ -109,6 +109,10 @@ class EditorStore {
   selectedGreenLines = new Set<number>();
   currentTime = 0;
   playing = false;
+  /** v445: 测试游玩覆盖层打开中 — 编辑器画布/上下时间轴 rAF 循环据此暂停底层渲染
+   *  (覆盖层 z-80 不透明全屏接管, 底层渲染不可见纯属浪费; 由 TestPlayOverlay 挂载/卸载置位,
+   *   非响应式普通字段, 渲染循环每帧直接读) */
+  testPlayOpen = false;
   /** v261: 恢复播放渲染位置下限 (暂停点); play() 记录, positionMs 钳制到时钟超过后自清, pause() 清除 */
   resumeFloorMs: number | null = null;
   tool: Tool = 'select';

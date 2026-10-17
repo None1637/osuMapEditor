@@ -53,7 +53,7 @@ section('DisplayPanel.tsx: 亮度滑条行');
 section('EditorCanvas.tsx: 背景渲染用 bgBrightness');
 {
   const src = readSrc('src/components/EditorCanvas.tsx');
-  assert(/g\.globalAlpha = displaySettings\.bgBrightness \/ 100;/.test(src), '背景 alpha = bgBrightness/100');
+  assert(/(g|lg)\.globalAlpha = displaySettings\.bgBrightness \/ 100;/.test(src), '背景 alpha = bgBrightness/100 (v446: 挪全屏层, 变量名 lg)');
   assert(!/g\.globalAlpha = 0\.35;/.test(src), '旧固定 0.35 已移除');
 }
 

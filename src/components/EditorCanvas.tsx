@@ -24,8 +24,16 @@ import { fitSegmentsToPoints, collinearLinePoints } from '@/osu/freehand/freehan
 import { matchesHotkeyMouse, matchesHotkeyWheel } from '@/osu/hotkeys'; // v330: 游玩区平移/缩放/锁定间距可改键
 import { pfRotFwd, pfRotInv } from '@/osu/pfRotate'; // v391: 游玩区旋转正/逆变换
 import { getElectronAPI } from '@/osu/electronBridge'; // v336: exe 下 Alt 态由主进程转发 (DOM 事件被拦)
+import { coverRect } from '@/osu/gameplay/hud'; // v446: 背景全屏 cover 适配 (与测试游玩同一纯函数)
 
 const PW = 512, PH = 384; // osu 游玩区坐标系
+
+// v446: 谱面背景图铺满整个画布 (原只铺 512×384 游玩区) — 全屏 cover 离屏层, 固定不随游玩区
+//   平移/缩放/旋转 (v223/v391); 键 = 图引用 + 画布 backing 尺寸 + bgBrightness, 命中时每帧 1 次 blit。
+//   游玩区内的额外 0.45 压暗仍由静态层叠加 (物件可读性与旧版一致); 无背景图维持 #111116 底。
+let bgFullLayer: { key: string; c: HTMLCanvasElement } | null = null;
+const bgFullImgIds = new WeakMap<HTMLImageElement, number>();
+let bgFullImgSeq = 0;
 const PAD_Y = 40; // 上下留白 (osu px): 摆放在上下边缘的物件 (半径~37px) 不超出屏幕, 对齐 stable 游玩区留边
 
 // 游玩区视图变换 (渲染与鼠标换算共用, 两处必须一致)
@@ -743,6 +751,9 @@ export function EditorCanvas() {
   useEffect(() => {
     let raf = 0;
     const loop = () => {
+      // v445: 测试游玩中暂停编辑器画布渲染 (覆盖层全屏接管, 底层每帧全量渲染纯属浪费 — profile 实测
+      //   占游玩帧 CPU ~20% 且双倍 GPU 光栅; 时钟相位由覆盖层每帧 positionMs 维持, 退出即恢复)
+      if (store.testPlayOpen) { raf = requestAnimationFrame(loop); return; }
       // v301: 单帧异常兜底 — 渲染/逻辑任一处抛错只跳过本帧, 不再杀死 RAF 循环
       // (此前一帧崩溃 = 循环永久停止, 画布白屏; F07 超长滑条冻结的级联原因之一)
       try {
@@ -771,14 +782,40 @@ export function EditorCanvas() {
         g.setTransform(sx, 0, 0, sy, 0, 0);
         g.fillStyle = '#111116';
         g.fillRect(0, 0, r.width, r.height);
+        // v446: 谱面背景图铺满整个画布 — 全屏 cover 离屏层, 画在游玩区变换之前 (固定不随平移/缩放/旋转);
+        //   亮度沿用显示设置 bgBrightness (v168 alpha 语义不变); 游玩区额外 0.45 压暗由下方静态层叠加
+        const bgFull = store.backgroundImg;
+        if (bgFull) {
+          let bid = bgFullImgIds.get(bgFull);
+          if (bid === undefined) bgFullImgIds.set(bgFull, (bid = ++bgFullImgSeq));
+          const bkey = [bid, c.width, c.height, displaySettings.bgBrightness].join('|');
+          if (!bgFullLayer || bgFullLayer.key !== bkey) {
+            if (!bgFullLayer) bgFullLayer = { key: bkey, c: document.createElement('canvas') };
+            bgFullLayer.key = bkey;
+            const lc = bgFullLayer.c;
+            if (lc.width !== c.width || lc.height !== c.height) { lc.width = Math.max(1, c.width); lc.height = Math.max(1, c.height); }
+            const lg = lc.getContext('2d')!;
+            lg.setTransform(1, 0, 0, 1, 0, 0);
+            lg.clearRect(0, 0, lc.width, lc.height);
+            const br = coverRect(bgFull.width, bgFull.height, lc.width, lc.height);
+            lg.globalAlpha = displaySettings.bgBrightness / 100; // v168: 亮度语义不变 (默认 35)
+            lg.drawImage(bgFull, br.x, br.y, br.w, br.h);
+            lg.globalAlpha = 1;
+          }
+          g.save();
+          g.setTransform(1, 0, 0, 1, 0, 0);
+          g.drawImage(bgFullLayer.c, 0, 0);
+          g.restore();
+        }
         const { scale, ox, oy, rot } = playfieldTransform(r);
         g.save();
         g.translate(ox, oy); g.scale(scale, scale);
         if (rot) { g.translate(PW / 2, PH / 2); g.rotate(rot * Math.PI / 180); g.translate(-PW / 2, -PH / 2); } // v391: 游玩区旋转 (最内层, 绕中心)
-        // v245: 网格/背景/边框静态层缓存 — 内容与帧无关 (网格类型/间距/旋转/原点 + 背景图/亮度 + 变换矩阵
-        //   决定), 原每帧逐线/逐弧 stroke + 背景 drawImage 是播放场景光栅热点 (CDP 实测); 合成到离屏位图,
-        //   键不变时每帧仅 1 次 drawImage。绘制顺序保持: 网格 → 背景 → 边框。
+        // v245: 网格/游玩区压暗/边框静态层缓存 — 内容与帧无关 (网格类型/间距/旋转/原点 + 背景图有无 +
+        //   变换矩阵决定), 原每帧逐线/逐弧 stroke 是播放场景光栅热点 (CDP 实测); 合成到离屏位图,
+        //   键不变时每帧仅 1 次 drawImage。绘制顺序保持: 网格 → 压暗 → 边框。
         //   v246: 位图裁剪到游玩区设备矩形 (原为整画布尺寸, blit 带宽浪费)。
+        //   v446: 背景图本体挪到全屏离屏层 (铺满整个画布, 见 loop 前段), 本层只保留游玩区额外压暗。
         {
           const m0 = g.getTransform();
           const O0 = store.currentGridOrigin();
@@ -841,16 +878,12 @@ export function EditorCanvas() {
               }
               lg.restore();
             }
-            // 谱面背景图 (压暗显示, cover 适配游玩区)
-            // v168: 亮度 = 显示设置 bgBrightness (默认 35 = 旧固定 0.35, 表现不变)
+            // v446: 背景图本体已挪到全屏离屏层 (铺满整个画布, 固定不随游玩区变换);
+            //   这里只保留游玩区内的额外 0.45 压暗 (有背景图时才压 — 物件可读性与旧版一致,
+            //   亮度 bgBrightness 作用于全屏层, 语义不变)
             if (bg0) {
-              const s = Math.max(PW / bg0.width, PH / bg0.height);
-              const bw = bg0.width * s, bh = bg0.height * s;
               lg.save();
               lg.beginPath(); lg.rect(0, 0, PW, PH); lg.clip();
-              lg.globalAlpha = displaySettings.bgBrightness / 100;
-              lg.drawImage(bg0, (PW - bw) / 2, (PH - bh) / 2, bw, bh);
-              lg.globalAlpha = 1;
               lg.fillStyle = 'rgba(10,10,16,0.45)';
               lg.fillRect(0, 0, PW, PH);
               lg.restore();

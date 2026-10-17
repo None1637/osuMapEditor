@@ -467,6 +467,8 @@ export function TopTimeline() {
     let memoSv: { ver: number; pts: TimingPoint[]; out: ReturnType<typeof svPoints> } | null = null;
     let lastTs = 0; // v102: 帧间隔 (边缘滚动 ramp/速度积分用)
     const draw = () => {
+      // v445: 测试游玩中暂停上时间轴绘制 (覆盖层全屏接管; 播放泵由覆盖层每帧 positionMs 承担, 退出即恢复)
+      if (store.testPlayOpen) { raf = requestAnimationFrame(draw); return; }
       const __pt0 = performance.now(); // v340: 渲染性能采样 (CDP 读 window.__perfTlA)
       const nowTs = performance.now();
       const dtMs = lastTs ? nowTs - lastTs : 16;
@@ -1170,6 +1172,8 @@ export function BottomTimeline({ onTestPlay }: { onTestPlay: () => void }) { // 
     //   逐物件 arc, CDP 实测热点); 缓存到离屏位图, 键不变时每帧 1 次 drawImage + 播放头
     let layer: { key: string; c: HTMLCanvasElement } | null = null;
     const draw = () => {
+      // v445: 测试游玩中暂停下时间轴绘制 (覆盖层全屏接管; 退出即恢复)
+      if (store.testPlayOpen) { raf = requestAnimationFrame(draw); return; }
       const __pt0 = performance.now(); // v340: 渲染性能采样 (CDP 读 window.__perfTlB)
       const bm = store.beatmap;
       const g = c.getContext('2d')!;
