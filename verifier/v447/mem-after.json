@@ -1,0 +1,523 @@
+{
+  "map": "cygnus - Book of Dark Magic (None1637) [Magic].osu",
+  "stages": {
+    "s0-baseline": {
+      "page": {
+        "mem": {
+          "usedJSHeapMB": 85.58,
+          "totalJSHeapMB": 102.65
+        },
+        "uasm": null,
+        "audio": {
+          "sr": 48000,
+          "ch": 2,
+          "durS": 198.6,
+          "pcmMB": 72.73
+        },
+        "engines": {
+          "tempoReady": false,
+          "rateReady": false,
+          "tempoActive": false,
+          "rateActive": false,
+          "estEnginePcmMB": 0
+        },
+        "undo": {
+          "undoLen": 0,
+          "redoLen": 0,
+          "snapJsonMB": 0.18,
+          "estUndoMB": 0
+        },
+        "hitSounds": {
+          "count": 0,
+          "bytesMB": 0
+        },
+        "bg": {
+          "w": 1613,
+          "h": 1008,
+          "estMB": 6.2
+        },
+        "waveMode": "wave",
+        "objects": 1087
+      },
+      "os": {
+        "totalMB": 711,
+        "procs": [
+          {
+            "id": 14644,
+            "parent": 11240,
+            "type": "",
+            "rssMB": 115.5
+          },
+          {
+            "id": 11504,
+            "parent": 14644,
+            "type": "gpu",
+            "rssMB": 224.7
+          },
+          {
+            "id": 21300,
+            "parent": 14644,
+            "type": "utility",
+            "rssMB": 44.7
+          },
+          {
+            "id": 5028,
+            "parent": 14644,
+            "type": "renderer",
+            "rssMB": 244.4
+          },
+          {
+            "id": 4324,
+            "parent": 14644,
+            "type": "utility",
+            "rssMB": 81.7
+          }
+        ]
+      }
+    },
+    "s1-mapLoaded": {
+      "page": {
+        "mem": {
+          "usedJSHeapMB": 64.12,
+          "totalJSHeapMB": 78.65
+        },
+        "uasm": null,
+        "audio": {
+          "sr": 48000,
+          "ch": 2,
+          "durS": 130.7,
+          "pcmMB": 47.85
+        },
+        "engines": {
+          "tempoReady": false,
+          "rateReady": false,
+          "tempoActive": false,
+          "rateActive": false,
+          "estEnginePcmMB": 0
+        },
+        "undo": {
+          "undoLen": 0,
+          "redoLen": 0,
+          "snapJsonMB": 0.1,
+          "estUndoMB": 0
+        },
+        "hitSounds": {
+          "count": 0,
+          "bytesMB": 0
+        },
+        "bg": {
+          "w": 2001,
+          "h": 1439,
+          "estMB": 10.98
+        },
+        "waveMode": "wave",
+        "objects": 786
+      },
+      "os": {
+        "totalMB": 698,
+        "procs": [
+          {
+            "id": 14644,
+            "parent": 11240,
+            "type": "",
+            "rssMB": 104.5
+          },
+          {
+            "id": 11504,
+            "parent": 14644,
+            "type": "gpu",
+            "rssMB": 229.1
+          },
+          {
+            "id": 21300,
+            "parent": 14644,
+            "type": "utility",
+            "rssMB": 44.7
+          },
+          {
+            "id": 5028,
+            "parent": 14644,
+            "type": "renderer",
+            "rssMB": 237.9
+          },
+          {
+            "id": 4324,
+            "parent": 14644,
+            "type": "utility",
+            "rssMB": 81.8
+          }
+        ]
+      }
+    },
+    "s2-bothEngines": {
+      "page": {
+        "mem": {
+          "usedJSHeapMB": 64.7,
+          "totalJSHeapMB": 83.65
+        },
+        "uasm": null,
+        "audio": {
+          "sr": 48000,
+          "ch": 2,
+          "durS": 130.7,
+          "pcmMB": 47.85
+        },
+        "engines": {
+          "tempoReady": false,
+          "rateReady": true,
+          "tempoActive": false,
+          "rateActive": false,
+          "estEnginePcmMB": 47.85
+        },
+        "undo": {
+          "undoLen": 0,
+          "redoLen": 0,
+          "snapJsonMB": 0.1,
+          "estUndoMB": 0
+        },
+        "hitSounds": {
+          "count": 0,
+          "bytesMB": 0
+        },
+        "bg": {
+          "w": 2001,
+          "h": 1439,
+          "estMB": 10.98
+        },
+        "waveMode": "wave",
+        "objects": 786
+      },
+      "os": {
+        "totalMB": 754.5,
+        "procs": [
+          {
+            "id": 14644,
+            "parent": 11240,
+            "type": "",
+            "rssMB": 104.5
+          },
+          {
+            "id": 11504,
+            "parent": 14644,
+            "type": "gpu",
+            "rssMB": 229.5
+          },
+          {
+            "id": 21300,
+            "parent": 14644,
+            "type": "utility",
+            "rssMB": 44.8
+          },
+          {
+            "id": 5028,
+            "parent": 14644,
+            "type": "renderer",
+            "rssMB": 293.8
+          },
+          {
+            "id": 4324,
+            "parent": 14644,
+            "type": "utility",
+            "rssMB": 81.9
+          }
+        ]
+      }
+    },
+    "s3-undoFull": {
+      "page": {
+        "mem": {
+          "usedJSHeapMB": 62.74,
+          "totalJSHeapMB": 91.4
+        },
+        "uasm": null,
+        "audio": {
+          "sr": 48000,
+          "ch": 2,
+          "durS": 130.7,
+          "pcmMB": 47.85
+        },
+        "engines": {
+          "tempoReady": true,
+          "rateReady": false,
+          "tempoActive": false,
+          "rateActive": false,
+          "estEnginePcmMB": 47.85
+        },
+        "undo": {
+          "undoLen": 50,
+          "redoLen": 0,
+          "snapJsonMB": 0.1,
+          "estUndoMB": 9.84
+        },
+        "hitSounds": {
+          "count": 0,
+          "bytesMB": 0
+        },
+        "bg": {
+          "w": 2001,
+          "h": 1439,
+          "estMB": 10.98
+        },
+        "waveMode": "wave",
+        "objects": 786
+      },
+      "os": {
+        "totalMB": 821.2,
+        "procs": [
+          {
+            "id": 14644,
+            "parent": 11240,
+            "type": "",
+            "rssMB": 105
+          },
+          {
+            "id": 11504,
+            "parent": 14644,
+            "type": "gpu",
+            "rssMB": 233.5
+          },
+          {
+            "id": 21300,
+            "parent": 14644,
+            "type": "utility",
+            "rssMB": 44.8
+          },
+          {
+            "id": 5028,
+            "parent": 14644,
+            "type": "renderer",
+            "rssMB": 356
+          },
+          {
+            "id": 4324,
+            "parent": 14644,
+            "type": "utility",
+            "rssMB": 81.9
+          }
+        ]
+      }
+    },
+    "s4-spectroFull": {
+      "page": {
+        "mem": {
+          "usedJSHeapMB": 97.01,
+          "totalJSHeapMB": 162.17
+        },
+        "uasm": null,
+        "audio": {
+          "sr": 48000,
+          "ch": 2,
+          "durS": 130.7,
+          "pcmMB": 47.85
+        },
+        "engines": {
+          "tempoReady": true,
+          "rateReady": false,
+          "tempoActive": false,
+          "rateActive": false,
+          "estEnginePcmMB": 47.85
+        },
+        "undo": {
+          "undoLen": 0,
+          "redoLen": 0,
+          "snapJsonMB": 0.1,
+          "estUndoMB": 0
+        },
+        "hitSounds": {
+          "count": 0,
+          "bytesMB": 0
+        },
+        "bg": {
+          "w": 2001,
+          "h": 1439,
+          "estMB": 10.98
+        },
+        "waveMode": "spectro",
+        "objects": 786
+      },
+      "os": {
+        "totalMB": 874.3,
+        "procs": [
+          {
+            "id": 14644,
+            "parent": 11240,
+            "type": "",
+            "rssMB": 102.5
+          },
+          {
+            "id": 11504,
+            "parent": 14644,
+            "type": "gpu",
+            "rssMB": 230.5
+          },
+          {
+            "id": 21300,
+            "parent": 14644,
+            "type": "utility",
+            "rssMB": 44.2
+          },
+          {
+            "id": 5028,
+            "parent": 14644,
+            "type": "renderer",
+            "rssMB": 415.2
+          },
+          {
+            "id": 4324,
+            "parent": 14644,
+            "type": "utility",
+            "rssMB": 81.9
+          }
+        ]
+      }
+    },
+    "s5-testplay": {
+      "page": {
+        "mem": {
+          "usedJSHeapMB": 67.43,
+          "totalJSHeapMB": 127.65
+        },
+        "uasm": null,
+        "audio": {
+          "sr": 48000,
+          "ch": 2,
+          "durS": 130.7,
+          "pcmMB": 47.85
+        },
+        "engines": {
+          "tempoReady": true,
+          "rateReady": false,
+          "tempoActive": false,
+          "rateActive": false,
+          "estEnginePcmMB": 47.85
+        },
+        "undo": {
+          "undoLen": 0,
+          "redoLen": 0,
+          "snapJsonMB": 0.1,
+          "estUndoMB": 0
+        },
+        "hitSounds": {
+          "count": 0,
+          "bytesMB": 0
+        },
+        "bg": {
+          "w": 2001,
+          "h": 1439,
+          "estMB": 10.98
+        },
+        "waveMode": "wave",
+        "objects": 786
+      },
+      "os": {
+        "totalMB": 843.6,
+        "procs": [
+          {
+            "id": 14644,
+            "parent": 11240,
+            "type": "",
+            "rssMB": 102.7
+          },
+          {
+            "id": 11504,
+            "parent": 14644,
+            "type": "gpu",
+            "rssMB": 231.5
+          },
+          {
+            "id": 21300,
+            "parent": 14644,
+            "type": "utility",
+            "rssMB": 44.2
+          },
+          {
+            "id": 5028,
+            "parent": 14644,
+            "type": "renderer",
+            "rssMB": 383.3
+          },
+          {
+            "id": 4324,
+            "parent": 14644,
+            "type": "utility",
+            "rssMB": 81.9
+          }
+        ]
+      }
+    },
+    "s6-afterTestplay": {
+      "page": {
+        "mem": {
+          "usedJSHeapMB": 84.92,
+          "totalJSHeapMB": 127.9
+        },
+        "uasm": null,
+        "audio": {
+          "sr": 48000,
+          "ch": 2,
+          "durS": 130.7,
+          "pcmMB": 47.85
+        },
+        "engines": {
+          "tempoReady": true,
+          "rateReady": false,
+          "tempoActive": false,
+          "rateActive": false,
+          "estEnginePcmMB": 47.85
+        },
+        "undo": {
+          "undoLen": 0,
+          "redoLen": 0,
+          "snapJsonMB": 0.1,
+          "estUndoMB": 0
+        },
+        "hitSounds": {
+          "count": 0,
+          "bytesMB": 0
+        },
+        "bg": {
+          "w": 2001,
+          "h": 1439,
+          "estMB": 10.98
+        },
+        "waveMode": "wave",
+        "objects": 786
+      },
+      "os": {
+        "totalMB": 846.6,
+        "procs": [
+          {
+            "id": 14644,
+            "parent": 11240,
+            "type": "",
+            "rssMB": 103
+          },
+          {
+            "id": 11504,
+            "parent": 14644,
+            "type": "gpu",
+            "rssMB": 232.2
+          },
+          {
+            "id": 21300,
+            "parent": 14644,
+            "type": "utility",
+            "rssMB": 44.2
+          },
+          {
+            "id": 5028,
+            "parent": 14644,
+            "type": "renderer",
+            "rssMB": 385.3
+          },
+          {
+            "id": 4324,
+            "parent": 14644,
+            "type": "utility",
+            "rssMB": 81.9
+          }
+        ]
+      }
+    }
+  }
+}

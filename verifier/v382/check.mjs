@@ -155,14 +155,16 @@ section('CDP: 真实编辑器功能回归');
       store.setAudio('data:audio/wav;base64,${wavB64}');
       return true;
     })()`);
-    // 等解码 + sinc 引擎预热 + 默认 hitsound 加载 (defaultsLoading 是"已开始"标志, 不复位, 看 defaultBuffers)
+    // 等解码 + sinc 引擎就绪 + 默认 hitsound 加载 (defaultsLoading 是"已开始"标志, 不复位, 看 defaultBuffers)
+    // v447: 引擎改懒建 (解码不再预热), 轮询内显式 ensureRateNode 触发构建
     let engineReady = false;
     for (let i = 0; i < 60 && !engineReady; i++) {
       await sleep(500);
-      engineReady = await evalJs(`(() => { const d = window.__osuStore.debugState();
+      engineReady = await evalJs(`(() => { const s = window.__osuStore; const d = s.debugState();
+        if (d.hasAudioBuffer && !d.rateReady) s.ensureRateNode();
         return d.hasAudioBuffer && d.rateReady && d.defaultBuffers.length > 0; })()`).catch(() => false);
     }
-    assert(engineReady, 'setup: 音频解码 + sinc 引擎预热 + hitsound 就绪');
+    assert(engineReady, 'setup: 音频解码 + sinc 引擎就绪 (v447 懒建, 显式 ensure) + hitsound 就绪');
 
     // ---- 1) 0.5x 播放: 走 sinc 支路, 谱面位置按 0.5x 推进 ----
     const r1 = await evalJs(`(async () => {

@@ -168,6 +168,10 @@ export function getSpectroColumn(buf: AudioBufferLike, centerMs: number): Float3
 
 /** 换歌/换 buffer 时无需手动清: WeakMap 键随 buffer 回收 */
 
+/** v447: 主动释放某 buffer 的频谱列缓存 (mono 混合 ~时长×sr×4B + LRU 列 ≤10MB, 130s@48k ≈ 35MB);
+ *  离开频谱模式时由 store.setWaveMode 调用 — 重进频谱现算 (mono 混合为一次性线性扫描, 代价可忽略) */
+export function dropSpectroCols(buf: AudioBufferLike | null) { if (buf) colCache.delete(buf); }
+
 // ---------- 色带 (v194: 参考 Bpm-Measurer 频谱配色分段式: 黑→紫(0.25)→红(0.5)→黄(0.75)→白(1)) ----------
 
 /** t ∈ [0,1] → [r,g,b] (越界 clamp); 分段线性, 亮度单调不减 */

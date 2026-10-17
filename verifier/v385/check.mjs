@@ -137,10 +137,11 @@ section('CDP: 功能回归 (不变调默认路径)');
     let ready = false;
     for (let i = 0; i < 60 && !ready; i++) {
       await sleep(500);
-      ready = await evalJs(`(() => { const d = window.__osuStore.debugState();
+      ready = await evalJs(`(() => { const s = window.__osuStore; const d = s.debugState();
+        if (d.hasAudioBuffer && !d.tempoReady) s.ensureTempoNode(); // v447: 引擎改懒建, 测试显式触发 (原解码预热已移除)
         return d.hasAudioBuffer && d.tempoReady && d.defaultBuffers.length > 0; })()`).catch(() => false);
     }
-    assert(ready, 'setup: 音频解码 + tempo 引擎预热 + hitsound 就绪');
+    assert(ready, 'setup: 音频解码 + tempo 引擎就绪 (v447 懒建, 显式 ensure) + hitsound 就绪');
 
     // 0) 默认语义: rateAdjustPitch === false
     const d0 = await evalJs(`window.__osuStore.debugState()`);

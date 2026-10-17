@@ -52,7 +52,8 @@ section('store.ts: tempo 引擎接线');
   assert(/clearTimeout\(this\.tempoEndTimer\)/.test(src) && /this\.tempoNode\.stop\(\)/.test(src), 'stopSource 清定时器并 stop 节点');
   assert(/clock\.rate = this\.playbackRate/.test(src) && /clock\.onStartedAtCtxTime\(startW, offset \* 1000\)/.test(src), '时钟锚定与 source 路径一致 (v251: 锚定到采样网格吸附后的 offset, 与 source.start 同一值)');
   assert(/this\.audioBuffer !== buf/.test(src), '加载期间换歌守卫');
-  assert(/ensureTempoNode\(\); \/\/ 预热/.test(src), '解码完成预热引擎');
+  assert(/v447: 不再预热变速引擎/.test(src), 'v447: 解码完成不再预热引擎 (引擎各持整份 PCM 副本, 首次变速经 play() 兜底懒建)');
+  assert(/worklet 未就绪: 本次退回 playbackRate[\s\S]{0,120}?ensureTempoNode\(\)/.test(src), 'play() 兜底懒建 tempo 引擎保留 (v447 懒建依赖此路径)');
   // v295: preservesPitch 跟随 rateAdjustPitch 开关 (不变调时 true)
   assert(/this\.audio\.preservesPitch = !this\.rateAdjustPitch/.test(src) && /webkitPreservesPitch/.test(src), 'HTMLAudio 降级路径 preservesPitch 跟随 rateAdjustPitch (v295)');
   assert(/tempoReady: !!this\.tempoNode/.test(src) && /tempoActive: this\.tempoActive/.test(src), 'debugState 暴露 tempo 状态');
@@ -67,7 +68,7 @@ section('Timelines.tsx: 倍速控件提示');
   // v296: 变调切换按钮已移除, 倍速行恢复固定不变调 tooltip; v346: tooltip 走 i18n
   assert(/timeline\.speed_title/.test(src) && !/data-speed-pitch/.test(src), '倍速 tooltip 标注不变调 (v296: 切换按钮移除, i18n key)');
   const zhTimeline = readSrc('src/i18n/dicts/zh-CN/timeline.ts');
-  assert(/'timeline\.speed_title':\s*'播放速度 \(变速不变调 signalsmith-stretch/.test(zhTimeline), 'zh-CN 词典倍速 tooltip 译文');
+  assert(/'timeline\.speed_title':\s*'播放速度 \(变速不变调/.test(zhTimeline), 'zh-CN 词典倍速 tooltip 译文'); // v447: 适配现译文 (v296 后已改"时间拉伸, 对齐 lazer 编辑器慢放", 该断言滞后失败与本次改动无关)
 }
 
 if (failures) { console.error(`\nVERIFIER_V60_FAILED: ${failures} 处失败`); process.exit(1); }

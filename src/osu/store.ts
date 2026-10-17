@@ -29,6 +29,7 @@ import { countBSplineSliders, convertBSplineSlidersToBezier } from './convert/co
 import { seekByBeats, wheelSteps, playingWheelStepMs, type WheelAccum } from './seekSnapping'; // v193: 滚轮 seek
 import { beginLifecycleFrame } from './lifecycle'; // v197: 每帧推进滑条时长 memo 帧号
 import { toggleEdgesHitSound, setEdgeSoundBitAll } from './edgeSounds'; // v213: 滑条 per-edge hitsound
+import { dropSpectroCols } from './waveformData'; // v447: 离开频谱模式释放 mono+列缓存
 import { tNow } from '@/i18n'; // v346: 多语言
 
 interface Snapshot {
@@ -194,6 +195,8 @@ class EditorStore {
   waveMode: 'wave' | 'spectro' = loadWaveMode();
   waveOnTop = loadWaveOnTop();
   setWaveMode(m: 'wave' | 'spectro') {
+    // v447: 离开频谱模式即释放该 buffer 的 mono 混合+LRU 列缓存 (~35MB/130s@48k), 重进现算
+    if (this.waveMode === 'spectro' && m !== 'spectro') dropSpectroCols(this.audioBuffer);
     this.waveMode = m;
     try { localStorage.setItem(LS_WAVE_MODE, m); } catch { /* 隐私模式等忽略 */ }
     this.emitSelection();
@@ -396,6 +399,9 @@ class EditorStore {
   rateActive = false; // 调试: 当前播放是否经 sinc 重采样引擎
   private rateGain: GainNode | null = null; // 变速支路独立增益 (seek 防咔哒 dip 只作用此支路, 同 v216 tempo 支路)
   private rateEndTimer: ReturnType<typeof setTimeout> | null = null; // 播完检测 (同 tempoEndTimer)
+  // v447: 引擎销毁令牌 — 销毁/换歌时自增, 在途加载完成发现令牌已变即丢弃节点 (防复活重占 PCM)
+  private tempoGen = 0;
+  private rateGen = 0;
   private clock: AudioClock | null = null;
   private scheduler: HitSoundScheduler | null = null;
   private hitBuffers = new Map<string, AudioBuffer>(); // stem(如 "soft-hitnormal") -> 谱面自定义采样
@@ -629,10 +635,8 @@ class EditorStore {
     this.stopSource();
     if (this.audio) { this.audio.pause(); this.audio = null; }
     // 歌曲更换: 旧变速节点持有旧 PCM, 销毁待重建
-    if (this.tempoNode) { try { this.tempoNode.disconnect(); } catch { /* noop */ } this.tempoNode = null; this.tempoAnalyser = null; this.tempoGain = null; }
-    this.tempoLoading = null;
-    if (this.rateNode) { try { this.rateNode.disconnect(); } catch { /* noop */ } this.rateNode = null; this.rateGain = null; } // v382
-    this.rateLoading = null;
+    this.destroyTempoNode(); // v447: 收口为销毁助手 (含在途加载令牌 + 播完定时器)
+    this.destroyRateNode();
     this.audioUrl = url;
     this.audioBuffer = null;
     this.audioMetaDuration = 0; // v442: 换歌即作废旧探针时长
@@ -643,7 +647,7 @@ class EditorStore {
       this.audioBuffer = this.audioCache.buffer;
       this.audioMetaDuration = this.audioBuffer.duration;
       this.ensureClock();
-      if (this.rateAdjustPitch) this.ensureRateNode(); else this.ensureTempoNode();
+      // v447: 不再预热变速引擎 — 引擎各持整份 PCM 副本 (实测 ~48MB/130s@48k), 首次变速播放经 play() 既有兜底懒建
       this.emit();
       return;
     }
@@ -669,8 +673,8 @@ class EditorStore {
         if (decoded && this.audioUrl === url) {
           this.audioBuffer = decoded;
           if (audioKey) this.audioCache = { key: audioKey, buffer: decoded }; // v444: 解码成功入缓存
-          // v382: 预热当前模式的变速引擎 (变调=sinc 重采样, 不变调=signalsmith), 首次变速播放即可用
-          if (this.rateAdjustPitch) this.ensureRateNode(); else this.ensureTempoNode();
+          // v447: 不再预热变速引擎 (v382 曾预热当前模式) — 引擎节点各持整份 PCM 副本, 常驻几十~上百 MB;
+          //   首次变速播放走 play() 既有兜底: 本次退回原生 playbackRate, 引擎就绪后自动重进, 变速音质最终不变
           this.emit();
         }
       }).catch(() => {
@@ -691,17 +695,18 @@ class EditorStore {
     if (!this.actx || !this.audioBuffer || this.rateNode || this.rateLoading) return;
     const actx = this.actx;
     const buf = this.audioBuffer;
+    const gen = ++this.rateGen; // v447: 销毁令牌 (destroyRateNode 后本次加载作废)
     this.rateLoading = (async () => {
       try {
         const node = await createRateNode(actx);
-        if (this.audioBuffer !== buf) { node.disconnect(); return; } // 加载期间已换歌
+        if (this.audioBuffer !== buf || gen !== this.rateGen) { node.disconnect(); return; } // 加载期间已换歌/已销毁
         const chL = buf.getChannelData(0);
         const chR = buf.numberOfChannels > 1 ? buf.getChannelData(1) : chL;
         const lc = chL.slice();
         const rc = chR === chL ? lc : chR.slice();
         // buffer 模式: PCM 移交节点内部缓冲 (transferable); 单声道由节点复制到双声道
         node.addBuffers(rc === lc ? [lc] : [lc, rc], buf.sampleRate, rc === lc ? [lc.buffer] : [lc.buffer, rc.buffer]);
-        if (this.audioBuffer !== buf) { node.disconnect(); return; } // 送 PCM 期间已换歌
+        if (this.audioBuffer !== buf || gen !== this.rateGen) { node.disconnect(); return; } // 送 PCM 期间已换歌/已销毁
         const g = actx.createGain(); // 变速支路独立增益 (v216/v226 seek dip, 同 tempo 支路)
         node.connect(g);
         g.connect(this.ensureMusicBus()); // v144: 经音乐总线 (音量设置), 不直接接 destination
@@ -718,17 +723,18 @@ class EditorStore {
     if (!this.actx || !this.audioBuffer || this.tempoNode || this.tempoLoading) return;
     const actx = this.actx;
     const buf = this.audioBuffer;
+    const gen = ++this.tempoGen; // v447: 销毁令牌 (destroyTempoNode 后本次加载作废)
     this.tempoLoading = (async () => {
       try {
         const node = await createTempoNode(actx);
-        if (this.audioBuffer !== buf) { node.disconnect(); return; } // 加载期间已换歌
+        if (this.audioBuffer !== buf || gen !== this.tempoGen) { node.disconnect(); return; } // 加载期间已换歌/已销毁
         const chL = buf.getChannelData(0);
         const chR = buf.numberOfChannels > 1 ? buf.getChannelData(1) : chL;
         const lc = chL.slice();
         const rc = chR === chL ? lc : chR.slice();
         // buffer 模式: PCM 移交节点内部缓冲 (transferable); 单声道由节点复制到双声道
         await node.addBuffers(rc === lc ? [lc] : [lc, rc], rc === lc ? [lc.buffer] : [lc.buffer, rc.buffer]);
-        if (this.audioBuffer !== buf) { node.disconnect(); return; } // 送 PCM 期间已换歌
+        if (this.audioBuffer !== buf || gen !== this.tempoGen) { node.disconnect(); return; } // 送 PCM 期间已换歌/已销毁
         const an = actx.createAnalyser();
         an.fftSize = 4096;
         node.connect(an);
@@ -742,6 +748,23 @@ class EditorStore {
         console.warn('signalsmith-stretch tempo 节点不可用, 变速将退化为变调', err);
       }
     })();
+  }
+
+  /** v447: 销毁不变调引擎, 释放节点内部整份 PCM 副本 (实测 ~48MB/130s@48k); 换歌/模式互斥/支路互斥共用。
+   *  gen 自增使在途加载完成时丢弃节点, 防销毁后复活 */
+  private destroyTempoNode() {
+    this.tempoGen++;
+    if (this.tempoEndTimer) { clearTimeout(this.tempoEndTimer); this.tempoEndTimer = null; }
+    if (this.tempoNode) { try { this.tempoNode.stop(); } catch { /* noop */ } try { this.tempoNode.disconnect(); } catch { /* noop */ } }
+    this.tempoNode = null; this.tempoAnalyser = null; this.tempoGain = null; this.tempoLoading = null; this.tempoActive = false;
+  }
+
+  /** v447: 销毁变调重采样引擎 (对称 destroyTempoNode) */
+  private destroyRateNode() {
+    this.rateGen++;
+    if (this.rateEndTimer) { clearTimeout(this.rateEndTimer); this.rateEndTimer = null; }
+    if (this.rateNode) { try { this.rateNode.stop(); } catch { /* noop */ } try { this.rateNode.disconnect(); } catch { /* noop */ } }
+    this.rateNode = null; this.rateGain = null; this.rateLoading = null; this.rateActive = false;
   }
 
   // 调试: 最近排程的 hitsound 记录 (排查"音效不对"类问题用, 上限 300 条)
@@ -1074,7 +1097,8 @@ class EditorStore {
   /** v379: 入栈快照 (不含预览回滚) — pushUndo / beginDrag(预览会话起步) 共用 */
   private pushSnapshot() {
     this.undoStack.push(this.snapshot());
-    if (this.undoStack.length > 200) this.undoStack.shift();
+    // v447: 上限 200→50 — 快照 = hitObjects 等六段全表 JSON 深拷贝 (实测 ~0.1MB/条@786物件, 满栈 ~20MB, 大图线性更贵); 50 步日常够用
+    if (this.undoStack.length > 50) this.undoStack.shift();
     this.redoStack = [];
     // v140: 不再在此置脏 — 入栈发生在变更前, 且存在无实际改动的操作; 脏标记改由 emit() 时按内容指纹对比 (refreshDirty)
   }
@@ -1414,7 +1438,7 @@ class EditorStore {
         this.restore(s2);
         const s1 = this.undoStack.pop()!; // beginDrag 压入的拖拽快照 (预览态)
         this.undoStack.push(s0, s1);
-        if (this.undoStack.length > 200) this.undoStack.shift();
+        if (this.undoStack.length > 50) this.undoStack.shift(); // v447: 与 pushSnapshot 同上限 (200→50)
         if (isObj) this.beginTransformPreview(); else this.beginNodeTransformPreview();
       }
     }
@@ -2549,6 +2573,7 @@ class EditorStore {
           }
         }, Math.max(0, (endCtx - this.actx!.currentTime) * 1000 + 50));
         this.tempoActive = true;
+        this.destroyRateNode(); // v447: 引擎互斥 — 本支路起用即销毁另一支路, 释放其整份 PCM 副本 (重建有 play() 兜底)
       } else if (this.playbackRate !== 1 && this.rateAdjustPitch && this.rateNode) { // v382
         // 变速变调 (测试游玩 DT/HT, lazer Frequency 语义): 窗 sinc 重采样引擎.
         // schedule 锚点 = AudioContext 时间线, 与 source.start(startW, offset) 同一语义;
@@ -2576,6 +2601,7 @@ class EditorStore {
           }
         }, Math.max(0, (endCtx - this.actx!.currentTime) * 1000 + 50));
         this.rateActive = true;
+        this.destroyTempoNode(); // v447: 引擎互斥 — 本支路起用即销毁另一支路, 释放其整份 PCM 副本 (重建有 play() 兜底)
       } else {
         if (this.playbackRate !== 1 && this.rateAdjustPitch && !this.rateNode) { // v382
           // worklet 未就绪: 本次退回原生 playbackRate (低质量), 就绪后自动重进 sinc 引擎
@@ -2660,7 +2686,8 @@ class EditorStore {
     if (this.rateAdjustPitch === v) return;
     this.rateAdjustPitch = v;
     // 变速引擎按模式预热 (v382: 变调=sinc 重采样, 不变调=signalsmith)
-    if (this.audioBuffer) { if (v) this.ensureRateNode(); else this.ensureTempoNode(); }
+    // v447: 模式互斥 — 预热目标引擎前销毁另一引擎 (并存 = 双倍 PCM 常驻, 实测 +48MB/130s@48k)
+    if (this.audioBuffer) { if (v) { this.destroyTempoNode(); this.ensureRateNode(); } else { this.destroyRateNode(); this.ensureTempoNode(); } }
     if (this.audio) { // 降级 <audio> 通道同步 (Web Audio 通道在 play() 分支生效)
       this.audio.preservesPitch = !v;
       (this.audio as HTMLAudioElement & { webkitPreservesPitch?: boolean }).webkitPreservesPitch = !v;

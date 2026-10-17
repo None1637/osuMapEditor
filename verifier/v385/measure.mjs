@@ -165,9 +165,9 @@ export async function runTempoMeasurements({ log = console.log } = {}) {
     let ready = false;
     for (let i = 0; i < 60 && !ready; i++) {
       await sleep(500);
-      ready = await evalJs(`(() => { const d = window.__osuStore.debugState(); return d.hasAudioBuffer && d.tempoReady; })()`).catch(() => false);
+      ready = await evalJs(`(() => { const s = window.__osuStore; const d = s.debugState(); if (d.hasAudioBuffer && !d.tempoReady) s.ensureTempoNode(); return d.hasAudioBuffer && d.tempoReady; })()`).catch(() => false);
     }
-    if (!ready) throw new Error('signalsmith tempo 引擎预热失败');
+    if (!ready) throw new Error('signalsmith tempo 引擎就绪失败 (v447 懒建, 轮询内显式 ensure)');
     await evalJs(CAPTURE_SETUP);
     results.env = await evalJs(`(() => { const s = window.__osuStore;
       return { sampleRate: s.actx.sampleRate, state: s.actx.state, baseLatency: s.actx.baseLatency,
@@ -186,7 +186,7 @@ export async function runTempoMeasurements({ log = console.log } = {}) {
         let rdy = false;
         for (let i = 0; i < 40 && !rdy; i++) {
           await sleep(300);
-          rdy = await evalJs(`(() => { const d = window.__osuStore.debugState(); return d.hasAudioBuffer && d.tempoReady; })()`).catch(() => false);
+          rdy = await evalJs(`(() => { const s = window.__osuStore; const d = s.debugState(); if (d.hasAudioBuffer && !d.tempoReady) s.ensureTempoNode(); return d.hasAudioBuffer && d.tempoReady; })()`).catch(() => false);
         }
         if (!rdy) { results.steady.push({ sig, rate, error: 'tempo engine not ready' }); continue; }
         const rec = await evalJs(recordExpr(
@@ -216,7 +216,7 @@ export async function runTempoMeasurements({ log = console.log } = {}) {
       })()`);
       for (let i = 0; i < 40; i++) {
         await sleep(300);
-        if (await evalJs(`(() => { const d = window.__osuStore.debugState(); return d.hasAudioBuffer && d.tempoReady; })()`).catch(() => false)) break;
+        if (await evalJs(`(() => { const s = window.__osuStore; const d = s.debugState(); if (d.hasAudioBuffer && !d.tempoReady) s.ensureTempoNode(); return d.hasAudioBuffer && d.tempoReady; })()`).catch(() => false)) break;
       }
       const rec = await evalJs(recordExpr(`store.setRate(0.5); store.seek(500); store.play();`, 2400));
       const pcm = decode(rec.pcm);
@@ -235,7 +235,7 @@ export async function runTempoMeasurements({ log = console.log } = {}) {
       })()`);
       for (let i = 0; i < 40; i++) {
         await sleep(300);
-        if (await evalJs(`(() => { const d = window.__osuStore.debugState(); return d.hasAudioBuffer && d.tempoReady; })()`).catch(() => false)) break;
+        if (await evalJs(`(() => { const s = window.__osuStore; const d = s.debugState(); if (d.hasAudioBuffer && !d.tempoReady) s.ensureTempoNode(); return d.hasAudioBuffer && d.tempoReady; })()`).catch(() => false)) break;
       }
       const rec = await evalJs(recordExpr(
         `store.setRate(0.5); store.seek(500.05); store.play();`, 1200));

@@ -61,10 +61,16 @@ try {
     ready = await evalJs('!!(window.__osuStore && window.__osuStore.beatmap && window.__osuStore.debugState().hasAudioBuffer)');
   }
   if (!ready) throw new Error('应用未就绪');
-  // demo 音频已解码, signalsmith-stretch 引擎应已预热
+  // v447: 引擎改懒建 — 解码后不再预热 (tempoReady=false); 首次变速播放经 play() 兜底触发建引擎
   await evalJs('window.__osuStore.pause(); "ok"');
-  const warm = await evalJs('window.__osuStore.debugState().tempoReady');
-  assert(warm === true, `解码后 signalsmith-stretch 引擎已预热 (tempoReady=${warm})`);
+  const warm0 = await evalJs('window.__osuStore.debugState().tempoReady');
+  assert(warm0 === false, `v447: 解码后引擎不再预热 (tempoReady=${warm0})`);
+  await evalJs(`document.querySelector('[data-speed-input="0.5"]').click(); "ok"`);
+  await evalJs('window.__osuStore.seek(2000); window.__osuStore.play(); "ok"');
+  let warm = false;
+  for (let i = 0; i < 30 && !warm; i++) { await sleep(500); warm = await evalJs('window.__osuStore.debugState().tempoReady'); }
+  assert(warm === true, `首次变速播放后兜底建成 signalsmith 引擎 (tempoReady=${warm})`);
+  await evalJs('window.__osuStore.pause(); "ok"');
 
   console.log('== A) rate=0.5: signalsmith-stretch 引擎接管, 时间半速推进');
   {

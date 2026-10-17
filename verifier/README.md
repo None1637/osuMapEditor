@@ -4858,3 +4858,36 @@
   ±8 吻合, 游玩区内 = 额外 0.45 压暗吻合, 游玩覆盖层四角不再纯黑 [v445 前 = #000]; 双模式截图
   目测正常, 用后已清理)。单跑 v445 (帧数门槛/门控) / v417 / v416 / v168 全绿
   (v417 cover 目标断言与 v168 alpha 变量名随 v446 改写适配); tsc + vite build 通过; 未跑大批量回归。
+
+## v447 — 内存占用优化 (变速引擎懒建+互斥销毁 / 撤销栈 200→50 / 频谱退出释放)
+- 起因: 用户任务管理器截图 osu! Map Editor (5 进程) 占 ~2.5GB。先量化再动手 — 新
+  verifier/v447/mem-profile.mjs (CDP 隔离 Electron + 页内结构清点 + OS 侧进程树 RSS,
+  分阶段: 空app→开cygnus(786物件/131s@48k)→双引擎→撤销填满→频谱扫全程→测试游玩→退出)。
+- 优化前画像 (mem-baseline.json, 2560×1560@240Hz, 进程树 RSS):
+  空 app 790 → 开图 857 → 双引擎 907 → 撤销满栈 928 → 频谱 988 → 游玩 993 MB。
+  构成大头: 变速引擎 PCM 副本 ~48MB/个 (tempo/rate 各持整份 PCM, 解码即预热当前模式,
+  切过一次模式后双份常驻 = +96MB); 频谱 mono 混合 25MB + LRU ≤10MB (开过一次频谱后常驻);
+  撤销满栈 ~20MB (快照 = 六段全表 JSON 深拷贝 ~0.1MB/条 × 200); 背景图解码 11MB;
+  全屏离屏层数张 ×16MB (v445/v446 帧数优化载体, 不动); Electron/Chromium 基座 ~500MB (不动)。
+- 优化 (源码改动均带 v447 注释):
+  1) store.ts 变速引擎懒建 — setAudio 解码/缓存命中不再预热 (v382 预热移除);
+     首次变速播放走 play() 既有兜底 (本次原生 playbackRate, 引擎就绪自动 pause/play 重进,
+     音质最终不变 — v385/v382 频谱/glitch 断言全绿)。
+  2) store.ts 引擎互斥销毁 — play() 一支路起用即 destroy 另一支路; setRateAdjustPitch 切换同步销毁;
+     destroyTempoNode/destroyRateNode 收口 (含播完定时器), tempoGen/rateGen 令牌防在途加载复活;
+     setAudio 换歌销毁复用同助手。两引擎永不并存, 不用变速时零副本。
+  3) store.ts 撤销栈上限 200→50 (pushSnapshot + 拖拽预览收口两处; undo/redo 机械路径 CDP 断言)。
+  4) waveformData.ts 新增 dropSpectroCols + store.setWaveMode 离开频谱即释放 mono+LRU, 重进现算。
+- 复测 (同机同图同条件, mem-after.json vs mem-baseline.json, 进程树 RSS):
+  空 app 790→711 (-80, 演示曲引擎预热身去除) / 开图 857→698 (-159) /
+  双引擎场景 907→755 (-153, 引擎 ×2→×1) / 撤销满栈 928→821 (-107, estUndo 39→10MB) /
+  频谱 988→874 (-114) / 游玩中 993→844 (-150) / 退出后 984→847 (-138)。
+  JS 堆: 频谱扫全程后切回波形, 游玩阶段堆 100.7→67.4MB (-33 ≈ mono25+LRU 部分, 证明释放生效)。
+- 取舍: 首次变速播放短暂原生音质+一次自动重进 (兜底路径既有, 非新增); 撤销 50 步上限 (需求允许);
+  频谱关闭后再开需重算 mono (一次性线性扫描) 与列缓存; DT/HT 游玩与慢放编辑交替时引擎随互斥
+  重建 (每次换向一次懒建); DT 游玩退出 (直接置位路径) 后 rate 引擎留存至下次引擎播放/换歌 — 遗留小项。
+- 验证: verifier/v447 (mem-profile.mjs 前后对比; check.mjs 接线断言 + CDP: 解码后引擎零常驻/
+  首次变速兜底接管/DT 互斥销毁/切回重建/撤销 50 截断+undo/redo 可用/频谱往返无异常, 23 断言全绿);
+  单跑 v385/v382 (引擎音质: 峰位/glitch/hitsound 时序/暂停续播, 全绿) / v444 / v105 / v106 / v60 静态
+  全绿 (v60 cdp 为 7100 dev-server 旧基建未跑, 引擎覆盖由 v385 承接; v60 一处 zh-CN 词典断言
+  滞后于 v296 译文改动, 顺带适配); tsc + vite build 通过; 按惯例未跑大批量回归。
