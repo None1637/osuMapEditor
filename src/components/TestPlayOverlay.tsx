@@ -17,7 +17,7 @@
 // v423: break 休息段提示 (中央偏上: pass/fail 三角 + Break 字样 + 剩余秒数)。
 // v446: 背景图 cover 铺满整个覆盖层画布 (原只铺游玩区; 0.7 压暗照旧, 固定不随适配变换);
 //   编辑器侧同步全屏 (EditorCanvas 全屏背景层), 游玩区内额外 0.45 压暗保留保证物件可读性。
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { store } from '@/osu/store';
 import { getSkin, getSkinContentSeq, skinScaleAdjust, type SkinImage } from '@/osu/skin';
 import { computeCombos, renderPlayfield } from '@/osu/renderer';
@@ -447,6 +447,7 @@ export function TestPlayOverlay({ onClose }: { onClose: () => void }) {
     <div className="fixed inset-0 z-[80] bg-black cursor-none" data-testid="testplay-overlay" // v416: 游玩时隐藏系统光标
       data-dialog="testplay" // v436: 游玩测试只读 — EditorCanvas window 捕获穿透链 (v431) 遇 data-dialog 直接放行,
       //   游玩中左/右键不再能选中/拖动物件与滑条锚点 (此前实测可拖节点); 击打输入由本覆盖层自处理不受影响
+      style={{ WebkitAppRegion: 'no-drag' } as CSSProperties} // v448: 覆盖层自身也禁拖 (hideTitleBar 拖拽区双保险)
       onContextMenu={(e) => e.preventDefault()}>
       <canvas ref={canvasRef} className="w-full h-full block cursor-none" /> {/* v416 */}
       {/* v294: mod 栏 (左上角; 切换即重开会话) */}

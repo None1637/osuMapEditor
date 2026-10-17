@@ -4891,3 +4891,11 @@
   单跑 v385/v382 (引擎音质: 峰位/glitch/hitsound 时序/暂停续播, 全绿) / v444 / v105 / v106 / v60 静态
   全绿 (v60 cdp 为 7100 dev-server 旧基建未跑, 引擎覆盖由 v385 承接; v60 一处 zh-CN 词典断言
   滞后于 v296 译文改动, 顺带适配); tsc + vite build 通过; 按惯例未跑大批量回归。
+
+## v448 — exe 模式测试游玩时禁止拖动窗口
+- 场景: hideTitleBar (v263) 下页签栏兼作窗口拖拽区 (-webkit-app-region: drag);
+  游玩中按住甩动鼠标触及拖拽区会拖动窗口。
+- 修复: App.tsx 页签栏 app-region 在 testPlay 时降级 no-drag (游玩结束恢复);
+  TestPlayOverlay 根元素显式 no-drag 双保险。仅 Electron 生效 (浏览器端 app-region 无作用)。
+- 验证: verifier/v448 (源码断言 + tsc) 全绿。
+- 注: 自本版起执行新规则 — 每版本完成即 commit + tag + push。

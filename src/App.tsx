@@ -523,9 +523,10 @@ export default function App() {
       {/* 页签栏 (stable 风格大页签: compose / timing / song setup) */}
       {/* v263: 窗口条隐藏生效时, 页签栏兼作窗口拖拽区 (-webkit-app-region: drag), 各按钮 no-drag;
           v280 二轮: 页签栏不再 paddingRight — overlay 窗口按钮 (高 32px) 只覆盖窗口顶行 (= 菜单条行,
-          菜单条自身留白 140), 页签栏在其下不被覆盖 (原 140 留白导致音量/显示设置按钮被无故左移) */}
+          菜单条自身留白 140), 页签栏在其下不被覆盖 (原 140 留白导致音量/显示设置按钮被无故左移);
+          v448: 测试游玩中禁拖 (游玩按住甩动鼠标会拖到窗口) */}
       <div className="flex items-stretch gap-1 px-3 bg-[#101016] border-b border-white/10 shrink-0"
-        style={hideTitleBar ? { WebkitAppRegion: 'drag' } as CSSProperties : undefined}>
+        style={hideTitleBar ? { WebkitAppRegion: testPlay ? 'no-drag' : 'drag' } as CSSProperties : undefined}>
         {([['edit', 'compose', 'tab-compose'], ['timing', 'timing', 'tab-timing']] as const).map(([id, label, action]) => (
           <button key={id} onClick={() => setTab(id)}
             style={{ WebkitAppRegion: 'no-drag' } as CSSProperties}
