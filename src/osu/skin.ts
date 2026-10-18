@@ -411,7 +411,7 @@ const INTRINSIC_SIZE_KEYS = new Set<keyof Skin>([
   'hitcircle', 'hitcircleoverlay',
   'sliderstartcircle', 'sliderstartcircleoverlay', 'sliderendcircle', 'sliderendcircleoverlay',
   'sliderb',
-  'hitcircleselect', // v232: 选中框同 hitcircle 族按固有尺寸显示 (与圆圈一样大)
+  // v470: hitcircleselect 移出 — 选中标记改 128 文件盒 = 2r 圆圈盒 (stable 行为), 不按固有尺寸放大
 ]);
 
 /** v150: hitcircle 族精灵显示宽度 (128-box 单位) = 固有宽度, 上限 256 (lazer WithMaximumSize);

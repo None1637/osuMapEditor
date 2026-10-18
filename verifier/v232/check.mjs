@@ -42,8 +42,8 @@ section('renderer.ts: drawSelectionDecor 按 selectionStyle 分支');
   // v469: 用户指正 v305 方向反了 — stable 选中 = 皮肤 hitcircleselect.png (默认皮肤该图恰为橙黄环),
   //   橙黄圆环 drawSelectionRing 是 lazer 的选中效果
   assert(/function drawHitcircleSelectMark\(rc: RenderCtx, x: number, y: number, r: number\)/.test(src)
-    && /const img = rc\.skin\.hitcircleselect;/.test(src) && /r \* 2 \* hitcircleSpriteWidth\(img\) \/ 128/.test(src),
-    'stable 选中 = 皮肤 hitcircleselect.png drawHitcircleSelectMark (v469, 128-box 公式同 hitcircle 族)');
+    && /const img = rc\.skin\.hitcircleselect;/.test(src) && /const w = r \* 2;/.test(src),
+    'stable 选中 = 皮肤 hitcircleselect.png drawHitcircleSelectMark (v469; v470: 128 文件盒 = 2r)');
   assert(/export function drawSelectionRing\(g: CanvasRenderingContext2D, x: number, y: number, r: number, color = '#f5a623'\)/.test(src),
     'lazer 选中 = 橙黄圆环 drawSelectionRing (v469 移交 lazer)');
   assert(/sliderOutlineSprite\(p\.points, radius, stableSel \? '#4a90e2' : '#4df3ff', stableSel, o\.id/.test(src), // v340: 缓存 sprite

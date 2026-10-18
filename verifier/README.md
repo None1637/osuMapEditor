@@ -5265,3 +5265,18 @@
   pushEntry), v290 (v444 audioKey 既有失配, 断言改前缀), v245 (v462 cacheKey 冻结键既有失配)。
   回归: v469/v232/v245/v305/v308/v310/v311/v314/v340/v259/v290/v297/v299/v323 全绿。
   tsc + vite build 通过。
+
+## v470 — 修复: stable 选中标记尺寸改 128 文件盒 = 2r (滑条边框"盖住"选中效果)
+- 用户反馈: 选中效果和 stable 不一致 (图一本编辑器/图二 stable) — 滑条边框盖住了选中效果。
+- CDP 探针实证 (默认皮肤 + 注入 512px 红环大贴图): 装饰层 z-order 本就正确 (标记压在上层),
+  根因是尺寸 — v469 误用 hitcircle 族固有尺寸放大公式 (hitcircleSpriteWidth), 用户皮肤的
+  大贴图 hitcircleselect 按 4r 绘制, 外圈辉光带整体落在滑条边框带 (0.81~0.925r) 之外 →
+  边框上看不到选中效果, 观感 = "边框盖住选中"; stable 把 128 文件盒映射到 2r 圆圈盒
+  (wiki 标准: 118 圆/128 文件), 辉光带恰落在边框带上。
+- 修复: renderer.ts drawHitcircleSelectMark 宽度改 w = 2r (不再乘 hitcircleSpriteWidth/128);
+  skin.ts hitcircleselect 移出 INTRINSIC_SIZE_KEYS。标准 128/@2x 贴图行为不变 (本来就是 2r),
+  仅超大非 @2x 贴图从 4r 收回 2r。lazer 橙黄环 (drawSelectionRing) 不受影响。
+- 验证: verifier/v470 (源码断言 + CDP: 注入 512px 红环 (带在 0.80~0.90 半宽), 切
+  selectionStyle bust 装饰层键, 头部正上 0.85r 采样 r-g=153 红带压上层且=2r; 2.5r 对照无红,
+  排除旧 4r)。适配: v469/v232 尺寸针串改 w = 2r。回归: v232/v469/v245/v305/v308/v340 全绿。
+  tsc + vite build 通过。
