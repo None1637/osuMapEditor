@@ -487,14 +487,12 @@ class EditorStore {
     try {
       const r = await saveBeatmap(this.beatmap, this.mapSource);
       this.lastSave = r;
-      this.saveMessage = r.route === 'download'
-        ? tNow('store.save_exported', 'Exported: {file}', { file: r.fileName })
-        : tNow('store.save_saved', 'Saved: {file}', { file: r.fileName });
+      // v461: 成功不再设 saveMessage (页签栏 [已保存]/[已导出] 绿字反馈已删) — 成功反馈 = v460 中央横条;
+      //   saveMessage 只剩失败红字与 B4 转换等提示在用
       this.setDirty(false); // v120
       this.savedFingerprint = this.fingerprint(); // v140: 保存内容成为新的干净基准
       this.saveFlashSeq++; // v460: 中央「地图已保存」横条 (所有保存入口 — 快捷键/原生菜单 — 都汇于此)
       this.emit();
-      setTimeout(() => { this.saveMessage = null; this.emitPlayback(); }, 2600);
       void this.backupNow('save', r.text); // v185: 每次 Ctrl+S 备份一次 (异步, 不阻塞保存反馈)
       return true;
     } catch (e) {

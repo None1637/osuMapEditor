@@ -5093,3 +5093,16 @@
   key={seq} 重挂载, 连续保存重播动画。文案 i18n: zh-CN「地图已保存」/ zh-TW s2t / en "Map saved"。
 - 验证: verifier/v460 (源码断言: 触发器只挂成功路径/组件结构/keyframes 时序/挂载位置/文案键);
   tsc + vite build 通过。
+
+## v461 — 删除旧的保存成功反馈 (页签栏 [已保存]/[已导出] 绿字)
+- 用户需求: 成功反馈已由 v460 stable 风中央「地图已保存」横条取代, 去掉原来的
+  「按下保存后谱面信息变成绿色并加 [已保存] 前缀」代码。
+- 改动: store.save() 成功路径不再写 saveMessage, 同路径的 2.6s 清除定时器一并删除;
+  词典键 store.save_saved / store.save_exported 删除 (全 src 无残留引用)。
+  保留: 保存失败红字 (save_failed) 与 B4 转换等 saveMessage 提示 — App.tsx 页签栏
+  展示逻辑 (data-save-message / 前缀渲染 / 失败变红判定) 不动; lastSave 测试挂钩不动。
+  SavedFlash 横条加 data-saved-flash 测试钩子。
+- 验证: verifier/v461 新增; v67 check/cdp 与 v81 cdp 适配 (成功 → 断言 saveMessage=null
+  + saveFlashSeq 自增 + [data-saved-flash] 横条显示, 失败路径断言不变); v67 check 顺带
+  修复 v444 起过时的 load() 签名断言 (+audioKey); v460/v81/v110/v111/v124/v169 全绿;
+  tsc + vite build 通过。

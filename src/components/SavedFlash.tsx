@@ -32,7 +32,7 @@ export function SavedFlash() {
   81% { opacity: 1; transform: scaleY(1); }
   100% { opacity: 0; transform: scaleY(1); }
 }`}</style>
-      <div key={shownSeq}
+      <div key={shownSeq} data-saved-flash
         className="w-full h-14 bg-black/70 flex items-center justify-center text-white text-xl tracking-widest"
         style={{ animation: `saved-flash-bar ${DURATION_MS}ms linear both` }}>
         {t('app.saved_flash', 'Map saved')}

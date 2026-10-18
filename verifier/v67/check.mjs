@@ -37,13 +37,17 @@ section('store.ts: mapSource + save()');
   const src = readSrc('src/osu/store.ts');
   assert(/mapSource: MapSource \| null = null/.test(src), 'mapSource 字段');
   assert(/async save\(\): Promise<boolean>/.test(src) && /saveBeatmap\(this\.beatmap, this\.mapSource\)/.test(src), 'save() 调 saveBeatmap (v120: 返回是否成功)');
-  assert(/r\.route === 'download'\s*\n\s*\? tNow\('store\.save_exported'/.test(src) && /tNow\('store\.save_saved'/.test(src), '保存反馈消息区分通道 (v346: i18n key)');
+  // v461: 成功反馈改为 v460 中央横条 — saveMessage 成功路径赋值 (及译文键) 已删, 失败红字保留
+  assert(!/tNow\('store\.save_exported'/.test(src) && !/tNow\('store\.save_saved'/.test(src), 'v461: 成功不再设 saveMessage ([已保存]/[已导出] 绿字已删)');
+  assert(/this\.saveFlashSeq\+\+/.test(src), 'v460: 成功自增 saveFlashSeq (中央横条)');
+  assert(/tNow\('store\.save_failed'/.test(src), '失败红字反馈保留');
   {
     const dict = readSrc('src/i18n/dicts/zh-CN/backend.ts');
-    assert(/'store\.save_exported': '已导出/.test(dict) && /'store\.save_saved': '已保存/.test(dict), '保存反馈 zh-CN 译文 (已导出/已保存)');
+    assert(!/'store\.save_exported'/.test(dict) && !/'store\.save_saved'/.test(dict), 'v461: 已导出/已保存 译文键已删');
   }
   assert(/lastSave: SaveOutcome \| null/.test(src), 'lastSave 测试挂钩');
-  assert(/source: MapSource \| null = null\)/.test(src) && /this\.mapSource = source/.test(src), 'load() 接收来源');
+  // v461 适配: v444 起 load() 增加第 6 参 audioKey (音频未变复用解码), 断言同步更新
+  assert(/source: MapSource \| null = null, audioKey: string \| null = null\)/.test(src) && /this\.mapSource = source/.test(src), 'load() 接收来源 (v444: +audioKey)');
 }
 
 section('App.tsx: Ctrl+S + 反馈 UI');
@@ -59,7 +63,7 @@ section('App.tsx: Ctrl+S + 反馈 UI');
 section('SongLibrary.tsx: 载入记录来源');
 {
   const src = readSrc('src/components/SongLibrary.tsx');
-  assert(/store\.load\(r\.bm, r\.audioUrl, r\.bgUrl, r\.samples, \{ dir: d\.handle, fileName \}\)/.test(src), 'openDiff 传 { dir, fileName }');
+  assert(/store\.load\(r\.bm, r\.audioUrl, r\.bgUrl, r\.samples, \{ dir: d\.handle, fileName \}, r\.audioKey\)/.test(src), 'openDiff 传 { dir, fileName } (v444: +audioKey)');
 }
 
 section('服务器 write 端点: core + vite + electron + 类型声明');

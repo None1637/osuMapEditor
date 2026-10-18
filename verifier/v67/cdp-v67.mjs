@@ -1,4 +1,6 @@
 // CDP v67 端到端: Ctrl+S 保存谱面 — 无来源走下载 / 服务器来源写回原文件 / 失败反馈
+//   (v461 适配: 成功反馈 = v460 中央横条 (saveFlashSeq 自增 + [data-saved-flash] 元素),
+//   不再写 saveMessage / 谱面信息不再显示 [已保存]/[已导出] 绿字)
 // 运行: node verifier/v67/cdp-v67.mjs   (需要 7100 端口 dev server 已启动)
 import { spawn } from 'child_process';
 import fs from 'fs';
@@ -83,19 +85,23 @@ try {
 
   console.log('== A) 无来源 (演示谱面) => 下载通道, stable 命名');
   {
+    const seq0 = await evalJs(`window.__osuStore.saveFlashSeq`);
     await pressSave();
     await sleep(400);
     const r = await evalJs(`(() => {
       const s = window.__osuStore;
-      return s.lastSave ? [s.lastSave.route, s.lastSave.fileName, s.lastSave.text.includes('osu file format v14'), s.saveMessage] : null;
+      return s.lastSave ? [s.lastSave.route, s.lastSave.fileName, s.lastSave.text.includes('osu file format v14'), s.saveMessage, s.saveFlashSeq] : null;
     })()`);
     assert(r !== null && r[0] === 'download', `路由 = download (实际 ${JSON.stringify(r)})`);
     const expectName = await evalJs(`import('/src/osu/saveMap.ts').then(m => m.mapFileName(window.__osuStore.beatmap))`);
     assert(r[1] === expectName, `文件名 = stable 命名 (${r[1]})`);
     assert(r[2] === true, '写出内容含 v14 头部');
-    assert(typeof r[3] === 'string' && r[3].startsWith('已导出'), `反馈消息 "${r[3]}"`);
-    const ui = await evalJs(`!!document.querySelector('[data-save-message]')`);
-    assert(ui, '工具栏显示保存反馈');
+    assert(r[3] === null, `v461: 成功不再写 saveMessage (实际 ${r[3]})`);
+    assert(r[4] > seq0, `v460: 中央横条触发 (saveFlashSeq ${seq0} → ${r?.[4]})`);
+    const uiOld = await evalJs(`!!document.querySelector('[data-save-message]')`);
+    assert(!uiOld, 'v461: 谱面信息不再出现 [已导出] 绿字反馈');
+    const uiNew = await evalJs(`!!document.querySelector('[data-saved-flash]')`);
+    assert(uiNew, 'v460: 中央「地图已保存」横条显示中');
   }
 
   console.log('== B) 服务器来源 => 写回原文件, 含修改后的物件');
@@ -130,7 +136,7 @@ try {
     assert(r[2] === 'Artist - Title (mapper) [Insane].osu', 'writeFile 收到原文件名');
     assert(r[3] === true, '写回内容含修改后的物件 (777ms)');
     assert(r[4] === true, '写回内容含 [HitObjects]');
-    assert(typeof r[5] === 'string' && r[5].startsWith('已保存'), `反馈消息 "${r[5]}"`);
+    assert(r[5] === null, `v461: 成功不再写 saveMessage (实际 ${r[5]})`);
   }
 
   console.log('== C) 写回失败 => 错误反馈, lastSave 不被覆盖');

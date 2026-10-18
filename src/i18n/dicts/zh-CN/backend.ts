@@ -2,8 +2,7 @@
 // (menu.* 菜单标签在 electron/main.cjs 内嵌三语表, 主进程 CJS 不能 import 本词典)
 export const zhCN: Record<string, string> = {
   // ---- store.* (保存状态栏反馈) ----
-  'store.save_exported': '已导出: {file}',
-  'store.save_saved': '已保存: {file}',
+  // v461: save_exported/save_saved 已删 — 保存成功反馈改为 v460 中央横条, 不再写 saveMessage
   'store.save_failed': '保存失败: {error}',
   // ---- fs.* (文件读写 / IndexedDB 持久化诊断) ----
   'fs.write_permission_denied': '未获得歌曲目录写入授权',

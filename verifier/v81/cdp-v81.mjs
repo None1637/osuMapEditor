@@ -1,6 +1,6 @@
-// CDP v81 端到端: 无用按钮删除 + 保存反馈挪右上角标题
+// CDP v81 端到端: 无用按钮删除 + 保存反馈变迁
 // A) 工具栏无「打开 .osu / .osz / 音频」「导出 .osu」按钮
-// B) Ctrl+S 后右上角标题出现 [已导出] 绿色前缀 + 谱面名称, data-save-message 兼容
+// B) (v461 适配) Ctrl+S 后标题区不再有 [已导出] 绿字前缀 — 成功反馈 = v460 中央「地图已保存」横条
 // 运行: node verifier/v81/cdp-v81.mjs   (需要 7100 端口 dev server 已启动)
 import { spawn } from 'child_process';
 import fs from 'fs';
@@ -75,34 +75,27 @@ try {
     assert(!fileInput, '隐藏 file input 已移除');
   }
 
-  console.log('== B) Ctrl+S 后标题前缀 [已导出] 绿色 (浏览器 = 下载兜底路由)');
+  console.log('== B) Ctrl+S 后 (v461): 谱面信息不再变绿加前缀, 改弹中央「地图已保存」横条');
   {
     // 拦截下载 (与 v67 相同)
     await evalJs(`(() => { window.__cap = null; HTMLAnchorElement.prototype.click = function () { window.__cap = { n: this.download }; }; return 'ok'; })()`);
+    const seq0 = await evalJs(`window.__osuStore.saveFlashSeq`);
     await evalJs(`window.dispatchEvent(new KeyboardEvent('keydown', { key: 's', ctrlKey: true, bubbles: true, cancelable: true })); "ok"`);
     await sleep(500);
-    const info = await evalJs(`(() => {
-      const el = document.querySelector('[data-save-message]');
-      if (!el) return null;
-      return {
-        text: el.textContent, green: el.className.includes('text-emerald-400'),
-        wide: el.className.includes('max-w-[36rem]'),
-        attr: el.getAttribute('data-save-message'),
-      };
-    })()`);
-    assert(info !== null, '标题区出现保存反馈元素');
-    if (info) {
-      assert(info.text.startsWith('[已导出] '), `名称前加前缀 (实际 "${info.text.slice(0, 40)}...")`);
-      assert(info.green, '前缀行整体绿色 text-emerald-400');
-      assert(info.wide, '标题宽度 max-w-[36rem] (2 倍)');
-      assert(info.attr && info.attr.startsWith('已导出'), `data-save-message="${info.attr}"`);
-    }
-    const nameShown = await evalJs(`(() => { const el = document.querySelector('[data-save-message]'); const bm = window.__osuStore.beatmap; return el.textContent.includes(bm.metadata.artist) && el.textContent.includes(bm.metadata.title); })()`);
-    assert(nameShown, '反馈行仍显示完整谱面名称 (artist - title)');
-    // 2.6s 后消失
+    const seq1 = await evalJs(`window.__osuStore.saveFlashSeq`);
+    assert(seq1 > seq0, `v460: 中央横条触发 (saveFlashSeq ${seq0} → ${seq1})`);
+    const flash = await evalJs(`!!document.querySelector('[data-saved-flash]')`);
+    assert(flash, 'v460: 中央「地图已保存」横条显示中');
+    const old = await evalJs(`!!document.querySelector('[data-save-message]')`);
+    assert(!old, 'v461: 标题区不再出现保存反馈元素 (无 [已导出] 绿字)');
+    const msgNull = await evalJs(`window.__osuStore.saveMessage === null`);
+    assert(msgNull, 'v461: saveMessage 保持 null (成功路径已删赋值)');
+    const nameShown = await evalJs(`(() => { const bm = window.__osuStore.beatmap; return document.body.textContent.includes(bm.metadata.artist) && document.body.textContent.includes(bm.metadata.title); })()`);
+    assert(nameShown, '页签栏仍显示完整谱面名称 (artist - title)');
+    // 横条 1.6s 后消失
     await sleep(2400);
-    const gone = await evalJs(`!document.querySelector('[data-save-message]')`);
-    assert(gone, '反馈 2.6s 后消失');
+    const gone = await evalJs(`!document.querySelector('[data-saved-flash]')`);
+    assert(gone, '横条动画结束后消失');
   }
 
   console.log('== 页面异常: ' + exceptions.length, exceptions.slice(0, 3).join(' | '));
