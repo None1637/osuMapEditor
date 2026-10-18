@@ -19,7 +19,7 @@ import { getElectronAPI } from './electronBridge'; // v185: 谱面备份 IPC
 import { defaultNewPoint, effectivePointAt, activePointAt, snapTimeToRedBeat, metronomeBeats, rangeTimes } from './timingEdit'; // v156; v372: rangeTimes
 import { resnapSliderLength, snapPlacementTime, placementLength, pendingSliderTimeline, sliderLengthSnapDivisor, snapSliderLength, parseBSplineType, nearestOnSegment, resolveSliderCurveType, insertAnchorGroup, splitSliderAtAnchors, deleteSliderPoints } from './sliderPath'; // v156: 重新计算滑条长度; v357: 粘贴锚点节拍吸附; v364: 调试暴露吸附纯函数; v388: 选中集 B4 判定; v408: 锚点粘贴插入; v409: 锚点处分割; v424: 批量删锚点
 import { sliderVelocityAt, svPointAt } from './parser'; // v366: 调试暴露 (SV 绿线边界验证)
-import { snapshotNodes, withRedPartners, transformNodesFromSnapshot } from './nodeSelection'; // v304: F08 节点选区快捷键变换
+import { snapshotNodes, withRedPartners, transformNodesFromSnapshot, nodeSelectionEquals } from './nodeSelection'; // v304: F08 节点选区快捷键变换; v462: 无差别 emit 守卫
 import { computeStackOffsets } from './stacking'; // v408: 锚点粘贴撤堆叠偏移
 import { setDisplayFlag as applyDisplayFlag, setDisplayNumber as applyDisplayNumber, setDisplayString as applyDisplayString, type BoolDisplayKey, type DisplaySettings, type StrDisplayKey } from './displaySettings'; // v132: 显示设置
 import { setEditorPref as applyEditorPref, type EditorPrefKey } from './editorPrefs'; // v381: 通用编辑器偏好
@@ -1782,6 +1782,11 @@ class EditorStore {
   }
 
   select(ids: number[], additive = false) {
+    // v462: 无变化不 emit — 物件框选每次 mousemove 全量重算并调用, 无差别 emit 会 bump version
+    //   → 选中装饰层逐帧重建 + React 全树重渲染 (框选掉帧根因之一)
+    if (additive ? ids.every(i => this.selected.has(i))
+      : (this.selected.size === ids.length && ids.every(i => this.selected.has(i))
+        && !this.selectedGreenLines.size && !this.selectedNodes.size && !this.selectedEdges.size)) return;
     if (!additive) { this.rememberGeoSelection(); this.selected.clear(); this.selectedGreenLines.clear(); this.selectedNodes.clear(); this.selectedEdges.clear(); }
     ids.forEach(i => this.selected.add(i));
     this.emitSelection();
@@ -1819,6 +1824,9 @@ class EditorStore {
     }
     // v265: 不再把滑条并入物件选区 (Alt 框选只选滑条点, 忽略 hit circle/slider;
     // 原并入会让选中的滑条显示蓝框且 Delete 误删整条滑条)
+    // v462: 内容相同不替换不 emit — Alt 框选每次 mousemove 全量重算, 无差别 emit 会 bump version
+    //   → 选中装饰层 (键含 getVersion) 逐帧重建 (滑条路径采样) + React 全树重渲染 = 选中滑条后框选掉帧
+    if (nodeSelectionEquals(this.selectedNodes, m)) return;
     this.selectedNodes = m;
     this.emitSelection();
   }

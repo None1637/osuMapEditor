@@ -23,6 +23,19 @@ export function nodeEntries(sel: NodeSel): NodeEntry[] {
   return out;
 }
 
+/** v462: 节点选区内容相等判定 — setSelectedNodes 无差别 emit 守卫用
+ *  (Alt 框选每次 mousemove 全量重算, 内容不变时跳过 emit, 避免 version bump 连锁重建) */
+export function nodeSelectionEquals(a: NodeSel, b: NodeSel): boolean {
+  if (a === b) return true;
+  if (a.size !== b.size) return false;
+  for (const [objId, idxs] of a) {
+    const s = b.get(objId);
+    if (!s || s.size !== idxs.size) return false;
+    for (const i of idxs) if (!s.has(i)) return false;
+  }
+  return true;
+}
+
 /** v452: 滑条锚点点击命中半径 = 屏幕上实际绘制尺寸 (renderer drawControlPointHandle 同款真值) —
  *  stable = 屏幕固定 ~8px 实心方格 (7/k 边长 + 1/k 居中描边), 圆形判定取内切 → 半径 4/k (宁小勿大);
  *  lazer = 圆点 osu 单位固定: 头 r7 / 其余 r6。k = 设备px/osu单位 (= 渲染主变换 hypot(m.a, m.b)) */

@@ -14,14 +14,16 @@ let failures = 0;
 function assert(cond, msg) { if (!cond) { failures++; console.error('  FAIL:', msg); } else console.log('  ok:', msg); }
 
 const st = fs.readFileSync(path.join(root, 'src/osu/store.ts'), 'utf8');
-const setNodes = st.match(/setSelectedNodes\(entries[\s\S]{0,500}?\n  \}/)?.[0] ?? '';
+// v462 适配: 截取窗口放宽 (v462 emit 守卫注释使函数体超过原 500 字符上限)
+const setNodes = st.match(/setSelectedNodes\(entries[\s\S]*?\n  \}/)?.[0] ?? '';
 assert(!/this\.selected\.add/.test(setNodes), 'setSelectedNodes 不并入物件选区');
 assert(/v265: 不再把滑条并入物件选区/.test(setNodes), 'setSelectedNodes v265 注释');
 const toggle = st.match(/toggleSelectedNode\(objId[\s\S]{0,500}?\n  \}/)?.[0] ?? '';
 assert(!/this\.selected\.add/.test(toggle), 'toggleSelectedNode 不并入物件选区');
 
 const ec = fs.readFileSync(path.join(root, 'src/components/EditorCanvas.tsx'), 'utf8');
-assert(/if \(store\.selected\.size\) \{ store\.selected\.clear\(\); store\.emitSelection\(\); \} \/\/ v265: 忽略 hit circle\/slider/.test(ec), 'Alt 层进入清空物件选区');
+// v462 适配: 清空物件选区语义已被 v441 故意废除 (soulten: alt選取不應清掉普通選取狀態)
+assert(/v441: Alt 点选\/框选不再清空物件选区/.test(ec), 'v441: Alt 层不再清物件选区 (v265 清选区语义已废除)');
 assert(/v265: 节点选区不再并入物件选区/.test(ec), '渲染补画注释');
 assert(/!o \|\| o\.type !== 'slider' \|\| store\.selected\.has\(objId\)\) continue;/.test(ec), '补画跳过物件已选中的滑条 (不重复 drawSelectionDecor)');
 assert((ec.match(/drawSliderControlPoints\(g, o\)/g) ?? []).length >= 1, '补画控制多边形/手柄');

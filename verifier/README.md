@@ -5106,3 +5106,22 @@
   + saveFlashSeq 自增 + [data-saved-flash] 横条显示, 失败路径断言不变); v67 check 顺带
   修复 v444 起过时的 load() 签名断言 (+audioKey); v460/v81/v110/v111/v124/v169 全绿;
   tsc + vite build 通过。
+
+## v462 — 修复: 选中滑条后 Alt 框选明显掉帧
+- 根因 (profile 定位): 框选每次 mousemove 全量重算选区并无差别 emit — setSelectedNodes/select
+  无论内容是否变化都 bump version, 连锁两处高开销: ① 选中装饰层 (renderer selLayer) 键含
+  getVersion → 逐帧重建, 选中滑条时每次 = 滑条路径采样 + outline sprite 重画 (装饰内容与框选
+  完全无关, 这就是「选中滑条后」才明显掉帧的原因); ② React 全树 (App/Inspector/Timelines)
+  每次 mousemove 重渲染。
+- 修复: ① setSelectedNodes/select 内容相同不替换不 emit (新纯函数 nodeSelectionEquals;
+  select 守卫保留「清空节点/绿线/边选区」语义 — 子选区非空时仍放行); ② 框选 (物件/节点)
+  期间冻结 renderPlayfield cacheKey (marqueeFreezeKeyRef) — 装饰层键不变不再逐帧重建;
+  节点高亮/框选矩形本来就是主通道逐帧直绘不走缓存层, 显示不受影响。
+- 验证: verifier/v462 (nodeSelectionEquals 单测 9 项 + 源码断言 + CDP: 空白框选 12 步移动
+  0 emit (修复前 ≈12), 锚点进框仅变化瞬间 emit (12 步 → 1 次, 框选结果不变)); CDP Profiler
+  佐证剩余耗时为合成/绘制而非 JS; v265 两条过时断言适配 (500 字符窗口上限被 v462 注释顶破
+  → 放宽; 「Alt 进层清物件选区」语义 v441 已故意废除 → 断言更新); v440/v371/v411/v459/v317/
+  v333/v343/v277/v453 全绿; tsc + vite build 通过。
+- 备注: dbg-perf.mjs 密集谱面 (1500 物件 5ms 间距) 实测 renderPlayfield 框选期间
+  avg 0.1ms (修复前 0.35ms); 验证器环境为离屏软合成, 绝对 fps 不代表真机, 真机收益主要来自
+  每次 mousemove 的 React 全树重渲染与滑条装饰层重建被消除。

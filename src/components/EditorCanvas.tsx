@@ -119,6 +119,10 @@ export function EditorCanvas() {
   const nodesMoveDragRef = useRef<{ anchor: { objId: number; idx: number }; startX: number; startY: number; orig: Map<number, Map<number, Pt>>; moved: boolean; pending: Pt | null } | null>(null);
   // v117: 节点框选 (Alt+空白拖动; base = 修饰键追加的已有节点); v317: subtract = Alt+Shift 减选 (F19)
   const nodeMarqueeRef = useRef<{ x0: number; y0: number; x1: number; y1: number; base: [number, number][]; subtract?: boolean } | null>(null);
+  // v462: 框选期间冻结 renderPlayfield 的 cacheKey (选中装饰层/followPoint 帧级缓存键) —
+  //   框选每次 mousemove 改选区 bump version, 而装饰层内容 (物件级) 与框选无关,
+  //   不冻结会在框选期间逐帧重建装饰层 (滑条路径采样, 选中滑条后 Alt 框选掉帧根因之二)
+  const marqueeFreezeKeyRef = useRef<string | null>(null);
   // v117: 节点选区缩放/旋转手柄拖拽 (复用物件手柄几何, 变换写回节点而非整物件)
   const nodeScaleDragRef = useRef<{
     anchor: ScaleAnchor; quad: Quad; startP: { x: number; y: number }; lastP: { x: number; y: number };
@@ -995,9 +999,14 @@ export function EditorCanvas() {
           staticExclude = new Set(store.selectedNodes.keys());
           if (nodeDragRef.current) staticExclude.add(nodeDragRef.current.objId);
         }
+        // v462: 框选进行中冻结 cacheKey — 框选不动物件几何/物件选区装饰内容, 冻结后
+        //   框选期间的 version bump (节点/物件选区变化) 不再触发选中装饰层逐帧重建
+        const mqActive = !!(nodeMarqueeRef.current || marqueeRef.current);
+        if (!mqActive) marqueeFreezeKeyRef.current = null;
+        else if (marqueeFreezeKeyRef.current === null) marqueeFreezeKeyRef.current = String(store.getVersion());
         renderPlayfield({
           g, bm: bmRender, skin, time: store.currentTime,
-          selected: selView, cacheKey: String(store.getVersion()), // v245: 帧级缓存键 (选中装饰层/followPoint); v250: 改用 getVersion — 拖拽中原地改坐标只 bump version (emitSelection), dataVersion 不变会导致装饰层停在原位
+          selected: selView, cacheKey: marqueeFreezeKeyRef.current ?? String(store.getVersion()), // v245: 帧级缓存键 (选中装饰层/followPoint); v250: 改用 getVersion — 拖拽中原地改坐标只 bump version (emitSelection), dataVersion 不变会导致装饰层停在原位; v462: 框选期间冻结
           dataKey: String(store.getDataVersion()), // v340: 静态场景层键 (拖拽只 bump version 不失效)
           staticScene: !store.playing && !panDragRef.current && bmRender === bm, staticExclude, staticTranslate, selTranslate, // v340/v341
           // ^ staticScene 门: 播放中时间逐帧变/平移中变换逐帧变/幽灵或转换预览合并视图 (bmRender !== bm)
