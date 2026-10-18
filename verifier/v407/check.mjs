@@ -32,12 +32,13 @@ section('timingSv.ts: 纯函数模块');
   assert(/export function beatLengthForSv/.test(src) && /-100 \/ sv/.test(src), 'beatLengthForSv');
   assert(/export function svAt/.test(src) && /svPointAt/.test(src), 'svAt 走 svPointAt (红线重置语义)');
   assert(/export function greenLineAt/.test(src), 'greenLineAt 同刻绿线查询');
+  assert(/export function svRestoreTargetAt/.test(src), 'v454: svRestoreTargetAt 恢复绿线插入位置决策');
 }
 
 section('Timelines.tsx: Alt+拖尾 SV 模式接线');
 {
   const src = readSrc('src/components/Timelines.tsx');
-  assert(/import \{ svForDuration, beatLengthForSv, svAt, greenLineAt \} from '@\/osu\/timingSv';/.test(src), '引入 timingSv');
+  assert(/import \{ svForDuration, beatLengthForSv, svAt, greenLineAt, svRestoreTargetAt \} from '@\/osu\/timingSv';/.test(src), '引入 timingSv (v454 加 svRestoreTargetAt)');
   assert(/mode: 'slides' \| 'sv';/.test(src), 'tailResizeRef 加 mode 字段');
   assert(/mode: e\.altKey \? 'sv' : 'slides', svOld: svAt\(bm\.timingPoints, o\.time\)/.test(src),
     '按下时 Alt 决定模式 + 记录旧 SV');
@@ -50,8 +51,10 @@ section('Timelines.tsx: Alt+拖尾 SV 模式接线');
   assert(/uninherited: false, effects: 0/.test(fn), '新绿线字段 (继承采样设置, effects=0)');
   assert(/sameSv && tr\.headCreated/.test(fn), '拖回原时长摘除新建头绿线');
   assert(/tr\.restore\) \{ const i = tps\.indexOf\(tr\.restore\);/.test(fn), '恢复绿线逐帧先摘后插');
-  assert(/spanClear = !tps\.some\(p => p\.time > o\.time && p\.time <= targetEnd/.test(fn), '跨度内有其他 timing 线则不插恢复点 (已知限制)');
-  assert(/beatLengthForSv\(tr\.svOld\)/.test(fn), '恢复绿线还原 svOld');
+  // v454: 恢复绿线改插后续滑条头 (不再插当前滑条尾); 插入位置决策抽至 timingSv.svRestoreTargetAt (v454 纯函数测试覆盖)
+  assert(!/spanClear/.test(fn) && !/time: targetEnd/.test(fn), 'v454: 不再往当前滑条尾插恢复绿线');
+  assert(/const restoreAt = svRestoreTargetAt\(tps, bm\.hitObjects, o\.time\);/.test(fn), 'v454: 插入位置走 svRestoreTargetAt (后续滑条头)');
+  assert(/time: restoreAt, beatLength: beatLengthForSv\(tr\.svOld\)/.test(fn), 'v454: 恢复绿线还原 svOld');
   // 原折返模式保留
   assert(/Math\.min\(100, Math\.round\(\(ms - o\.time\) \/ tr\.dur\)\)/.test(src), '非 Alt 拖尾仍改折返次数 (v35 保留)');
   // 收尾: 单击尾端选中尾节点逻辑不受影响

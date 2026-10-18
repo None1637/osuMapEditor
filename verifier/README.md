@@ -5014,3 +5014,13 @@
   v371a 框选收窄逻辑保留 (store.ts 字段/toggle/clear、recomputeMarqueeSelection 收窄不变)。
 - 验证: verifier/v453 (源码断言: 高亮块移除 + 状态/收窄保留); v371 断言适配取反后全绿,
   v440 (含 CDP 框选收窄) 全绿; tsc -p tsconfig.app.json --noEmit + vite build 通过。
+
+## v454 — Alt+拖时间轴滑条尾改 SV: 恢复绿线改插后续滑条头
+- 用户要求: 不再把 SV 恢复绿线插到当前滑条尾; 后续有滑条物件且 (当前滑条头, 后续滑条头] 内
+  没有能挡住本次 SV 改动的红/绿线时 (都是硬 SV 边界, 红线也重置 SV 见 svPointAt v227), 把恢复
+  svOld 的绿线插到后续滑条头上; 后续滑条头前已有线则无需插; 无后续滑条则完全不插。
+- 改动: timingSv.ts 新增纯函数 svRestoreTargetAt(points, hitObjects, afterTime) → 后续滑条头时刻
+  或 null; Timelines.tsx applySvTailDrag 恢复绿线段改为逐帧先摘后插到该时刻 (原 spanClear/尾时刻
+  插入逻辑删除); 头绿线增改/拖回原时长摘除 (sameSv) 等行为不变。
+- 验证: verifier/v454 (svRestoreTargetAt 纯函数 11 项: 无后续/圆圈不算/多条取最早/绿线红线遮挡/
+  头处恰有线/边界口径/同刻堆叠 + 源码断言); v407 断言适配后全绿; tsc + vite build 通过。

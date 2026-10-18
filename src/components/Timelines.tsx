@@ -13,7 +13,7 @@ import {
   GREEN_PILL_TOP, PILL_HEIGHT,
 } from '@/osu/timelineSelect';
 import { pendingSliderTimeline, spinnerPlacementEnd } from '@/osu/sliderPath'; // v188: spinnerPlacementEnd 转盘幻影
-import { svForDuration, beatLengthForSv, svAt, greenLineAt } from '@/osu/timingSv'; // v407: Alt+拖尾改绿线 SV
+import { svForDuration, beatLengthForSv, svAt, greenLineAt, svRestoreTargetAt } from '@/osu/timingSv'; // v407: Alt+拖尾改绿线 SV; v454: svRestoreTargetAt
 import { getSkin } from '@/osu/skin';
 import { displaySettings } from '@/osu/displaySettings'; // v132: 显示设置 (皮肤颜色)
 import { drawWave, drawSpectro, type SpectroScroll } from '@/osu/waveformDraw';
@@ -40,9 +40,11 @@ function parseJumpTime(s: string): number | null {
 }
 
 /** v407: Alt+拖滑条尾 (SV 模式) 单帧应用 — 增/改滑条头处绿线 SV 使持续时间 = targetEnd - o.time
- *  (长度/折返数不变); 尾时间处插恢复绿线还原 svOld, 防 SV 泄漏到后续物件。
- *  已知限制: 滑条跨度内已有其他红/绿线时, 时长按头时刻 SV 口径计算 (与 osu 本体 duration 口径一致),
- *  且此时不插恢复点 (跨度内已有硬 SV 边界)。全程在一次 beginDrag/commitDrag 快照内 = 一步 undo。 */
+ *  (长度/折返数不变)。全程在一次 beginDrag/commitDrag 快照内 = 一步 undo。
+ *  v454 (用户要求): SV 恢复绿线不再插到当前滑条尾, 改插到后续滑条头 — 仅当存在后续滑条且
+ *  (o.time, 后续滑条头] 内没有其他红/绿线 (都是硬 SV 边界, 红线也重置 SV 见 svPointAt v227) 时插入;
+ *  后续滑条头处恰已有线同样不插; 无后续滑条则完全不插。
+ *  已知限制: 滑条跨度内已有其他红/绿线时, 时长按头时刻 SV 口径计算 (与 osu 本体 duration 口径一致)。 */
 function applySvTailDrag(bm: Beatmap, o: HitObject, tr: {
   svOld: number; headGreen: TimingPoint | null; headCreated: boolean;
   restore: TimingPoint | null; lastEnd: number; moved: boolean;
@@ -72,13 +74,14 @@ function applySvTailDrag(bm: Beatmap, o: HitObject, tr: {
   } else {
     tr.headGreen.beatLength = beatLengthForSv(svNew); // 已存在的绿线拖回原时长 = 还原其原值 (svNew==svOld)
   }
-  // 恢复绿线: 先摘上一帧的, 需要时在新尾时间重插 (尾处已有任意 timing 线 = 硬 SV 边界, 不用插)
+  // v454: 恢复绿线 — 先摘上一帧的, 需要时在后续滑条头重插 (不再插当前滑条尾; 决策抽至 svRestoreTargetAt)。
+  //   无遮挡时后续滑条头的原 SV = svOld (区间内线都没有, SV 从头处延续), 故恢复值恒为 svOld。
   if (tr.restore) { const i = tps.indexOf(tr.restore); if (i >= 0) tps.splice(i, 1); tr.restore = null; }
-  const spanClear = !tps.some(p => p.time > o.time && p.time <= targetEnd && p !== tr.headGreen);
-  if (!sameSv && spanClear) {
-    const cur = timingAt(tps, targetEnd);
+  const restoreAt = svRestoreTargetAt(tps, bm.hitObjects, o.time);
+  if (!sameSv && restoreAt !== null) {
+    const cur = timingAt(tps, restoreAt);
     const src = cur.green ?? cur.red;
-    const g: TimingPoint = { time: targetEnd, beatLength: beatLengthForSv(tr.svOld), meter: src.meter, sampleSet: src.sampleSet, sampleIndex: src.sampleIndex, volume: src.volume, uninherited: false, effects: 0 };
+    const g: TimingPoint = { time: restoreAt, beatLength: beatLengthForSv(tr.svOld), meter: src.meter, sampleSet: src.sampleSet, sampleIndex: src.sampleIndex, volume: src.volume, uninherited: false, effects: 0 };
     tps.push(g); tps.sort((a, b) => a.time - b.time);
     tr.restore = g;
   }
@@ -277,7 +280,7 @@ export function TopTimeline() {
   // v35: 拖滑条尾端改折返次数 (stable/lazer: 时间轴拉长按整 repeat 伸缩, 单次时长不变)
   // v407: Alt+拖尾 = SV 模式 — 增/改绿线 SV 调滑条持续时间, 长度/折返数不变 (timingSv.ts);
   //   svOld = 按下时滑条头处生效的旧 SV; headGreen = 头处绿线 (headCreated 标记是否本次新建);
-  //   restore = 尾时间处恢复 svOld 的绿线 (防 SV 泄漏到后续物件); lastEnd = 上一帧目标尾时间 (去抖)
+  //   restore = 恢复 svOld 的绿线 (v454: 改插后续滑条头, 不再插当前滑条尾); lastEnd = 上一帧目标尾时间 (去抖)
   const tailResizeRef = useRef<{
     objId: number; dur: number; moved: boolean;
     mode: 'slides' | 'sv'; svOld: number;
