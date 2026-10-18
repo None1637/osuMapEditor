@@ -432,7 +432,7 @@ const MENU_LABELS = {
   "menu.move_deadzone": { en: "Object Move Deadzone (2px)", "zh-CN": "物件移动死区 2px", "zh-TW": "物件移動死區 2px" },
   // v443: 滑条长度吸附细分 ×2 开关 (默认关)
   "menu.slider_half_snap": { en: "Snap Slider Length to Half Divisor (Finer)", "zh-CN": "滑条长度按 1/2 细分吸附 (更细)", "zh-TW": "滑條長度按 1/2 細分吸附 (更細)" },
-  "menu.sv_redline_boost": { en: "Alt Tail-drag SV beyond 0.1x-10x via Redline (BPM x2^n)", "zh-CN": "Alt拖尾 SV 超界插红线扩程 (BPM×2ⁿ)", "zh-TW": "Alt拖尾 SV 超界插紅線擴程 (BPM×2ⁿ)" }, // v455
+  "menu.sv_redline_boost": { en: "Alt Tail-drag SV beyond 0.1x-10x via Redline (BPM x2^n)", "zh-CN": "Alt拖滑条尾变速通过变BPM突破sv上限", "zh-TW": "Alt拖滑條尾變速通過變BPM突破sv上限" }, // v455; v456: 文案简化 (用户要求)
   "menu.reload": { en: "Reload", "zh-CN": "刷新", "zh-TW": "重新整理" },
   "menu.devtools": { en: "Developer Tools", "zh-CN": "开发者工具", "zh-TW": "開發者工具" },
   "menu.quit": { en: "Quit", "zh-CN": "退出", "zh-TW": "結束" },

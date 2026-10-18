@@ -5042,3 +5042,8 @@
     main.cjs (勾选状态+checkbox 菜单项+三语标签 menu.sv_redline_boost) / App.tsx 上报。
 - 验证: verifier/v455 (纯函数 30+ 项: raw 不钳制/boost n 值与落回范围/等效时长不变式/bpm 遮挡只看红线
   + 源码断言); v407/v454/v443 断言适配后全绿; tsc + vite build 通过。
+
+## v456 — 设置项文案: Alt拖滑条尾变速通过变BPM突破sv上限
+- 用户反馈 v455 设置名「Alt拖尾 SV 超界插红线扩程」太抽象, 改为「Alt拖滑条尾变速通过变BPM突破sv上限」
+  (zh-TW: Alt拖滑條尾變速通過變BPM突破sv上限; en 不变)。仅文案, 逻辑/键名 (svRedlineBoost) 不变。
+- 验证: v455 断言钉住新文案, 全绿。

@@ -53,7 +53,7 @@ section('设置菜单接线 (v386 通道, 仿 v443)');
   assert(/svRedlineBoost: false \}/.test(mc), '主进程勾选状态默认 false');
   assert(/svRedlineBoost: s\?\.svRedlineBoost === true/.test(mc), 'editor-prefs-state 上报解析默认 false');
   assert(/mT\("menu\.sv_redline_boost"\), type: "checkbox", checked: editorPrefsState\.svRedlineBoost, click: \(\) => send\(\{ type: "settings-toggle-editor-pref", key: "svRedlineBoost" \}\)/.test(mc), '设置菜单 checkbox 项');
-  assert(/"menu\.sv_redline_boost": \{ en:/.test(mc) && /"zh-CN":/.test(mc) && /"zh-TW":/.test(mc), '菜单三语标签');
+  assert(/"menu\.sv_redline_boost": \{ en:/.test(mc) && /"zh-CN": "Alt拖滑条尾变速通过变BPM突破sv上限"/.test(mc) && /"zh-TW": "Alt拖滑條尾變速通過變BPM突破sv上限"/.test(mc), '菜单三语标签 (v456: 文案简化)');
   const app = readSrc('src/App.tsx');
   assert(/menuEditorPrefsState\(\{[^}]*svRedlineBoost: editorPrefs\.svRedlineBoost[^}]*\}\)/.test(app), 'App.tsx 勾选状态上报含 svRedlineBoost');
 }
