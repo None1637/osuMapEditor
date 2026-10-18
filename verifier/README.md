@@ -5081,3 +5081,15 @@
   UI 上 Alt+点滑条身不该误起节点框选)。
 - 验证: verifier/v459 (源码断言: 状态/分支/穿透全删, v440/v371b 收窄保留, 优先级不变);
   v371/v453/v411/v440/v373/v317/v333 断言适配后全绿; tsc + vite build 通过。
+
+## v460 — stable 风「地图已保存」中央横条 (Ctrl+S)
+- 用户需求: 做一个类似 stable osu! 的保存 UI — 按下 Ctrl+S 后弹出屏幕中央横着的黑底
+  「地图已保存」条; 动画: 黑底从中间向上下两边迅速扩大, 从一半高度扩大到目标高度的 1.1 倍,
+  再迅速缩小为 1 倍, 约 0.1s。
+- 实现: store.saveFlashSeq 保存成功自增 (快捷键/原生菜单 accelerator 都汇于 store.save,
+  失败不触发); 新组件 SavedFlash (App 外层 v217 zoom 容器外, 不随界面缩放, z-[200] +
+  pointer-events-none 悬浮于所有控件之上) — 全宽横条 h-14 bg-black/70, CSS keyframes:
+  scaleY 0.5 →(60ms) 1.1 过冲 →(100ms) 1.0, 停留约 1.2s, 末尾 0.3s 淡出, 总时长 1.6s;
+  key={seq} 重挂载, 连续保存重播动画。文案 i18n: zh-CN「地图已保存」/ zh-TW s2t / en "Map saved"。
+- 验证: verifier/v460 (源码断言: 触发器只挂成功路径/组件结构/keyframes 时序/挂载位置/文案键);
+  tsc + vite build 通过。

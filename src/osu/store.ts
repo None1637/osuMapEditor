@@ -438,6 +438,7 @@ class EditorStore {
   // v67: Ctrl+S 保存谱面 — 谱面来源 (曲库目录 + 原文件名), 保存结果/反馈消息
   mapSource: MapSource | null = null;
   saveMessage: string | null = null;
+  saveFlashSeq = 0; // v460: stable 风「地图已保存」中央横条 — 保存成功自增, SavedFlash 据此重播动画
   lastSave: SaveOutcome | null = null; // 测试挂钩: 最近一次保存的路由/文件名/全文
   // v120: 未保存改动 (脏标记) — pushUndo 时置位, load/save 成功时清除; 切换谱面/关闭前弹窗提示
   dirty = false;
@@ -491,6 +492,7 @@ class EditorStore {
         : tNow('store.save_saved', 'Saved: {file}', { file: r.fileName });
       this.setDirty(false); // v120
       this.savedFingerprint = this.fingerprint(); // v140: 保存内容成为新的干净基准
+      this.saveFlashSeq++; // v460: 中央「地图已保存」横条 (所有保存入口 — 快捷键/原生菜单 — 都汇于此)
       this.emit();
       setTimeout(() => { this.saveMessage = null; this.emitPlayback(); }, 2600);
       void this.backupNow('save', r.text); // v185: 每次 Ctrl+S 备份一次 (异步, 不阻塞保存反馈)

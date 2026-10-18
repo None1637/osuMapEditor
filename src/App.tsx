@@ -42,6 +42,7 @@ import { UnsavedDialog } from '@/components/UnsavedDialog'; // v120
 import { LangFirstRun } from '@/components/LangFirstRun'; // v349: 首次启动先选语言
 import { TransformDialog } from '@/components/TransformDialog'; // v209: 旋转/缩放独立窗口
 import { FpsCounter } from '@/components/FpsCounter'; // v220: 右下角帧数显示
+import { SavedFlash } from '@/components/SavedFlash'; // v460: stable 风「地图已保存」中央横条
 import { displaySettings } from '@/osu/displaySettings'; // v253: 帧数显示开关
 import { installSelectWheelCycle } from '@/osu/selectWheel'; // v381: 枚举下拉框滚轮循环
 import { installNumberWheel } from '@/osu/numberWheel'; // v388: 数值框滚轮调值
@@ -946,6 +947,8 @@ export default function App() {
     </div>
     {/* v220: 右下角帧数显示 — 悬浮于所有控件之上; 挂在 v217 zoom 容器外, 不随界面缩放; v253: 显示设置可关 */}
     {displaySettings.showFps && <FpsCounter />}
+    {/* v460: stable 风「地图已保存」中央横条 — 同样挂在 zoom 容器外, 悬浮于所有控件之上 */}
+    <SavedFlash />
     </div>
   );
 }

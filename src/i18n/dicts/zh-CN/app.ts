@@ -18,6 +18,7 @@ export const zhCN: Record<string, string> = {
   'app.apply': '应用',
   // ---- 页签栏谱面信息 ----
   'app.save_failed': '保存失败',
+  'app.saved_flash': '地图已保存',
   'app.unsaved': '未保存',
   'app.object_count': '{n} 物件',
   // ---- 页签栏右侧按钮 ----
