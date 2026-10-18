@@ -172,6 +172,9 @@ section('CDP: 四项行为实测');
       btn && btn.click(); // 无选区应用
       await sleep(250);
       const noopApply = V.geoEq(V.geo(), S0) && store.canUndo === undo0; // 不产生空 undo 快照
+      // v463 适配: 「应用旋转」点击后自动关窗 (含无选区 no-op) — 后续用例需重开窗口
+      const closedByApply = store.transformDialog === null;
+      if (closedByApply) { store.openTransformDialog('rotate'); await sleep(300); }
       // 窗口开着时选中物件 → 改值即生效
       store.select([379001]);
       await sleep(300);

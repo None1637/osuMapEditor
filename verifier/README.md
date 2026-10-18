@@ -5125,3 +5125,33 @@
 - 备注: dbg-perf.mjs 密集谱面 (1500 物件 5ms 间距) 实测 renderPlayfield 框选期间
   avg 0.1ms (修复前 0.35ms); 验证器环境为离屏软合成, 绝对 fps 不代表真机, 真机收益主要来自
   每次 mousemove 的 React 全树重渲染与滑条装饰层重建被消除。
+
+## v463 — Alt 拖滑条尾 SV 接 1/2 细分开关 + 时间轴头尾重叠头优先 + 旋转浮窗应用后关窗
+- 用户需求 (soulten/None1637):
+  1) 開了1/2細分 alt拉滑條尾不是雙倍精度 — 上方时间轴 Alt+拖滑条尾改 SV (v407) 的目标尾时间
+     吸附仍按当前节拍细分整格, 未随「滑条长度 1/2 细分」开关 (v443, editorPrefs.sliderHalfSnap) ×2。
+     注: 用户一度补充「是新建滑条时的拉滑条」— 探针 (verifier/v463/probe.mjs) 实测点击式与手绘
+     放置落盘长度在开关两态分别精确落在 1/4 / 1/8 网格 (len 40 vs 60, geo 65), 放置侧本就正确,
+     无需改; 唯一缺 ×2 的是 Alt 拖尾 SV 路径。
+  2) 滑條頭跟尾疊再一起 優先選擇滑條頭 (現在是優先選尾) — 上方时间轴头/尾圆重叠 (超短滑条) 时
+     点击被拖尾分支 (hitTestTail, 阈值 8px 先行) / 尾端节点分支 (hitTestNode) 抢走。
+  3) 旋转浮窗「应用旋转」点击后自动关窗 (第一個點擊後自動關閉選轉浮窗); 逆/顺时针旋转一次
+     保持不关窗可连续应用。
+- 改动:
+  1) Timelines.tsx snapMs 加可选 divisor 参数 (默认 store.beatSnap, 行为不变); SV 拖尾分支传
+     sliderLengthSnapDivisor(store.beatSnap) — 开关开 = ×2 精度 (×2 不在 BEAT_SNAP_OPTIONS 退回
+     当前细分), 关 = 原样。绿线拖拽/转盘右缘/marker 拖拽三个调用方不传第二参, 不受影响。
+  2) timelineHit.ts 新增纯函数 timelineHeadHit (头圆专用命中, 与 timelineMarkerHit 同几何/堆叠/
+     最近者胜出规则, 只测头圆); Timelines.tsx mousedown 先算 hitTestHead — 命中头圆时跳过拖尾与
+     尾端节点分支, 直通物件选中/拖动 (markerDrag)。头尾不重叠时行为完全不变 (头圆命中本来就
+     落 marker 分支)。
+  3) TransformDialog.tsx 旋转模式「应用旋转」onClick = commit + store.closeTransformDialog();
+     底部提示旋转模式专用文案 (footer_hint_rotate, zh-CN 字典 + 兜底串), 缩放/对称不变。
+- 验证: verifier/v463 (源码断言 + CDP: Alt 拖尾关=1/4 网格/开=1/8 网格两态; 头尾重叠点击后拖动
+  = 移动物件时间且不改折返/不建绿线/不选尾节点; 应用旋转关窗 + 逆时针旋转一次不关窗)。
+  适配: v379 (无选区点应用后窗已关, 后续用例重开); v407/v411 (SV 分支 snapMs 针串/窗口);
+  v35/v142 (tailId/id 判定行针串加 headId 守卫; v142 顺带修 v217 起过时的 zoomClientX/Y 针串)。
+  回归: v407/v454/v455/v457/v443/v411/v364/v365/v344/v213/v35/v142/v162/v320/v315/v405 全绿。
+  既有遗留 (与 v463 无关, stash 验证 v462 上同样红): v379 预览+拖曳流 6 项 (2/3 段),
+  v301 esbuild 打不了 rateResampler.worklet.js?raw (音频改造遗留)。
+  tsc + vite build 通过。

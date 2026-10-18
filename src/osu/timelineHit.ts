@@ -31,6 +31,27 @@ export function stackLayout(count: number, objH: number, rad0: number): { rad: n
   return { rad, yOf: (lv) => bottom - lv * step };
 }
 
+// v463: 头圆专用命中 (滑条头/尾圆重叠时头优先 — soulten: 滑條頭跟尾疊再一起 優先選擇滑條頭, 現在是優先選尾);
+//   与 timelineMarkerHit 同一几何/堆叠/最近者胜出规则, 只测头圆
+export function timelineHeadHit<T extends TimelineObjLike>(
+  objects: T[],
+  endOf: (o: T) => number,
+  t0: number, win: number, width: number, px: number, rad: number,
+  py?: number, geom?: (o: T) => { y: number; rad: number } | undefined,
+): number | null {
+  let best: number | null = null, bestD = Infinity;
+  for (const o of objects) {
+    const end = endOf(o);
+    if (end < t0 || o.time > t0 + win) continue;
+    const gm = geom?.(o);
+    const or = gm?.rad ?? rad;
+    const dx = ((o.time - t0) / win) * width - px;
+    const d = gm !== undefined && py !== undefined ? Math.hypot(dx, gm.y - py) : Math.abs(dx);
+    if (d < or + 3 && d < bestD) { bestD = d; best = o.id; }
+  }
+  return best;
+}
+
 export function timelineMarkerHit<T extends TimelineObjLike>(
   objects: T[],
   endOf: (o: T) => number,

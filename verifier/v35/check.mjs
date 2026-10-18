@@ -40,9 +40,10 @@ section('Timelines.tsx: 拖滑条尾改折返次数');
   assert(/hitTestTail = \(e/.test(src) && /o\.type !== 'slider'\) continue/.test(src), 'hitTestTail 仅滑条尾端 (css px 阈值)');
   // mousedown 中拖尾判定必须先于 hitTestMarker (尾时间在物件时长范围内, 否则被物件拖拽抢走)
   // v115: 判定行加锁定短路 (store.lockNotes ? null : ...), 优先级不变
-  const tailPos = src.indexOf('const tailId = store.lockNotes ? null : hitTestTail(e);');
-  const markerPos = src.indexOf('const id = hitTestMarker(e);');
-  assert(tailPos > 0 && markerPos > 0 && tailPos < markerPos, '拖尾判定优先于物件拖拽');
+  // v463 适配: 行首加 headId 头优先守卫 (命中头圆时跳过拖尾), 针串同步更新
+  const tailPos = src.indexOf('const tailId = headId !== null || store.lockNotes ? null : hitTestTail(e);');
+  const markerPos = src.indexOf('const id = headId !== null ? headId : hitTestMarker(e);');
+  assert(tailPos > 0 && markerPos > 0 && tailPos < markerPos, '拖尾判定优先于物件拖拽 (v463: 头圆命中除外)');
   assert(/Math\.max\(1, Math\.min\(100, Math\.round\(\(ms - o\.time\) \/ tr\.dur\)\)\)/.test(src), '整 repeat 伸缩 + clamp [1,100]');
   assert(src.includes("'ew-resize'"), '悬停尾端光标提示');
   assert(/finishMarkerDrag[\s\S]*?tailResizeRef[\s\S]*?commitDrag/.test(src), '拖尾收尾: 一次 undo (beginDrag/commitDrag)');

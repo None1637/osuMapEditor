@@ -6,13 +6,13 @@ import { computeCombos, comboColor, invalidatePath, mergedWithPreview, objectEnd
 import { beatTicks, TICK_COLORS, type TickLevel } from '@/osu/beatTicks';
 import { defaultNewPoint } from '@/osu/timingEdit';
 import { selectionSpacingInfo, previewSpacingInfo } from '@/osu/spacing';
-import { timelineMarkerHit, timelineBarHit, timelineNodeHit, stackInfo, stackLayout } from '@/osu/timelineHit';
+import { timelineMarkerHit, timelineBarHit, timelineNodeHit, timelineHeadHit, stackInfo, stackLayout } from '@/osu/timelineHit'; // v463: +timelineHeadHit (头尾重叠头优先)
 import { parseEdgeSounds, resizeEdgeStrings } from '@/osu/edgeSounds'; // v213: 滑条节点音效
 import {
   edgeScrollVelocity, edgeScrollRamp, marqueeObjectIds, marqueeGreenTimes, bandHit,
   GREEN_PILL_TOP, PILL_HEIGHT,
 } from '@/osu/timelineSelect';
-import { pendingSliderTimeline, spinnerPlacementEnd } from '@/osu/sliderPath'; // v188: spinnerPlacementEnd 转盘幻影
+import { pendingSliderTimeline, spinnerPlacementEnd, sliderLengthSnapDivisor } from '@/osu/sliderPath'; // v188: spinnerPlacementEnd 转盘幻影; v463: sliderLengthSnapDivisor (Alt 拖滑条尾 ×2 精度)
 import { beatLengthForSv, svAt, greenLineAt, svRestoreTargetAt, svForDurationRaw, svRedlineBoost, bpmRestoreTargetAt, SV_MIN, SV_MAX } from '@/osu/timingSv'; // v407: Alt+拖尾改绿线 SV; v454: svRestoreTargetAt; v455: 红线扩程
 import { editorPrefs } from '@/osu/editorPrefs'; // v455: svRedlineBoost 开关
 import { getSkin } from '@/osu/skin';
@@ -351,10 +351,10 @@ export function TopTimeline() {
   // v138: 上层模式离屏画布 (drawWave/drawSpectro 的 clearRect 只清离屏, 下层时间轴内容不被抹掉)
   const waveTopScratchRef = useRef<HTMLCanvasElement | null>(null);
 
-  const snapMs = (t: number) => {
+  const snapMs = (t: number, divisor?: number) => {
     const bm = store.beatmap!;
     const { red } = timingAt(bm.timingPoints, t);
-    const div = red.beatLength / store.beatSnap;
+    const div = red.beatLength / (divisor ?? store.beatSnap); // v463: 可选细分覆盖 (Alt 拖滑条尾走滑条长度口径 ×2)
     const snapped = red.time + Math.round((t - red.time) / div) * div;
     return snapAcrossRedLine(bm.timingPoints, t, snapped); // v285: lazer 跨红线就近规则
   };
@@ -837,6 +837,17 @@ export function TopTimeline() {
 
   // v79: seekFromEvent 已移除 — 点击上方时间轴不再改变当前时间 (避免点物件/空白时跳时间)
 
+  // v463: 头圆专用命中 (头尾重叠时头优先) — 与 hitTestMarker 同几何, 只测头圆
+  const hitTestHead = (e: React.MouseEvent): number | null => {
+    const bm = store.beatmap;
+    if (!bm) return null;
+    const r = zoomRect(ref.current!); // v217: 布局空间
+    if (zoomClientY(e.clientY) - r.top > OBJ_H) return null;
+    const win = 6000 / (bm.editor.timelineZoom || 1);
+    const t0 = store.currentTime - win / 2;
+    return timelineHeadHit(bm.hitObjects, objEnd, t0, win, r.width, zoomClientX(e.clientX) - r.left, RAD, zoomClientY(e.clientY) - r.top, stackGeomOf(stackInfo(bm.hitObjects)));
+  };
+
   // v213: 滑条节点命中 (折返点/尾端圆, 不含头) — 点节点 = 选中该节点, W/E/R 单独加音效 (stable)
   const hitTestNode = (e: React.MouseEvent): { id: number; edge: number } | null => {
     const bm = store.beatmap;
@@ -920,8 +931,11 @@ export function TopTimeline() {
           // v404: 改锚点级穿透 (playfieldAnchorPress) — 物件本体不再穿透时间轴
           //   (None1637: 点击下方时间轴选中物件而不是跳转; 优先级 锚点 > 可交互UI > 物件)
           if (store.playfieldAnchorPress?.(e.clientX, e.clientY, e)) return;
+          // v463: 头尾圆重叠头优先 (soulten: 滑條頭跟尾疊再一起 優先選擇滑條頭, 現在是優先選尾) —
+          //   命中头圆时跳过拖尾 (hitTestTail) 与尾端节点 (hitTestNode), 直接落物件选中/拖动分支
+          const headId = hitTestHead(e);
           // v35: 拖滑条尾端 -> 改折返次数 (优先于物件拖拽; 尾端在物件时长范围内); v115: 锁定物件禁用
-          const tailId = store.lockNotes ? null : hitTestTail(e);
+          const tailId = headId !== null || store.lockNotes ? null : hitTestTail(e);
           if (tailId !== null) {
             const bm = store.beatmap!;
             const o = bm.hitObjects.find(x => x.id === tailId)!;
@@ -952,12 +966,13 @@ export function TopTimeline() {
             }
           }
           // v213: 滑条折返点/尾端圆 (拖尾把手 8px 区之外) — 点节点选中该节点, 无拖拽; Shift/Ctrl 同物件内加选
-          const nh = hitTestNode(e);
+          // v463: 命中头圆 (headId) 时跳过 — 头优先
+          const nh = headId !== null ? null : hitTestNode(e);
           if (nh) {
             store.selectEdges(nh.id, [nh.edge], e.shiftKey || e.ctrlKey || e.metaKey);
             return;
           }
-          const id = hitTestMarker(e);
+          const id = headId !== null ? headId : hitTestMarker(e); // v463: 头圆命中直通物件分支
           if (id !== null) {
             // v32: 选中 + 准备拖拽 (mouseup 未移动才视为点击 seek); v40: Ctrl 同 Shift 切换选中 (对齐 lazer)
             if (e.shiftKey || e.ctrlKey || e.metaKey) store.toggleSelect(id);
@@ -1063,7 +1078,9 @@ export function TopTimeline() {
             const ms = store.currentTime - win / 2 + ((zoomClientX(e.clientX) - r.left) / r.width) * win;
             // v407: SV 模式 (Alt 起手) — 目标尾时间吸附节拍, 改绿线 SV 调时长; 不动折返数
             if (tr.mode === 'sv') {
-              const targetEnd = Math.round(snapMs(ms));
+              // v463: 吸附细分走滑条长度口径 — 开「滑条长度 1/2 细分」后拖尾同样 ×2 精度
+              //   (soulten: 開了1/2細分 alt拉滑條尾不是雙倍精度); 关 = 当前细分整格 (原样)
+              const targetEnd = Math.round(snapMs(ms, sliderLengthSnapDivisor(store.beatSnap)));
               if (targetEnd !== tr.lastEnd) applySvTailDrag(bm, o, tr, targetEnd);
               return;
             }

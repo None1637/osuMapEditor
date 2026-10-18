@@ -42,8 +42,8 @@ section('Timelines.tsx: Alt+拖尾 SV 模式接线');
   assert(/mode: 'slides' \| 'sv';/.test(src), 'tailResizeRef 加 mode 字段');
   assert(/mode: e\.altKey \? 'sv' : 'slides', svOld: svAt\(bm\.timingPoints, o\.time\)/.test(src),
     '按下时 Alt 决定模式 + 记录旧 SV');
-  assert(/if \(tr\.mode === 'sv'\) \{[\s\S]*?const targetEnd = Math\.round\(snapMs\(ms\)\);[\s\S]*?applySvTailDrag\(bm, o, tr, targetEnd\);/.test(src),
-    'mousemove: SV 模式目标尾时间吸附节拍 + applySvTailDrag');
+  assert(/if \(tr\.mode === 'sv'\) \{[\s\S]*?const targetEnd = Math\.round\(snapMs\(ms, sliderLengthSnapDivisor\(store\.beatSnap\)\)\);[\s\S]*?applySvTailDrag\(bm, o, tr, targetEnd\);/.test(src),
+    'mousemove: SV 模式目标尾时间吸附节拍 + applySvTailDrag (v463 适配: 吸附走 sliderLengthSnapDivisor, 关=整格等价原 snapMs(ms))');
   // 应用函数要点
   const fn = src.match(/function applySvTailDrag[\s\S]*?\n\}\n/)?.[0] ?? '';
   // v455: 反解改 svForDurationRaw (不钳制) + tr.redOld 基准 (头红线会改 o.time beatLength, 不能再读 timingAt)

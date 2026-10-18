@@ -36,7 +36,7 @@ section('源码: Timelines v407 SV 拖尾分支保留');
 {
   const tl = read('src/components/Timelines.tsx');
   assert(/mode: e\.altKey \? 'sv' : 'slides'/.test(tl), 'Alt 起手 = SV 模式');
-  assert(/if \(tr\.mode === 'sv'\) \{[\s\S]{0,200}?applySvTailDrag\(bm, o, tr, targetEnd\)/.test(tl), 'mousemove SV 分支');
+  assert(/if \(tr\.mode === 'sv'\) \{[\s\S]{0,420}?applySvTailDrag\(bm, o, tr, targetEnd\)/.test(tl), 'mousemove SV 分支 (v463 适配: 分支内加 1/2 细分注释+sliderLengthSnapDivisor, 窗口放宽)');
 }
 
 section('CDP: 上时间轴 Alt+拖尾 = SV 模式 (不再拉框)');

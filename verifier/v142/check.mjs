@@ -32,12 +32,13 @@ section('折返点圆圈 (与滑条尾同款) + 箭头在上');
 section('mousedown: 连体条中段命中 -> 选中 + 拖动改时间');
 {
   assert(/timelineBarHit\(bmBar\.hitObjects, objEnd/.test(tl), 'mousedown 中段走 timelineBarHit');
-  assert(/e\.clientY - rBar\.top <= OBJ_H/.test(tl), '中段命中限物件行 (y <= OBJ_H, 不抢药丸/tick 行)');
-  assert(/anchorId: barId, startX: e\.clientX, moved: false/.test(tl), '命中即准备 markerDrag (吸附节拍拖动)');
+  assert(/zoomClientY\(e\.clientY\) - rBar\.top <= OBJ_H/.test(tl), '中段命中限物件行 (y <= OBJ_H, 不抢药丸/tick 行; v463 适配: v217 起 zoomClientY)');
+  assert(/anchorId: barId, startX: zoomClientX\(e\.clientX\), moved: false/.test(tl), '命中即准备 markerDrag (吸附节拍拖动; v463 适配: v217 起 zoomClientX)');
   assert(/store\.toggleSelect\(barId\)/.test(tl), 'Shift/Ctrl 加选/减选 (与圆命中同款)');
   // 分支顺序: 尾端 resize -> 圆命中 -> 中段 bar -> 绿线药丸 -> 框选
-  const iTail = tl.indexOf('const tailId = store.lockNotes ? null : hitTestTail(e);');
-  const iMarker = tl.indexOf('const id = hitTestMarker(e);');
+  // v463 适配: 尾端/圆命中两行加 headId 头优先守卫, 针串同步更新
+  const iTail = tl.indexOf('const tailId = headId !== null || store.lockNotes ? null : hitTestTail(e);');
+  const iMarker = tl.indexOf('const id = headId !== null ? headId : hitTestMarker(e);');
   const iBar = tl.indexOf('const barId = timelineBarHit(bmBar');
   const iPill = tl.indexOf('const pill = hitTestTimingPill(e);\n            if (pill && !pill.tp.uninherited)');
   const iMarquee = tl.indexOf('marqueeRef.current = {');

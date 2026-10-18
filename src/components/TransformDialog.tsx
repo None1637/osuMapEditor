@@ -180,10 +180,11 @@ export function TransformDialog({ mode }: { mode: 'rotate' | 'scale' | 'symmetry
             {originGroup}
           </div>
           <div className="flex items-center gap-1 flex-wrap">
-            <button onClick={() => nodeMode ? commitNode((p, c) => rotatePt(p, c, angle)) : commit((objs, c) => rotateObjects(objs, c, angle))} title={t('transform.apply_rotate_title', 'Rotate by the entered angle (positive = clockwise, negative = counter-clockwise)')} data-tf="apply-rotate"
+            <button onClick={() => { nodeMode ? commitNode((p, c) => rotatePt(p, c, angle)) : commit((objs, c) => rotateObjects(objs, c, angle)); store.closeTransformDialog(); }} title={t('transform.apply_rotate_title', 'Rotate by the entered angle (positive = clockwise, negative = counter-clockwise)')} data-tf="apply-rotate"
               className="px-1.5 py-1 rounded bg-white/10 hover:bg-white/20 border border-white/15 text-[11px]">
               {t('transform.apply_rotate', 'Apply Rotation')}
             </button>
+            {/* v463: 「应用旋转」点击后自动关窗 (soulten: 第一個點擊後自動關閉選轉浮窗); 逆/顺时针旋转一次保持不关窗可连续应用 */}
             {/* v405: 改名「逆/顺时针旋转一次」— 原按钮只写「逆时针/顺时针」, 用户认不出含义 */}
             <button onClick={() => nodeMode ? commitNode((p, c) => rotatePt(p, c, -Math.abs(angle))) : commit((objs, c) => rotateObjects(objs, c, -Math.abs(angle)))} title={t('transform.ccw_title', 'Rotate counter-clockwise once by the entered angle')}
               className="px-1.5 py-1 rounded bg-white/10 hover:bg-white/20 border border-white/15 text-[11px]">
@@ -287,7 +288,7 @@ export function TransformDialog({ mode }: { mode: 'rotate' | 'scale' | 'symmetry
           </div>
         </>
       )}
-      <div className="text-white/35">{mode === 'symmetry' ? t('transform.sym_footer_hint', 'Dashed canvas line = preview of the current symmetry axis; each apply is one undo step, the window stays open for repeated applies') : t('transform.footer_hint', 'Changing values previews instantly (relative to the last commit); the window stays open after apply for repeated applies, each apply is one undo step; closing directly rolls back to the last commit')}</div>
+      <div className="text-white/35">{mode === 'symmetry' ? t('transform.sym_footer_hint', 'Dashed canvas line = preview of the current symmetry axis; each apply is one undo step, the window stays open for repeated applies') : mode === 'rotate' ? t('transform.footer_hint_rotate', 'Changing values previews instantly (relative to the last commit); Apply Rotation applies and closes the window; the rotate-once buttons apply without closing for repeated applies, each apply is one undo step; closing directly rolls back to the last commit') : t('transform.footer_hint', 'Changing values previews instantly (relative to the last commit); the window stays open after apply for repeated applies, each apply is one undo step; closing directly rolls back to the last commit')}</div> {/* v463: 旋转模式提示语区分 (应用旋转会关窗) */}
     </DraggableDialog>
   );
 }

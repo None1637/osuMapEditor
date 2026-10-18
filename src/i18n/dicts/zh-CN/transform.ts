@@ -41,4 +41,5 @@ export const zhCN: Record<string, string> = {
   'transform.apply_symmetry_title': '选区关于对称轴镜像',
   'transform.sym_footer_hint': '画布虚线 = 当前对称轴预览; 每次应用一次撤销, 窗口保持打开可连续应用',
   'transform.footer_hint': '改数值即时预览 (相对上次提交); 应用后窗口保持打开可连续应用, 每次应用一次撤销; 直接关窗回滚到最后提交',
+  'transform.footer_hint_rotate': '改数值即时预览 (相对上次提交); 「应用旋转」应用后自动关窗; 逆/顺时针旋转一次不关窗可连续应用, 每次应用一次撤销; 直接关窗回滚到最后提交', // v463
 };
