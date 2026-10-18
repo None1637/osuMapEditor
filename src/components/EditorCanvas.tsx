@@ -1696,6 +1696,20 @@ export function EditorCanvas() {
     const sliders = bm.hitObjects.filter(o => o.type === 'slider' && (sliderAnchorInteractiveAt(bm, o, store.currentTime) || store.selected.has(o.id) || store.selectedNodes.has(o.id)));
     const hitNode = nearestNode(sliders, offs, p, devicePxPerOsu());
     if (!hitNode || store.selected.has(hitNode.objId)) return false; // 已选滑条由 singleSliderNodePress 处理
+    // v458: 当前时间完全不显示的滑条不再因锚点点击被物件级选中 (用户报 bug: 节点选区残留让不可见滑条
+    //   保持锚点可交互, 一击即整物件选中); 退为纯节点操作 — 选中该锚点并可整组拖 (v410 同语义),
+    //   物件选区不动。节点级 Alt 操作 (nodeAltPress) 本就不带物件选中, 不受影响
+    const ho = bm.hitObjects.find(x => x.id === hitNode.objId);
+    if (ho && !sliderAnchorInteractiveAt(bm, ho, store.currentTime)) {
+      store.setSelectedNodes([[ho.id, hitNode.idx]]);
+      store.beginDrag();
+      store.canvasDragging = true;
+      nodesMoveDragRef.current = {
+        anchor: { objId: ho.id, idx: hitNode.idx }, startX: p.x, startY: p.y,
+        orig: snapshotNodes(bm, withRedPartners(bm, store.selectedNodes)), moved: false, pending: null,
+      };
+      return true;
+    }
     store.select([hitNode.objId]); // 命中锚点即进入该滑条节点编辑 (替换选区, 与点击物件本体一致; 顺带清节点选区)
     return singleSliderNodePress(p, mods);
   };
