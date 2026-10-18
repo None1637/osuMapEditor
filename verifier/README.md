@@ -5282,3 +5282,17 @@
   r-b=26 辉光完整 (修复前蓝带 r-b≈-152), 身体中段 0.8675r 处 b-r=152 蓝带保留, 尾部同头部)。
   探针 probe.mjs 与截图已清理。回归: v305/v308/v310/v311/v314/v232/v469/v245/v340/v246/v342
   全绿。tsc + vite build 通过。
+
+## v472 — 修复: 皮肤无 hitcircleselect 时 stable 选中回退 lazer 橙黄圆环
+- 需求: 皮肤中没有 hitcircleselect 时需要回退为 lazer 的选中时橙色环 (原行为: v232 程序化
+  浅蓝圆角方框兜底)。
+- 修复: skin.ts — makeProceduralBase 不再生成 hitcircleselect (hitcircleselect: undefined),
+  程序化选框函数 drawHitcircleSelect (浅蓝圆角方框) 整体移除; renderer.ts —
+  drawHitcircleSelectMark 无图时改调 drawSelectionRing (默认 #f5a623 橙黄环, 与 lazer 同款)
+  代替跳过。皮肤提供该图时行为不变 (v469 皮肤图 + v471 挖孔均不受影响)。
+- 验证: verifier/v472 — 源码断言 + CDP (空 mock 皮肤 applySkinFromDir 后 hitcircleselect 为
+  undefined; 选中单圆圈在 0.8675r 环带两处采样均为精确 #f5a623 [245,166,35])。
+  适配: v232 (程序化回退三断言改 v472 语义), v469 (无图跳过断言改无图回退橙黄环)。
+  注意: exe CDP 验证器加载 dist 构建产物, 改动后须先 vite build 再跑验证器 (本轮首跑
+  漏 build 导致 hasSelect=true 假红)。回归: v232/v469/v471/v305/v308/v310/v311/v314/v340/v342
+  全绿。tsc + vite build 通过。

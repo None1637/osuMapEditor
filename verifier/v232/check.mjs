@@ -22,9 +22,11 @@ section('skin.ts: hitcircleselect 加载与程序化回退');
   const src = readSrc('src/osu/skin.ts');
   assert(/hitcircleselect\?: SkinImage;/.test(src), 'Skin 接口含可选 hitcircleselect');
   assert(/\['hitcircleselect', 'hitcircleselect\.png'\],/.test(src), 'SKIN_FILES 加载 hitcircleselect.png (@2x 走 fileVariants 既有通道)');
-  assert(/function drawHitcircleSelect\(size: number\): HTMLCanvasElement/.test(src), '程序化回退生成函数 drawHitcircleSelect');
-  assert(/g\.arcTo\(/.test(src) && /#99ccff/.test(src), '回退 = 浅蓝圆角方框描边 (arcTo 圆角)');
-  assert(/hitcircleselect: drawHitcircleSelect\(256\),/.test(src), 'makeProceduralBase 默认生成 256px 选框');
+  // v472: 程序化回退 (浅蓝圆角方框 drawHitcircleSelect) 已移除 — 皮肤无图时 stable 选中
+  //   回退 lazer 橙黄圆环 (renderer.ts drawHitcircleSelectMark), skin.ts 不再生成程序化选框
+  assert(!/function drawHitcircleSelect/.test(src) && !/#99ccff/.test(src),
+    'v472: 程序化回退 drawHitcircleSelect (浅蓝圆角方框) 已移除');
+  assert(/hitcircleselect: undefined,/.test(src), 'v472: makeProceduralBase 不再程序化兜底 (无图 → undefined)');
 }
 
 section('displaySettings.ts: selectionStyle 字段 (默认 stable)');

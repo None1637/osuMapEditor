@@ -101,26 +101,8 @@ function drawApproach(size: number): HTMLCanvasElement {
   return c;
 }
 
-// v232: stable 默认皮肤的 hitcircleselect — 浅蓝圆角方框选框 (256px 画布: 线宽 ~12px, 圆角 ~40px)
-function drawHitcircleSelect(size: number): HTMLCanvasElement {
-  const [c, g] = makeCanvas(size);
-  const lw = size * (12 / 256);
-  const rad = size * (40 / 256);
-  const inset = lw / 2 + 1; // 描边居中, 内缩半线宽防边缘裁剪
-  const x0 = inset, y0 = inset, x1 = size - inset, y1 = size - inset;
-  g.strokeStyle = '#99ccff';
-  g.lineWidth = lw;
-  g.lineJoin = 'round';
-  g.beginPath();
-  g.moveTo(x0 + rad, y0);
-  g.arcTo(x1, y0, x1, y1, rad);
-  g.arcTo(x1, y1, x0, y1, rad);
-  g.arcTo(x0, y1, x0, y0, rad);
-  g.arcTo(x0, y0, x1, y0, rad);
-  g.closePath();
-  g.stroke();
-  return c;
-}
+// v472: v232 的程序化 hitcircleselect (浅蓝圆角方框) 已移除 — 皮肤无此图时 stable 选中
+//   回退 lazer 橙黄圆环 (renderer.ts drawHitcircleSelectMark), 不再画程序化选框
 
 function drawSliderBall(size: number): HTMLCanvasElement {
   const [c, g] = makeCanvas(size);
@@ -298,7 +280,7 @@ function makeProceduralBase(): Skin {
     hitcircle,
     hitcircleoverlay: overlay,
     approachcircle: drawApproach(256),
-    hitcircleselect: drawHitcircleSelect(256), // v232: 无皮肤文件时的程序化选框
+    hitcircleselect: undefined, // v472: 不再程序化兜底 — 无图时 stable 选中回退 lazer 橙黄环 (renderer.ts)
     reversearrow: drawReverse(256),
     sliderstartcircle: hitcircle,
     sliderstartcircleoverlay: overlay,

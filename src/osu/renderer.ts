@@ -743,7 +743,8 @@ export function drawSliderControlPoints(g: CanvasRenderingContext2D, o: HitObjec
 // v469: stable 选中标记 — 皮肤 hitcircleselect.png, 与 hitcircle 族同公式 (v232: 128-box 基准)
 function drawHitcircleSelectMark(rc: RenderCtx, x: number, y: number, r: number) {
   const img = rc.skin.hitcircleselect;
-  if (!img) return; // 皮肤无图时跳过 (v232 同款; 默认皮肤有程序化兜底, skin.ts)
+  // v472: 皮肤无 hitcircleselect 时回退 lazer 橙黄圆环 (v472 起 skin.ts 不再程序化兜底)
+  if (!img) { drawSelectionRing(rc.g, x, y, r); return; }
   const w = r * 2 * hitcircleSpriteWidth(img) / 128;
   rc.g.drawImage(img, x - w / 2, y - w / 2, w, w);
 }
