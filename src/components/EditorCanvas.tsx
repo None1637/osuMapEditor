@@ -529,15 +529,16 @@ export function EditorCanvas() {
       const p = toOsu({ clientX: cx, clientY: cy });
       if (mods.altKey) {
         if (store.lockNotes) return false;
-        // v411: Alt 穿透只在命中锚点 (切换选中) 或滑条本体 (Alt 点选) 时生效; Alt+空白放行给可交互 UI —
+        // v411: Alt 穿透只在命中锚点 (切换选中) 时生效; Alt+空白放行给可交互 UI —
         //   修: 时间轴 Alt+拖滑条尾改 SV (v407) 被穿透链的 Alt 节点框选吞掉, 用户实测只能拉出橙色框;
         //   Alt+空白框选在画布/不可交互 UI 上不受影响 (onMouseDown/playfieldNodePress 路径不变)
+        // v459: Alt+点击滑条本体 (v371 Alt 点选) 已移除, 穿透条件随之去掉本体分支 (否则在 UI 上
+        //   Alt+点滑条身会误起节点框选)
         const bm = store.beatmap;
         const offs = getStackOffsets(bm);
         const sliders = bm.hitObjects.filter(o => o.type === 'slider' && (sliderAnchorInteractiveAt(bm, o, store.currentTime) || store.selected.has(o.id) || store.selectedNodes.has(o.id)));
         const hitNode = nearestNode(sliders, offs, p, devicePxPerOsu());
-        const hitObj = hitNode ? null : hitTest(p.x, p.y);
-        if (!hitNode && !(hitObj && hitObj.type === 'slider')) return false;
+        if (!hitNode) return false;
         nodeAltPress(p, mods);
         return true;
       }
@@ -1180,7 +1181,8 @@ export function EditorCanvas() {
           g.restore();
         }
         // v453: v371 的 Alt 点选滑条青色虚线高亮已按用户要求移除 (Alt 点选后滑条本体已被普通选中,
-        //   选中高亮足以指示; altPickSliders 状态保留, 仍用于 v371a 框选范围收窄, 见 recomputeMarqueeSelection)
+        //   选中高亮足以指示); v459: Alt 点选的状态与框选收窄判定也整体移除 (soulten/None1637:
+        //   判定不用留), Alt 框选收窄剩 v440 已选滑条 > v371b 第一框到 (见 recomputeMarqueeSelection)
         // v34: 自定义变换原点标记 (十字 + 圆, 可拖拽; osu 坐标系, 允许画出游玩区外)
         if (originMarkerVisible()) {
           const m = activeCustomOrigin(); // v166: 批量复制窗口打开时画弹窗独立原点
@@ -1470,12 +1472,8 @@ export function EditorCanvas() {
         store.toggleSelectedNode(hitNode.objId, j);
       return;
     }
-    // v371: Alt+点击滑条本体 (未命中锚点) = 点选该滑条 (可复选; 再点取消) —
-    //   存在点选滑条时, 节点框选只框被点选滑条的锚点
-    {
-      const hitObj = hitTest(p.x, p.y);
-      if (hitObj && hitObj.type === 'slider') { store.toggleAltPickSlider(hitObj.id); return; }
-    }
+    // v459: v371 的「Alt+点击滑条本体 = 点选该滑条 (收窄后续框选)」已随 Alt 点选机制整体移除 —
+    //   Alt+点击本体未命中锚点时与 Alt+空白同处理 = 起节点框选
     // Alt+空白: 节点框选 (Shift/Ctrl 在现有节点选区上追加; v317: F19 — Shift 单独 = 减选, 框到已选锚点取消)
     nodeMarqueeRef.current = {
       x0: p.x, y0: p.y, x1: p.x, y1: p.y,
@@ -2151,17 +2149,14 @@ export function EditorCanvas() {
         return !!o && !sliderAnchorInteractiveAt(bm, o, store.currentTime);
       });
       const inRect0 = nodesInRect(sliders, getStackOffsets(bm), r);
-      // v371: 框选范围收窄 —
-      //   a) 存在 Alt 点选滑条时只框这些滑条的锚点;
-      //   b) 否则框到多条滑条时只保留「第一个框到的」(距框选起点最近的框内节点所在滑条)
+      // v371: 框选范围收窄 — 框到多条滑条时只保留「第一个框到的」(距框选起点最近的框内节点所在滑条)
       // v440: 物件选区里有滑条时最优先 — 只框这些已选滑条的锚点
       //   (soulten: 點選slider(可複選) 後只能框選被點選的slider的點; v441 起 Alt 不再清物件选区, 此收窄才生效)
+      // v459: v371a 的 Alt 点选收窄分支已随 Alt 点选机制整体移除 (判定也不用留 — soulten/None1637)
       let inRect = inRect0;
       const selSliderIds = new Set(bm.hitObjects.filter(o => o.type === 'slider' && store.selected.has(o.id)).map(o => o.id));
       if (selSliderIds.size) {
         inRect = inRect0.filter(([objId]) => selSliderIds.has(objId));
-      } else if (store.altPickSliders.size) {
-        inRect = inRect0.filter(([objId]) => store.altPickSliders.has(objId));
       } else if (inRect0.length && inRect0.some(([a]) => a !== inRect0[0][0])) {
         const offs3 = getStackOffsets(bm);
         const first = firstFramedSliderId(inRect0, (oid, i) => {

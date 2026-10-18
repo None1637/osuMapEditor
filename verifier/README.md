@@ -5070,3 +5070,14 @@
 - 验证: verifier/v458 (源码断言: 门控在 store.select 前/退级分支/v438 保留/候选口径不变);
   v438/v402/v404/v452 全绿; v378 一次运行偶遇 2 条 CDP 红, 复跑 (含本改动) 全绿 = 偶发非回归;
   tsc + vite build 通过。
+
+## v459 — Alt 点选滑条机制整体移除 (判定也不留)
+- 用户反馈 (soulten/None1637): v453 只删了 Alt 点选滑条的青色虚线显示, 判定还在
+  (Alt+点击滑条本体 = 点选 → 后续节点框选只框被点选滑条); 「判定還在 (其實不用留了吧?)」。
+- 移除: store 的 altPick 状态字段/toggle/clear 方法与 load() 清空; nodeAltPress 里
+  「Alt+点击滑条本体 (未命中锚点) → 切换点选」分支 (现在与 Alt+空白同处理 = 直接起节点框选);
+  recomputeMarqueeSelection 框选收窄的 v371a 点选分支 (收窄只剩 v440 已选滑条 > v371b 第一框到);
+  v411 穿透 playfieldAnchorPress 的 Alt 分支去掉本体判定 (只穿锚点 — 本体点选没了,
+  UI 上 Alt+点滑条身不该误起节点框选)。
+- 验证: verifier/v459 (源码断言: 状态/分支/穿透全删, v440/v371b 收窄保留, 优先级不变);
+  v371/v453/v411/v440/v373/v317/v333 断言适配后全绿; tsc + vite build 通过。

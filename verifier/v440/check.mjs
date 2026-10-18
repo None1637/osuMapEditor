@@ -25,9 +25,10 @@ section('源码: 已选滑条优先收窄');
   assert(fn.length > 0, 'recomputeMarqueeSelection 存在');
   assert(/selSliderIds = new Set\(bm\.hitObjects\.filter\(o => o\.type === 'slider' && store\.selected\.has\(o\.id\)\)/.test(fn), '收集选区内滑条 id');
   const iSel = fn.indexOf('selSliderIds.size');
-  const iAlt = fn.indexOf('store.altPickSliders.size');
   const iFirst = fn.indexOf('firstFramedSliderId');
-  assert(iSel > 0 && iAlt > iSel && iFirst > iAlt, '收窄优先级: 已选滑条 > Alt 点选 (v371a) > 第一框到 (v371b)');
+  // v459: Alt 点选 (v371a altPickSliders) 机制整体移除, 优先级只剩 已选滑条 > 第一框到
+  assert(!/altPickSliders/.test(fn), 'v459: altPick 收窄分支已删');
+  assert(iSel > 0 && iFirst > iSel, '收窄优先级: 已选滑条 > 第一框到 (v371b)');
 }
 
 section('CDP: Alt 框选收窄到已选滑条');

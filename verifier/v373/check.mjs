@@ -17,8 +17,8 @@ const read = (rel) => fs.readFileSync(path.join(root, rel), 'utf8');
 section('store.ts: load / restore 重置 gridSpacing');
 {
   const src = read('src/osu/store.ts');
-  // load(): 载入/刷新谱面时清覆盖 (紧跟 v371 清空 Alt 点选滑条之后)
-  assert(/this\.altPickSliders = new Set\(\); \/\/ v371[^\n]*\n\s*this\.gridSpacing = null; \/\/ v373/.test(src),
+  // load(): 载入/刷新谱面时清覆盖 (v459: 前方 v371 altPick 清空行已随机制移除, 断言改直查)
+  assert(/this\.selected\.clear\(\);\n\s*this\.gridSpacing = null; \/\/ v373/.test(src),
     'load() 重置 gridSpacing = null (换谱/刷新间距跟随新谱面 GridSize)');
   // restore(): undo/redo 共用, 恢复快照段后清覆盖
   assert(/bm\.rawSections = deepCopy\(s\.rawSections \?\? \{\}\); \/\/ v209\n\s*this\.gridSpacing = null; \/\/ v373/.test(src),

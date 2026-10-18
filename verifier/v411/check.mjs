@@ -4,6 +4,7 @@
 //   Timelines 的拖尾分支 (v407, e.altKey 定 SV 模式) 永远执行不到。
 // 修复: playfieldAnchorPress 的 Alt 分支只在命中锚点 (切换选中) 或滑条本体 (Alt 点选) 时穿透;
 //   Alt+空白 return false 放行给可交互 UI。画布/不可交互 UI 的 Alt 框选不受影响。
+//   (v459 适配: Alt 点选滑条机制整体移除, 穿透条件去掉本体分支 — 只剩命中锚点才穿透)
 // 运行: npm run build 后 node verifier/v411/check.mjs
 import { fileURLToPath } from 'url';
 import path from 'path';
@@ -24,8 +25,8 @@ section('源码: playfieldAnchorPress Alt 分支命中才穿透');
   const ap = ec.match(/store\.playfieldAnchorPress = \(cx, cy, mods\) => \{[\s\S]*?\n    \};/)?.[0] ?? '';
   assert(ap.length > 0, '注册 playfieldAnchorPress');
   assert(/const hitNode = nearestNode\(sliders, offs, p, devicePxPerOsu\(\)\);/.test(ap), 'Alt 分支先探锚点命中 (v452 适配: 调用带 k 实参)');
-  assert(/if \(!hitNode && !\(hitObj && hitObj\.type === 'slider'\)\) return false;/.test(ap), 'Alt+空白放行可交互 UI');
-  assert(/nodeAltPress\(p, mods\)/.test(ap), '命中仍走 nodeAltPress (Alt 点选/切换保留)');
+  assert(/if \(!hitNode\) return false;/.test(ap), 'Alt+空白放行可交互 UI (v459: 本体分支随 Alt 点选机制移除)');
+  assert(/nodeAltPress\(p, mods\)/.test(ap), '命中仍走 nodeAltPress (锚点切换保留; v459 起无 Alt 点选)');
   // 画布内 Alt 框选 (onMouseDown) 与不可交互 UI (playfieldNodePress) 不变
   const np = ec.match(/store\.playfieldNodePress = \(cx, cy, mods\) => \{[\s\S]*?\n    \};/)?.[0] ?? '';
   assert(/if \(mods\.altKey\) \{\s*if \(store\.lockNotes\) return false;\s*nodeAltPress\(p, mods\);\s*return true;/.test(np), '不可交互 UI 的 Alt 框选穿透不变');

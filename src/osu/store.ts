@@ -605,7 +605,6 @@ class EditorStore {
     this.setDirty(false); // v120: 载入即干净状态
     this.savedFingerprint = this.fingerprint(); // v140: 载入内容成为干净基准 (脏标记按内容指纹对比)
     this.selected.clear();
-    this.altPickSliders = new Set(); // v371: 换谱清空 Alt 点选滑条
     this.gridSpacing = null; // v373: 载入/刷新后间距跟随新谱面 GridSize, 清除手动覆盖
     this.manualCurveType.clear(); // v394: 换谱清空「手动改过曲线类型」记录 (仅本次编辑, 不存档)
     this.undoStack = []; this.redoStack = [];
@@ -1839,22 +1838,8 @@ class EditorStore {
     this.emitSelection();
   }
 
-  // ---- v371: Alt 点选滑条 (可复选; soulten 反馈) — 存在点选滑条时,
-  //   Alt/Shift+Alt 节点框选只框这些滑条的锚点; Alt+点击滑条本体切换点选, 换谱自动清空 ----
-  altPickSliders = new Set<number>();
-
-  toggleAltPickSlider(id: number) {
-    const s = new Set(this.altPickSliders);
-    if (s.has(id)) s.delete(id); else s.add(id);
-    this.altPickSliders = s;
-    this.emitSelection();
-  }
-
-  clearAltPickSliders() {
-    if (!this.altPickSliders.size) return;
-    this.altPickSliders = new Set();
-    this.emitSelection();
-  }
+  // ---- v459: v371 的 Alt 点选滑条机制 (字段/切换/清空方法) 已整体移除 —
+  //   v453 只删显示后判定仍在, soulten/None1637 确认判定也不用留; 框选收窄剩 v440 已选滑条 > v371b 第一框到 ----
 
   // ---- v394: 手动改过曲线类型的滑条 (Inspector 下拉改型时记录; 记录后节点增删/切红不再强制改型,
   //   如 L/C 放红点或红点下放白点不再强切贝塞尔; 仅本次编辑有效, 换谱清空, 不存档) ----

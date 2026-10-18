@@ -32,28 +32,23 @@ section('nodeSelection.ts: firstFramedSliderId');
   assert(/Math\.hypot\(p\.x - ox, p\.y - oy\)/.test(src), '按距框选起点最近判定');
 }
 
-section('store.ts: altPickSliders 状态');
+section('store.ts: altPickSliders 已移除 (v459)');
 {
   const src = read('src/osu/store.ts');
-  assert(/altPickSliders = new Set<number>\(\);/.test(src), 'altPickSliders 字段');
-  assert(/toggleAltPickSlider\(id: number\)/.test(src), 'toggleAltPickSlider (可复选)');
-  assert(/clearAltPickSliders\(\)/.test(src), 'clearAltPickSliders');
-  assert(/this\.altPickSliders = new Set\(\); \/\/ v371: 换谱清空/.test(src), 'load 换谱清空');
+  // v459: v453 只删显示后判定仍在, soulten/None1637 确认判定也不用留 — Alt 点选机制整体移除
+  assert(!/altPickSliders/.test(src) && !/toggleAltPickSlider|clearAltPickSliders/.test(src), 'v459: altPickSliders 状态/方法全删');
 }
 
-section('EditorCanvas.tsx: Alt 点选 + 框选收窄');
+section('EditorCanvas.tsx: 框选收窄 (v459 起仅剩 v440 已选滑条 + v371b 第一框到)');
 {
   const src = read('src/components/EditorCanvas.tsx');
   assert(/firstFramedSliderId/.test(src) && /import \{[^}]*firstFramedSliderId[^}]*\} from '@\/osu\/nodeSelection'/.test(src), '导入 firstFramedSliderId');
-  assert(/const hitObj = hitTest\(p\.x, p\.y\);\s*\n\s*if \(hitObj && hitObj\.type === 'slider'\) \{ store\.toggleAltPickSlider\(hitObj\.id\); return; \}/.test(src),
-    'Alt+点击滑条本体 = 切换点选 (未命中锚点时)');
-  assert(/inRect0\.filter\(\(\[objId\]\) => store\.altPickSliders\.has\(objId\)\)/.test(src),
-    '存在点选滑条: 框选只框被点选滑条');
+  assert(!/toggleAltPickSlider/.test(src), 'v459: Alt+点击滑条本体切换点选分支已删 (未命中锚点 = 起节点框选)');
+  assert(!/altPickSliders/.test(src), 'v459: altPick 收窄分支已删');
   assert(/inRect0\.some\(\(\[a\]\) => a !== inRect0\[0\]\[0\]\)/.test(src),
-    '无点选且框到多条滑条时走 firstFramedSliderId 收窄');
-  // v453: 青色虚线高亮块已按用户要求移除 (Alt 点选后滑条本体已被普通选中, 选中高亮足以指示) —
-  //   断言取反: 渲染层不得再画 altPick 高亮; altPickSliders 状态与框选收窄逻辑保留
-  assert(!/if \(store\.altPickSliders\.size\) \{[\s\S]{0,400}?#4df3ff/.test(src), 'v453: 点选滑条青色虚线高亮块已移除');
+    '框到多条滑条时走 firstFramedSliderId 收窄 (v371b 保留)');
+  // v453/v459: 渲染层不得再画 altPick 高亮
+  assert(!/#4df3ff/.test(src.match(/if \(store\.nodeSelectionCount\) \{[\s\S]*?\n        \}/)?.[0] ?? ''), 'v453: 点选滑条青色虚线高亮块已移除');
 }
 
 if (failures) { console.error(`V371 FAILED: ${failures}`); process.exit(1); }
