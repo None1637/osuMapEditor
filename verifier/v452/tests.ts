@@ -16,33 +16,33 @@ const NO_OFF = new Map<number, { dx: number; dy: number }>();
 
 const origStyle = displaySettings.sliderPointStyle;
 try {
-  // ---- stable: 半径 = 4/k (方格 8/k 总宽的内切圆, 宁小勿大) ----
+  // ---- stable: 半径 = (4+2)/k (方格内切 4/k + v468 的 2 屏幕px 余量) ----
   displaySettings.sliderPointStyle = 'stable';
-  assert(anchorHitRadius(true, 2) === 2 && anchorHitRadius(false, 2) === 2, 'stable: k=2 → 半径 2 (头尾同宽)');
-  assert(anchorHitRadius(true, 1) === 4 && anchorHitRadius(false, 0.5) === 8, 'stable: 半径随 k 反比 (4/k)');
-  assert(anchorHitRadius(true, 0) === 4, 'stable: k=0 兜底 ||1 (与 renderer hypot||1 同款)');
+  assert(anchorHitRadius(true, 2) === 3 && anchorHitRadius(false, 2) === 3, 'stable: k=2 → 半径 3 (头尾同宽, v468 +2px)');
+  assert(anchorHitRadius(true, 1) === 6 && anchorHitRadius(false, 0.5) === 12, 'stable: 半径随 k 反比 (6/k)');
+  assert(anchorHitRadius(true, 0) === 6, 'stable: k=0 兜底 ||1 (与 renderer hypot||1 同款)');
 
-  // ---- lazer: osu 单位固定, 头 r7 / 其余 r6, 与 k 无关 ----
+  // ---- lazer: 头 7+2/k / 其余 6+2/k (osu 单位 + v468 的 2 屏幕px 折算) ----
   displaySettings.sliderPointStyle = 'lazer';
-  assert(anchorHitRadius(true, 2) === 7 && anchorHitRadius(true, 99) === 7, 'lazer: 头 r7 (与 k 无关)');
-  assert(anchorHitRadius(false, 2) === 6 && anchorHitRadius(false, 99) === 6, 'lazer: 非头 r6 (与 k 无关)');
+  assert(anchorHitRadius(true, 2) === 8 && anchorHitRadius(true, 99) === 7 + 2 / 99, 'lazer: 头 7+2/k');
+  assert(anchorHitRadius(false, 2) === 7 && anchorHitRadius(false, 99) === 6 + 2 / 99, 'lazer: 非头 6+2/k');
 
   // ---- nearestNode: 按节点各自半径判定 ----
-  // stable, k=2 → 半径 2; 头 (100,100), A (110,100)
+  // stable, k=2 → 半径 3; 头 (100,100), A (110,100)
   displaySettings.sliderPointStyle = 'stable';
   {
     const s = slider(1, 100, 100, [{ x: 110, y: 100 }]);
     const hit = nearestNode([s], NO_OFF, { x: 111.5, y: 100 }, 2);
-    assert(hit?.objId === 1 && hit.idx === 1, 'stable k=2: 距 A 1.5 ≤ 2 命中 A');
-    assert(nearestNode([s], NO_OFF, { x: 103, y: 100 }, 2) === null, 'stable k=2: 距头 3 > 2 不命中 (旧固定 10 会误中)');
+    assert(hit?.objId === 1 && hit.idx === 1, 'stable k=2: 距 A 1.5 ≤ 3 命中 A');
+    assert(nearestNode([s], NO_OFF, { x: 103.5, y: 100 }, 2) === null, 'stable k=2: 距头 3.5 > 3 不命中');
   }
-  // lazer: 头 7 / 非头 6 — 距头 6.5 命中头, 距非头 6.5 不命中
+  // lazer: 头 7+2/k / 非头 6+2/k — k=1 → 头 9 / 非头 8
   displaySettings.sliderPointStyle = 'lazer';
   {
     const s = slider(2, 100, 100, [{ x: 300, y: 100 }]);
     const hitHead = nearestNode([s], NO_OFF, { x: 106.5, y: 100 }, 1);
-    assert(hitHead?.idx === 0, 'lazer: 距头 6.5 ≤ 7 命中头');
-    assert(nearestNode([s], NO_OFF, { x: 293.5, y: 100 }, 1) === null, 'lazer: 距非头 6.5 > 6 不命中');
+    assert(hitHead?.idx === 0, 'lazer: 距头 6.5 ≤ 9 命中头');
+    assert(nearestNode([s], NO_OFF, { x: 291.5, y: 100 }, 1) === null, 'lazer: 距非头 8.5 > 8 不命中');
   }
   // 语义保留: 跨滑条最近优先, 并列取序号在前 (两滑条同坐标点, 数组前者胜; 同滑条红对同坐标, 下标小者胜)
   displaySettings.sliderPointStyle = 'stable';

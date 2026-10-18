@@ -38,10 +38,12 @@ export function nodeSelectionEquals(a: NodeSel, b: NodeSel): boolean {
 
 /** v452: 滑条锚点点击命中半径 = 屏幕上实际绘制尺寸 (renderer drawControlPointHandle 同款真值) —
  *  stable = 屏幕固定 ~8px 实心方格 (7/k 边长 + 1/k 居中描边), 圆形判定取内切 → 半径 4/k (宁小勿大);
- *  lazer = 圆点 osu 单位固定: 头 r7 / 其余 r6。k = 设备px/osu单位 (= 渲染主变换 hypot(m.a, m.b)) */
+ *  lazer = 圆点 osu 单位固定: 头 r7 / 其余 r6。k = 设备px/osu单位 (= 渲染主变换 hypot(m.a, m.b))
+ *  v468: 全部锚点交互判定在显示尺寸基础上 +2 屏幕像素余量 (2/k osu 单位) — 只放宽命中, 绘制不变 */
 export function anchorHitRadius(isHead: boolean, devicePxPerOsu: number): number {
-  if (displaySettings.sliderPointStyle === 'stable') return 4 / (devicePxPerOsu || 1);
-  return isHead ? 7 : 6;
+  const k = devicePxPerOsu || 1;
+  if (displaySettings.sliderPointStyle === 'stable') return (4 + 2) / k; // v468: +2 屏幕px
+  return (isHead ? 7 : 6) + 2 / k; // v468: +2 屏幕px
 }
 
 /** 跨滑条命中最优先: 距离最近者胜, 并列取序号在前 (与单滑条 nearestCtrlPoint 一致)

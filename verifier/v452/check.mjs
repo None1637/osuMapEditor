@@ -34,8 +34,8 @@ const ec = read('src/components/EditorCanvas.tsx');
 section('nodeSelection.ts: anchorHitRadius 共享函数');
 {
   assert(/export function anchorHitRadius\(isHead: boolean, devicePxPerOsu: number\)/.test(ns), 'anchorHitRadius 签名 (isHead, 设备px/osu单位)');
-  assert(/sliderPointStyle === 'stable'\) return 4 \/ \(devicePxPerOsu \|\| 1\)/.test(ns), 'stable = 4/k (8/k 方格内切, k=0 兜底)');
-  assert(/return isHead \? 7 : 6;/.test(ns), 'lazer = 头 r7 / 其余 r6 (与 drawControlPointHandle 一致)');
+  assert(/sliderPointStyle === 'stable'\) return \(4 \+ 2\) \/ k/.test(ns), 'stable = (4+2)/k (8/k 方格内切 + v468 的 2 屏幕px 余量)');
+  assert(/return \(isHead \? 7 : 6\) \+ 2 \/ k/.test(ns), 'lazer = 头 r7 / 其余 r6 + v468 的 2/k 余量');
   assert(/import \{ displaySettings \} from '\.\/displaySettings'/.test(ns), '读显示设置 (样式开关同 renderer)');
 }
 

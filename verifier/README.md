@@ -5231,3 +5231,13 @@
   打击动画开对照一致; F5 进测试游玩断言 hitAnimation false→true, Escape 退出恢复 false)。
   适配: v273/v154/v277/v402 的 hitTest/框选可见性针串改 objectSelectableAt (行为收紧属预期)。
   回归: v273/v402/v342/v154/v277/v287/v294/v147/v215 全绿。tsc + vite build 通过。
+
+## v468 — 改进: 滑条锚点交互判定 +2 屏幕像素余量
+- 需求: 滑条锚点在当前基础上加 2 屏幕像素的额外交互检测区域 (只放宽命中, 绘制不变)。
+- 实现: nodeSelection.ts anchorHitRadius 两个分支各 +2/k (k = 设备px/osu单位, 0 兜底按 1) —
+  stable (4+2)/k; lazer 头 7+2/k / 其余 6+2/k。全部锚点判定 (nearestNode/nearestCtrlPoint/
+  放置流程 6 处/双击闭环 finishSlider/手绘松开切红/右键落幻影点) 都走这一个函数, 改一处全覆盖。
+- 验证: verifier/v468 (esbuild bundle 纯函数数值断言: lazer k=2 头 8/非头 7、k=0 兜底;
+  stable k=2 → 3、k=0.5 → 12; 源码断言两分支 +2/k + EditorCanvas 7 处调用不变)。
+  适配: v452 tests.ts/check.mjs 数值与针串改新半径 (stable 6/k; lazer 头 7+2/k 非头 6+2/k;
+  不命中用例外移到 3.5/8.5)。回归: v452/v402/v318/v35 全绿。tsc + vite build 通过。
