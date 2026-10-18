@@ -666,6 +666,9 @@ function drawControlPointHandle(g: CanvasRenderingContext2D, x: number, y: numbe
 // 128-box 基准, 贴图固有宽度 ÷128 × 圈直径 2r, 默认/128px 贴图恰与圆圈一样大;
 // 大贴图按固有尺寸放大 (上限 256 在 hitcircleSpriteWidth 内), @2x 折半在 skinSpriteWidth 登记处已计入; 无图时跳过
 // v305: F03 — stable 选中圆环 (皮肤无关) 橙黄环; 取代 v232 的 hitcircleselect 方框
+// v469: 用户指正 — v305 方向反了: stable 选中效果就是皮肤 hitcircleselect.png (默认皮肤该图恰为
+//   橙黄圆环, 故 F03 截图看着像"橙黄环"); 橙黄圆环是 lazer 的选中效果。两种样式互换:
+//   stable = 皮肤 hitcircleselect.png, lazer = drawSelectionRing 橙黄环
 // v308: 改为覆盖圆圈白边 (stable 选中环压在 hitcircle 边框上, 不是在圈外多加一圈)
 // v310: 用户指定数值 — 线宽减为 0.14r 的 75% = 0.105r
 // v311: 环宽度 = 滑条选中描边带宽 (= 0.925-0.81 = 0.115r)
@@ -730,10 +733,20 @@ export function drawSliderControlPoints(g: CanvasRenderingContext2D, o: HitObjec
   }
 }
 
-// 选中装饰: 滑条 = 身体高亮环 + 控制多边形 + 控制点手柄; 其他 = 青色虚线环
-// v232: selectionStyle=stable 时改 osu!stable 样式; v305: F03 修正 — stable 实为圆环/边框高亮:
-//   圆圈类 = 橙黄圆环 (不再用皮肤 hitcircleselect 方框); 滑条 = sliderborder 蓝色高亮描边 + 头尾橙黄圆环
+// 选中装饰: 滑条 = 身体高亮环 + 控制多边形 + 控制点手柄 + 头/尾选中标记; 其他 = 中心选中标记
+// v232: selectionStyle=stable 时改 osu!stable 样式; v305: F03 修正 — stable 实为圆环/边框高亮
+// v469: 用户指正 v305 方向反了 — stable 选中标记 = 皮肤 hitcircleselect.png (默认皮肤该图恰是
+//   橙黄圆环, F03 截图的"黄圈"即它); 橙黄圆环才是 lazer 的选中效果。两样式互换:
+//   stable = 皮肤 hitcircleselect.png (圆圈中心 / 滑条头尾各一张) + 滑条蓝色边框高亮;
+//   lazer = 橙黄圆环 (drawSelectionRing) + 滑条青色描边环
 // (滑条控制点连线/手柄两种模式都画, 手柄样式由 v231 开关控制)
+// v469: stable 选中标记 — 皮肤 hitcircleselect.png, 与 hitcircle 族同公式 (v232: 128-box 基准)
+function drawHitcircleSelectMark(rc: RenderCtx, x: number, y: number, r: number) {
+  const img = rc.skin.hitcircleselect;
+  if (!img) return; // 皮肤无图时跳过 (v232 同款; 默认皮肤有程序化兜底, skin.ts)
+  const w = r * 2 * hitcircleSpriteWidth(img) / 128;
+  rc.g.drawImage(img, x - w / 2, y - w / 2, w, w);
+}
 function drawSelectionDecor(rc: RenderCtx, o: HitObject, radius: number) {
   const { g, bm } = rc;
   const so = stackOffset(rc, o.id);
@@ -749,22 +762,20 @@ function drawSelectionDecor(rc: RenderCtx, o: HitObject, radius: number) {
       ? sliderOutlineSprite(p.points, radius, stableSel ? '#4a90e2' : '#4df3ff', stableSel, o.id, g.getTransform().a)
       : null;
     if (osp) g.drawImage(osp.c, osp.dx, osp.dy, osp.w, osp.h);
+    // v469: 头/尾选中标记 — stable 皮肤图, lazer 橙黄圆环
+    const tail = p.points[p.points.length - 1];
     if (stableSel) {
-      // v305: F03 — 滑条头/尾各画橙黄圆环 (stable 选中效果, 见用户对比截图)
+      drawHitcircleSelectMark(rc, o.x, o.y, radius);
+      if (tail) drawHitcircleSelectMark(rc, tail.x, tail.y, radius);
+    } else {
       drawSelectionRing(g, o.x, o.y, radius);
-      const tail = p.points[p.points.length - 1];
       if (tail) drawSelectionRing(g, tail.x, tail.y, radius);
     }
     drawSliderControlPoints(g, o); // v259: 抽出共用 (hover 预览同用)
   } else if (stableSel) {
-    drawSelectionRing(g, o.x, o.y, radius); // v305: F03 — 单点/spinner 橙黄圆环
+    drawHitcircleSelectMark(rc, o.x, o.y, radius); // v469: stable 单点/spinner = 皮肤 hitcircleselect.png
   } else {
-    g.strokeStyle = '#4df3ff'; g.lineWidth = 2.5;
-    g.setLineDash([6, 4]);
-    g.beginPath();
-    g.arc(o.x, o.y, radius * 1.15, 0, Math.PI * 2);
-    g.stroke();
-    g.setLineDash([]);
+    drawSelectionRing(g, o.x, o.y, radius); // v469: lazer 单点/spinner = 橙黄圆环 (取代 v232 青色虚线环)
   }
   g.restore();
 }

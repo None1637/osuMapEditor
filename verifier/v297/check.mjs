@@ -23,7 +23,7 @@ const check = (name, cond) => { if (!cond) { fails++; console.error('FAIL:', nam
 check('IndexScanOpts.trustNames 选项', /interface IndexScanOpts[\s\S]{0,300}trustNames\?:\s*boolean/.test(li));
 check('buildLibraryIndex 接受 opts 参数', /prio\?: \(\) => string \| null,\s*\/\/ v293\s*opts\?: IndexScanOpts/.test(li));
 check('trustNames 快路径: 文件名集合一致即整目录复用',
-  /opts\?\.trustNames && cached[\s\S]{0,600}names\.every\(n => g\.names\.has\(n\)\)[\s\S]{0,200}batch\.push\(\.\.\.g\.entries\)/.test(li));
+  /opts\?\.trustNames && cached[\s\S]{0,600}names\.every\(n => g\.names\.has\(n\)\)[\s\S]{0,200}for \(const e of g\.entries\) pushEntry\(e\)/.test(li)); // v469: 并发池后改 pushEntry
 
 // worker 入口
 check('buildLibraryIndexAuto 导出 + Worker 创建',

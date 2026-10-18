@@ -18,7 +18,8 @@ export interface DisplaySettings {
   bgBrightness: number;
   /** v231: 滑条控制点手柄样式 ('stable' = 红/白实心小方格, osu!stable 编辑器同款; 'lazer' = 圆点, 旧行为) */
   sliderPointStyle: 'stable' | 'lazer';
-  /** v232: 物件选中效果 ('stable' = 皮肤 hitcircleselect 圆角方框, 滑条头尾各一张; 'lazer' = 高亮描边环/青色虚线环, 旧行为) */
+  /** v232: 物件选中效果; v469: 修正 — 'stable' = 皮肤 hitcircleselect.png (圆圈中心/滑条头尾各一张 + 滑条蓝色边框高亮);
+      'lazer' = 橙黄圆环 (drawSelectionRing, 滑条头尾各一环) + 滑条青色高亮描边环 */
   selectionStyle: 'stable' | 'lazer';
   /** v253: 右下角帧数显示 (关 = 不挂载 FpsCounter) */
   showFps: boolean;

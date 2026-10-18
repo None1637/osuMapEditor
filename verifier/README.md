@@ -5241,3 +5241,27 @@
   stable k=2 → 3、k=0.5 → 12; 源码断言两分支 +2/k + EditorCanvas 7 处调用不变)。
   适配: v452 tests.ts/check.mjs 数值与针串改新半径 (stable 6/k; lazer 头 7+2/k 非头 6+2/k;
   不命中用例外移到 3.5/8.5)。回归: v452/v402/v318/v35 全绿。tsc + vite build 通过。
+
+## v469 — 修正+提速: stable 选中效果改皮肤 hitcircleselect.png (lazer 才是橙黄环); 曲库索引并发池
+- 需求 1: 用户指正 v305 方向反了 — stable 选中效果就是皮肤 hitcircleselect.png (默认皮肤该图
+  恰为橙黄圆环, F03 截图的"黄圈"即它, 换皮肤则随皮肤变); 橙黄圆环是 lazer 的选中效果。
+  修复: renderer.ts drawSelectionDecor 两样式互换 — stable = 新增 drawHitcircleSelectMark
+  (皮肤 hitcircleselect.png, 128-box 公式同 hitcircle 族, 无图跳过; 圆圈中心/滑条头尾各一张,
+  滑条蓝色边框高亮不变); lazer = drawSelectionRing 橙黄环 (圆圈 + 滑条头尾, 青色虚线环移除,
+  滑条青色描边环不变)。displaySettings 注释/DisplayPanel 英文文案/zh-CN 词典选项
+  (stable 皮肤图 / lazer 圆环) 同步更新。
+- 需求 2: 曲库索引建立太慢 (搜文件名要等几分钟)。调研 (子代理报告): exe 服务器直读模式
+  索引在主线程跑且每个 .osu/每个目录一次串行 HTTP roundtrip (libraryIndex.ts 逐文件 await),
+  3 万难度 = 3 万次串行 fetch。采用方案 A (并发池, 改动最小收益最大):
+  libraryIndex.ts 新增 DIR_CONCURRENCY=8 / FILE_CONCURRENCY=8 — buildLibraryIndex 重构为
+  目录级 8 路 worker + 目录内文件级 8 路 worker 推条目进 results 缓冲, generator 侧攒 50 条/批
+  yield (增量 size+lastModified 比对/trustNames 快路径/prio 插队/取消语义全保留, 250ms 兜底唤醒
+  防取消死锁); enumerateDifficultySkeletons 同模式目录级 8 路并发 (Pass A 骨架先行提速,
+  文件名搜索可搜时间提前)。worker 版 (native 模式) 跑同一函数同样受益。
+- 验证: verifier/v469 (esbuild bundle 假文件系统 20/10/10ms 人工延迟: 72 条目齐全+字段正确,
+  全量 208ms vs 串行估算 1920ms ≈ 9x; 增量全复用同对象+star 保留; trustNames 零 getFile 139ms
+  vs 480ms; prio 目录首波完成; 取消及时收尾; 骨架枚举 93ms vs 480ms; 并发池产出 = parseIndexEntry
+  直出)。适配: v232 (选中效果断言改 v469 语义+选项改名), v297 (trustNames 针串 batch.push→
+  pushEntry), v290 (v444 audioKey 既有失配, 断言改前缀), v245 (v462 cacheKey 冻结键既有失配)。
+  回归: v469/v232/v245/v305/v308/v310/v311/v314/v340/v259/v290/v297/v299/v323 全绿。
+  tsc + vite build 通过。

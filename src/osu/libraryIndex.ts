@@ -160,9 +160,19 @@ export function difficultyFromFileName(dirName: string, fileName: string): Libra
   };
 }
 
+// v469: 索引并发度 — 目录级 8 路 / 目录内文件级 8 路。exe 服务器直读模式每个 .osu/每个目录
+//   都是一次 HTTP roundtrip, 旧实现完全串行 (逐文件 await getFile→text→parse), 3 万难度 =
+//   3 万次串行 fetch 是"索引几分钟"的主因; 并发重叠 roundtrip 后预期降到 1/5~1/10。
+//   原生 (FileSystemDirectoryHandle) 模式磁盘读同样受益; worker 内跑同一函数也生效。
+const DIR_CONCURRENCY = 8;
+const FILE_CONCURRENCY = 8;
+
 /**
- * v299: 骨架枚举 — 按目录纯枚举 .osu 文件名 (零 getFile/读文本), 每目录一批 yield。
- * dirs 为调用方已枚举的顶层目录表; prio 回调同 buildLibraryIndex (每目录前取最新值)。
+ * v299: 骨架枚举 — 枚举 .osu 文件名出骨架条目 (零 getFile/读文本)。
+ * dirs 为调用方已枚举的顶层目录表; prio 回调同 buildLibraryIndex (每次认领目录前取最新值)。
+ * v469: 目录级并发池 — exe 服务器直读模式每目录一次 HTTP /list, 串行枚举几千个目录是
+ *   "搜文件名要等几分钟"的主因; DIR_CONCURRENCY 路并发重叠 roundtrip (原生模式磁盘读同样受益)。
+ *   完成顺序不再按目录序 (UI 侧本来就要排序), 取消/prio/逐目录一批 yield 语义不变。
  */
 export async function* enumerateDifficultySkeletons(
   dirs: { name: string; handle: FsDirLike }[],
@@ -170,22 +180,42 @@ export async function* enumerateDifficultySkeletons(
   prio?: () => string | null,
 ): AsyncGenerator<LibraryIndexEntry[]> {
   const rest = [...dirs];
-  while (rest.length) {
-    if (isCancelled()) return;
-    let idx = 0;
-    const prioName = prio?.();
-    if (prioName) {
-      const p = rest.findIndex(d => d.name === prioName);
-      if (p >= 0) idx = p;
-    }
-    const [d] = rest.splice(idx, 1);
-    const out: LibraryIndexEntry[] = [];
-    for await (const [name, f] of d!.handle.entries()) {
+  let next = 0;
+  const results: LibraryIndexEntry[][] = []; // 已完成目录的批次 (并发 worker 推入)
+  let wake: (() => void) | null = null;
+  const signal = () => { wake?.(); };
+  const worker = async () => {
+    for (;;) {
       if (isCancelled()) return;
-      if (f.kind === 'file' && name.toLowerCase().endsWith('.osu')) out.push(difficultyFromFileName(d!.name, name));
+      const prioName = prio?.();
+      if (prioName) {
+        const p = rest.findIndex((d, i) => i >= next && d.name === prioName);
+        if (p >= next && p >= 0) { const t = rest[next]!; rest[next] = rest[p]!; rest[p] = t; }
+      }
+      const d = rest[next++];
+      if (!d) return;
+      const out: LibraryIndexEntry[] = [];
+      for await (const [name, f] of d.handle.entries()) {
+        if (isCancelled()) return;
+        if (f.kind === 'file' && name.toLowerCase().endsWith('.osu')) out.push(difficultyFromFileName(d.name, name));
+      }
+      if (out.length) { results.push(out); signal(); }
     }
-    if (out.length) yield out;
-    await new Promise(r => setTimeout(r)); // 让出主线程 (服务器直读模式每目录一次 HTTP)
+  };
+  let allDone = false;
+  const workersDone = Promise.all(Array.from({ length: DIR_CONCURRENCY }, worker))
+    .then(() => { allDone = true; signal(); });
+  try {
+    for (;;) {
+      if (isCancelled()) return;
+      while (results.length) yield results.shift()!;
+      if (allDone) break;
+      // 250ms 兜底唤醒: 取消时无 signal 也能及时退出 (同步段内赋 wake, 不会丢 worker 的 signal)
+      await new Promise<void>(r => { wake = r; setTimeout(r, 250); });
+      wake = null;
+    }
+  } finally {
+    await workersDone.catch(() => { /* 取消时 worker 各自随 isCancelled 退出 */ });
   }
 }
 
@@ -218,12 +248,15 @@ export interface IndexScanOpts {
 }
 
 /**
- * v290: 构建索引 (async generator, 按 50 文件/批 yield 让出主线程)。
+ * v290: 构建索引 (async generator, 按 ~50 文件/批 yield 让出主线程)。
  * 传入 cached 即增量 reconcile: 只读 size+lastModified 比对, 未变更直接复用缓存条目 (保留已算 star),
  * 新增/变更才读文本重解析; 缓存里已删除的文件自然剔除; 完成由调用方写回 IDB。
- * v293: prio 回调返回当前应优先索引的目录名 (曲库选中项; 每目录前取最新值,
- * 用户在索引途中改选也生效), 已处理目录不重复。
+ * v293: prio 回调返回当前应优先索引的目录名 (曲库选中项; 每次认领目录前取最新值,
+ * 用户在索引途中改选也生效), 已认领/已处理目录不重复。
  * v297: opts.trustNames 快路径 — 目录文件名集合与缓存一致即整体复用, 跳过全部 getFile()。
+ * v469: 并发池重构 — 目录级 DIR_CONCURRENCY 路 + 目录内文件级 FILE_CONCURRENCY 路并发
+ * (exe 服务器直读模式每文件一次 HTTP, 串行是全库几分钟的主因); worker 推条目进 results,
+ * generator 侧攒 50 条/批 yield, 增量比对/trustNames/prio/取消语义不变。
  */
 export async function* buildLibraryIndex(
   root: FsDirLike,
@@ -252,7 +285,13 @@ export async function* buildLibraryIndex(
     if (child.kind === 'directory') dirs.push([dirName, child as FsDirLike]);
   }
 
-  const scanDir = async function* (dirName: string, dir: FsDirLike): AsyncGenerator<LibraryIndexEntry[]> {
+  // v469: 并发 worker 推条目进 results; generator 侧 drain 攒批 (代替原逐文件 yield)
+  const results: LibraryIndexEntry[] = [];
+  let wake: (() => void) | null = null;
+  const signal = () => { wake?.(); };
+  const pushEntry = (e: LibraryIndexEntry) => { results.push(e); done++; onProgress?.(done); signal(); };
+
+  const scanOneDir = async (dirName: string, dir: FsDirLike): Promise<void> => {
     // v297: trustNames 快路径 — 仅枚举文件名 (entries() 不落盘 stat), 与缓存集合一致即整目录复用
     if (opts?.trustNames && cached) {
       const names: string[] = [];
@@ -262,52 +301,74 @@ export async function* buildLibraryIndex(
       }
       const g = cacheByDir.get(dirName);
       if (g && g.names.size === names.length && names.every(n => g.names.has(n))) {
-        batch.push(...g.entries);
-        done += g.entries.length;
-        onProgress?.(done);
-        if (batch.length >= 50) {
-          yield batch;
-          batch = [];
-          await new Promise(r => setTimeout(r));
-        }
+        for (const e of g.entries) pushEntry(e);
         return; // 集合不一致则落入下方慢路径 (重新枚举句柄, 逐文件 stat)
       }
     }
+    // v469: 先收集 .osu 句柄, 再文件级并发 getFile→text→parse (原逐文件串行 await)
+    const files: [string, FsFileLike][] = [];
     for await (const [name, f] of dir.entries()) {
       if (isCancelled()) return;
-      if (f.kind !== 'file' || !name.toLowerCase().endsWith('.osu')) continue;
-      try {
-        const file = await (f as FsFileLike).getFile();
-        const key = `${dirName}/${name}`;
-        const hit = cacheMap.get(key);
-        if (hit && hit.size === file.size && hit.lastModified === file.lastModified) {
-          batch.push(hit); // 未变更: 直接复用 (含已算星级)
-        } else {
-          const e = parseIndexEntry(await file.text(), dirName, name, file.size, file.lastModified);
-          if (hit?.star != null && hit.mode === 0 && e.mode === 0) e.star = null; // 内容变更, 星级待重算
-          batch.push(e);
-        }
-      } catch { /* 跳过损坏文件 */ }
-      done++;
-      onProgress?.(done);
-      if (batch.length >= 50) {
-        yield batch;
-        batch = [];
-        await new Promise(r => setTimeout(r)); // 让出主线程
+      if (f.kind === 'file' && name.toLowerCase().endsWith('.osu')) files.push([name, f as FsFileLike]);
+    }
+    let fi = 0;
+    const fileWorker = async () => {
+      while (fi < files.length && !isCancelled()) {
+        const [name, f] = files[fi++]!;
+        try {
+          const file = await f.getFile();
+          const key = `${dirName}/${name}`;
+          const hit = cacheMap.get(key);
+          if (hit && hit.size === file.size && hit.lastModified === file.lastModified) {
+            pushEntry(hit); // 未变更: 直接复用 (含已算星级)
+          } else {
+            const e = parseIndexEntry(await file.text(), dirName, name, file.size, file.lastModified);
+            if (hit?.star != null && hit.mode === 0 && e.mode === 0) e.star = null; // 内容变更, 星级待重算
+            pushEntry(e);
+          }
+        } catch { /* 跳过损坏文件 */ }
       }
+    };
+    await Promise.all(Array.from({ length: Math.min(FILE_CONCURRENCY, files.length) }, fileWorker));
+  };
+
+  let nextDir = 0;
+  const dirWorker = async () => {
+    for (;;) {
+      if (isCancelled()) return;
+      // v293: 优先目录插队 (每次认领前取最新值; findIndex 从 nextDir 起, 已认领的不重复)
+      const prioName = prio?.();
+      if (prioName) {
+        const p = dirs.findIndex(([n], i) => i >= nextDir && n === prioName);
+        if (p >= nextDir && p >= 0) { const t = dirs[nextDir]!; dirs[nextDir] = dirs[p]!; dirs[p] = t; }
+      }
+      const d = dirs[nextDir++];
+      if (!d) return;
+      await scanOneDir(d[0], d[1]);
     }
   };
 
-  while (dirs.length) {
-    if (isCancelled()) return;
-    let idx = 0;
-    const prioName = prio?.(); // v293: 优先目录插队 (每目录前取最新值)
-    if (prioName) {
-      const p = dirs.findIndex(([n]) => n === prioName);
-      if (p >= 0) idx = p;
+  let allDone = false;
+  const workersDone = Promise.all(Array.from({ length: DIR_CONCURRENCY }, dirWorker))
+    .then(() => { allDone = true; signal(); });
+  try {
+    for (;;) {
+      if (isCancelled()) return;
+      while (results.length) {
+        batch.push(...results.splice(0, results.length));
+        if (batch.length >= 50) {
+          yield batch;
+          batch = [];
+          await new Promise(r => setTimeout(r)); // 让出主线程 (与原批让出一致)
+        }
+      }
+      if (allDone) break;
+      // 250ms 兜底唤醒: 取消时无 signal 也能及时退出; wake 在同步段内赋值, worker signal 不丢
+      await new Promise<void>(r => { wake = r; setTimeout(r, 250); });
+      wake = null;
     }
-    const [[dirName, dir]] = dirs.splice(idx, 1);
-    yield* scanDir(dirName!, dir!);
+  } finally {
+    await workersDone.catch(() => { /* 取消时 worker 各自随 isCancelled 退出 */ });
   }
   if (batch.length) yield batch;
 }

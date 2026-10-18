@@ -29,7 +29,7 @@ const SELECT_ROWS: { key: StrDisplayKey; nameKey: string; nameEn: string; descKe
   // v231
   { key: 'sliderPointStyle', nameKey: 'display.slider_point_style_name', nameEn: 'Slider Point Style', descKey: 'display.slider_point_style_desc', descEn: 'Appearance of control point handles in slider select/place preview: stable = small solid red/white squares (same as the osu!stable editor)', options: [['stable', 'display.slider_point_style_option_stable', 'stable squares'], ['lazer', 'display.slider_point_style_option_lazer', 'lazer dots']] },
   // v232
-  { key: 'selectionStyle', nameKey: 'display.selection_style_name', nameEn: 'Selection Style', descKey: 'display.selection_style_desc', descEn: 'stable = orange-yellow rings (one ring each at slider head/tail + blue border highlight; blue ring on hover, aligned with the stable client since v305); lazer = slider highlight outline ring + cyan dashed ring', options: [['stable', 'display.selection_style_option_stable', 'stable rings'], ['lazer', 'display.selection_style_option_lazer', 'lazer outline']] },
+  { key: 'selectionStyle', nameKey: 'display.selection_style_name', nameEn: 'Selection Style', descKey: 'display.selection_style_desc', descEn: 'stable = skin hitcircleselect.png (one at circle center / each at slider head+tail + blue border highlight); lazer = orange-yellow ring + cyan slider outline ring (v469 fix: the orange ring is lazer\'s, stable uses the skin image)', options: [['stable', 'display.selection_style_option_stable', 'stable skin image'], ['lazer', 'display.selection_style_option_lazer', 'lazer ring']] },
 ];
 
 export function DisplayPanel() {

@@ -62,7 +62,7 @@ assert(/const ROW_H = 44;/.test(sl) && /filtered\.length \* ROW_H/.test(sl), '�
 assert(!/countDifficulties/.test(sl), 'countDifficulties 徽标懒加载链路删除');
 assert(/onDoubleClick=\{\(\) => \{ selectEntry\(e\); void openDiff\(e\.fileName\); \}\}/.test(sl), '双击行打开难度');
 assert(/if \(!store\.guardUnsaved\(\(\) => \{ void openDiff\(fileName\); \}\)\) return;/.test(sl), 'openDiff: v120 guardUnsaved 保留');
-assert(/store\.load\(r\.bm, r\.audioUrl, r\.bgUrl, r\.samples, \{ dir: d\.handle, fileName \}\)/.test(sl), 'openDiff: v67 来源记录保留');
+assert(/store\.load\(r\.bm, r\.audioUrl, r\.bgUrl, r\.samples, \{ dir: d\.handle, fileName \}/.test(sl), 'openDiff: v67 来源记录保留'); // v444: 尾部追加 r.audioKey 参数, 前缀断言不变
 assert(/libraryCache = null; \/\/ v128: 任何显式扫描/.test(sl) && /!s\.rootName \|\| !scanDoneRef\.current/.test(sl), 'v128 会话缓存规则保留 (显式扫描失效 + 中途关闭不写)');
 const dictLib = fs.readFileSync(path.join(root, 'src/i18n/dicts/zh-CN/library.ts'), 'utf8');
 assert(/dirHandleFromDropEx/.test(sl) && /permNeeded/.test(sl)
