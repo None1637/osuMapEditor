@@ -52,14 +52,14 @@ section('设置菜单接线 (v386 通道)');
 {
   const mc = read('electron/main.cjs');
   assert(/"menu\.slider_half_snap": \{ en: .+, "zh-CN": .+, "zh-TW": .+ \}/.test(mc), '菜单文案 en/zh-CN/zh-TW 三语');
-  assert(/sliderHalfSnap: false, svRedlineBoost: false \}/.test(mc), '主进程勾选状态默认 false (v455: 对象加 svRedlineBoost)');
+  assert(/sliderHalfSnap: false, svRedlineBoost: false, svTailRestore: true \}/.test(mc), '主进程勾选状态默认 (v455: +svRedlineBoost; v457: +svTailRestore 默认开)');
   assert(/sliderHalfSnap: s\?\.sliderHalfSnap === true/.test(mc), 'editor-prefs-state 上报解析默认 false');
   assert(/mT\("menu\.slider_half_snap"\), type: "checkbox", checked: editorPrefsState\.sliderHalfSnap, click: \(\) => send\(\{ type: "settings-toggle-editor-pref", key: "sliderHalfSnap" \}\)/.test(mc), '设置菜单 checkbox 项');
   const br = read('src/osu/electronBridge.ts');
   assert(/sliderHalfSnap: boolean; \/\/ v443/.test(br), 'ElectronEditorPrefsState 含 sliderHalfSnap');
   assert(/key: 'dragAdjustNumbers' \| 'moveDeadzone2px' \| 'sliderHalfSnap'/.test(br), 'menu-cmd key 联合类型含 sliderHalfSnap');
   const app = read('src/App.tsx');
-  assert(/menuEditorPrefsState\(\{ dragAdjustNumbers: editorPrefs\.dragAdjustNumbers, moveDeadzone2px: editorPrefs\.moveDeadzone2px, sliderHalfSnap: editorPrefs\.sliderHalfSnap, svRedlineBoost: editorPrefs\.svRedlineBoost \}\)/.test(app), 'App.tsx 勾选状态上报含 sliderHalfSnap (v455: +svRedlineBoost)');
+  assert(/menuEditorPrefsState\(\{ dragAdjustNumbers: editorPrefs\.dragAdjustNumbers, moveDeadzone2px: editorPrefs\.moveDeadzone2px, sliderHalfSnap: editorPrefs\.sliderHalfSnap, svRedlineBoost: editorPrefs\.svRedlineBoost, svTailRestore: editorPrefs\.svTailRestore \}\)/.test(app), 'App.tsx 勾选状态上报含 sliderHalfSnap (v455: +svRedlineBoost; v457: +svTailRestore)');
 }
 
 section('CDP: 运行期翻转开关即时生效 (setEditorPref → __osuSnap.sliderLengthSnapDivisor)');

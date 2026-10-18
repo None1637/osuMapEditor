@@ -5047,3 +5047,13 @@
 - 用户反馈 v455 设置名「Alt拖尾 SV 超界插红线扩程」太抽象, 改为「Alt拖滑条尾变速通过变BPM突破sv上限」
   (zh-TW: Alt拖滑條尾變速通過變BPM突破sv上限; en 不变)。仅文案, 逻辑/键名 (svRedlineBoost) 不变。
 - 验证: v455 断言钉住新文案, 全绿。
+
+## v457 — 设置「Alt拖滑条尾变速还原后续sv」(svTailRestore, 默认开)
+- 用户需求: 加个设置控制 Alt 拖滑条尾变速是否还原后续 sv, 默认开启; 关闭后不插入还原绿线/红线。
+- 实现: editorPrefs +svTailRestore (默认 true, 遗留持久化无此键 `!== false` 取开); applySvTailDrag
+  还原线插入块门控 `if (!restored && editorPrefs.svTailRestore)` — 摘除上一帧恢复线仍在门控之前
+  (开关中途关闭也能清干净); 目标计算 (svRestoreTargetAt/bpmRestoreTargetAt) 不变。
+  设置走 v386 菜单通道全链 (electronBridge 联合类型 / main.cjs 勾选状态+checkbox+三语标签
+  menu.sv_tail_restore / App.tsx 上报)。
+- 验证: verifier/v457 (源码断言: 开关默认开/菜单接线/门控位置); v443/v454/v455 断言适配后全绿,
+  v407 全绿; tsc + vite build 通过。

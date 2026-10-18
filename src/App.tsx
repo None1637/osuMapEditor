@@ -457,10 +457,10 @@ export default function App() {
     if (!api) return;
     let last = '';
     const report = () => {
-      const key = `${editorPrefs.dragAdjustNumbers}|${editorPrefs.moveDeadzone2px}|${editorPrefs.sliderHalfSnap}|${editorPrefs.svRedlineBoost}`; // v455: +svRedlineBoost
+      const key = `${editorPrefs.dragAdjustNumbers}|${editorPrefs.moveDeadzone2px}|${editorPrefs.sliderHalfSnap}|${editorPrefs.svRedlineBoost}|${editorPrefs.svTailRestore}`; // v455: +svRedlineBoost; v457: +svTailRestore
       if (key === last) return;
       last = key;
-      api.menuEditorPrefsState({ dragAdjustNumbers: editorPrefs.dragAdjustNumbers, moveDeadzone2px: editorPrefs.moveDeadzone2px, sliderHalfSnap: editorPrefs.sliderHalfSnap, svRedlineBoost: editorPrefs.svRedlineBoost });
+      api.menuEditorPrefsState({ dragAdjustNumbers: editorPrefs.dragAdjustNumbers, moveDeadzone2px: editorPrefs.moveDeadzone2px, sliderHalfSnap: editorPrefs.sliderHalfSnap, svRedlineBoost: editorPrefs.svRedlineBoost, svTailRestore: editorPrefs.svTailRestore });
     };
     report();
     return store.subscribe(report);

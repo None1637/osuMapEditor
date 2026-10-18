@@ -97,6 +97,7 @@ export interface ElectronEditorPrefsState {
   moveDeadzone2px: boolean;
   sliderHalfSnap: boolean; // v443
   svRedlineBoost: boolean; // v455
+  svTailRestore: boolean; // v457
 }
 
 /** v77: 渲染端 -> 主进程的菜单状态 (folderRel = Songs 内相对路径; 非服务器来源为 null) */
@@ -156,7 +157,7 @@ export type ElectronMenuCommand =
   | { type: 'compose-sym-slider' } // v236: 对称滑条 (恰好选中 1 个滑条时可用)
   | { type: 'compose-convert-b4' } // v387: B4 全图转贝塞尔 (stable 兼容)
   // ---- v386: 设置菜单 — editorPrefs 勾选开关 (翻转, 状态经 menuEditorPrefsState 回报主进程重建勾选) ----
-  | { type: 'settings-toggle-editor-pref'; key: 'dragAdjustNumbers' | 'moveDeadzone2px' | 'sliderHalfSnap' | 'svRedlineBoost' }; // v443: +sliderHalfSnap; v455: +svRedlineBoost
+  | { type: 'settings-toggle-editor-pref'; key: 'dragAdjustNumbers' | 'moveDeadzone2px' | 'sliderHalfSnap' | 'svRedlineBoost' | 'svTailRestore' }; // v443: +sliderHalfSnap; v455: +svRedlineBoost; v457: +svTailRestore
 
 /** v209: 渲染端 -> 主进程的编辑菜单置灰状态; v212: 扩 hasSlider/selMulti (作图菜单置灰用) */
 export interface ElectronEditMenuState {

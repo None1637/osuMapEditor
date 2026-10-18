@@ -111,11 +111,12 @@ function applySvTailDrag(bm: Beatmap, o: HitObject, tr: {
   // 恢复线: 先摘上一帧的 (遮挡查询之前 — 恢复线本身会被误判为遮挡), 需要时在后续滑条头重插。
   //   v454 绿线 (决策 svRestoreTargetAt, 遮挡含红绿); v455 红线 (决策 bpmRestoreTargetAt, 遮挡只看红);
   //   两个目标先算后插 — 同刻时红线插在前绿线在后 (sortTps 同刻红线优先, svPointAt 红重置→绿生效)
+  //   v457: editorPrefs.svTailRestore 关 = 不插任何还原线 (SV/BPM 改动自然泄漏, 用户自行打理)
   if (tr.restore) { const i = tps.indexOf(tr.restore); if (i >= 0) tps.splice(i, 1); tr.restore = null; }
   if (tr.restoreRed) { const i = tps.indexOf(tr.restoreRed); if (i >= 0) tps.splice(i, 1); tr.restoreRed = null; }
   const restoreAt = svRestoreTargetAt(tps, bm.hitObjects, o.time);
   const redRestoreAt = boost ? bpmRestoreTargetAt(tps, bm.hitObjects, o.time) : null;
-  if (!restored) {
+  if (!restored && editorPrefs.svTailRestore) {
     if (redRestoreAt !== null) {
       const cur = timingAt(tps, redRestoreAt);
       const r: TimingPoint = { time: redRestoreAt, beatLength: tr.redOld, meter: cur.red.meter, sampleSet: cur.red.sampleSet, sampleIndex: cur.red.sampleIndex, volume: cur.red.volume, uninherited: true, effects: 0 };

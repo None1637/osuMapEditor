@@ -16,6 +16,9 @@ export interface EditorPrefs {
   /** v455: Alt 拖时间轴滑条尾改 SV 超界 (sv>10 / sv<0.1) 时插红线扩程 — BPM×2^n 红线 +
       sv/2^n 绿线等效超界变速, 并在后续滑条头插还原红线 (v454 同目标); 关 = 钳制到 [0.1, 10] (v407 行为) */
   svRedlineBoost: boolean;
+  /** v457: Alt 拖滑条尾变速后在后续滑条头插还原线 (svOld 绿线, 扩程时含 redOld 红线; v454/v455)。
+      默认开; 关 = 不插还原线, SV/BPM 改动自然泄漏到后续物件 (用户自行打理) */
+  svTailRestore: boolean;
 }
 
 export type EditorPrefKey = keyof EditorPrefs;
@@ -29,6 +32,7 @@ function loadEditorPrefs(): EditorPrefs {
     sliderTailSnap: true,     // v406: 吸附为现状默认
     sliderHalfSnap: false,    // v443: ×2 精度默认关 (用户要求; 开 = 恢复 v218 行为)
     svRedlineBoost: false,    // v455: 超界红线扩程默认关 (开 = Alt 拖尾 SV 超界插 BPM×2^n 红线)
+    svTailRestore: true,      // v457: 还原线默认开 (关 = 不在后续滑条头插还原绿/红线)
   };
   try {
     const raw = localStorage.getItem(LS_KEY);
@@ -40,6 +44,7 @@ function loadEditorPrefs(): EditorPrefs {
       sliderTailSnap: p.sliderTailSnap !== false,
       sliderHalfSnap: p.sliderHalfSnap === true, // v443: 默认关 — 遗留持久化无此键时取 false
       svRedlineBoost: p.svRedlineBoost === true, // v455: 默认关 — 遗留持久化无此键时取 false
+      svTailRestore: p.svTailRestore !== false,  // v457: 默认开 — 遗留持久化无此键时取 true
     };
   } catch { return def; }
 }
