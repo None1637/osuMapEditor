@@ -345,18 +345,28 @@ function sceneContentBBox(bm: Beatmap, drawn: HitObject[], radius: number): { x0
   return { x0: x0 - pad, y0: y0 - pad, x1: x1 + pad, y1: y1 + pad };
 }
 
-// osu 包围盒 → 设备 px 矩形 (四角变换求外接, 裁剪到画布); 无交集返回 null
-function bboxToDevice(m: DOMMatrix, bb: { x0: number; y0: number; x1: number; y1: number }, cw: number, ch: number) {
-  let rx = Infinity, ry = Infinity, rx1 = -Infinity, ry1 = -Infinity;
+// osu 包围盒 → 设备 px 外接矩形 (四角变换, 浮点不裁剪; v451 拖拽层/装饰层覆盖核验用)
+function bboxToDeviceRaw(m: DOMMatrix, bb: { x0: number; y0: number; x1: number; y1: number }) {
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
   for (const [cx, cy] of [[bb.x0, bb.y0], [bb.x1, bb.y0], [bb.x0, bb.y1], [bb.x1, bb.y1]] as const) {
     const dx = m.a * cx + m.c * cy + m.e, dy = m.b * cx + m.d * cy + m.f;
-    if (dx < rx) rx = dx; if (dy < ry) ry = dy;
-    if (dx > rx1) rx1 = dx; if (dy > ry1) ry1 = dy;
+    if (dx < x0) x0 = dx; if (dy < y0) y0 = dy;
+    if (dx > x1) x1 = dx; if (dy > y1) y1 = dy;
   }
-  rx = Math.max(0, Math.floor(rx)); ry = Math.max(0, Math.floor(ry));
-  const rw = Math.min(cw, Math.ceil(rx1)) - rx, rh = Math.min(ch, Math.ceil(ry1)) - ry;
+  return { x0, y0, x1, y1 };
+}
+
+// osu 包围盒 → 设备 px 矩形 (裁剪到画布); 无交集返回 null
+function bboxToDevice(m: DOMMatrix, bb: { x0: number; y0: number; x1: number; y1: number }, cw: number, ch: number) {
+  const r = bboxToDeviceRaw(m, bb);
+  const rx = Math.max(0, Math.floor(r.x0)), ry = Math.max(0, Math.floor(r.y0));
+  const rw = Math.min(cw, Math.ceil(r.x1)) - rx, rh = Math.min(ch, Math.ceil(r.y1)) - ry;
   return rw > 0 && rh > 0 ? { rx, ry, rw, rh } : null;
 }
+
+// v451: 屏外揭示重建边距 (设备 px) — 平移拖拽层/选中装饰层的位图构建按可视需求外扩此边距;
+//   一次重建覆盖后续小段拖拽 (慢拖过边界不逐帧重建), 位图 ≤ 画布+2×边距 (尺寸有界)
+const REVEAL_MARGIN = 384;
 
 function drawStaticScene(rc: RenderCtx, visible: HitObject[], radius: number, preempt: number, excl?: Set<number>,
   tr?: { ids: Set<number>; dx: number; dy: number }) {
@@ -423,38 +433,66 @@ function drawStaticScene(rc: RenderCtx, visible: HitObject[], radius: number, pr
 
 // v341: 平移拖拽层 — 内容 = 被拖物件 + 两端都被拖的 follow point, 构建于拖拽首帧 (记录构建时位移 bx/by),
 //   键跟随基层 (排除集签名含拖拽 id 集); 拖拽期间每帧 1 次 drawImage (偏移 = 仿射变换后的位移差)
+// v451: 覆盖核验 — 位图原按画布裁剪构建 (bboxToDevice), 拖拽起点部分在屏外的物件其屏外部分从未画进位图,
+//   拖入视野时 blit 出的是残缺位图 → 屏边笔直硬切口, 拖回也不补 (位图内容永久缺失)。
+//   现每帧核验: 当前位移下内容设备包围盒 ∩ 画布 (need, 物件坐标拖拽中已含当前位移, 无需再加偏移)
+//   必须落在已绘区域 (层矩形 + 位移差) 内, 否则按 need 外扩 REVEAL_MARGIN 重建 — 一次重建覆盖后续
+//   小段拖拽 (慢拖过边界不逐帧重建), 位图 ≤ 画布+2×边距 (尺寸有界, 不回到 v301 前的无界分配)
 let dragLayer: { key: string; c: HTMLCanvasElement; x: number; y: number; bx: number; by: number; empty: boolean } | null = null;
 function drawDragLayer(rc: RenderCtx, visible: HitObject[], radius: number, preempt: number,
   tr: { ids: Set<number>; dx: number; dy: number }, baseKey: string) {
   const { g, bm } = rc;
   const m = g.getTransform();
   const key = baseKey + '|drag';
-  if (!dragLayer || dragLayer.key !== key) {
-    const drawn = visible.filter(o => tr.ids.has(o.id));
-    const dev = bboxToDevice(m, sceneContentBBox(bm, drawn, radius), g.canvas.width, g.canvas.height);
+  const drawn = visible.filter(o => tr.ids.has(o.id));
+  const cw = g.canvas.width, ch = g.canvas.height;
+  // v451: 当前位移下的可视需求 (设备 px, 内容包围盒 ∩ 画布); 空 = 被拖内容完全在屏外
+  const raw = drawn.length ? bboxToDeviceRaw(m, sceneContentBBox(bm, drawn, radius)) : null;
+  const need = raw
+    ? { x0: Math.max(0, raw.x0), y0: Math.max(0, raw.y0), x1: Math.min(cw, raw.x1), y1: Math.min(ch, raw.y1) }
+    : null;
+  const needEmpty = !need || need.x1 <= need.x0 || need.y1 <= need.y0;
+  const build = () => {
+    // 层原点/尺寸 = need 外扩边距 (可越出画布 — 层不再按画布裁剪, 只按需求有界); 无需求时 1×1 空层占位
+    const dev = needEmpty
+      ? { rx: 0, ry: 0, rw: 1, rh: 1 }
+      : {
+          rx: Math.floor(need!.x0) - REVEAL_MARGIN, ry: Math.floor(need!.y0) - REVEAL_MARGIN,
+          rw: Math.ceil(need!.x1) - Math.floor(need!.x0) + REVEAL_MARGIN * 2,
+          rh: Math.ceil(need!.y1) - Math.floor(need!.y0) + REVEAL_MARGIN * 2,
+        };
     if (!dragLayer) dragLayer = { key, c: document.createElement('canvas'), x: 0, y: 0, bx: 0, by: 0, empty: true };
     dragLayer.key = key;
-    dragLayer.x = dev?.rx ?? 0; dragLayer.y = dev?.ry ?? 0;
+    dragLayer.x = dev.rx; dragLayer.y = dev.ry;
     dragLayer.bx = tr.dx; dragLayer.by = tr.dy; // 构建时位移 (物件已按此位移就位)
-    dragLayer.empty = !dev || !drawn.length;
+    dragLayer.empty = needEmpty;
     const c = dragLayer.c;
-    const rw = dev?.rw ?? 1, rh = dev?.rh ?? 1;
-    if (c.width !== Math.max(1, rw) || c.height !== Math.max(1, rh)) { c.width = Math.max(1, rw); c.height = Math.max(1, rh); }
-    if (!dragLayer.empty && dev) {
+    if (c.width !== dev.rw || c.height !== dev.rh) { c.width = dev.rw; c.height = dev.rh; }
+    if (!dragLayer.empty) {
       const lg = c.getContext('2d')!;
       lg.setTransform(1, 0, 0, 1, 0, 0);
       lg.clearRect(0, 0, c.width, c.height);
       lg.setTransform(m.a, m.b, m.c, m.d, m.e - dev.rx, m.f - dev.ry);
       drawSceneObjects({ ...rc, g: lg }, visible, radius, preempt, undefined, tr.ids, 'both');
     }
+  };
+  if (!dragLayer || dragLayer.key !== key) build();
+  else if (!needEmpty) {
+    // v451: 覆盖核验 — need 越出已绘区域 (层矩形 + 当前位移差) 即按当前位移重建
+    const ox = m.a * (tr.dx - dragLayer.bx) + m.c * (tr.dy - dragLayer.by);
+    const oy = m.b * (tr.dx - dragLayer.bx) + m.d * (tr.dy - dragLayer.by);
+    if (dragLayer.empty
+      || need!.x0 < dragLayer.x + ox || need!.y0 < dragLayer.y + oy
+      || need!.x1 > dragLayer.x + ox + dragLayer.c.width || need!.y1 > dragLayer.y + oy + dragLayer.c.height) build();
   }
-  if (dragLayer.empty) return;
+  const dl = dragLayer; // build() 闭包内赋值令模块级引用无法收窄, 局部别名兜底
+  if (!dl || dl.empty) return;
   // osu 位移差 → 设备 px 偏移 (走完整仿射, 平移层只含 scale+translate 时等价 m.a*dx / m.d*dy)
-  const ox = m.a * (tr.dx - dragLayer.bx) + m.c * (tr.dy - dragLayer.by);
-  const oy = m.b * (tr.dx - dragLayer.bx) + m.d * (tr.dy - dragLayer.by);
+  const ox = m.a * (tr.dx - dl.bx) + m.c * (tr.dy - dl.by);
+  const oy = m.b * (tr.dx - dl.bx) + m.d * (tr.dy - dl.by);
   g.save();
   g.setTransform(1, 0, 0, 1, 0, 0);
-  g.drawImage(dragLayer.c, dragLayer.x + ox, dragLayer.y + oy);
+  g.drawImage(dl.c, dl.x + ox, dl.y + oy);
   g.restore();
 }
 
@@ -464,6 +502,24 @@ function drawDragLayer(rc: RenderCtx, visible: HitObject[], radius: number, pree
 let selLayer: { key: string; c: HTMLCanvasElement; x: number; y: number; bx: number; by: number; empty: boolean } | null = null;
 const skinIds = new WeakMap<Skin, number>(); // 皮肤对象 → 序号 (hitcircleselect 等贴图随皮肤整体更换)
 let skinSeq = 0;
+
+// v246/v302: 选中装饰内容包围盒 (osu px) — 物件位置/滑条路径点 ± (2r+16) (描边环/头尾选框/控制点柄/堆叠偏移均在内);
+//   锚点 (贝塞尔控制点) 可远在采样路径包围盒之外, 并入控制点 (v302 F02); v451 抽出共用 (建层 + 拖拽覆盖核验)
+function selectionContentBBox(rc: RenderCtx, radius: number): { x0: number; y0: number; x1: number; y1: number } {
+  const pad = radius * 2 + 16;
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (const o of rc.bm.hitObjects) {
+    if (!rc.selected.has(o.id)) continue;
+    const pts = o.type === 'slider'
+      ? [...getSliderPath(rc.bm, o).points, o, ...(o.curvePoints ?? [])]
+      : [{ x: o.x, y: o.y }];
+    for (const p of pts) {
+      if (p.x < x0) x0 = p.x; if (p.y < y0) y0 = p.y;
+      if (p.x > x1) x1 = p.x; if (p.y > y1) y1 = p.y;
+    }
+  }
+  return { x0: x0 - pad, y0: y0 - pad, x1: x1 + pad, y1: y1 + pad };
+}
 
 function drawSelectionLayer(rc: RenderCtx, radius: number) {
   const { g, bm } = rc;
@@ -477,56 +533,66 @@ function drawSelectionLayer(rc: RenderCtx, radius: number) {
   const key = [rc.selTranslate?.key ?? rc.cacheKey ?? '', rc.selected.size, sig, g.canvas.width, g.canvas.height,
     m.a.toFixed(4), m.b.toFixed(4), m.c.toFixed(4), m.d.toFixed(4), m.e.toFixed(2), m.f.toFixed(2),
     displaySettings.selectionStyle, displaySettings.sliderPointStyle, sid].join('|');
-  if (!selLayer || selLayer.key !== key) {
-    // v246: 内容包围盒 (osu px) — 物件位置/滑条路径点 ± (2r+16) (描边环/头尾选框/控制点柄/堆叠偏移均在内)
-    // v302: F02 — 滑条锚点 (贝塞尔控制点) 可远在采样路径包围盒之外 (控制点牵拉曲线但曲线不到达),
-    //   只按路径点建层会把锚点/连线裁掉 (hover 预览画在主画布不裁, 选中态画在层上被裁); 包围盒并入控制点
-    const pad = radius * 2 + 16;
-    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
-    for (const o of bm.hitObjects) {
-      if (!rc.selected.has(o.id)) continue;
-      const pts = o.type === 'slider'
-        ? [...getSliderPath(bm, o).points, o, ...(o.curvePoints ?? [])]
-        : [{ x: o.x, y: o.y }];
-      for (const p of pts) {
-        if (p.x < x0) x0 = p.x; if (p.y < y0) y0 = p.y;
-        if (p.x > x1) x1 = p.x; if (p.y > y1) y1 = p.y;
-      }
-    }
-    x0 -= pad; y0 -= pad; x1 += pad; y1 += pad;
-    // osu 包围盒四角 → 设备 px (m 一般无旋转, 仍按四角变换求外接矩形), 再裁剪到画布
+  // v451: 可视需求 (设备 px, 内容包围盒 ∩ 画布) 懒算 — 仅建层/拖拽核验时遍历路径点, 层命中且非拖拽零开销;
+  //   物件坐标拖拽中已含当前位移, need 随位移实时滑动
+  let needCache: { x0: number; y0: number; x1: number; y1: number } | null | undefined;
+  const needRect = () => {
+    if (needCache !== undefined) return needCache;
+    const raw = bboxToDeviceRaw(m, selectionContentBBox(rc, radius));
+    if (!isFinite(raw.x0)) return (needCache = null);
     const cw = g.canvas.width, ch = g.canvas.height;
-    let rx = Infinity, ry = Infinity, rx1 = -Infinity, ry1 = -Infinity;
-    for (const [cx, cy] of [[x0, y0], [x1, y0], [x0, y1], [x1, y1]] as const) {
-      const dx = m.a * cx + m.c * cy + m.e, dy = m.b * cx + m.d * cy + m.f;
-      if (dx < rx) rx = dx; if (dy < ry) ry = dy;
-      if (dx > rx1) rx1 = dx; if (dy > ry1) ry1 = dy;
-    }
-    rx = Math.max(0, Math.floor(rx)); ry = Math.max(0, Math.floor(ry));
-    const rw = Math.min(cw, Math.ceil(rx1)) - rx, rh = Math.min(ch, Math.ceil(ry1)) - ry;
+    const need = { x0: Math.max(0, raw.x0), y0: Math.max(0, raw.y0), x1: Math.min(cw, raw.x1), y1: Math.min(ch, raw.y1) };
+    return (needCache = need.x1 > need.x0 && need.y1 > need.y0 ? need : null);
+  };
+  // margin=0 = v246 画布紧裁剪 (非拖拽, blit 带宽); 拖拽中 (selTranslate) 外扩 REVEAL_MARGIN —
+  //   位图原按画布裁剪, 屏外选区的装饰从未画进位图, 拖入视野露笔直切口 (与 dragLayer 同根因)
+  const devFor = (margin: number) => {
+    const need = needRect();
+    if (!need) return null;
+    return {
+      rx: Math.floor(need.x0) - margin, ry: Math.floor(need.y0) - margin,
+      rw: Math.ceil(need.x1) - Math.floor(need.x0) + margin * 2,
+      rh: Math.ceil(need.y1) - Math.floor(need.y0) + margin * 2,
+    };
+  };
+  const build = (dev: { rx: number; ry: number; rw: number; rh: number } | null) => {
     if (!selLayer) selLayer = { key, c: document.createElement('canvas'), x: 0, y: 0, bx: 0, by: 0, empty: true };
     selLayer.key = key;
-    selLayer.x = rx; selLayer.y = ry;
+    selLayer.x = dev?.rx ?? 0; selLayer.y = dev?.ry ?? 0;
     selLayer.bx = rc.selTranslate?.dx ?? 0; selLayer.by = rc.selTranslate?.dy ?? 0; // v341: 构建时位移 (装饰已按此位移就位)
-    selLayer.empty = rw <= 0 || rh <= 0; // 选区完全在画布外 (v223 平移/缩放得再远也不重建不贴图)
+    selLayer.empty = !dev; // 选区完全在画布外 (v223 平移/缩放得再远也不重建不贴图)
     const c = selLayer.c;
-    if (c.width !== Math.max(1, rw) || c.height !== Math.max(1, rh)) { c.width = Math.max(1, rw); c.height = Math.max(1, rh); }
-    if (!selLayer.empty) {
+    const rw = dev?.rw ?? 1, rh = dev?.rh ?? 1;
+    if (c.width !== rw || c.height !== rh) { c.width = rw; c.height = rh; }
+    if (dev) {
       const lg = c.getContext('2d')!;
       lg.setTransform(1, 0, 0, 1, 0, 0);
       lg.clearRect(0, 0, c.width, c.height);
-      lg.setTransform(m.a, m.b, m.c, m.d, m.e - rx, m.f - ry); // 与主画布同一变换 (平移减掉层原点), 装饰按 osu 坐标画进层
+      lg.setTransform(m.a, m.b, m.c, m.d, m.e - dev.rx, m.f - dev.ry); // 与主画布同一变换 (平移减掉层原点), 装饰按 osu 坐标画进层
       const lrc: RenderCtx = { ...rc, g: lg };
       for (const o of bm.hitObjects) if (rc.selected.has(o.id)) drawSelectionDecor(lrc, o, radius);
     }
+  };
+  if (!selLayer || selLayer.key !== key) build(devFor(rc.selTranslate ? REVEAL_MARGIN : 0));
+  else if (rc.selTranslate) {
+    // v451: 覆盖核验 — need 越出已绘区域 (层矩形 + 当前位移差) 即按当前位移重建 (一次覆盖后续小段拖拽)
+    const need = needRect();
+    if (need) {
+      const tdx = rc.selTranslate.dx - selLayer.bx, tdy = rc.selTranslate.dy - selLayer.by;
+      const ox = m.a * tdx + m.c * tdy, oy = m.b * tdx + m.d * tdy;
+      if (selLayer.empty
+        || need.x0 < selLayer.x + ox || need.y0 < selLayer.y + oy
+        || need.x1 > selLayer.x + ox + selLayer.c.width || need.y1 > selLayer.y + oy + selLayer.c.height) build(devFor(REVEAL_MARGIN));
+    }
   }
-  if (selLayer.empty) return;
+  const sl = selLayer; // build() 闭包内赋值令模块级引用无法收窄, 局部别名兜底
+  if (!sl || sl.empty) return;
   // v341: osu 位移差 → 设备 px 偏移 (同 dragLayer); 非拖拽态 bx/by=0 偏移为 0
-  const tdx = (rc.selTranslate?.dx ?? 0) - selLayer.bx, tdy = (rc.selTranslate?.dy ?? 0) - selLayer.by;
+  const tdx = (rc.selTranslate?.dx ?? 0) - sl.bx, tdy = (rc.selTranslate?.dy ?? 0) - sl.by;
   const ox = m.a * tdx + m.c * tdy, oy = m.b * tdx + m.d * tdy;
   g.save();
   g.setTransform(1, 0, 0, 1, 0, 0);
-  g.drawImage(selLayer.c, selLayer.x + ox, selLayer.y + oy);
+  g.drawImage(sl.c, sl.x + ox, sl.y + oy);
   g.restore();
 }
 

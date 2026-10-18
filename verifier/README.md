@@ -4944,3 +4944,32 @@
   tsc + vite build 通过; 按惯例未跑大批量回归。
 - 备注: 缓存命中时 loadDifficulty 仍会 fetch 音频字节 (3MB localhost ≈ 毫秒级) 才拿到 File 算
   audioKey — 解码才是大头, 不在本版范围; 如需再优化可加 HEAD/mtime 探测端点。
+
+## v451 — 屏外物件拖入屏内笔直硬切口 (拖拽层/选中装饰层建层时画布裁剪)
+- 起因: 用户报告 — 把屏外物件拖入屏内时屏外部分被笔直硬切口截断, 拖回不补。
+- 根因: v341 平移拖拽层 drawDragLayer 与选中装饰层 drawSelectionLayer (selTranslate
+  路径) 的离屏位图构建时用 bboxToDevice 裁剪到画布 — 拖拽起点部分在屏外的物件,
+  其屏外部分从未画进位图; 拖拽中按位移差 blit 这块残缺位图 → 屏外部分永远缺失,
+  切口 = 构建时画布边 (笔直), 拖回屏内也不补 (层键在 selTranslate 下稳定, 不触发重建)。
+- 修复 (src/osu/renderer.ts, 均带 v451 注释):
+  1) bboxToDeviceRaw (不裁剪浮点设备矩形) 抽出, bboxToDevice 改为其裁剪版;
+  2) drawDragLayer 重写: 每帧覆盖核验 — 当前位移下内容设备包围盒 ∩ 画布 = need
+     (物件坐标拖拽中已含位移, need 随位移实时滑动), 越出已绘区域 (层矩形+位移差)
+     即按 need 外扩 REVEAL_MARGIN(384) 重建 (不裁剪画布, 位图 ≤ 画布+2×边距有界);
+     blit 逻辑不变;
+  3) drawSelectionLayer: 抽出 selectionContentBBox (保留 v302 控制点并入),
+     needRect() 懒算 (层命中且非拖拽零开销), 仅 rc.selTranslate 时边距建层+覆盖核验,
+     非拖拽保持 v246 画布紧裁剪 (不破带宽优化)。
+- 验证: verifier/v451 (静态 5 项 + CDP 全绿) — 页内生成候选滑条段清单 (直线 L 段,
+  段中点离锚点 ≥22 osu 避开 v438 节点拖拽, 头/段中点指定半径无邻居), 抓段中点上推至
+  头出画布顶 → 松手 → 清选再抓同段拖回原位, 中途 (头已回屏内, 鼠标未松) 头部 160px
+  crop 存像素快照, 松手后同位置逐像素 diff (任一通道差>40 记 changed):
+  修复前 diffRatio=59.82% (brightDuring=4221 vs brightAfter=19271 — 整个头球没画进位图,
+  松手后才补上), 修复后 diffRatio=0.00% (19282≈19271, dCenter=0px)。
+  (旧 brightAt 21×21 亮像素断言曾跑出修复前假绿 — 采样框骑切口边界+头球中心深色,
+  已弃用改 crop diff 度量。) tsc + vite build 通过; probe.mjs 为一次性截图诊断, 截图已清理。
+- 回归: v340/v302 全绿; v245/v246 三条静态断言适配新代码形态 (功能保留仅更名/重构:
+  drawImage 局部别名 sl、empty=!dev (need 空即空层)、层原点 dev.rx/dev.ry),
+  适配后 V245_ALL_PASSED + V246_ALL_PASSED; v341 全选拖动 renderPlayfield 阈值
+  (render<4ms) 修复前基线同红 (4.32ms vs 修复后 4.19/4.96ms, 统计无差) — 本机环境
+  阈值紧的历史滞后, 非本版引起, 断言未动。

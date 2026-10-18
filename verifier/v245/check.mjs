@@ -29,7 +29,7 @@ section('renderer.ts: 选中装饰离屏层 + followPoint 缓存');
     && /m\.a\.toFixed\(4\)/.test(src), '键 = 数据版本+选区+变换+样式');
   assert(/for \(const o of bm\.hitObjects\) if \(rc\.selected\.has\(o\.id\)\) drawSelectionDecor\(lrc, o, radius\);/.test(src),
     '层构建覆盖全部选中物件 (v40 语义)');
-  assert(/g\.drawImage\(selLayer\.c, selLayer\.x \+ ox, selLayer\.y \+ oy\);/.test(src), '整层一次 drawImage 贴回 (v246: 带层原点偏移; v341: +拖拽位移差 blit)');
+  assert(/g\.drawImage\(sl\.c, sl\.x \+ ox, sl\.y \+ oy\);/.test(src), '整层一次 drawImage 贴回 (v246: 带层原点偏移; v341: +拖拽位移差 blit; v451: 局部别名 sl)');
   assert(!/if \(rc\.selected\.has\(o\.id\)\) drawSelectionDecor\(rc, o, radius\);/.test(src), '物件循环内逐物件装饰已移除');
   assert(/function followPointPairsMemo\(rc: RenderCtx\)/.test(src) && /fpPairsCache = new WeakMap/.test(src), 'followPointPairs 按谱面+键缓存');
   assert(/cacheKey\?: string;/.test(src), 'RenderCtx.cacheKey 字段');
