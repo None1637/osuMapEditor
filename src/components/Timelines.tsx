@@ -233,6 +233,9 @@ const alphaOf = (hex: string, a: number) => {  const [r, g, b] = hexRgb(hex);
 };
 
 // v83: 时间轴物件绘制 (真实物件与放置预览幻影共用): 连体条 + 尾圆 + 折返点 + 头圆 (+combo 数字)
+// v465: part 两段式 — 'body' 只画连体条/尾圆/折返点 (+尾侧节点装饰), 'head' 只画头圆/note (+数字/头侧色点);
+//   物件行先全部 body 再全部 head, 滑条尾不再完全遮住 note (用户反馈; stable 层级 = 圆压条);
+//   缺省 'all' = 旧行为 (放置幻影等单件绘制不变)
 interface TimelineObjectStyle {
   fill: string | null;                 // 头/尾圆填充 (null = 不填充, 幻影)
   barFill: string | null;              // 连体条填充 (null = 不画条)
@@ -244,12 +247,14 @@ interface TimelineObjectStyle {
   dur: boolean;                        // 是否画连体条/尾圆/折返点
   edgeSel?: (k: number) => boolean;    // v213: 节点选中 (k=1..slides 折返点/尾圆加黄环; 头沿用整条选中态)
   edgeSounds?: number[];               // v213: 各节点音效位 (k=0..slides; 节点圆内侧顶部画色点)
+  part?: 'all' | 'body' | 'head';      // v465: 两段式 (缺省 all)
 }
 // v213: hitsound 位 → 色点 (Whistle 绿 / Finish 红 / Clap 蓝, stable 时间轴配色)
 const HS_DOTS: [number, string][] = [[2, '#4ddb64'], [4, '#ff5544'], [8, '#55aaff']];
 function drawTimelineObject(g: CanvasRenderingContext2D, sx: number, ex: number, cy: number, rad: number, st: TimelineObjectStyle) {
+  const part = st.part ?? 'all'; // v465
   if (st.dashed) g.setLineDash([6, 4]);
-  if (st.dur) {
+  if (part !== 'head' && st.dur) {
     // 连体条: 矩形 (两端被头/尾圆覆盖, 圆角胶囊会在尾圆接缝处缺角)
     if (st.barFill) { g.fillStyle = st.barFill; g.fillRect(sx, cy - rad, ex - sx, rad * 2); }
     g.strokeStyle = st.barStroke; g.lineWidth = st.barWidth;
@@ -283,24 +288,29 @@ function drawTimelineObject(g: CanvasRenderingContext2D, sx: number, ex: number,
       }
     }
   }
-  // 头圆
-  if (st.fill) { g.fillStyle = st.fill; g.beginPath(); g.arc(sx, cy, rad, 0, Math.PI * 2); g.fill(); }
-  g.strokeStyle = st.headStroke; g.lineWidth = st.headWidth;
-  g.beginPath(); g.arc(sx, cy, rad, 0, Math.PI * 2); g.stroke();
-  if (st.dashed) g.setLineDash([]);
-  if (st.number) {
-    g.save();
-    g.font = `bold ${rad * 0.85}px sans-serif`;
-    g.fillStyle = '#ffffff';
-    fillTextCached(g, st.number, sx, cy + 1); // v246: 位图缓存 (原 fillText + textAlign/Baseline 切换)
-    g.restore();
-  }
+  // 头圆 (v465: head 段 — 全部身体之后画, 压尾圆)
+  if (part !== 'body') {
+    if (st.fill) { g.fillStyle = st.fill; g.beginPath(); g.arc(sx, cy, rad, 0, Math.PI * 2); g.fill(); }
+    g.strokeStyle = st.headStroke; g.lineWidth = st.headWidth;
+    g.beginPath(); g.arc(sx, cy, rad, 0, Math.PI * 2); g.stroke();
+    if (st.dashed) g.setLineDash([]);
+    if (st.number) {
+      g.save();
+      g.font = `bold ${rad * 0.85}px sans-serif`;
+      g.fillStyle = '#ffffff';
+      fillTextCached(g, st.number, sx, cy + 1); // v246: 位图缓存 (原 fillText + textAlign/Baseline 切换)
+      g.restore();
+    }
+  } else if (st.dashed) g.setLineDash([]);
   // v213: 节点音效色点 (圆内侧顶部一排, 避开下方 sample 药丸; 位为 0 不画)
+  // v465: k=0 色点跟头圆 (head 段), k>=1 跟尾/折返圆 (body 段)
   if (st.edgeSounds) {
     const n = st.dur ? (st.slides ?? 1) : 0;
     for (let k = 0; k < st.edgeSounds.length; k++) {
       const bits = st.edgeSounds[k];
       if (!bits) continue;
+      if (part === 'body' && k === 0) continue;
+      if (part === 'head' && k > 0) continue;
       const nx = k === 0 ? sx : k >= n ? ex : sx + (ex - sx) * k / n;
       const on = HS_DOTS.filter(([b]) => bits & b);
       on.forEach(([, col], di) => {
@@ -614,6 +624,9 @@ export function TopTimeline() {
         //       1ms 偏移的叠放 (Aspire) 中早物件不再被晚物件的头圆完全盖住; 同刻组内稳定排序保持文件顺序
         // v197: drawList 本就按时间升序 (parser/store 全程维护), 倒序遍历即可 — 不再每帧 [...all].sort
         //       (4299 物件每帧 nlogn 排序 + 数组分配是实测热点); 倒序迭代 + 窗口早退等价于原 filter+sort
+        // v465: 两段式 — 先全部身体 (连体条/尾圆/折返点), 再全部头圆/note (stable 层级 = 圆压条;
+        //       修复滑条尾圆完全遮住同刻 note 的用户反馈); 两段各自保持倒序, 头/尾相互关系不变
+        for (const part of ['body', 'head'] as const) {
         for (let oi = drawList.length - 1; oi >= 0; oi--) {
           const o = drawList[oi];
           if (o.time > t0 + win) continue; // 更晚的还在窗口外 (倒序头部)
@@ -624,8 +637,8 @@ export function TopTimeline() {
           const si = stacks.get(o.id) ?? { level: 0, count: 1 };
           const lay = stackLayout(si.count, OBJ_H, RAD);
           // v53: 粉药丸 (lazer SamplePointPiece): bank 字母 + 音量, 挂在头圆下方
-          // v381: 显示设置关闭时不收集 (下游排布/绘制整段跳过)
-          if (displaySettings.timelineSvSample) {
+          // v381: 显示设置关闭时不收集 (下游排布/绘制整段跳过); v465: 只随 body 段收集一次
+          if (part === 'body' && displaySettings.timelineSvSample) {
             const sp = samplePill(bm, o);
             samplePills.push({ x: sx, text: sp.text, alt: sp.alt });
           }
@@ -650,7 +663,9 @@ export function TopTimeline() {
             // v213: 节点选中黄环 + 节点音效色点
             edgeSel: edgeSel?.size ? (k) => edgeSel.has(k) : undefined,
             edgeSounds: o.type === 'slider' ? parseEdgeSounds(o) : [o.hitSound ?? 0],
+            part, // v465
           });
+        }
         }
         g.textAlign = 'start';
         g.textBaseline = 'alphabetic';

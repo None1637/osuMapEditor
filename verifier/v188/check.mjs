@@ -34,7 +34,7 @@ section('timelineHit.ts: 同刻 = 精确相等 (v189 撤销 v188 的 ±2ms)');
 section('Timelines.tsx: 转盘放置幻影预览');
 {
   const src = readSrc('src/components/Timelines.tsx');
-  assert(/import \{ pendingSliderTimeline, spinnerPlacementEnd \} from '@\/osu\/sliderPath'/.test(src), '导入 spinnerPlacementEnd');
+  assert(/import \{ pendingSliderTimeline, spinnerPlacementEnd[^}]*\} from '@\/osu\/sliderPath'/.test(src), '导入 spinnerPlacementEnd');
   assert(/store\.tool === 'spinner' && store\.pendingSpinner !== null/.test(src), '转盘放置中才画幻影');
   assert(/spinnerPlacementEnd\(bm\.timingPoints, sStart, t, store\.beatSnap\)/.test(src), '终点 = 放置落盘规则 (与 finishSpinner 一致)');
   const spinBlock = src.match(/store\.tool === 'spinner'[\s\S]{0,600}?drawTimelineObject\(g, ssx, sex, cy, RAD, \{[\s\S]{0,300}?dashed: true, dur: true/);

@@ -5173,3 +5173,18 @@
 - 验证: verifier/v464 (纯函数: S 曲线/红锚点硬拐角/直线保真 < 2px 且尖角不圆化、端点贴合、
   退化 null、onlyIds 与字段不变; 源码接线断言; CDP: Inspector 按钮文案/点击转换/id 不变/
   toast/撤销还原/全图只动 'B'/空态提示); v387/v388/v425/v66/v236 回归; tsc + vite build 通过。
+
+## v465 — 修复: 上方物件时间轴滑条尾圆完全遮住 note (两段式绘制)
+- 用户反馈: 「上方物件時間軸的滑條尾不該完全遮住note」(滑条头时间早于同刻/近刻 note,
+  旧原子绘制 + 倒序遍历 = 滑条整体后画, 尾圆把 note 头圆完全盖住)。
+- 方案: TopTimeline 物件行改两段式 (Timelines.tsx) — TimelineObjectStyle 加
+  `part?: 'all' | 'body' | 'head'` (缺省 all = 旧行为, 幻影两处调用不传); 主循环包成
+  body/head 两段: 先画全部物件的身体 (连体条/尾圆/折返点/reversearrow), 再画全部
+  头圆/note (stable 层级 = 圆压条)。两段各自保持倒序, v189 头圆相互压盖语义不变。
+  节点音效色点拆分: k=0 跟头圆段, k>=1 跟尾/折返圆; sample 药丸只随 body 段收集一次。
+  尾节点选中黄环/色点在 body 段会被 note 头圆盖住 — 符合「note 优先」语义, 有意为之。
+  已否决替代方案: 缩小尾圆半径 (note 中心仍被遮)。
+- 验证: verifier/v465 (源码断言 + CDP 像素: 几何锚定三探针 tailOnly/noteOnly/overlap,
+  重叠透镜区 4/4 点 = note 头圆填充色而非尾圆色; 不靠 combo 色名, 皮肤/设置可改配色)。
+  适配: v188 (v463 加的 sliderLengthSnapDivisor 让导入行针串过时)。
+  回归: v142/v205/v213/v53/v189/v162/v463/v197 全绿。tsc + vite build 通过。
