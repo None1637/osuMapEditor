@@ -5265,3 +5265,20 @@
   pushEntry), v290 (v444 audioKey 既有失配, 断言改前缀), v245 (v462 cacheKey 冻结键既有失配)。
   回归: v469/v232/v245/v305/v308/v310/v311/v314/v340/v259/v290/v297/v299/v323 全绿。
   tsc + vite build 通过。
+
+## v471 — 修复: stable 选中时蓝色滑条边框高亮覆盖 hitcircleselect 辉光
+- 需求: 用户皮肤 (a(No hitsound), hitcircleselect.png 为 256px 半透明粉白辉光环) 选中滑条时
+  辉光被蓝色滑条边框高亮切断成两截; stable 实机头/尾保持原白边、辉光完整压上层。
+  用户明确否定尺寸原因 (v470 改尺寸系误判, 已 revert)。
+- 根因 (真实皮肤 CDP 探针实证): v305 的 stable 滑条选中蓝色高亮描边 (cover 模式, 不透明
+  蓝带 0.81..0.925r + 外缘辉光) 包住了头/尾圈区域; z-order 与尺寸本就正确, 问题纯粹是
+  蓝带不该包头尾 — 半透明辉光 (固有宽度公式 4r 绘制, 带落在 0.88~1.24r) 与蓝带交叠被盖。
+- 修复: renderer.ts sliderOutlineSprite 新增第 8 参 excludeCaps=false (缓存键追加标志位);
+  cover 分支在镂空 trace 之后以 destination-out 在滑条头/尾各挖一个 r+12/q 半径的孔
+  (12/q 余量覆盖蓝带外缘+辉光), 挖完恢复原合成模式。调用处 (drawSelectionDecor) 仅
+  stable 模式传 true, lazer 模式行为不变。
+- 验证: verifier/v471 — 源码断言 (参数/缓存键/挖孔顺序/调用处) + CDP (页面内 canvas 生成
+  256px 半透明粉环 mock 皮肤经 applySkinFromDir 应用, 直线滑条三处采样: 头部 0.9r 处
+  r-b=26 辉光完整 (修复前蓝带 r-b≈-152), 身体中段 0.8675r 处 b-r=152 蓝带保留, 尾部同头部)。
+  探针 probe.mjs 与截图已清理。回归: v305/v308/v310/v311/v314/v232/v469/v245/v340/v246/v342
+  全绿。tsc + vite build 通过。
