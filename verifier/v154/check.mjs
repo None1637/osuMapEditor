@@ -46,7 +46,7 @@ section('EditorCanvas.tsx: hitTest 收集全部命中 + 时间最近挑选');
   assert(/<= r\) \{ hits\.push\(o\); break; \}/.test(blk), '滑条命中几何不变 (r, 命中即收)');
   assert(/<= 170\) hits\.push\(o\)/.test(blk), '转盘命中几何不变 (170)');
   assert(/<= r \* 1\.1\) hits\.push\(o\)/.test(blk), '单点命中几何不变 (r*1.1)');
-  assert(/isVisibleAt\(bm, o, store\.currentTime\)/.test(blk), '可见性过滤保留 (可见即可选)');
+  assert(/objectSelectableAt\(bm, o, store\.currentTime\)/.test(blk), '可见性过滤保留 (v467: 走 objectSelectableAt, 滑条按滑条身窗口)');
 }
 
 if (failures) { console.error(`\nV154_FAILED: ${failures} 处失败`); process.exit(1); }

@@ -5213,3 +5213,21 @@
   无红线不前移)。适配: v455 (落点断言移交 v466, tests 删 bpmRestoreTargetAt 段)、v457 (还原红线
   改名针串 + 语义注释)、v407 (导入行针串)。回归: v455/v457/v407/v463/v454/v443/v35/v142/v320/v465
   全绿。tsc + vite build 通过。
+
+## v467 — 修复+改进: 暂留模式滑条 end+240ms 后不可选; 测试游玩默认开打击动画
+- 需求 1: 关「note 打击动画」(暂留模式) 时滑条在结束 240ms (HIT_FADE) 后就无法选中 —
+  滑条比较大容易误选。此前 hitTest/框选走 isVisibleAt, 暂留模式 (点击特效开+打击动画关)
+  下为头/尾圈渲染残留放到 end+HIT_LINGER(800ms), 滑条身 240ms 已消失却仍能点中/框中。
+- 修复: EditorCanvas 新增模块级 objectSelectableAt(bm, o, time) — 滑条恒按滑条身窗口
+  [time-preempt, end+HIT_FADE] (sliderAnchorInteractiveAt 同款, 与 v402 锚点交互窗一致),
+  单点/转盘仍 isVisibleAt。单击 hitTest 候选与框选两处 (keepHidden + objectsInRect 候选)
+  全部改走之; v273/v277 已选中物件例外保留。打击动画开时 isVisibleAt 滑条窗本来就是
+  end+240, 故仅暂留模式行为变化, 无需判断开关。
+- 需求 2: 测试游玩默认开启 note 打击动画。TestPlayOverlay 挂载时记原值并强制
+  displaySettings.hitAnimation = true, 退出恢复原值; 直接改可变单例 (渲染每帧读),
+  不走 setDisplayFlag 不持久化。displaySettings 挂 window.__osuDisplaySettings
+  (typeof window 守卫, v402 等 node bundle 无 window; __osuStore/__osuSkin 同惯例)。
+- 验证: verifier/v467 (源码断言 + CDP: 暂留模式 end+500 点头不可选/end+100 可选/框选不含,
+  打击动画开对照一致; F5 进测试游玩断言 hitAnimation false→true, Escape 退出恢复 false)。
+  适配: v273/v154/v277/v402 的 hitTest/框选可见性针串改 objectSelectableAt (行为收紧属预期)。
+  回归: v273/v402/v342/v154/v277/v287/v294/v147/v215 全绿。tsc + vite build 通过。

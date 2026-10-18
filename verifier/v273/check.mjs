@@ -18,7 +18,7 @@ function assert(cond, msg) { if (!cond) { failures++; console.error('  FAIL:', m
 
 const src = fs.readFileSync(path.join(root, 'src/components/EditorCanvas.tsx'), 'utf8');
 assert(/v273: 已选中物件例外/.test(src), 'v273 注释在');
-assert(/isVisibleAt\(bm, o, store\.currentTime\) \|\| store\.selected\.has\(o\.id\)\);/.test(src), 'hitTest 候选含已选中不可见物件');
+assert(/objectSelectableAt\(bm, o, store\.currentTime\) \|\| store\.selected\.has\(o\.id\)\);/.test(src), 'hitTest 候选含已选中不可见物件 (v467: 可见判定走 objectSelectableAt)');
 assert(/sliderAnchorInteractiveAt\(bm, o, store\.currentTime\) \|\| store\.selected\.has\(o\.id\) \|\| store\.selectedNodes\.has\(o\.id\)\)/.test(src), '整组节点拖候选含已选节点所在滑条 (v402: 可见项改锚点窗口)');
 // 回归保护: 框选仍只框可见物件 (v45)
 assert(/v45: 只框选当前可见物件/.test(src), '物件框选可见窗口不变 (v45)');

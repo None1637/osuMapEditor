@@ -19,6 +19,7 @@
 //   编辑器侧同步全屏 (EditorCanvas 全屏背景层), 游玩区内额外 0.45 压暗保留保证物件可读性。
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { store } from '@/osu/store';
+import { displaySettings } from '@/osu/displaySettings'; // v467: 测试游玩期间强制开 note 打击动画
 import { getSkin, getSkinContentSeq, skinScaleAdjust, type SkinImage } from '@/osu/skin';
 import { computeCombos, renderPlayfield } from '@/osu/renderer';
 import { computeStackOffsets } from '@/osu/stacking';
@@ -93,6 +94,10 @@ export function TestPlayOverlay({ onClose }: { onClose: () => void }) {
     const c = canvasRef.current;
     if (!bm0 || !c) { onClose(); return; }
     store.testPlayOpen = true; // v445: 暂停编辑器画布/时间轴底层渲染 (退出时清理恢复)
+    // v467: 测试游玩默认开 note 打击动画 (240ms 放大淡出, 与实际游玩观感一致) — 编辑器显示设置
+    //   关了就没了打击反馈; 直接改可变单例 (渲染循环每帧读), 不持久化, 退出恢复原值
+    const prevHitAnimation = displaySettings.hitAnimation;
+    displaySettings.hitAnimation = true;
     const g = c.getContext('2d')!;
     if (editorTimeRef.current === null) editorTimeRef.current = store.currentTime;
     const editorTime = editorTimeRef.current;
@@ -429,6 +434,7 @@ export function TestPlayOverlay({ onClose }: { onClose: () => void }) {
 
     return () => {
       store.testPlayOpen = false; // v445: 恢复编辑器/时间轴渲染循环
+      displaySettings.hitAnimation = prevHitAnimation; // v467: 恢复编辑器显示设置
       cancelAnimationFrame(raf);
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('mousedown', onMouseDown, true);

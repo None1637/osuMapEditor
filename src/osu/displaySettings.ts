@@ -101,3 +101,8 @@ export function setDisplayString<K extends StrDisplayKey>(k: K, v: DisplaySettin
   displaySettings[k] = v;
   try { localStorage.setItem(LS_KEY, JSON.stringify(displaySettings)); } catch { /* 隐私模式等忽略 */ }
 }
+
+// v467: 暴露给 CDP 验证器 (测试游玩强制开打击动画的断言用; 与 __osuStore/__osuSkin 同惯例)
+if (typeof window !== 'undefined') { // node 单测环境 (v402 等 bundle 在 node 跑) 无 window
+  (window as unknown as { __osuDisplaySettings?: DisplaySettings }).__osuDisplaySettings = displaySettings;
+}

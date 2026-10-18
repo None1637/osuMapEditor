@@ -50,9 +50,9 @@ section('EditorCanvas.tsx: 锚点候选过滤改用锚点窗口');
     '节点框选 candidates 改用锚点窗口');
   assert(/return !!o && !sliderAnchorInteractiveAt\(bm, o, store\.currentTime\);/.test(src),
     '框选 keepNodes 保留例外同口径 (v277)');
-  // hitTest 物件级可见性不变 (残留期头/尾圈可见, 仍可点选物件本体)
-  assert(/const objs = bm\.hitObjects\.filter\(o => isVisibleAt\(bm, o, store\.currentTime\) \|\| store\.selected\.has\(o\.id\)\);/.test(src),
-    'hitTest 物件级过滤保留 isVisibleAt (不变)');
+  // v467: hitTest 物件级过滤也收紧 — 滑条走 objectSelectableAt (= 锚点窗口), 单点/转盘仍 isVisibleAt
+  assert(/const objs = bm\.hitObjects\.filter\(o => objectSelectableAt\(bm, o, store\.currentTime\) \|\| store\.selected\.has\(o\.id\)\);/.test(src),
+    'hitTest 物件级过滤走 objectSelectableAt (v467: 滑条同锚点窗口, 其余 isVisibleAt)');
 }
 
 if (failures) { console.error(`V402 FAILED (${failures})`); process.exit(1); }

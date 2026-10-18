@@ -15,7 +15,7 @@ function assert(cond, msg) { if (!cond) { failures++; console.error('  FAIL:', m
 
 const src = fs.readFileSync(path.join(root, 'src/components/EditorCanvas.tsx'), 'utf8');
 assert((src.match(/v277:/g) ?? []).length === 2, '物件框选与节点框选各一处 v277 注释');
-assert(/const keepHidden = bm\.hitObjects\.filter\(o => !isVisibleAt\(bm, o, store\.currentTime\) && store\.selected\.has\(o\.id\)\)\.map\(o => o\.id\)/.test(src), '物件框选保留已选不可见物件');
+assert(/const keepHidden = bm\.hitObjects\.filter\(o => !objectSelectableAt\(bm, o, store\.currentTime\) && store\.selected\.has\(o\.id\)\)\.map\(o => o\.id\)/.test(src), '物件框选保留已选不可见物件 (v467: 可见判定走 objectSelectableAt)');
 assert(/store\.select\(\[\.\.\.mq\.base, \.\.\.keepHidden, \.\.\.objectsInRect/.test(src), '选区 = base + 保留 + 框内可见');
 assert(/const keepNodes = nodeEntries\(store\.selectedNodes\)\.filter/.test(src), '节点框选保留不可见滑条的已选节点');
 assert(/store\.setSelectedNodes\(\[\.\.\.nmq\.base, \.\.\.keepNodes, \.\.\.inRect\]\)/.test(src), '节点选区 = base + 保留 + 框内可见 (v317: 加选分支)');

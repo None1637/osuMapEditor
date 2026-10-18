@@ -19,6 +19,13 @@ import { displaySettings } from '@/osu/displaySettings'; // v168: 背景图亮�
 import { editorPrefs } from '@/osu/editorPrefs'; // v381: 物件移动死区开关
 import { distanceLockRef, distanceLockDistance } from '@/osu/spacing'; // v145
 import { genId, timingAt, csToRadius, arToPreempt, snapAcrossRedLine, type Beatmap, type HitObject } from '@/osu/parser';
+
+/** v467: 物件可选中时间窗 (单击/框选共用) — 滑条恒按滑条身窗口 [time-preempt, end+HIT_FADE]
+ *  (sliderAnchorInteractiveAt 同款): 暂留模式 (点击特效开+打击动画关) 下 isVisibleAt 放到
+ *  end+HIT_LINGER(800ms), 滑条身 240ms 已消失, 大滑条不可见却仍能被误点/误框 (用户反馈:
+ *  滑条比较大容易误选); 单点/转盘不变 (仍 isVisibleAt)。已选中物件例外在调用侧照旧 (v273/v277)。 */
+const objectSelectableAt = (bm: Beatmap, o: HitObject, time: number): boolean =>
+  o.type === 'slider' ? sliderAnchorInteractiveAt(bm, o, time) : isVisibleAt(bm, o, time);
 import { IncrementalBSplineBuilder } from '@/osu/freehand/bsplineBuilder';
 import { fitSegmentsToPoints, collinearLinePoints } from '@/osu/freehand/freehandFit'; // v412: 共线折叠 (直线手绘落 'L')
 import { matchesHotkeyMouse, matchesHotkeyWheel } from '@/osu/hotkeys'; // v330: 游玩区平移/缩放/锁定间距可改键
@@ -1431,7 +1438,8 @@ export function EditorCanvas() {
     // 仍在屏却点不中、以及 AR>5 时 preempt<1200 导致不可见物件可被误选的问题)
     // v273: 已选中物件例外 — 即使当前时间不可见也参与命中 (选中装饰层始终画出选中标记,
     //       用户可据此点击; 需求「选中物件后, 即使当前时间不可见也需要能交互 (拖动等)」)
-    const objs = bm.hitObjects.filter(o => isVisibleAt(bm, o, store.currentTime) || store.selected.has(o.id));
+    // v467: 滑条按滑条身窗口门控 (objectSelectableAt) — 打击动画关的暂留模式下结束 240ms 后不可选
+    const objs = bm.hitObjects.filter(o => objectSelectableAt(bm, o, store.currentTime) || store.selected.has(o.id));
     // v154: 收集全部命中, 重叠时优先选离当前时间最近者 (旧逻辑倒序取首个 = 恒选最晚上层物件)
     const hits: HitObject[] = [];
     for (const o of objs) {
@@ -2197,10 +2205,11 @@ export function EditorCanvas() {
       };
       // v277: 已选中但当前时间不可见的物件保留在选区 — 框选进行中时间改变 (播放/滚轮/边缘滚动)
       // 时, 每帧重算的「当前可见 ∩ 框」会把它们掉出 (用户需求: 不要取消选中这些物件)
-      const keepHidden = bm.hitObjects.filter(o => !isVisibleAt(bm, o, store.currentTime) && store.selected.has(o.id)).map(o => o.id);
+      // v467: 可见判定走 objectSelectableAt (滑条按滑条身窗口, 打击动画关时结束 240ms 后不可框选)
+      const keepHidden = bm.hitObjects.filter(o => !objectSelectableAt(bm, o, store.currentTime) && store.selected.has(o.id)).map(o => o.id);
       store.select([...mq.base, ...keepHidden, ...objectsInRect(
         // v45: 只框选当前可见物件 (与单击命中同一可见窗口, 不再把全时间物件都框进来)
-        bm.hitObjects.filter(o => isVisibleAt(bm, o, store.currentTime)),
+        bm.hitObjects.filter(o => objectSelectableAt(bm, o, store.currentTime)),
         r, getStackOffsets(bm))]);
     }
   };
