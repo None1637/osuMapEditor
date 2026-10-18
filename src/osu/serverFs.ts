@@ -29,7 +29,15 @@ function serverFile(root: 'songs' | 'skin', rel: string, name: string): FsFileLi
     async getFile() {
       const res = await fetch(`api/local-fs/file?root=${root}&rel=${encodeURIComponent(rel)}`);
       if (!res.ok) throw new Error(tNow('fs.read_failed', 'Read failed ({status}): {path}', { status: res.status, path: rel }));
-      return new File([await res.blob()], name);
+      // v450: 服务端经 X-File-Mtime 头带真实 mtime → File.lastModified 有稳定值,
+      //   v444 音频解码缓存 (audioKey = name:size:lastModified) 在服务器模式可命中 (此前缺省=构造时刻, 每次刷新都不同);
+      //   头缺失 (旧服务端/静态部署) 回退现状: 不传 lastModified (=构造时刻), 行为与旧版一致。
+      //   所有 getFile 消费者 (音频/背景/采样/.osu 文本) 同走此包装, 一处修复全部受益。
+      const mtime = Number(res.headers.get('X-File-Mtime'));
+      const blob = await res.blob();
+      return Number.isFinite(mtime) && mtime > 0
+        ? new File([blob], name, { lastModified: mtime })
+        : new File([blob], name);
     },
   };
 }

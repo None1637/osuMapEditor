@@ -4924,3 +4924,23 @@
 - 备注: Electron 服务器模式 serverFile.getFile() 的 File 无真实 lastModified (每次取件=当时刻),
   v444 audioKey 在该模式下永不命中 (每次刷新全量重解码, 瞬时双份 PCM 靠 GC 回收, 非常驻) —
   属既有行为, 本版未动; 浏览器 FS-Access 模式 lastModified 稳定, 缓存命中正常 (分支 2 已覆盖)。
+
+## v450 — Electron 服务器模式刷新提速 (/api/local-fs/file 带真实 mtime, v444 缓存生效)
+- 起因: v449 遗留项 — 服务器模式 serverFile.getFile() 构造 File 不带 lastModified (=构造时刻,
+  每次取件都不同), v444 audioKey (name:size:lastModified) 永不命中 → 每次刷新谱面都重新
+  fetch + decodeAudioData; 浏览器 FS-Access 模式 File 自带真实 mtime, 不受影响。
+- 修复 (均带 v450 注释):
+  1) server/localFsCore.mjs file 端点: fs.promises.stat 取 mtimeMs, 响应头 X-File-Mtime 带回
+     (返回结构新增可选 headers 字段, localFsCore.d.mts 类型同步);
+  2) electron/main.cjs + vite.config.ts 两个挂载点透传附加响应头;
+  3) src/osu/serverFs.ts getFile: 读 X-File-Mtime → new File([blob], name, { lastModified });
+     头缺失 (旧服务端/静态部署) 回退旧行为, 浏览器模式不经此路径不受影响。
+     音频/背景/采样/.osu 文本全走同一 getFile 包装, 一处修复全部受益 (采样不做缓存, 仅 mtime 附带)。
+- 验证: verifier/v450 (静态 7 项 + CDP 8 项全绿) — 隔离 Electron 开 cygnus 插桩
+  actx.decodeAudioData (>1MB 负载=歌曲): 刷新 ×2 零歌曲解码、audioCache.key 稳定
+  (audio.mp3:3137942:1785853002259 三次相同); Node 侧 utimes 改 audio.mp3 mtime +60s 再刷新 →
+  恰好 1 次重解码且 key 更新 (外部修改正确失效; 测完 mtime 已还原); 刷新耗时 命中 51ms vs
+  重解码 509ms (load 52 + decode 457, 本图 3.1MB mp3; 大文件差距更大); 播放/背景回归正常;
+  tsc + vite build 通过; 按惯例未跑大批量回归。
+- 备注: 缓存命中时 loadDifficulty 仍会 fetch 音频字节 (3MB localhost ≈ 毫秒级) 才拿到 File 算
+  audioKey — 解码才是大头, 不在本版范围; 如需再优化可加 HEAD/mtime 探测端点。

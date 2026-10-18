@@ -40,9 +40,17 @@ export function createLocalFsHandler(getDirs) {
       return json(200, entries.map(e => ({ name: e.name, kind: e.isDirectory() ? "directory" : "file" })))
     }
     if (pathname === "/api/local-fs/file") {
-      let data
-      try { data = await fs.promises.readFile(abs) } catch { return json(404, { error: "文件不存在" }) }
-      return { status: 200, contentType: "application/octet-stream", body: data }
+      let data, mtimeMs
+      try {
+        const st = await fs.promises.stat(abs) // v450: 顺带取真实 mtime
+        if (!st.isFile()) return json(404, { error: "文件不存在" })
+        data = await fs.promises.readFile(abs)
+        mtimeMs = st.mtimeMs
+      } catch { return json(404, { error: "文件不存在" }) }
+      // v450: 响应头带真实 mtime — 前端 serverFile.getFile 构造 File 时写入 lastModified,
+      //   v444 audioKey (name:size:lastModified) 在服务器模式由此稳定, 刷新谱面命中解码缓存;
+      //   两个挂载点 (electron/main.cjs / vite.config.ts) 负责透传 headers
+      return { status: 200, contentType: "application/octet-stream", body: data, headers: { "X-File-Mtime": String(Math.round(mtimeMs)) } }
     }
     // Ctrl+S 保存谱面写回 (POST, body = 文件内容; 沿用上方越界防护, 只允许写根目录内的文件)
     if (pathname === "/api/local-fs/write") {

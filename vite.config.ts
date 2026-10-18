@@ -44,6 +44,7 @@ function localFsPlugin(): Plugin {
           if (!r) return next()
           res.statusCode = r.status
           res.setHeader("Content-Type", r.contentType)
+          if (r.headers) for (const [k, v] of Object.entries(r.headers)) res.setHeader(k, v) // v450: 透传端点附加头 (X-File-Mtime)
           res.end(r.body)
         })
       })
