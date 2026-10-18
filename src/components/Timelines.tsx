@@ -13,7 +13,8 @@ import {
   GREEN_PILL_TOP, PILL_HEIGHT,
 } from '@/osu/timelineSelect';
 import { pendingSliderTimeline, spinnerPlacementEnd } from '@/osu/sliderPath'; // v188: spinnerPlacementEnd 转盘幻影
-import { svForDuration, beatLengthForSv, svAt, greenLineAt, svRestoreTargetAt } from '@/osu/timingSv'; // v407: Alt+拖尾改绿线 SV; v454: svRestoreTargetAt
+import { beatLengthForSv, svAt, greenLineAt, svRestoreTargetAt, svForDurationRaw, svRedlineBoost, bpmRestoreTargetAt, SV_MIN, SV_MAX } from '@/osu/timingSv'; // v407: Alt+拖尾改绿线 SV; v454: svRestoreTargetAt; v455: 红线扩程
+import { editorPrefs } from '@/osu/editorPrefs'; // v455: svRedlineBoost 开关
 import { getSkin } from '@/osu/skin';
 import { displaySettings } from '@/osu/displaySettings'; // v132: 显示设置 (皮肤颜色)
 import { drawWave, drawSpectro, type SpectroScroll } from '@/osu/waveformDraw';
@@ -39,21 +40,35 @@ function parseJumpTime(s: string): number | null {
   return min * 60000 + sec * 1000 + ms;
 }
 
+/** v455: timingPoints 排序 — 时刻升序, 同刻红线 (uninherited) 排在绿线前
+ *  (svPointAt 顺序语义: 红重置→绿再生效, 同刻绿线才压得住; 也是 .osu 文件红先绿后的惯例) */
+const sortTps = (tps: TimingPoint[]) =>
+  tps.sort((a, b) => a.time - b.time || Number(b.uninherited) - Number(a.uninherited));
+
 /** v407: Alt+拖滑条尾 (SV 模式) 单帧应用 — 增/改滑条头处绿线 SV 使持续时间 = targetEnd - o.time
  *  (长度/折返数不变)。全程在一次 beginDrag/commitDrag 快照内 = 一步 undo。
  *  v454 (用户要求): SV 恢复绿线不再插到当前滑条尾, 改插到后续滑条头 — 仅当存在后续滑条且
  *  (o.time, 后续滑条头] 内没有其他红/绿线 (都是硬 SV 边界, 红线也重置 SV 见 svPointAt v227) 时插入;
  *  后续滑条头处恰已有线同样不插; 无后续滑条则完全不插。
+ *  v455: editorPrefs.svRedlineBoost 开时, 反解 svReq 超界 (>10 / <0.1) 用红线扩程 — 头处增/改红线
+ *  beatLength = redOld/2^n (BPM×2^n; sv<0.1 时 ×2^n), 头绿线 sv = svReq/2^n (svRedlineBoost);
+ *  并按 bpmRestoreTargetAt 在后续滑条头插还原红线 (遮挡只看红线 — BPM 不被绿线重置)。
+ *  拖回原时长 (按未钳制 svReq 判定) / 回到范围内时: 新建线摘除, 被改的已有线还原原值。
  *  已知限制: 滑条跨度内已有其他红/绿线时, 时长按头时刻 SV 口径计算 (与 osu 本体 duration 口径一致)。 */
 function applySvTailDrag(bm: Beatmap, o: HitObject, tr: {
-  svOld: number; headGreen: TimingPoint | null; headCreated: boolean;
-  restore: TimingPoint | null; lastEnd: number; moved: boolean;
+  svOld: number; redOld: number; headGreen: TimingPoint | null; headCreated: boolean;
+  headRed: TimingPoint | null; headRedCreated: boolean;
+  restore: TimingPoint | null; restoreRed: TimingPoint | null; lastEnd: number; moved: boolean;
 }, targetEnd: number): void {
   const tps = bm.timingPoints;
-  const { red } = timingAt(tps, o.time);
-  const svNew = svForDuration(o.length ?? 0, o.slides ?? 1, red.beatLength, bm.difficulty.sliderMultiplier, targetEnd - o.time);
-  if (svNew === null) return; // 尾拖到头之前等非法目标 — 跳过本帧
+  // v455: svReq 恒按拖拽前原始红节拍 tr.redOld 反解 (不钳制) — 本功能的头红线会改 o.time 处
+  //   beatLength, 若再读 timingAt 会拿到自己改过的值, 反解失真
+  const svReq = svForDurationRaw(o.length ?? 0, o.slides ?? 1, tr.redOld, bm.difficulty.sliderMultiplier, targetEnd - o.time);
+  if (svReq === null) return; // 尾拖到头之前等非法目标 — 跳过本帧
   tr.moved = true; tr.lastEnd = targetEnd;
+  // v455: 设置开 → 超界红线扩程 (BPM×2^n + sv/2^n); 关 = 钳制 [0.1, 10] (v407 行为)
+  const boost = editorPrefs.svRedlineBoost ? svRedlineBoost(svReq) : null;
+  const svNew = boost ? boost.sv : Math.min(SV_MAX, Math.max(SV_MIN, svReq));
   // 头绿线: 已有则改, 否则插入 (meter/sampleSet/sampleIndex/volume 继承该时刻现有点, effects=0)
   if (!tr.headGreen) {
     const exist = greenLineAt(tps, o.time);
@@ -62,28 +77,58 @@ function applySvTailDrag(bm: Beatmap, o: HitObject, tr: {
       const cur = timingAt(tps, o.time);
       const src = cur.green ?? cur.red;
       const g: TimingPoint = { time: o.time, beatLength: -100, meter: src.meter, sampleSet: src.sampleSet, sampleIndex: src.sampleIndex, volume: src.volume, uninherited: false, effects: 0 };
-      tps.push(g); tps.sort((a, b) => a.time - b.time);
+      tps.push(g); sortTps(tps);
       tr.headGreen = g; tr.headCreated = true;
     }
   }
-  const sameSv = Math.abs(svNew - tr.svOld) < 1e-9;
-  if (sameSv && tr.headCreated) {
+  const restored = Math.abs(svReq - tr.svOld) < 1e-9; // v455: 拖回原时长按未钳制 svReq 判定 (旧 sameSv 钳制后判定在 svOld 超界时永不还原)
+  if (restored && tr.headCreated) {
     // 拖回原时长且头绿线是本次新建的 — 摘除, 不留多余绿线
     const i = tps.indexOf(tr.headGreen); if (i >= 0) tps.splice(i, 1);
     tr.headGreen = null; tr.headCreated = false;
   } else {
-    tr.headGreen.beatLength = beatLengthForSv(svNew); // 已存在的绿线拖回原时长 = 还原其原值 (svNew==svOld)
+    tr.headGreen.beatLength = beatLengthForSv(restored ? tr.svOld : svNew); // 已存在的绿线拖回原时长 = 还原其原值
   }
-  // v454: 恢复绿线 — 先摘上一帧的, 需要时在后续滑条头重插 (不再插当前滑条尾; 决策抽至 svRestoreTargetAt)。
-  //   无遮挡时后续滑条头的原 SV = svOld (区间内线都没有, SV 从头处延续), 故恢复值恒为 svOld。
+  // v455: 头红线 (扩程) — 扩程激活时增/改 o.time 处红线 (beatLength = redOld/redScale);
+  //   回到范围内/拖回原时长时: 本次新建的摘除, 被改的已有红线还原 redOld
+  if (boost && !restored) {
+    if (!tr.headRed) {
+      const exist = tps.find(p => p.uninherited && p.time === o.time);
+      if (exist) tr.headRed = exist;
+      else {
+        const cur = timingAt(tps, o.time);
+        const r: TimingPoint = { time: o.time, beatLength: tr.redOld, meter: cur.red.meter, sampleSet: cur.red.sampleSet, sampleIndex: cur.red.sampleIndex, volume: cur.red.volume, uninherited: true, effects: 0 };
+        tps.push(r); sortTps(tps);
+        tr.headRed = r; tr.headRedCreated = true;
+      }
+    }
+    tr.headRed.beatLength = tr.redOld / boost.redScale;
+  } else if (tr.headRed) {
+    if (tr.headRedCreated) { const i = tps.indexOf(tr.headRed); if (i >= 0) tps.splice(i, 1); }
+    else tr.headRed.beatLength = tr.redOld;
+    tr.headRed = null; tr.headRedCreated = false;
+  }
+  // 恢复线: 先摘上一帧的 (遮挡查询之前 — 恢复线本身会被误判为遮挡), 需要时在后续滑条头重插。
+  //   v454 绿线 (决策 svRestoreTargetAt, 遮挡含红绿); v455 红线 (决策 bpmRestoreTargetAt, 遮挡只看红);
+  //   两个目标先算后插 — 同刻时红线插在前绿线在后 (sortTps 同刻红线优先, svPointAt 红重置→绿生效)
   if (tr.restore) { const i = tps.indexOf(tr.restore); if (i >= 0) tps.splice(i, 1); tr.restore = null; }
+  if (tr.restoreRed) { const i = tps.indexOf(tr.restoreRed); if (i >= 0) tps.splice(i, 1); tr.restoreRed = null; }
   const restoreAt = svRestoreTargetAt(tps, bm.hitObjects, o.time);
-  if (!sameSv && restoreAt !== null) {
-    const cur = timingAt(tps, restoreAt);
-    const src = cur.green ?? cur.red;
-    const g: TimingPoint = { time: restoreAt, beatLength: beatLengthForSv(tr.svOld), meter: src.meter, sampleSet: src.sampleSet, sampleIndex: src.sampleIndex, volume: src.volume, uninherited: false, effects: 0 };
-    tps.push(g); tps.sort((a, b) => a.time - b.time);
-    tr.restore = g;
+  const redRestoreAt = boost ? bpmRestoreTargetAt(tps, bm.hitObjects, o.time) : null;
+  if (!restored) {
+    if (redRestoreAt !== null) {
+      const cur = timingAt(tps, redRestoreAt);
+      const r: TimingPoint = { time: redRestoreAt, beatLength: tr.redOld, meter: cur.red.meter, sampleSet: cur.red.sampleSet, sampleIndex: cur.red.sampleIndex, volume: cur.red.volume, uninherited: true, effects: 0 };
+      tps.push(r); sortTps(tps);
+      tr.restoreRed = r;
+    }
+    if (restoreAt !== null) {
+      const cur = timingAt(tps, restoreAt);
+      const src = cur.green ?? cur.red;
+      const g: TimingPoint = { time: restoreAt, beatLength: beatLengthForSv(tr.svOld), meter: src.meter, sampleSet: src.sampleSet, sampleIndex: src.sampleIndex, volume: src.volume, uninherited: false, effects: 0 };
+      tps.push(g); sortTps(tps);
+      tr.restore = g;
+    }
   }
   store.emit(); // 时长派生链 (sliderDurationMemo) 与 SV 药丸随 emit 重建
 }
@@ -280,11 +325,14 @@ export function TopTimeline() {
   // v35: 拖滑条尾端改折返次数 (stable/lazer: 时间轴拉长按整 repeat 伸缩, 单次时长不变)
   // v407: Alt+拖尾 = SV 模式 — 增/改绿线 SV 调滑条持续时间, 长度/折返数不变 (timingSv.ts);
   //   svOld = 按下时滑条头处生效的旧 SV; headGreen = 头处绿线 (headCreated 标记是否本次新建);
-  //   restore = 恢复 svOld 的绿线 (v454: 改插后续滑条头, 不再插当前滑条尾); lastEnd = 上一帧目标尾时间 (去抖)
+  //   restore = 恢复 svOld 的绿线 (v454: 改插后续滑条头, 不再插当前滑条尾); lastEnd = 上一帧目标尾时间 (去抖);
+  //   v455: redOld = 按下时头处红节拍 (扩程反解基准); headRed = 头处扩程红线 (headRedCreated 同绿线);
+  //   restoreRed = 恢复 redOld 的红线 (插后续滑条头, 遮挡只看红线)
   const tailResizeRef = useRef<{
     objId: number; dur: number; moved: boolean;
-    mode: 'slides' | 'sv'; svOld: number;
+    mode: 'slides' | 'sv'; svOld: number; redOld: number;
     headGreen: TimingPoint | null; headCreated: boolean; restore: TimingPoint | null; lastEnd: number;
+    headRed: TimingPoint | null; headRedCreated: boolean; restoreRed: TimingPoint | null;
   } | null>(null);
   // v320: F22 — 拖转盘右缘改 endTime (stable 同款; 吸附节拍, 最短 1 tick 与放置同源)
   const spinnerResizeRef = useRef<{ objId: number; moved: boolean } | null>(null);
@@ -889,10 +937,13 @@ export function TopTimeline() {
             if (dur > 0) {
               if (!store.selected.has(tailId)) store.select([tailId]);
               // v407: 按住 Alt 起手 = SV 模式 (改绿线调时长), 否则原折返模式
+              // v455: redOld = 按下时头处红节拍 (扩程 svReq 反解基准, 拖拽中头红线可能被自己改过)
               tailResizeRef.current = {
                 objId: tailId, dur, moved: false,
                 mode: e.altKey ? 'sv' : 'slides', svOld: svAt(bm.timingPoints, o.time),
+                redOld: timingAt(bm.timingPoints, o.time).red.beatLength,
                 headGreen: null, headCreated: false, restore: null, lastEnd: Math.round(objEnd(o)),
+                headRed: null, headRedCreated: false, restoreRed: null,
               };
               store.beginDrag();
               store.canvasDragging = true;

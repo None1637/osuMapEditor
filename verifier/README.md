@@ -5024,3 +5024,21 @@
   插入逻辑删除); 头绿线增改/拖回原时长摘除 (sameSv) 等行为不变。
 - 验证: verifier/v454 (svRestoreTargetAt 纯函数 11 项: 无后续/圆圈不算/多条取最早/绿线红线遮挡/
   头处恰有线/边界口径/同刻堆叠 + 源码断言); v407 断言适配后全绿; tsc + vite build 通过。
+
+## v455 — 设置「Alt拖尾 SV 超界插红线扩程」(svRedlineBoost, 默认关)
+- 用户需求: Alt 拖时间轴滑条尾改 SV 时, 若反解 svReq 超过 10 或低于 0.1 (原 v407 直接钳制导致时长
+  拉不到位), 开启本设置后插入 BPM 翻 2^n 倍的红线并使绿线 sv/2^n, 实现超过 10sv / 小于 0.1sv 的
+  等效变速 (duration = L·(B0/2^n)/(100·sm·(svReq/2^n))·slides 与目标时长严格相等), 且插入还原红线。
+- 实现:
+  - timingSv.ts: svForDurationRaw (不钳制反解, svForDuration 改为其钳制包装); svRedlineBoost(svReq)
+    → { redScale, sv } (n=ceil(log2(超界倍数)), sv>10 → redScale=2^n 即 BPM×2^n, sv<0.1 → 2^-n);
+    bpmRestoreTargetAt — 还原红线插入位置决策 (同 svRestoreTargetAt 的后续滑条头目标, 但遮挡只看红线,
+    BPM 不被绿线重置)。
+  - Timelines.tsx applySvTailDrag: svReq 恒按拖拽前 tr.redOld 反解 (头红线会改 o.time beatLength,
+    不能再读 timingAt); boost 帧增/改头红线 beatLength=redOld/redScale (头处已有红线则改不新建),
+    回到范围内/拖回原时长 (restored 按未钳制 svReq 判定) 时新建线摘除、被改线还原; 还原红/绿线
+    两个目标先算后插, 同刻红线先插 (新 sortTps: 同刻红线排绿线前, svPointAt 红重置→绿生效)。
+  - 设置接线仿 v443 全链: editorPrefs (默认 false) / electronBridge (state+key 联合) /
+    main.cjs (勾选状态+checkbox 菜单项+三语标签 menu.sv_redline_boost) / App.tsx 上报。
+- 验证: verifier/v455 (纯函数 30+ 项: raw 不钳制/boost n 值与落回范围/等效时长不变式/bpm 遮挡只看红线
+  + 源码断言); v407/v454/v443 断言适配后全绿; tsc + vite build 通过。

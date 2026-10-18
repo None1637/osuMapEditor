@@ -293,9 +293,10 @@ ipcMain.on("timing-menu-state", (_e, s) => {
 // v386: 设置菜单勾选状态 (渲染进程经 "editor-prefs-state" 上报, 值变化才发):
 //   dragAdjustNumbers = 数值框拖动调值, moveDeadzone2px = 物件移动死区 2px (v381 起在 editorPrefs, 原快捷键面板通用区挪到菜单)
 //   sliderHalfSnap = v443 滑条长度按 1/2 细分吸附 (默认关 = 当前细分整格)
-let editorPrefsState = { dragAdjustNumbers: true, moveDeadzone2px: true, sliderHalfSnap: false }
+//   svRedlineBoost = v455 Alt 拖尾 SV 超界插红线扩程 (默认关 = 钳制 [0.1,10])
+let editorPrefsState = { dragAdjustNumbers: true, moveDeadzone2px: true, sliderHalfSnap: false, svRedlineBoost: false }
 ipcMain.on("editor-prefs-state", (_e, s) => {
-  editorPrefsState = { dragAdjustNumbers: s?.dragAdjustNumbers !== false, moveDeadzone2px: s?.moveDeadzone2px !== false, sliderHalfSnap: s?.sliderHalfSnap === true }
+  editorPrefsState = { dragAdjustNumbers: s?.dragAdjustNumbers !== false, moveDeadzone2px: s?.moveDeadzone2px !== false, sliderHalfSnap: s?.sliderHalfSnap === true, svRedlineBoost: s?.svRedlineBoost === true }
   buildMenu()
 })
 
@@ -431,6 +432,7 @@ const MENU_LABELS = {
   "menu.move_deadzone": { en: "Object Move Deadzone (2px)", "zh-CN": "物件移动死区 2px", "zh-TW": "物件移動死區 2px" },
   // v443: 滑条长度吸附细分 ×2 开关 (默认关)
   "menu.slider_half_snap": { en: "Snap Slider Length to Half Divisor (Finer)", "zh-CN": "滑条长度按 1/2 细分吸附 (更细)", "zh-TW": "滑條長度按 1/2 細分吸附 (更細)" },
+  "menu.sv_redline_boost": { en: "Alt Tail-drag SV beyond 0.1x-10x via Redline (BPM x2^n)", "zh-CN": "Alt拖尾 SV 超界插红线扩程 (BPM×2ⁿ)", "zh-TW": "Alt拖尾 SV 超界插紅線擴程 (BPM×2ⁿ)" }, // v455
   "menu.reload": { en: "Reload", "zh-CN": "刷新", "zh-TW": "重新整理" },
   "menu.devtools": { en: "Developer Tools", "zh-CN": "开发者工具", "zh-TW": "開發者工具" },
   "menu.quit": { en: "Quit", "zh-CN": "退出", "zh-TW": "結束" },
@@ -601,6 +603,7 @@ function buildMenu() {
         { label: mT("menu.drag_adjust_numbers"), type: "checkbox", checked: editorPrefsState.dragAdjustNumbers, click: () => send({ type: "settings-toggle-editor-pref", key: "dragAdjustNumbers" }) },
         { label: mT("menu.move_deadzone"), type: "checkbox", checked: editorPrefsState.moveDeadzone2px, click: () => send({ type: "settings-toggle-editor-pref", key: "moveDeadzone2px" }) },
         { label: mT("menu.slider_half_snap"), type: "checkbox", checked: editorPrefsState.sliderHalfSnap, click: () => send({ type: "settings-toggle-editor-pref", key: "sliderHalfSnap" }) }, // v443
+        { label: mT("menu.sv_redline_boost"), type: "checkbox", checked: editorPrefsState.svRedlineBoost, click: () => send({ type: "settings-toggle-editor-pref", key: "svRedlineBoost" }) }, // v455
         { type: "separator" },
         { role: "reload", label: mT("menu.reload") },
         { role: "toggleDevTools", label: mT("menu.devtools") },

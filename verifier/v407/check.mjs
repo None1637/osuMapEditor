@@ -38,7 +38,7 @@ section('timingSv.ts: 纯函数模块');
 section('Timelines.tsx: Alt+拖尾 SV 模式接线');
 {
   const src = readSrc('src/components/Timelines.tsx');
-  assert(/import \{ svForDuration, beatLengthForSv, svAt, greenLineAt, svRestoreTargetAt \} from '@\/osu\/timingSv';/.test(src), '引入 timingSv (v454 加 svRestoreTargetAt)');
+  assert(/import \{ beatLengthForSv, svAt, greenLineAt, svRestoreTargetAt, svForDurationRaw, svRedlineBoost, bpmRestoreTargetAt, SV_MIN, SV_MAX \} from '@\/osu\/timingSv';/.test(src), '引入 timingSv (v454 +svRestoreTargetAt; v455 +红线扩程三件套)');
   assert(/mode: 'slides' \| 'sv';/.test(src), 'tailResizeRef 加 mode 字段');
   assert(/mode: e\.altKey \? 'sv' : 'slides', svOld: svAt\(bm\.timingPoints, o\.time\)/.test(src),
     '按下时 Alt 决定模式 + 记录旧 SV');
@@ -46,10 +46,11 @@ section('Timelines.tsx: Alt+拖尾 SV 模式接线');
     'mousemove: SV 模式目标尾时间吸附节拍 + applySvTailDrag');
   // 应用函数要点
   const fn = src.match(/function applySvTailDrag[\s\S]*?\n\}\n/)?.[0] ?? '';
-  assert(/svForDuration\(o\.length \?\? 0, o\.slides \?\? 1/.test(fn), 'svNew 反解含 slides');
+  // v455: 反解改 svForDurationRaw (不钳制) + tr.redOld 基准 (头红线会改 o.time beatLength, 不能再读 timingAt)
+  assert(/svForDurationRaw\(o\.length \?\? 0, o\.slides \?\? 1, tr\.redOld/.test(fn), 'svReq 反解含 slides (v455: 不钳制+redOld 基准)');
   assert(/const exist = greenLineAt\(tps, o\.time\);/.test(fn) && /tr\.headCreated = true;/.test(fn), '头绿线: 已有则改/否则新建');
   assert(/uninherited: false, effects: 0/.test(fn), '新绿线字段 (继承采样设置, effects=0)');
-  assert(/sameSv && tr\.headCreated/.test(fn), '拖回原时长摘除新建头绿线');
+  assert(/restored && tr\.headCreated/.test(fn), '拖回原时长摘除新建头绿线 (v455: restored 按未钳制 svReq 判定)');
   assert(/tr\.restore\) \{ const i = tps\.indexOf\(tr\.restore\);/.test(fn), '恢复绿线逐帧先摘后插');
   // v454: 恢复绿线改插后续滑条头 (不再插当前滑条尾); 插入位置决策抽至 timingSv.svRestoreTargetAt (v454 纯函数测试覆盖)
   assert(!/spanClear/.test(fn) && !/time: targetEnd/.test(fn), 'v454: 不再往当前滑条尾插恢复绿线');

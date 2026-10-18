@@ -457,10 +457,10 @@ export default function App() {
     if (!api) return;
     let last = '';
     const report = () => {
-      const key = `${editorPrefs.dragAdjustNumbers}|${editorPrefs.moveDeadzone2px}|${editorPrefs.sliderHalfSnap}`;
+      const key = `${editorPrefs.dragAdjustNumbers}|${editorPrefs.moveDeadzone2px}|${editorPrefs.sliderHalfSnap}|${editorPrefs.svRedlineBoost}`; // v455: +svRedlineBoost
       if (key === last) return;
       last = key;
-      api.menuEditorPrefsState({ dragAdjustNumbers: editorPrefs.dragAdjustNumbers, moveDeadzone2px: editorPrefs.moveDeadzone2px, sliderHalfSnap: editorPrefs.sliderHalfSnap });
+      api.menuEditorPrefsState({ dragAdjustNumbers: editorPrefs.dragAdjustNumbers, moveDeadzone2px: editorPrefs.moveDeadzone2px, sliderHalfSnap: editorPrefs.sliderHalfSnap, svRedlineBoost: editorPrefs.svRedlineBoost });
     };
     report();
     return store.subscribe(report);

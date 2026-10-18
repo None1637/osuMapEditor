@@ -41,7 +41,8 @@ section('Timelines.tsx: applySvTailDrag 接入');
   assert(!/spanClear/.test(fn) && !/time: targetEnd/.test(fn), '不再往当前滑条尾插恢复绿线');
   assert(/if \(tr\.restore\) \{ const i = tps\.indexOf\(tr\.restore\);/.test(fn), '逐帧先摘上一帧恢复线 (在遮挡查询之前)');
   assert(/const restoreAt = svRestoreTargetAt\(tps, bm\.hitObjects, o\.time\);/.test(fn), '插入位置 = svRestoreTargetAt (后续滑条头)');
-  assert(/if \(!sameSv && restoreAt !== null\)/.test(fn), '拖回原时长 (sameSv) 不插');
+  // v455: sameSv 更名 restored (按未钳制 svReq 判定), 且恢复线插入并入 !restored 块
+  assert(/if \(!restored\) \{[\s\S]*?if \(restoreAt !== null\)/.test(fn), '拖回原时长 (restored) 不插');
   assert(/time: restoreAt, beatLength: beatLengthForSv\(tr\.svOld\)/.test(fn), '恢复绿线还原 svOld 且插在 restoreAt');
 }
 

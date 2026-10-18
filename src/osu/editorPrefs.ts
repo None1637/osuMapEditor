@@ -13,6 +13,9 @@ export interface EditorPrefs {
   /** v443: 长度吸附细分 ×2 (开 = v218 行为, 按当前细分的 1/2 对齐; 关 = 默认, 按当前细分整格吸附)。
       从属于 sliderTailSnap 总开关 — 总开关关 = 长度直通几何全长不走吸附网格, 本开关无效果 */
   sliderHalfSnap: boolean;
+  /** v455: Alt 拖时间轴滑条尾改 SV 超界 (sv>10 / sv<0.1) 时插红线扩程 — BPM×2^n 红线 +
+      sv/2^n 绿线等效超界变速, 并在后续滑条头插还原红线 (v454 同目标); 关 = 钳制到 [0.1, 10] (v407 行为) */
+  svRedlineBoost: boolean;
 }
 
 export type EditorPrefKey = keyof EditorPrefs;
@@ -25,6 +28,7 @@ function loadEditorPrefs(): EditorPrefs {
     moveDeadzone2px: true,    // v233 起的行为 (2px 起始死区)
     sliderTailSnap: true,     // v406: 吸附为现状默认
     sliderHalfSnap: false,    // v443: ×2 精度默认关 (用户要求; 开 = 恢复 v218 行为)
+    svRedlineBoost: false,    // v455: 超界红线扩程默认关 (开 = Alt 拖尾 SV 超界插 BPM×2^n 红线)
   };
   try {
     const raw = localStorage.getItem(LS_KEY);
@@ -35,6 +39,7 @@ function loadEditorPrefs(): EditorPrefs {
       moveDeadzone2px: p.moveDeadzone2px !== false,
       sliderTailSnap: p.sliderTailSnap !== false,
       sliderHalfSnap: p.sliderHalfSnap === true, // v443: 默认关 — 遗留持久化无此键时取 false
+      svRedlineBoost: p.svRedlineBoost === true, // v455: 默认关 — 遗留持久化无此键时取 false
     };
   } catch { return def; }
 }
