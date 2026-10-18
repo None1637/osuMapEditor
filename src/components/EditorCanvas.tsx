@@ -1179,28 +1179,8 @@ export function EditorCanvas() {
           }
           g.restore();
         }
-        // v371: Alt 点选滑条高亮 — 青色虚线控制多边形 + 节点圆点 (提示「框选只框这些滑条」);
-        //   独立块: 点选后尚未框选节点 (nodeSelectionCount=0) 时也要显示
-        if (store.altPickSliders.size) {
-          const offs = getStackOffsets(bm);
-          g.save();
-          for (const objId of store.altPickSliders) {
-            const o = bm.hitObjects.find(x => x.id === objId);
-            if (!o || o.type !== 'slider') continue;
-            const ctrl = ctrlPoints(o, offs.get(objId));
-            if (ctrl.length < 2) continue;
-            g.strokeStyle = '#4df3ff';
-            g.lineWidth = 1.5 / scale;
-            g.setLineDash([6 / scale, 4 / scale]);
-            g.beginPath();
-            ctrl.forEach((pt, i) => { if (i) g.lineTo(pt.x, pt.y); else g.moveTo(pt.x, pt.y); });
-            g.stroke();
-            g.setLineDash([]);
-            g.fillStyle = '#4df3ff';
-            for (const pt of ctrl) { g.beginPath(); g.arc(pt.x, pt.y, 4 / scale, 0, Math.PI * 2); g.fill(); }
-          }
-          g.restore();
-        }
+        // v453: v371 的 Alt 点选滑条青色虚线高亮已按用户要求移除 (Alt 点选后滑条本体已被普通选中,
+        //   选中高亮足以指示; altPickSliders 状态保留, 仍用于 v371a 框选范围收窄, 见 recomputeMarqueeSelection)
         // v34: 自定义变换原点标记 (十字 + 圆, 可拖拽; osu 坐标系, 允许画出游玩区外)
         if (originMarkerVisible()) {
           const m = activeCustomOrigin(); // v166: 批量复制窗口打开时画弹窗独立原点

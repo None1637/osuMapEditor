@@ -51,12 +51,9 @@ section('EditorCanvas.tsx: Alt 点选 + 框选收窄');
     '存在点选滑条: 框选只框被点选滑条');
   assert(/inRect0\.some\(\(\[a\]\) => a !== inRect0\[0\]\[0\]\)/.test(src),
     '无点选且框到多条滑条时走 firstFramedSliderId 收窄');
-  assert(/if \(store\.altPickSliders\.size\) \{[\s\S]{0,400}?#4df3ff/.test(src), '点选滑条青色虚线高亮块');
-  // 高亮块独立于 nodeSelectionCount 门控 (点选后未框节点也要显示)
-  const hi = src.indexOf('// v371: Alt 点选滑条高亮');
-  const gate = src.indexOf('if (store.nodeSelectionCount) {', src.indexOf('// v117: 选中节点高亮'));
-  assert(hi > 0 && gate > 0 && hi > gate && src.slice(gate, hi).includes('g.restore();\n        }'),
-    '高亮块在 nodeSelectionCount 门控之外');
+  // v453: 青色虚线高亮块已按用户要求移除 (Alt 点选后滑条本体已被普通选中, 选中高亮足以指示) —
+  //   断言取反: 渲染层不得再画 altPick 高亮; altPickSliders 状态与框选收窄逻辑保留
+  assert(!/if \(store\.altPickSliders\.size\) \{[\s\S]{0,400}?#4df3ff/.test(src), 'v453: 点选滑条青色虚线高亮块已移除');
 }
 
 if (failures) { console.error(`V371 FAILED: ${failures}`); process.exit(1); }

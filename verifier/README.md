@@ -5006,3 +5006,11 @@
   v438, 各加 v452 适配注记); v117 '渲染: 选中节点黄环' 与 v326 两条 v413 断言为 HEAD 遗留红
   (git stash 对比确认与本版无关, 未修); v117/tests.ts esbuild 打包红 (store 依赖链 ?raw
   worklet 导入) 同为遗留; v401/v378 tests 全绿。
+
+## v453 — 移除 Alt 点选滑条后的青色虚线标记
+- 用户反馈 (soulten, None1637 指示): Alt 点击滑条后出现的青色 (#4df3ff) 虚线控制多边形 + 节点圆点
+  标记多余 —— Alt 点选后滑条本体已被普通选中 (v438), 选中高亮足以指示, 「蓝色点线标识」删除。
+- 改动: EditorCanvas.tsx 渲染层删除 v371 的 altPickSliders 高亮块; altPickSliders 状态与
+  v371a 框选收窄逻辑保留 (store.ts 字段/toggle/clear、recomputeMarqueeSelection 收窄不变)。
+- 验证: verifier/v453 (源码断言: 高亮块移除 + 状态/收窄保留); v371 断言适配取反后全绿,
+  v440 (含 CDP 框选收窄) 全绿; tsc -p tsconfig.app.json --noEmit + vite build 通过。
