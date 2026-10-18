@@ -33,8 +33,8 @@ section('renderer.ts: stable = hitcircleselect.png / lazer = 橙黄圆环');
   assert(/function drawHitcircleSelectMark\(rc: RenderCtx, x: number, y: number, r: number\)/.test(src)
     && /const img = rc\.skin\.hitcircleselect;/.test(src)
     && /if \(!img\) return;/.test(src)
-    && /const w = r \* 2;/.test(src),
-    'drawHitcircleSelectMark: 皮肤图 128 文件盒 = 2r (v470), 无图跳过');
+    && /const w = r \* 2 \* hitcircleSpriteWidth\(img\) \/ 128;/.test(src),
+    'drawHitcircleSelectMark: 皮肤图 128-box 公式, 无图跳过');
   assert(/if \(stableSel\) \{\s*drawHitcircleSelectMark\(rc, o\.x, o\.y, radius\);\s*if \(tail\) drawHitcircleSelectMark\(rc, tail\.x, tail\.y, radius\);\s*\} else \{\s*drawSelectionRing\(g, o\.x, o\.y, radius\);\s*if \(tail\) drawSelectionRing\(g, tail\.x, tail\.y, radius\);/.test(src),
     '滑条头/尾标记: stable 皮肤图, lazer 橙黄环');
   assert(/else if \(stableSel\) \{\s*drawHitcircleSelectMark\(rc, o\.x, o\.y, radius\);/.test(src), 'stable 单点/spinner = 皮肤图');

@@ -740,14 +740,11 @@ export function drawSliderControlPoints(g: CanvasRenderingContext2D, o: HitObjec
 //   stable = 皮肤 hitcircleselect.png (圆圈中心 / 滑条头尾各一张) + 滑条蓝色边框高亮;
 //   lazer = 橙黄圆环 (drawSelectionRing) + 滑条青色描边环
 // (滑条控制点连线/手柄两种模式都画, 手柄样式由 v231 开关控制)
-// v469: stable 选中标记 — 皮肤 hitcircleselect.png
-// v470: 尺寸改 128 文件盒 = 2r 圆圈盒 (wiki 标准: 118 圆/128 文件; 与 stable 实机一致) —
-//   不再走 hitcircle 族固有尺寸放大 (v469 误用: 大贴图 4r 绘制, 辉光带整体落在滑条边框之外,
-//   用户反馈"滑条边框盖住了选中效果"); @2x/标准 128 贴图行为不变 (本来就是 2r)
+// v469: stable 选中标记 — 皮肤 hitcircleselect.png, 与 hitcircle 族同公式 (v232: 128-box 基准)
 function drawHitcircleSelectMark(rc: RenderCtx, x: number, y: number, r: number) {
   const img = rc.skin.hitcircleselect;
   if (!img) return; // 皮肤无图时跳过 (v232 同款; 默认皮肤有程序化兜底, skin.ts)
-  const w = r * 2;
+  const w = r * 2 * hitcircleSpriteWidth(img) / 128;
   rc.g.drawImage(img, x - w / 2, y - w / 2, w, w);
 }
 function drawSelectionDecor(rc: RenderCtx, o: HitObject, radius: number) {
