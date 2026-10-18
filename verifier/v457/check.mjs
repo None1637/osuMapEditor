@@ -1,5 +1,6 @@
 // 验证器 v457: 设置「Alt拖滑条尾变速还原后续sv」(editorPrefs.svTailRestore, 设置菜单 checkbox, 默认开) —
-//   开 = v454/v455 现状 (在后续滑条头插还原绿线/红线); 关 = 不插任何还原线 (SV/BPM 改动自然泄漏)。
+//   开 = v454 现状 (在后续滑条头插 svOld 还原绿线); 关 = 不插还原绿线 (SV 改动自然泄漏)。
+// v466 适配: 扩程的还原红线改插 T0 (MT 1ms 窗口收口, 恒插不受本开关门控), 不再插后续滑条头还原红线。
 // 运行: cd app && node verifier/v457/check.mjs
 import fs from 'node:fs';
 import path from 'node:path';
@@ -41,7 +42,7 @@ section('Timelines.tsx: 还原线插入受开关门控');
   assert(/if \(!restored && editorPrefs\.svTailRestore\) \{/.test(fn), '还原绿/红线插入受 svTailRestore 门控');
   // 逐帧摘除不受门控 (开关中途关闭也能清掉上一帧的恢复线)
   const iRmG = fn.indexOf('if (tr.restore) {');
-  const iRmR = fn.indexOf('if (tr.restoreRed) {');
+  const iRmR = fn.indexOf('if (tr.boostRedRestore) {'); // v466 适配: 还原红线改名 (落点 T0, 不再插后续滑条头)
   const iGate = fn.indexOf('if (!restored && editorPrefs.svTailRestore)');
   assert(iRmG > 0 && iRmR > iRmG && iGate > iRmR, '摘除在门控之前 (中途关闭也能清上一帧恢复线)');
 }

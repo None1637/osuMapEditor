@@ -38,7 +38,7 @@ section('timingSv.ts: 纯函数模块');
 section('Timelines.tsx: Alt+拖尾 SV 模式接线');
 {
   const src = readSrc('src/components/Timelines.tsx');
-  assert(/import \{ beatLengthForSv, svAt, greenLineAt, svRestoreTargetAt, svForDurationRaw, svRedlineBoost, bpmRestoreTargetAt, SV_MIN, SV_MAX \} from '@\/osu\/timingSv';/.test(src), '引入 timingSv (v454 +svRestoreTargetAt; v455 +红线扩程三件套)');
+  assert(/import \{ beatLengthForSv, svAt, greenLineAt, svRestoreTargetAt, svForDurationRaw, svRedlineBoost, SV_MIN, SV_MAX \} from '@\/osu\/timingSv';/.test(src), '引入 timingSv (v454 +svRestoreTargetAt; v455 +红线扩程; v466 去 bpmRestoreTargetAt)');
   assert(/mode: 'slides' \| 'sv';/.test(src), 'tailResizeRef 加 mode 字段');
   assert(/mode: e\.altKey \? 'sv' : 'slides', svOld: svAt\(bm\.timingPoints, o\.time\)/.test(src),
     '按下时 Alt 决定模式 + 记录旧 SV');

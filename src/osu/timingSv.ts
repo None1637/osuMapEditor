@@ -52,7 +52,8 @@ export function greenLineAt(points: TimingPoint[], time: number): TimingPoint | 
 
 /** v454: Alt+拖尾 SV 恢复绿线的插入时刻决策 — 返回后续滑条 (起始时间 > afterTime 的第一条滑条) 的头时刻;
  *  无后续滑条, 或 (afterTime, 后续滑条头] 内已有红/绿线 (都是硬 SV 边界, 红线也重置 SV 见 svPointAt) 时返回 null (不插)。
- *  调用方须先摘除上一帧的恢复线再查 (恢复线本身也在 points 里, 否则会误判为遮挡)。 */
+ *  调用方须先摘除上一帧的恢复线再查 (恢复线本身也在 points 里, 否则会误判为遮挡)。
+ *  v466: 还原红线不再用本决策 (BPM 在 T0 即还原, 见 Timelines.applySvTailDrag) — bpmRestoreTargetAt 已删。 */
 export function svRestoreTargetAt(
   points: TimingPoint[], hitObjects: { type: string; time: number }[], afterTime: number,
 ): number | null {
@@ -60,15 +61,4 @@ export function svRestoreTargetAt(
   for (const h of hitObjects) if (h.type === 'slider' && h.time > afterTime && h.time < nextHead) nextHead = h.time;
   if (nextHead === Infinity) return null;
   return points.some(p => p.time > afterTime && p.time <= nextHead) ? null : nextHead;
-}
-
-/** v455: 还原红线 (BPM) 的插入时刻决策 — 与 svRestoreTargetAt 同目标 (后续滑条头), 但遮挡只看红线
- *  (BPM 只被红线重置/改变, 绿线挡不住 BPM 泄漏)。无后续滑条或区间内有红线时返回 null。 */
-export function bpmRestoreTargetAt(
-  points: TimingPoint[], hitObjects: { type: string; time: number }[], afterTime: number,
-): number | null {
-  let nextHead = Infinity;
-  for (const h of hitObjects) if (h.type === 'slider' && h.time > afterTime && h.time < nextHead) nextHead = h.time;
-  if (nextHead === Infinity) return null;
-  return points.some(p => p.uninherited && p.time > afterTime && p.time <= nextHead) ? null : nextHead;
 }

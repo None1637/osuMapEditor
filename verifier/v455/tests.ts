@@ -1,14 +1,8 @@
-// 验证器 v455 纯函数测试: svForDurationRaw / svRedlineBoost / bpmRestoreTargetAt —
+// 验证器 v455 纯函数测试: svForDurationRaw / svRedlineBoost —
 //   Alt+拖滑条尾 SV 超界时插 BPM×2^n 红线扩程 (editorPrefs.svRedlineBoost 开)
-import { svForDuration, svForDurationRaw, svRedlineBoost, bpmRestoreTargetAt, SV_MIN, SV_MAX } from '@/osu/timingSv';
-import type { TimingPoint } from '@/osu/parser';
+// v466 适配: 还原红线落点决策函数已删 (1ms 窗口 T0 即还原 BPM, 不再插后续滑条头还原红线)
+import { svForDuration, svForDurationRaw, svRedlineBoost, SV_MIN, SV_MAX } from '@/osu/timingSv';
 
-const green = (time: number): TimingPoint =>
-  ({ time, beatLength: -100, meter: 4, sampleSet: 1, sampleIndex: 0, volume: 80, uninherited: false, effects: 0 });
-const red = (time: number): TimingPoint =>
-  ({ time, beatLength: 500, meter: 4, sampleSet: 1, sampleIndex: 0, volume: 80, uninherited: true, effects: 0 });
-const slider = (time: number) => ({ type: 'slider', time });
-const circle = (time: number) => ({ type: 'circle', time });
 
 let failures = 0;
 function ok(cond: boolean, msg: string) {
@@ -72,16 +66,6 @@ for (const svReq of [10.0001, 20, 100, 0.09, 0.05, 0.009]) {
   ok(b.sv >= SV_MIN - 1e-12 && b.sv <= SV_MAX + 1e-12, `绿线 sv 落回 [0.1,10] (svReq=${svReq} → ${b.sv})`);
 }
 
-// bpmRestoreTargetAt: 遮挡只看红线 (BPM 不被绿线重置)
-ok(bpmRestoreTargetAt([], [slider(1000)], 1000) === null, '无后续滑条不插');
-ok(bpmRestoreTargetAt([], [slider(1000), circle(2000)], 1000) === null, '后续只有圆圈不插');
-ok(bpmRestoreTargetAt([], [slider(1000), slider(3000)], 1000) === 3000, '无遮挡 → 后续滑条头');
-ok(bpmRestoreTargetAt([green(2000)], [slider(1000), slider(3000)], 1000) === 3000, '中间绿线挡不住 BPM → 仍插');
-ok(bpmRestoreTargetAt([green(3000)], [slider(1000), slider(3000)], 1000) === 3000, '后续滑条头恰有绿线 → 仍插红线');
-ok(bpmRestoreTargetAt([red(2000)], [slider(1000), slider(3000)], 1000) === null, '中间红线挡住, 不插');
-ok(bpmRestoreTargetAt([red(3000)], [slider(1000), slider(3000)], 1000) === null, '后续滑条头恰有红线, 不插');
-ok(bpmRestoreTargetAt([red(1000)], [slider(1000), slider(3000)], 1000) === 3000, '头处红线 (本次扩程线) 不算遮挡');
-ok(bpmRestoreTargetAt([], [slider(1000), slider(5000), slider(2500)], 1000) === 2500, '多条后续滑条取最早者');
 
 if (failures) { console.error(`V455_TESTS_FAILED (${failures})`); process.exit(1); }
 console.log('V455_TESTS_ALL_PASSED');

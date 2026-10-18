@@ -5188,3 +5188,28 @@
   重叠透镜区 4/4 点 = note 头圆填充色而非尾圆色; 不靠 combo 色名, 皮肤/设置可改配色)。
   适配: v188 (v463 加的 sliderLengthSnapDivisor 让导入行针串过时)。
   回归: v142/v205/v213/v53/v189/v162/v463/v197 全绿。tsc + vite build 通过。
+
+## v466 — 改进: Alt 拖滑条尾红线扩程改 Mapping Tools 同款 1ms 窗口
+- 用户要求: 调研 mapping tool 插红线改 SV 的做法, 应用给「Alt 拖滑条尾加红线突破 sv 上限」。
+- 调研结论 (OliBomby/Mapping_Tools `SliderVelocityFixer.Fix`, 由 Sliderator "DelegateToBpm" 调用):
+  变速红线 `redlineOn.Offset = T-1` (MpB ×= SV/-100), 还原红线 `redlineAfter.Offset = T`
+  (原红线完整拷贝), 两者 OmitFirstBarLine=true; `hitObject.Time -= 1` — 滑条前移 1ms 落入
+  [T0-1, T0) 窗口 (同刻红线对滑条生效, 不前移则吃到还原后 BPM)。还原钉在 T0 而非 T0+1 的原因:
+  T0 通常在拍上, 红线锚回 T0 后续节拍网格零偏移 (钉 T0+1 会把之后所有节拍/小节线带偏 1ms)。
+- 应用 (保留 v455 的 BPM×2^n + 绿线 sv/2^n 配合方案, 不全权委托 BPM):
+  applySvTailDrag 扩程帧: 滑条 `o.time -= 1` (tr.boostShifted 一次性防漂移); 变速红线插 T0-1
+  (beatLength = redOld/2^n, 参数拷贝按下时捕获的 tr.redOldTp, effects|8 省略首小节线; T0-1
+  已有红线则采用并记 redOnOrig 收尾还原); 还原红线插 T0 (redOldTp 拷贝, effects|8; T0 已有红线
+  直接利用); 绿线跟滑条到 T0-1 (本次新建的 T0 绿线摘除由 boostGreen 接替; T0 已有用户绿线还原
+  svOld 不搬动, 另建 boostGreen)。绿线 sv 按本帧实际头时刻反解 (svReqA/redScale, 尾落点精确 =
+  吸附目标, CDP 实测误差 0ms); 扩程/还原判定仍按原始头 T0 反解 (svReq, 拖回原时长精确触发还原)。
+  扩程失活/拖回: 滑条退回 T0, 新建线摘除, 已采用线还原原值。撤销 v455 后续滑条头还原红线
+  (timingSv.bpmRestoreTargetAt 删除 — BPM 在 T0 即还原不再泄漏); v454/v457 后续滑条头 svOld
+  还原绿线保留 (T0 还原红线把 SV 重置为 1, svOld≠1 时仍需), svTailRestore 开关只管这根绿线;
+  还原红线@T0 是窗口收口必要部分, 恒插不受门控。遮挡查询前先摘除上一帧自家还原红线。
+- 验证: verifier/v466 (源码断言 + CDP 真实 Alt 拖拽三段: A 扩程终态 = 滑条 T0-1 + 变速红线
+  250/effects|8 + 还原红线 500/effects|8 + boostGreen sv≈7.81 + 尾落点误差 0ms + 后续滑条头
+  svOld=1 还原绿线 + 撤销全还原; B 扩程中拖回原尾 = 新建线全摘除退回 T0; C 开关关 = 钳制 10x
+  无红线不前移)。适配: v455 (落点断言移交 v466, tests 删 bpmRestoreTargetAt 段)、v457 (还原红线
+  改名针串 + 语义注释)、v407 (导入行针串)。回归: v455/v457/v407/v463/v454/v443/v35/v142/v320/v465
+  全绿。tsc + vite build 通过。

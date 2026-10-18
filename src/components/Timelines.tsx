@@ -13,7 +13,7 @@ import {
   GREEN_PILL_TOP, PILL_HEIGHT,
 } from '@/osu/timelineSelect';
 import { pendingSliderTimeline, spinnerPlacementEnd, sliderLengthSnapDivisor } from '@/osu/sliderPath'; // v188: spinnerPlacementEnd 转盘幻影; v463: sliderLengthSnapDivisor (Alt 拖滑条尾 ×2 精度)
-import { beatLengthForSv, svAt, greenLineAt, svRestoreTargetAt, svForDurationRaw, svRedlineBoost, bpmRestoreTargetAt, SV_MIN, SV_MAX } from '@/osu/timingSv'; // v407: Alt+拖尾改绿线 SV; v454: svRestoreTargetAt; v455: 红线扩程
+import { beatLengthForSv, svAt, greenLineAt, svRestoreTargetAt, svForDurationRaw, svRedlineBoost, SV_MIN, SV_MAX } from '@/osu/timingSv'; // v407: Alt+拖尾改绿线 SV; v454: svRestoreTargetAt; v455: 红线扩程; v466: 去后续头还原红线决策 (1ms 窗口不再泄漏)
 import { editorPrefs } from '@/osu/editorPrefs'; // v455: svRedlineBoost 开关
 import { getSkin } from '@/osu/skin';
 import { displaySettings } from '@/osu/displaySettings'; // v132: 显示设置 (皮肤颜色)
@@ -50,79 +50,118 @@ const sortTps = (tps: TimingPoint[]) =>
  *  v454 (用户要求): SV 恢复绿线不再插到当前滑条尾, 改插到后续滑条头 — 仅当存在后续滑条且
  *  (o.time, 后续滑条头] 内没有其他红/绿线 (都是硬 SV 边界, 红线也重置 SV 见 svPointAt v227) 时插入;
  *  后续滑条头处恰已有线同样不插; 无后续滑条则完全不插。
- *  v455: editorPrefs.svRedlineBoost 开时, 反解 svReq 超界 (>10 / <0.1) 用红线扩程 — 头处增/改红线
- *  beatLength = redOld/2^n (BPM×2^n; sv<0.1 时 ×2^n), 头绿线 sv = svReq/2^n (svRedlineBoost);
- *  并按 bpmRestoreTargetAt 在后续滑条头插还原红线 (遮挡只看红线 — BPM 不被绿线重置)。
- *  拖回原时长 (按未钳制 svReq 判定) / 回到范围内时: 新建线摘除, 被改的已有线还原原值。
+ *  v455/v466: editorPrefs.svRedlineBoost 开时, 反解 svReq 超界 (>10 / <0.1) 用红线扩程 — 绿线 sv = svReq/2^n,
+ *  红线 beatLength = redOld/2^n (BPM×2^n; sv<0.1 时 ×2^n) (svRedlineBoost)。
+ *  v466 (Mapping Tools SliderVelocityFixer 同款 1ms 窗口, 取代 v455 头处改红线 + 后续滑条头还原红线):
+ *  变速红线插 T0-1, 还原红线插 T0 (拷贝拖拽前红线参数 tr.redOldTp; T0 已有红线则直接利用不另建),
+ *  滑条与头绿线前移 1ms 落入 [T0-1, T0) 窗口 — 确保滑条吃到变速红线; BPM 在 T0 即还原,
+ *  节拍网格锚回 T0 不泄漏 (故撤销 v455 的后续滑条头还原红线决策, timingSv 对应函数已删);
+ *  两红线 effects|8 = 省略首小节线 (MT OmitFirstBarLine)。还原红线是 1ms 窗口收口的必要部分,
+ *  不受 svTailRestore 门控 (那开关只管后续滑条头 svOld 绿线)。
+ *  拖回原时长 (按未钳制 svReq 对 T0 基准判定) / 回到范围内时: 滑条退回 T0, 新建线摘除, 被改的已有线还原原值。
  *  已知限制: 滑条跨度内已有其他红/绿线时, 时长按头时刻 SV 口径计算 (与 osu 本体 duration 口径一致)。 */
 function applySvTailDrag(bm: Beatmap, o: HitObject, tr: {
-  svOld: number; redOld: number; headGreen: TimingPoint | null; headCreated: boolean;
-  headRed: TimingPoint | null; headRedCreated: boolean;
-  restore: TimingPoint | null; restoreRed: TimingPoint | null; lastEnd: number; moved: boolean;
+  svOld: number; redOld: number; redOldTp: TimingPoint; headGreen: TimingPoint | null; headCreated: boolean;
+  restore: TimingPoint | null; lastEnd: number; moved: boolean;
+  boostShifted: boolean; boostGreen: TimingPoint | null; boostGreenCreated: boolean; boostGreenOrig: number;
+  boostRedOn: TimingPoint | null; boostRedOnCreated: boolean; redOnOrig: number; boostRedRestore: TimingPoint | null;
 }, targetEnd: number): void {
   const tps = bm.timingPoints;
-  // v455: svReq 恒按拖拽前原始红节拍 tr.redOld 反解 (不钳制) — 本功能的头红线会改 o.time 处
-  //   beatLength, 若再读 timingAt 会拿到自己改过的值, 反解失真
-  const svReq = svForDurationRaw(o.length ?? 0, o.slides ?? 1, tr.redOld, bm.difficulty.sliderMultiplier, targetEnd - o.time);
+  // v455/v466: svReq 恒按拖拽前原始红节拍 tr.redOld + 原始头时刻 headOrig 反解 (不钳制) —
+  //   扩程会改 o.time 附近 beatLength 并把滑条前移 1ms, 若再读 timingAt/o.time 会拿到自己改过的值, 反解失真
+  const headOrig = o.time + (tr.boostShifted ? 1 : 0); // v466: boost 期间滑条已前移 1ms, T0 = 原始头
+  const svReq = svForDurationRaw(o.length ?? 0, o.slides ?? 1, tr.redOld, bm.difficulty.sliderMultiplier, targetEnd - headOrig);
   if (svReq === null) return; // 尾拖到头之前等非法目标 — 跳过本帧
   tr.moved = true; tr.lastEnd = targetEnd;
-  // v455: 设置开 → 超界红线扩程 (BPM×2^n + sv/2^n); 关 = 钳制 [0.1, 10] (v407 行为)
-  const boost = editorPrefs.svRedlineBoost ? svRedlineBoost(svReq) : null;
-  const svNew = boost ? boost.sv : Math.min(SV_MAX, Math.max(SV_MIN, svReq));
-  // 头绿线: 已有则改, 否则插入 (meter/sampleSet/sampleIndex/volume 继承该时刻现有点, effects=0)
-  if (!tr.headGreen) {
-    const exist = greenLineAt(tps, o.time);
-    if (exist) tr.headGreen = exist;
-    else {
-      const cur = timingAt(tps, o.time);
-      const src = cur.green ?? cur.red;
-      const g: TimingPoint = { time: o.time, beatLength: -100, meter: src.meter, sampleSet: src.sampleSet, sampleIndex: src.sampleIndex, volume: src.volume, uninherited: false, effects: 0 };
-      tps.push(g); sortTps(tps);
-      tr.headGreen = g; tr.headCreated = true;
-    }
-  }
   const restored = Math.abs(svReq - tr.svOld) < 1e-9; // v455: 拖回原时长按未钳制 svReq 判定 (旧 sameSv 钳制后判定在 svOld 超界时永不还原)
-  if (restored && tr.headCreated) {
-    // 拖回原时长且头绿线是本次新建的 — 摘除, 不留多余绿线
-    const i = tps.indexOf(tr.headGreen); if (i >= 0) tps.splice(i, 1);
-    tr.headGreen = null; tr.headCreated = false;
-  } else {
-    tr.headGreen.beatLength = beatLengthForSv(restored ? tr.svOld : svNew); // 已存在的绿线拖回原时长 = 还原其原值
-  }
-  // v455: 头红线 (扩程) — 扩程激活时增/改 o.time 处红线 (beatLength = redOld/redScale);
-  //   回到范围内/拖回原时长时: 本次新建的摘除, 被改的已有红线还原 redOld
-  if (boost && !restored) {
-    if (!tr.headRed) {
-      const exist = tps.find(p => p.uninherited && p.time === o.time);
-      if (exist) tr.headRed = exist;
+  // v455: 设置开 → 超界红线扩程 (BPM×2^n + sv/2^n); 关 = 钳制 [0.1, 10] (v407 行为)
+  const boost = (!restored && editorPrefs.svRedlineBoost) ? svRedlineBoost(svReq) : null;
+  // v466: 滑条前移/退回 1ms (MT: 滑条须落在变速红线窗口 [T0-1, T0) 内才吃得到变速)
+  if (boost && !tr.boostShifted) { o.time -= 1; tr.boostShifted = true; }
+  else if (!boost && tr.boostShifted) { o.time += 1; tr.boostShifted = false; }
+  // v466: 绿线 sv 按本帧实际头时刻反解 (尾落点精确落在吸附目标); 超界时 /redScale 后钳回边界 (仅边界附近 ≤1ms 误差)
+  const svReqA = svForDurationRaw(o.length ?? 0, o.slides ?? 1, tr.redOld, bm.difficulty.sliderMultiplier, targetEnd - o.time) ?? svReq;
+  const svNew = Math.min(SV_MAX, Math.max(SV_MIN, boost ? svReqA / boost.redScale : svReqA));
+  if (boost) {
+    // v466: 扩程期绿线 — 本次新建的头绿线 (在 T0) 摘除, 由跟滑条的 boostGreen (T0-1) 接替;
+    //   T0 已有绿线不搬 (用户线): 还原 svOld 留在 T0 (T0 还原红线重置 SV 后由它恢复后续 SV)
+    if (tr.headGreen && tr.headCreated) {
+      const i = tps.indexOf(tr.headGreen); if (i >= 0) tps.splice(i, 1);
+      tr.headGreen = null; tr.headCreated = false;
+    }
+    if (tr.headGreen) tr.headGreen.beatLength = beatLengthForSv(tr.svOld);
+    if (!tr.boostGreen) {
+      const exist = greenLineAt(tps, o.time);
+      if (exist) { tr.boostGreen = exist; tr.boostGreenCreated = false; tr.boostGreenOrig = exist.beatLength; }
       else {
         const cur = timingAt(tps, o.time);
-        const r: TimingPoint = { time: o.time, beatLength: tr.redOld, meter: cur.red.meter, sampleSet: cur.red.sampleSet, sampleIndex: cur.red.sampleIndex, volume: cur.red.volume, uninherited: true, effects: 0 };
-        tps.push(r); sortTps(tps);
-        tr.headRed = r; tr.headRedCreated = true;
+        const src = cur.green ?? cur.red;
+        const g: TimingPoint = { time: o.time, beatLength: -100, meter: src.meter, sampleSet: src.sampleSet, sampleIndex: src.sampleIndex, volume: src.volume, uninherited: false, effects: 0 };
+        tps.push(g); sortTps(tps);
+        tr.boostGreen = g; tr.boostGreenCreated = true;
       }
     }
-    tr.headRed.beatLength = tr.redOld / boost.redScale;
-  } else if (tr.headRed) {
-    if (tr.headRedCreated) { const i = tps.indexOf(tr.headRed); if (i >= 0) tps.splice(i, 1); }
-    else tr.headRed.beatLength = tr.redOld;
-    tr.headRed = null; tr.headRedCreated = false;
-  }
-  // 恢复线: 先摘上一帧的 (遮挡查询之前 — 恢复线本身会被误判为遮挡), 需要时在后续滑条头重插。
-  //   v454 绿线 (决策 svRestoreTargetAt, 遮挡含红绿); v455 红线 (决策 bpmRestoreTargetAt, 遮挡只看红);
-  //   两个目标先算后插 — 同刻时红线插在前绿线在后 (sortTps 同刻红线优先, svPointAt 红重置→绿生效)
-  //   v457: editorPrefs.svTailRestore 关 = 不插任何还原线 (SV/BPM 改动自然泄漏, 用户自行打理)
-  if (tr.restore) { const i = tps.indexOf(tr.restore); if (i >= 0) tps.splice(i, 1); tr.restore = null; }
-  if (tr.restoreRed) { const i = tps.indexOf(tr.restoreRed); if (i >= 0) tps.splice(i, 1); tr.restoreRed = null; }
-  const restoreAt = svRestoreTargetAt(tps, bm.hitObjects, o.time);
-  const redRestoreAt = boost ? bpmRestoreTargetAt(tps, bm.hitObjects, o.time) : null;
-  if (!restored && editorPrefs.svTailRestore) {
-    if (redRestoreAt !== null) {
-      const cur = timingAt(tps, redRestoreAt);
-      const r: TimingPoint = { time: redRestoreAt, beatLength: tr.redOld, meter: cur.red.meter, sampleSet: cur.red.sampleSet, sampleIndex: cur.red.sampleIndex, volume: cur.red.volume, uninherited: true, effects: 0 };
-      tps.push(r); sortTps(tps);
-      tr.restoreRed = r;
+    tr.boostGreen.beatLength = beatLengthForSv(svNew);
+  } else {
+    // v466: 扩程收尾 — boostGreen 摘除 (本次新建) / 还原原值 (已有线)
+    if (tr.boostGreen) {
+      if (tr.boostGreenCreated) { const i = tps.indexOf(tr.boostGreen); if (i >= 0) tps.splice(i, 1); }
+      else tr.boostGreen.beatLength = tr.boostGreenOrig;
+      tr.boostGreen = null;
     }
+    // 头绿线: 已有则改, 否则插入 (meter/sampleSet/sampleIndex/volume 继承该时刻现有点, effects=0)
+    if (!tr.headGreen) {
+      const exist = greenLineAt(tps, o.time);
+      if (exist) tr.headGreen = exist;
+      else {
+        const cur = timingAt(tps, o.time);
+        const src = cur.green ?? cur.red;
+        const g: TimingPoint = { time: o.time, beatLength: -100, meter: src.meter, sampleSet: src.sampleSet, sampleIndex: src.sampleIndex, volume: src.volume, uninherited: false, effects: 0 };
+        tps.push(g); sortTps(tps);
+        tr.headGreen = g; tr.headCreated = true;
+      }
+    }
+    if (restored && tr.headCreated) {
+      // 拖回原时长且头绿线是本次新建的 — 摘除, 不留多余绿线
+      const i = tps.indexOf(tr.headGreen); if (i >= 0) tps.splice(i, 1);
+      tr.headGreen = null; tr.headCreated = false;
+    } else {
+      tr.headGreen.beatLength = beatLengthForSv(restored ? tr.svOld : svNew); // 已存在的绿线拖回原时长 = 还原其原值
+    }
+  }
+  // 恢复线/扩程还原红线: 先摘上一帧的 (遮挡查询之前 — 这些线本身会被误判为遮挡), 需要时重插。
+  //   v454 绿线 (决策 svRestoreTargetAt, 遮挡含红绿); v466 还原红线 (T0, 逐帧重建见下)
+  //   v457: editorPrefs.svTailRestore 关 = 不插后续滑条头还原绿线 (SV 改动自然泄漏, 用户自行打理)
+  if (tr.restore) { const i = tps.indexOf(tr.restore); if (i >= 0) tps.splice(i, 1); tr.restore = null; }
+  if (tr.boostRedRestore) { const i = tps.indexOf(tr.boostRedRestore); if (i >= 0) tps.splice(i, 1); tr.boostRedRestore = null; }
+  const restoreAt = svRestoreTargetAt(tps, bm.hitObjects, o.time);
+  // v466: 扩程红线对 (MT SliderVelocityFixer) — 变速红线 T0-1 (= 本帧 o.time; 已有红线则改不新建),
+  //   还原红线 T0 (= headOrig; 拷贝 redOldTp, effects|8 省略首小节线; T0 已有红线则直接利用)
+  if (boost) {
+    if (!tr.boostRedOn) {
+      const exist = tps.find(p => p.uninherited && p.time === o.time);
+      if (exist) { tr.boostRedOn = exist; tr.boostRedOnCreated = false; tr.redOnOrig = exist.beatLength; }
+      else {
+        const rp = tr.redOldTp;
+        const r: TimingPoint = { time: o.time, beatLength: rp.beatLength, meter: rp.meter, sampleSet: rp.sampleSet, sampleIndex: rp.sampleIndex, volume: rp.volume, uninherited: true, effects: rp.effects | 8 };
+        tps.push(r); sortTps(tps);
+        tr.boostRedOn = r; tr.boostRedOnCreated = true;
+      }
+    }
+    tr.boostRedOn.beatLength = tr.redOld / boost.redScale;
+    if (!tps.some(p => p.uninherited && p.time === headOrig)) {
+      const rp = tr.redOldTp;
+      const r: TimingPoint = { time: headOrig, beatLength: rp.beatLength, meter: rp.meter, sampleSet: rp.sampleSet, sampleIndex: rp.sampleIndex, volume: rp.volume, uninherited: true, effects: rp.effects | 8 };
+      tps.push(r); sortTps(tps);
+      tr.boostRedRestore = r;
+    }
+  } else if (tr.boostRedOn) {
+    if (tr.boostRedOnCreated) { const i = tps.indexOf(tr.boostRedOn); if (i >= 0) tps.splice(i, 1); }
+    else tr.boostRedOn.beatLength = tr.redOnOrig;
+    tr.boostRedOn = null;
+  }
+  // v454/v457: 后续滑条头 svOld 还原绿线 (开关门控)
+  if (!restored && editorPrefs.svTailRestore) {
     if (restoreAt !== null) {
       const cur = timingAt(tps, restoreAt);
       const src = cur.green ?? cur.red;
@@ -337,13 +376,16 @@ export function TopTimeline() {
   // v407: Alt+拖尾 = SV 模式 — 增/改绿线 SV 调滑条持续时间, 长度/折返数不变 (timingSv.ts);
   //   svOld = 按下时滑条头处生效的旧 SV; headGreen = 头处绿线 (headCreated 标记是否本次新建);
   //   restore = 恢复 svOld 的绿线 (v454: 改插后续滑条头, 不再插当前滑条尾); lastEnd = 上一帧目标尾时间 (去抖);
-  //   v455: redOld = 按下时头处红节拍 (扩程反解基准); headRed = 头处扩程红线 (headRedCreated 同绿线);
-  //   restoreRed = 恢复 redOld 的红线 (插后续滑条头, 遮挡只看红线)
+  //   v455: redOld = 按下时头处红节拍 (扩程反解基准);
+  //   v466 (MT 1ms 窗口): redOldTp = 按下时头处红线完整参数 (扩程/还原红线的拷贝源);
+  //   boostShifted = 滑条已前移 1ms; boostGreen = 跟滑条到 T0-1 的绿线 (boostGreenCreated/Orig 同绿线惯例);
+  //   boostRedOn = T0-1 变速红线 (boostRedOnCreated/redOnOrig 同上); boostRedRestore = T0 还原红线 (恒本次新建)
   const tailResizeRef = useRef<{
     objId: number; dur: number; moved: boolean;
-    mode: 'slides' | 'sv'; svOld: number; redOld: number;
+    mode: 'slides' | 'sv'; svOld: number; redOld: number; redOldTp: TimingPoint;
     headGreen: TimingPoint | null; headCreated: boolean; restore: TimingPoint | null; lastEnd: number;
-    headRed: TimingPoint | null; headRedCreated: boolean; restoreRed: TimingPoint | null;
+    boostShifted: boolean; boostGreen: TimingPoint | null; boostGreenCreated: boolean; boostGreenOrig: number;
+    boostRedOn: TimingPoint | null; boostRedOnCreated: boolean; redOnOrig: number; boostRedRestore: TimingPoint | null;
   } | null>(null);
   // v320: F22 — 拖转盘右缘改 endTime (stable 同款; 吸附节拍, 最短 1 tick 与放置同源)
   const spinnerResizeRef = useRef<{ objId: number; moved: boolean } | null>(null);
@@ -968,12 +1010,15 @@ export function TopTimeline() {
               if (!store.selected.has(tailId)) store.select([tailId]);
               // v407: 按住 Alt 起手 = SV 模式 (改绿线调时长), 否则原折返模式
               // v455: redOld = 按下时头处红节拍 (扩程 svReq 反解基准, 拖拽中头红线可能被自己改过)
+              // v466: redOldTp = 头处红线完整拷贝 (扩程/还原红线的参数源; MT 1ms 窗口字段一并初始化)
+              const redAt = timingAt(bm.timingPoints, o.time).red;
               tailResizeRef.current = {
                 objId: tailId, dur, moved: false,
                 mode: e.altKey ? 'sv' : 'slides', svOld: svAt(bm.timingPoints, o.time),
-                redOld: timingAt(bm.timingPoints, o.time).red.beatLength,
+                redOld: redAt.beatLength, redOldTp: { ...redAt },
                 headGreen: null, headCreated: false, restore: null, lastEnd: Math.round(objEnd(o)),
-                headRed: null, headRedCreated: false, restoreRed: null,
+                boostShifted: false, boostGreen: null, boostGreenCreated: false, boostGreenOrig: -100,
+                boostRedOn: null, boostRedOnCreated: false, redOnOrig: 0, boostRedRestore: null,
               };
               store.beginDrag();
               store.canvasDragging = true;
