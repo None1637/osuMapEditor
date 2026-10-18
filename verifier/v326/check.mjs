@@ -30,7 +30,7 @@ section('F28: Ctrl+点击插点 (stable 语义, v413: 物件命中放行)');
 
 section('节点手柄优先不误插 (nearestCtrlPoint 分支先行)');
 {
-  const handleIdx = ec.indexOf('nearestCtrlPoint(ctrl, odx, ody, p)');
+  const handleIdx = ec.indexOf('nearestCtrlPoint(ctrl, odx, ody, p, devicePxPerOsu())'); // v452 适配: 调用带 k 实参
   const ctrlIdx = ec.indexOf('v326: stable 语义');
   assert(handleIdx > 0 && ctrlIdx > handleIdx, '手柄命中分支在插点分支之前 (return 截断)');
 }

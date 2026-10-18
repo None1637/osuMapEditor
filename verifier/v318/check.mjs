@@ -55,7 +55,7 @@ section('F24b: 右键 = 落幻影点 + 完成');
   assert(!!cm, '右键滑条分支存在');
   assert(!!cm && /F24b/.test(cm[0]), '注明 F24b');
   assert(!!cm && /snapSliderCtrlPoint\(pR\)/.test(cm[0]) && /store\.pendingSlider\.push\(\{ x: Math\.round\(spR\.x\)/.test(cm[0]), '先落幻影点 (左键同一吸附)');
-  assert(!!cm && /Math\.hypot\(pR\.x - lastR\.x, pR\.y - lastR\.y\) >= 8/.test(cm[0]), '末点 8px 内不重复落点');
+  assert(!!cm && /Math\.hypot\(pR\.x - lastR\.x, pR\.y - lastR\.y\) >= anchorHitRadius\(store\.pendingSlider\.length === 1, devicePxPerOsu\(\)\)/.test(cm[0]), '末点手柄半径内不重复落点 (v452 适配: 阈值 8 osu px → 显示尺寸)');
 }
 
 section('编译');

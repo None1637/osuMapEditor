@@ -23,7 +23,7 @@ section('F18a: refreshHover 集中重算 + Alt 即时刷新');
   // v381: 窗口 1200→2400 — refreshHover 加了 store.setHoverNode 同步/非 Alt 悬停锚点上报, 块变长 (逻辑未变)
   const rh = ec.match(/const refreshHover = \(\) => \{[\s\S]{0,2400}?\n  \};/);
   assert(!!rh, 'refreshHover 存在');
-  assert(!!rh && /nearestNode\(sliders, offs, cp\)/.test(rh[0]), 'Alt 层: 跨滑条最近锚点');
+  assert(!!rh && /nearestNode\(sliders, offs, cp, devicePxPerOsu\(\)\)/.test(rh[0]), 'Alt 层: 跨滑条最近锚点 (v452 适配: 调用带 k 实参)');
   assert(!!rh && /sliderAnchorInteractiveAt\(bm, o, store\.currentTime\) \|\| store\.selected\.has\(o\.id\) \|\| store\.selectedNodes\.has\(o\.id\)/.test(rh[0]), 'Alt 层候选含 v273 例外 (与点选一致; v402: 可见项改锚点窗口)');
   assert(!!rh && /hoverNodeRef\.current = null/.test(rh[0]), '非 Alt 层清锚点 hover');
   assert(/altHeldRef\.current = e\.altKey;[^\n]*\n\s*refreshHover\(\);/.test(ec), 'Alt keydown/keyup 立即刷新');

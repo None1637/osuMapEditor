@@ -23,7 +23,7 @@ section('源码: playfieldAnchorPress Alt 分支命中才穿透');
   assert(/v411: Alt 穿透只在命中锚点/.test(ec), 'v411 版本注释');
   const ap = ec.match(/store\.playfieldAnchorPress = \(cx, cy, mods\) => \{[\s\S]*?\n    \};/)?.[0] ?? '';
   assert(ap.length > 0, '注册 playfieldAnchorPress');
-  assert(/const hitNode = nearestNode\(sliders, offs, p\);/.test(ap), 'Alt 分支先探锚点命中');
+  assert(/const hitNode = nearestNode\(sliders, offs, p, devicePxPerOsu\(\)\);/.test(ap), 'Alt 分支先探锚点命中 (v452 适配: 调用带 k 实参)');
   assert(/if \(!hitNode && !\(hitObj && hitObj\.type === 'slider'\)\) return false;/.test(ap), 'Alt+空白放行可交互 UI');
   assert(/nodeAltPress\(p, mods\)/.test(ap), '命中仍走 nodeAltPress (Alt 点选/切换保留)');
   // 画布内 Alt 框选 (onMouseDown) 与不可交互 UI (playfieldNodePress) 不变

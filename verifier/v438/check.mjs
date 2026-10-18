@@ -37,7 +37,7 @@ section('源码: 右键未选滑条锚点直接删点');
   const fn = ec.match(/const sliderAnchorContextPress = \(p: Pt\): boolean => \{[\s\S]*?\n  \};/)?.[0] ?? '';
   assert(/const deleteSliderAnchor = \(so: HitObject, i: number\)/.test(fn), '删除实现抽共用函数');
   assert(/deleteSliderPoint\(ctrl, 0\)/.test(fn), '头节点可删 (v400 语义保留)');
-  assert(/!store\.selected\.has\(o\.id\)/.test(fn) && /nearestNode\(sliders, offs, p\)/.test(fn), '未选滑条锚点候选 (排除已选, 跨滑条最近)');
+  assert(/!store\.selected\.has\(o\.id\)/.test(fn) && /nearestNode\(sliders, offs, p, devicePxPerOsu\(\)\)/.test(fn), '未选滑条锚点候选 (排除已选, 跨滑条最近; v452 适配: 调用带 k 实参)');
   assert(/deleteSliderAnchor\(ho, hitNode\.idx\);\s*return true;/.test(fn), '命中未选锚点直接删点并吞事件');
 }
 

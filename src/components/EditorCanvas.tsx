@@ -12,7 +12,7 @@ import { computeStackOffsets } from '@/osu/stacking';
 import { objectsInRect } from '@/osu/transform';
 import { pickTimeNearestHit } from '@/osu/hitPick'; // v154: 重叠命中挑离当前时间最近者
 import { selectionScaleQuad, scaleHandleAnchors, anchorPoint, hitScaleHandle, anchorAxis, dragToScale, anchorOpposite, minimumEnclosingCircleCenter, movablePoints, snapshotScaleStates, applyScaleDrag, selectionBoxVisible, selectionDisplayQuad, hitRotationHandle, rotationHandlePoints, ROT_HANDLE_OUT, angleDeltaDeg, snapRotation, rotationOrigin, applyRotateDrag, scaledPosition, type ScaleAnchor, type RotateCorner, type ScaleObjectState, type Quad } from '@/osu/selectionBox';
-import { ctrlPoints, nodeEntries, nearestNode, nodesInRect, nodeBounds, withRedPartners, snapshotNodes, transformNodesFromSnapshot, firstFramedSliderId } from '@/osu/nodeSelection';
+import { ctrlPoints, nodeEntries, nearestNode, nodesInRect, nodeBounds, withRedPartners, snapshotNodes, transformNodesFromSnapshot, firstFramedSliderId, anchorHitRadius } from '@/osu/nodeSelection'; // v452: anchorHitRadius — 锚点命中半径与显示尺寸一致
 import { isVisibleAt, hitObjectEndTime, sliderAnchorInteractiveAt, HIT_FADE } from '@/osu/lifecycle';
 import { uiZoom, zoomRect, zoomClientX, zoomClientY, fitCanvas } from '@/osu/uiZoom'; // v217; v246: fitCanvas
 import { displaySettings } from '@/osu/displaySettings'; // v168: 背景图亮度
@@ -433,6 +433,15 @@ export function EditorCanvas() {
     return out;
   }, []);
 
+  // v452: 设备px/osu单位 k — 与渲染主变换同公式 (loop 里 g.setTransform(sx..) 的 sx = backing/布局宽,
+  //   再 × playfield scale; v391 旋转分量不影响模长 hypot(a,b))。滑条锚点命中半径 (anchorHitRadius)
+  //   按显示尺寸判定时的换算系数; 渲染端 drawControlPointHandle 从 getTransform 反算的是同一个值
+  const devicePxPerOsu = () => {
+    const c = canvasRef.current!;
+    const r = zoomRect(c);
+    return (c.width / r.width) * playfieldTransform(r).scale;
+  };
+
   // 暴露给 CDP 测试: osu 坐标 -> client 坐标 / canvas 设备像素 (与渲染/命中共用同一变换, 含 PAD_Y 留白)
   useEffect(() => {
     const w = window as unknown as {
@@ -498,7 +507,7 @@ export function EditorCanvas() {
       const p = toOsu({ clientX: cx, clientY: cy });
       const offs = getStackOffsets(bm);
       const sliders = bm.hitObjects.filter(o => o.type === 'slider' && (sliderAnchorInteractiveAt(bm, o, store.currentTime) || store.selected.has(o.id) || store.selectedNodes.has(o.id)));
-      const hitNode = nearestNode(sliders, offs, p);
+      const hitNode = nearestNode(sliders, offs, p, devicePxPerOsu());
       if (!hitNode) return false;
       if (mods.altKey) return true; // Alt+点击锚点 = 切换选中 (nodeAltPress)
       const selObjs = bm.hitObjects.filter(o => store.selected.has(o.id));
@@ -526,7 +535,7 @@ export function EditorCanvas() {
         const bm = store.beatmap;
         const offs = getStackOffsets(bm);
         const sliders = bm.hitObjects.filter(o => o.type === 'slider' && (sliderAnchorInteractiveAt(bm, o, store.currentTime) || store.selected.has(o.id) || store.selectedNodes.has(o.id)));
-        const hitNode = nearestNode(sliders, offs, p);
+        const hitNode = nearestNode(sliders, offs, p, devicePxPerOsu());
         const hitObj = hitNode ? null : hitTest(p.x, p.y);
         if (!hitNode && !(hitObj && hitObj.type === 'slider')) return false;
         nodeAltPress(p, mods);
@@ -641,7 +650,7 @@ export function EditorCanvas() {
         // v74: 头部候选 = 头已在 mousedown 落好, 松开不加点不切红
         if (!c.isHead) {
           const head = store.pendingSlider[0];
-          if (head && Math.hypot(c.x - head.x, c.y - head.y) < 8) head.redAnchor = !head.redAnchor;
+          if (head && Math.hypot(c.x - head.x, c.y - head.y) < anchorHitRadius(true, devicePxPerOsu())) head.redAnchor = !head.redAnchor; // v452: 阈值 = 头部手柄显示半径 (原固定 8 osu px)
           else {
             store.pendingSlider.push({ x: Math.round(c.sp.x), y: Math.round(c.sp.y), redAnchor: c.redAnchor });
           }
@@ -1413,11 +1422,12 @@ export function EditorCanvas() {
   }, []);
 
   // v35: 控制点手柄命中 — 多个手柄在鼠标下时取最近者; 距离相同取序号在前 (与渲染顺序一致: 序号在前者在更上层)
-  const nearestCtrlPoint = (ctrl: { x: number; y: number }[], odx: number, ody: number, p: { x: number; y: number }, maxDist = 10): number => {
-    let best = -1, bestD = maxDist;
+  // v452: 命中半径按各点显示尺寸 (anchorHitRadius; 头 r7/其余 r6 或 stable 方格内切 4/k), 取代固定 10 osu px
+  const nearestCtrlPoint = (ctrl: { x: number; y: number }[], odx: number, ody: number, p: { x: number; y: number }, devicePx: number): number => {
+    let best = -1, bestD = Infinity;
     for (let i = 0; i < ctrl.length; i++) {
       const d = Math.hypot(ctrl[i].x + odx - p.x, ctrl[i].y + ody - p.y);
-      if (d <= maxDist && (best < 0 || d < bestD)) { best = i; bestD = d; }
+      if (d <= anchorHitRadius(i === 0, devicePx) && (best < 0 || d < bestD)) { best = i; bestD = d; }
     }
     return best;
   };
@@ -1467,7 +1477,7 @@ export function EditorCanvas() {
     // v316: F18b — 候选在清选区之前取, 且含选中/有已选节点的滑条 (v273 例外): 时间滚走后
     // 这些滑条仍在渲染, Alt+点击应能直接点选其锚点而非落成空白框选
     const sliders = bm.hitObjects.filter(o => o.type === 'slider' && (sliderAnchorInteractiveAt(bm, o, store.currentTime) || store.selected.has(o.id) || store.selectedNodes.has(o.id)));
-    const hitNode = nearestNode(sliders, offs, p); // 跨滑条最近优先, 并列取序号在前
+    const hitNode = nearestNode(sliders, offs, p, devicePxPerOsu()); // 跨滑条最近优先, 并列取序号在前
     // v441: Alt 点选/框选不再清空物件选区 (soulten: alt選取不應清掉普通選取狀態) — v265 的
     //   「进 Alt 层即清物件选区」废除; 节点选区与物件选区并存, Delete/旋转/缩放仍节点优先 (App 路由)
     if (hitNode) {
@@ -1501,7 +1511,7 @@ export function EditorCanvas() {
     const offs = getStackOffsets(bm);
     // v273: 已选节点所在滑条即使当前时间不可见也可整组拖 (与物件命中同一例外)
     const sliders = bm.hitObjects.filter(o => o.type === 'slider' && (sliderAnchorInteractiveAt(bm, o, store.currentTime) || store.selected.has(o.id) || store.selectedNodes.has(o.id)));
-    const hitNode = nearestNode(sliders, offs, p);
+    const hitNode = nearestNode(sliders, offs, p, devicePxPerOsu());
     const insideNode = !!(hitNode && store.selectedNodes.get(hitNode.objId)?.has(hitNode.idx)); // 命中已选节点
     // v309: 按下点在节点黄框 (dq) 内同样整组拖 — 原实现只认锚点命中: 框内按下 (如两锚点之间的
     // 滑条身) 会落到 hitTest 选中滑条并清掉节点选区、转成物件拖拽 (物件钳制在游玩区内, 用户
@@ -1550,7 +1560,7 @@ export function EditorCanvas() {
     const soff = getStackOffsets(bm).get(so.id); // 手柄随堆叠偏移绘制, 命中同样偏移
     const odx = soff?.dx ?? 0, ody = soff?.dy ?? 0;
     const ctrl = [{ x: so.x, y: so.y }, ...(so.curvePoints ?? [])];
-    const hitIdx = nearestCtrlPoint(ctrl, odx, ody, p); // v35: 最近优先, 并列取序号在前
+    const hitIdx = nearestCtrlPoint(ctrl, odx, ody, p, devicePxPerOsu()); // v35: 最近优先, 并列取序号在前; v452: 半径 = 显示尺寸
     if (hitIdx >= 0) {
       // v410: 不按 Alt 也能点选锚点 (需求5) —
       //   无修饰: 单选替换为该锚点, 拖拽走整组拖通道 (该点已在节点选区, 红对由 withRedPartners 带上);
@@ -1704,7 +1714,7 @@ export function EditorCanvas() {
     const offs = getStackOffsets(bm);
     // 候选与 nodeAltPress 同口径 (可见 / 已选 / 有已选节点的滑条)
     const sliders = bm.hitObjects.filter(o => o.type === 'slider' && (sliderAnchorInteractiveAt(bm, o, store.currentTime) || store.selected.has(o.id) || store.selectedNodes.has(o.id)));
-    const hitNode = nearestNode(sliders, offs, p);
+    const hitNode = nearestNode(sliders, offs, p, devicePxPerOsu());
     if (!hitNode || store.selected.has(hitNode.objId)) return false; // 已选滑条由 singleSliderNodePress 处理
     store.select([hitNode.objId]); // 命中锚点即进入该滑条节点编辑 (替换选区, 与点击物件本体一致; 顺带清节点选区)
     return singleSliderNodePress(p, mods);
@@ -1788,14 +1798,14 @@ export function EditorCanvas() {
       const so = selObjs[0];
       const soff = getStackOffsets(bm).get(so.id);
       const ctrl = [{ x: so.x, y: so.y }, ...(so.curvePoints ?? [])];
-      const i = nearestCtrlPoint(ctrl, soff?.dx ?? 0, soff?.dy ?? 0, p);
+      const i = nearestCtrlPoint(ctrl, soff?.dx ?? 0, soff?.dy ?? 0, p, devicePxPerOsu()); // v452: 半径 = 显示尺寸
       if (i >= 0) { deleteSliderAnchor(so, i); return true; }
     }
     // v438: 未选中滑条锚点 — 跨滑条最近优先 (与 unselectedSliderNodePress 同候选口径), 排除已选
     const offs = getStackOffsets(bm);
     const sliders = bm.hitObjects.filter(o => o.type === 'slider' && !store.selected.has(o.id)
       && (sliderAnchorInteractiveAt(bm, o, store.currentTime) || store.selectedNodes.has(o.id)));
-    const hitNode = nearestNode(sliders, offs, p);
+    const hitNode = nearestNode(sliders, offs, p, devicePxPerOsu());
     if (!hitNode) return false; // 未命中锚点 — 调用方落到通用删除/面板原行为
     const ho = bm.hitObjects.find(x => x.id === hitNode.objId);
     if (!ho) return false;
@@ -1906,7 +1916,8 @@ export function EditorCanvas() {
       // v208: 无待点时的双击第二击直接吞掉 — 否则双击头部闭环后第二击会在原地新起一条滑条
       if (e.detail >= 2 && pendPts.length === 0) return;
       const lastPt = pendPts[pendPts.length - 1];
-      const nearLastPt = !!lastPt && Math.hypot(p.x - lastPt.x, p.y - lastPt.y) < 8;
+      // v452: 阈值 = 末点手柄显示半径 (原固定 8 osu px); 仅头部时末点即头 (isHead=true, lazer r7/方格同宽)
+      const nearLastPt = !!lastPt && Math.hypot(p.x - lastPt.x, p.y - lastPt.y) < anchorHitRadius(pendPts.length === 1, devicePxPerOsu());
       if (e.detail >= 2) {
         // v208 (取代 v206 的"第一击刚放"例外): stable 语义 — 双击 = 末点置红, 永不结束放置
         // (结束放置用右键 / 点击头部闭环)。双击空白处: 第一击已把点放在光标处, 第二击命中
@@ -1917,9 +1928,9 @@ export function EditorCanvas() {
           store.emit();
           return;
         }
-        // 第二击落在末点 8px 外 (快速连点不同位置): 不按双击处理, 落入下面普通加点分支
+        // 第二击落在末点手柄半径外 (快速连点不同位置): 不按双击处理, 落入下面普通加点分支
       }
-      if (e.detail === 1 && pendPts.length >= 2 && Math.hypot(p.x - pendPts[0].x, p.y - pendPts[0].y) < 8) {
+      if (e.detail === 1 && pendPts.length >= 2 && Math.hypot(p.x - pendPts[0].x, p.y - pendPts[0].y) < anchorHitRadius(true, devicePxPerOsu())) { // v452: 阈值 = 头部手柄显示半径 (原固定 8 osu px)
         finishSlider();
         return;
       }
@@ -1940,8 +1951,9 @@ export function EditorCanvas() {
         return;
       }
       // lazer: 点击最后一个已放置的点 -> 标记红点 (段分隔), 不新增点
+      // v452: 阈值 = 末点手柄显示半径 (原固定 8 osu px, 离上一节点较近放不了点的根因); 仅头部时末点即头
       const last = store.pendingSlider[store.pendingSlider.length - 1];
-      if (last && Math.hypot(p.x - last.x, p.y - last.y) < 8) {
+      if (last && Math.hypot(p.x - last.x, p.y - last.y) < anchorHitRadius(store.pendingSlider.length === 1, devicePxPerOsu())) {
         last.redAnchor = !last.redAnchor;
         store.emit();
         return;
@@ -2212,7 +2224,7 @@ export function EditorCanvas() {
     if (altHeldRef.current && !store.lockNotes) {
       const offs = getStackOffsets(bm);
       const sliders = bm.hitObjects.filter(o => o.type === 'slider' && (sliderAnchorInteractiveAt(bm, o, store.currentTime) || store.selected.has(o.id) || store.selectedNodes.has(o.id)));
-      const hn = nearestNode(sliders, offs, cp);
+      const hn = nearestNode(sliders, offs, cp, devicePxPerOsu()); // v452: 锚点命中半径 = 显示尺寸
       hoverNodeRef.current = hn ? { objId: hn.objId, idx: hn.idx } : null;
       store.setHoverNode(hoverNodeRef.current); // v381
       const hit = hitTest(cp.x, cp.y);
@@ -2223,14 +2235,14 @@ export function EditorCanvas() {
       const hit = hitTest(cp.x, cp.y);
       hoverSliderRef.current = hit && hit.type === 'slider' && !store.selected.has(hit.id) ? hit.id : null;
       // v381: 非 Alt 态 — 指针悬停在选中滑条的控制点手柄上时同样上报 hover 锚点 (信息面板显示其位置;
-      //   命中几何与 mousedown 节点拖拽同款 nearestCtrlPoint, 默认 10 osu px)
+      //   命中几何与 mousedown 节点拖拽同款 nearestCtrlPoint, v452 起半径 = 手柄显示尺寸)
       if (!store.lockNotes) {
         const selObjs = bm.hitObjects.filter(o => store.selected.has(o.id));
         if (selObjs.length === 1 && selObjs[0].type === 'slider') {
           const so = selObjs[0];
           const soff = getStackOffsets(bm).get(so.id); // 手柄随堆叠偏移绘制, 命中同样偏移 (同 singleSliderNodePress)
           const ctrl = [{ x: so.x, y: so.y }, ...(so.curvePoints ?? [])];
-          const idx = nearestCtrlPoint(ctrl, soff?.dx ?? 0, soff?.dy ?? 0, cp);
+          const idx = nearestCtrlPoint(ctrl, soff?.dx ?? 0, soff?.dy ?? 0, cp, devicePxPerOsu());
           if (idx >= 0) hoverNodeRef.current = { objId: so.id, idx };
         }
       }
@@ -2548,7 +2560,7 @@ export function EditorCanvas() {
       // v74: 头部候选 = 头已在 mousedown 落好, 松开不加点不切红
       if (!c.isHead) {
         const head = store.pendingSlider[0];
-        if (head && Math.hypot(c.x - head.x, c.y - head.y) < 8) head.redAnchor = !head.redAnchor;
+        if (head && Math.hypot(c.x - head.x, c.y - head.y) < anchorHitRadius(true, devicePxPerOsu())) head.redAnchor = !head.redAnchor; // v452: 阈值 = 头部手柄显示半径 (原固定 8 osu px)
         else {
           store.pendingSlider.push({ x: Math.round(c.sp.x), y: Math.round(c.sp.y), redAnchor: c.redAnchor });
         }
@@ -2649,10 +2661,10 @@ export function EditorCanvas() {
       // 选中滑条时右键滑条非控制点部位 -> 落到下方通用删除 (删整个滑条)
     } else if (store.tool === 'slider' && store.pendingSlider.length) {
       // v318: F24b — 右键 = 先落下当前幻影点再完成并保留滑条 (对齐 stable; 原仅头部时右键 pend<2 直接丢弃
-      // = 用户反馈"右键不会放置点而是直接退出"); 光标在末点 8px 内不重复落点, 直接完成
+      // = 用户反馈"右键不会放置点而是直接退出"); 光标在末点手柄半径内不重复落点, 直接完成 (v452: 阈值 = 显示尺寸)
       const pR = toOsu(e);
       const lastR = store.pendingSlider[store.pendingSlider.length - 1];
-      if (lastR && Math.hypot(pR.x - lastR.x, pR.y - lastR.y) >= 8) {
+      if (lastR && Math.hypot(pR.x - lastR.x, pR.y - lastR.y) >= anchorHitRadius(store.pendingSlider.length === 1, devicePxPerOsu())) { // v452: 阈值 = 末点手柄显示半径 (原固定 8 osu px); 仅头部时末点即头
         const spR = snapSliderCtrlPoint(pR); // 与左键落点同一吸附公式
         store.pendingSlider.push({ x: Math.round(spR.x), y: Math.round(spR.y), redAnchor: false });
       }

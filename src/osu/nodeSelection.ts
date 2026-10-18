@@ -3,6 +3,7 @@
 import type { Beatmap, HitObject } from './parser';
 import { redPairPartner } from './sliderPath';
 import type { Pt, Quad } from './selectionBox';
+import { displaySettings } from './displaySettings'; // v452: 锚点命中半径随控制点样式开关 (stable 方格 / lazer 圆点)
 
 /** 节点选区: objId -> 控制点下标集 (0 = 头部) */
 export type NodeSel = ReadonlyMap<number, ReadonlySet<number>>;
@@ -22,14 +23,23 @@ export function nodeEntries(sel: NodeSel): NodeEntry[] {
   return out;
 }
 
-/** 跨滑条命中最优先: 距离最近者胜, 并列取序号在前 (与单滑条 nearestCtrlPoint 一致) */
-export function nearestNode(sliders: HitObject[], offsets: Offsets, p: Pt, maxDist = 10): { objId: number; idx: number } | null {
-  let best: { objId: number; idx: number } | null = null, bestD = maxDist;
+/** v452: 滑条锚点点击命中半径 = 屏幕上实际绘制尺寸 (renderer drawControlPointHandle 同款真值) —
+ *  stable = 屏幕固定 ~8px 实心方格 (7/k 边长 + 1/k 居中描边), 圆形判定取内切 → 半径 4/k (宁小勿大);
+ *  lazer = 圆点 osu 单位固定: 头 r7 / 其余 r6。k = 设备px/osu单位 (= 渲染主变换 hypot(m.a, m.b)) */
+export function anchorHitRadius(isHead: boolean, devicePxPerOsu: number): number {
+  if (displaySettings.sliderPointStyle === 'stable') return 4 / (devicePxPerOsu || 1);
+  return isHead ? 7 : 6;
+}
+
+/** 跨滑条命中最优先: 距离最近者胜, 并列取序号在前 (与单滑条 nearestCtrlPoint 一致)
+ *  v452: 命中半径按各节点显示尺寸 (anchorHitRadius; 头/非头不同), 取代固定 10 osu px */
+export function nearestNode(sliders: HitObject[], offsets: Offsets, p: Pt, devicePxPerOsu: number): { objId: number; idx: number } | null {
+  let best: { objId: number; idx: number } | null = null, bestD = Infinity;
   for (const o of sliders) {
     const ctrl = ctrlPoints(o, offsets.get(o.id));
     for (let i = 0; i < ctrl.length; i++) {
       const d = Math.hypot(ctrl[i].x - p.x, ctrl[i].y - p.y);
-      if (d <= maxDist && (!best || d < bestD)) { best = { objId: o.id, idx: i }; bestD = d; }
+      if (d <= anchorHitRadius(i === 0, devicePxPerOsu) && (!best || d < bestD)) { best = { objId: o.id, idx: i }; bestD = d; }
     }
   }
   return best;

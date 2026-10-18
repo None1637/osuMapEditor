@@ -44,7 +44,7 @@ section('EditorCanvas.tsx: 手柄命中 / 拖拽 / 键盘修饰 / 渲染 / undo'
   assert(/scaleDragRef = useRef/.test(src), 'scaleDragRef 拖拽状态');
   assert(/hitScaleHandle\(quads\.q, quads\.dq, p, tol\)/.test(src), 'mousedown 命中手柄 (gate=位置盒, 位置=显示盒)');
   const handleIdx = src.indexOf('hitScaleHandle(quads.q');
-  const nodeIdx = src.indexOf('nearestCtrlPoint(ctrl, odx, ody, p)');
+  const nodeIdx = src.indexOf('nearestCtrlPoint(ctrl, odx, ody, p, devicePxPerOsu())'); // v452 适配: 调用带 k 实参
   assert(handleIdx > 0 && nodeIdx > 0 && handleIdx < nodeIdx, '手柄命中优先于滑条节点编辑');
   assert(/store\.beginDrag\(\)[\s\S]{0,200}scaleDragRef\.current = \{/.test(src), 'mousedown beginDrag (一次拖拽一次 undo)');
   assert(/applyScaleUpdate\(cp, e\.shiftKey, e\.altKey\)/.test(src), 'mousemove 应用缩放 (modifier 实时)');

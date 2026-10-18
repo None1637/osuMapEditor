@@ -4973,3 +4973,36 @@
   适配后 V245_ALL_PASSED + V246_ALL_PASSED; v341 全选拖动 renderPlayfield 阈值
   (render<4ms) 修复前基线同红 (4.32ms vs 修复后 4.19/4.96ms, 统计无差) — 本机环境
   阈值紧的历史滞后, 非本版引起, 断言未动。
+
+## v452 — 滑条锚点命中判定 = 显示尺寸 (放置/选中/拖拽/右键删/穿透全链路)
+- 起因: 用户反馈 — 放置滑条时离上一节点较近会无法放置节点, 希望点击判定和显示的一样大;
+  且不限于放置 (新增滑条节点等其他情况同样改成与显示大小一致)。
+- 根因: 锚点命中全是固定 osu 单位阈值 — nearestNode (nodeSelection.ts) 与 nearestCtrlPoint
+  (EditorCanvas) 默认 maxDist=10, 放置流程 6 处硬编码 < 8 / >= 8; 而绘制 (renderer
+  drawControlPointHandle, v231) stable 样式为屏幕固定 ~8px 实心方格 (7/k 边长 + 1/k 居中描边,
+  k = 设备px/osu单位), lazer 为头 r7/其余 r6 圆点。默认窗口 k≈2.9 时 stable 手柄可见半径
+  仅 ~1.4 osu — 判定圈 (10/8 osu) 比显示大 3-7 倍, 点显示手柄外的空白也被吞成切红/拖拽。
+- 改动 (均带 v452 注释):
+  1) src/osu/nodeSelection.ts: 新增 anchorHitRadius(isHead, devicePxPerOsu) — stable = 4/k
+     (8/k 方格内切圆, 宁小勿大; k=0 兜底 ||1 与 renderer hypot 同款), lazer = 头 7/其余 6;
+     nearestNode 第 4 参 maxDist=10 改为 devicePxPerOsu, 逐节点按头/非头各自半径判定,
+     「跨滑条最近优先, 并列取序号在前」语义不变 (严格 <)。
+  2) src/components/EditorCanvas.tsx: 新增 devicePxPerOsu() (k = c.width/r.width ×
+     playfieldTransform(r).scale — 与渲染主变换 setTransform(sx)×scale 同公式, v391 旋转
+     不影响模长); nearestCtrlPoint 同款改签名 (末参 devicePx); 7 处 nearestNode +
+     3 处 nearestCtrlPoint 调用全部带 k; 放置流程 6 处阈值 — 双击末点置红 (v208) /
+     点击末点切红 / 右键完成落幻影点 (v318) 用末点半径 (pend.length===1 时末点即头,
+     isHead=true), 点击头部闭环 / 手绘候选松开距头切红 (v66/v74, onMouseUp 与 window
+     mouseup 两处) 用头半径; 逻辑分支顺序不动, 只换阈值。
+  3) 范围外不动: 绘制代码本身、缩放/旋转手柄 tol (10/8 视觉px 换算, v217)、物件本体 hitTest。
+- 阈值映射 (旧 → 新): 锚点命中 maxDist=10 → anchorHitRadius(idx===0, k); 放置 6 处固定 8 →
+  头 anchorHitRadius(true, k) / 末点 anchorHitRadius(pend.length===1, k)。
+  具体: stable 样式一律 4/k (默认窗 ~1.4 osu); lazer 头 7 / 其余 6 osu。
+- 验证: verifier/v452 (纯函数 12 项 + 静态 25 项全绿) — esbuild buildSync 打包 tests.ts 断言
+  半径公式 (stable=4/k、lazer=6/7、k=0 兜底) 与 nearestNode 逐点半径/最近优先/并列语义;
+  check.mjs 断言共享函数存在、新签名、6 处阈值替换、旧 maxDist/固定 8 清空、范围外不动。
+  tsc -p tsconfig.app.json --noEmit + vite build 通过; 按惯例未跑大批量回归。
+- 回归: 与旧阈值/签名断言直接冲突的 8 个验证器适配后全绿 (v35/v49/v117/v316/v318/v326/v411/
+  v438, 各加 v452 适配注记); v117 '渲染: 选中节点黄环' 与 v326 两条 v413 断言为 HEAD 遗留红
+  (git stash 对比确认与本版无关, 未修); v117/tests.ts esbuild 打包红 (store 依赖链 ?raw
+  worklet 导入) 同为遗留; v401/v378 tests 全绿。

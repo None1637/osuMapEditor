@@ -26,10 +26,11 @@ section('EditorCanvas.tsx: 控制点命中最近优先, 并列取序号在前');
 {
   const src = readSrc('src/components/EditorCanvas.tsx');
   assert(/nearestCtrlPoint = \(ctrl/.test(src), 'nearestCtrlPoint helper');
-  assert(/d <= maxDist && \(best < 0 \|\| d < bestD\)/.test(src), '严格 < : 距离相同保持序号在前');
-  assert(/const hitIdx = nearestCtrlPoint\(ctrl, odx, ody, p\)/.test(src), 'mousedown 拖拽用最近优先命中');
+  // v452 适配: 命中半径改按显示尺寸 (anchorHitRadius; 末参 maxDist=10 改为 devicePx), 严格 < 语义不变
+  assert(/d <= anchorHitRadius\(i === 0, devicePx\) && \(best < 0 \|\| d < bestD\)/.test(src), '严格 < : 距离相同保持序号在前 (v452: 半径 = 显示尺寸)');
+  assert(/const hitIdx = nearestCtrlPoint\(ctrl, odx, ody, p, devicePxPerOsu\(\)\)/.test(src), 'mousedown 拖拽用最近优先命中');
   // v443 适配: v438 右键删点重构 (删除抽 deleteSliderAnchor, 偏移改 soff) — 同一 nearestCtrlPoint 最近优先语义不变
-  assert(/const i = nearestCtrlPoint\(ctrl, soff\?\.dx \?\? 0, soff\?\.dy \?\? 0, p\);/.test(src), '右键 (红点转白/白点删除) 同一命中优先级');
+  assert(/const i = nearestCtrlPoint\(ctrl, soff\?\.dx \?\? 0, soff\?\.dy \?\? 0, p, devicePxPerOsu\(\)\);/.test(src), '右键 (红点转白/白点删除) 同一命中优先级');
 }
 
 section('Timelines.tsx: 拖滑条尾改折返次数');
