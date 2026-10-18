@@ -25,7 +25,7 @@ import { setDisplayFlag as applyDisplayFlag, setDisplayNumber as applyDisplayNum
 import { setEditorPref as applyEditorPref, type EditorPrefKey } from './editorPrefs'; // v381: 通用编辑器偏好
 import { setVolume as applyVolume, musicGain, effectsGain, type VolumeSettings } from './volumeSettings'; // v144: 音量设置
 import { dirtyFingerprint } from './dirtyFingerprint'; // v140: 脏标记内容指纹
-import { countBSplineSliders, convertBSplineSlidersToBezier } from './convert/convertB4'; // v387: B4 警告条计数 + 一键全图转贝塞尔
+import { countBSplineSliders, convertBSplineSlidersToBezier, convertBezierSlidersToBSpline } from './convert/convertB4'; // v387: B4 警告条计数 + 一键全图转贝塞尔; v464: 反向 (贝塞尔转 B4)
 import { seekByBeats, wheelSteps, playingWheelStepMs, type WheelAccum } from './seekSnapping'; // v193: 滚轮 seek
 import { beginLifecycleFrame } from './lifecycle'; // v197: 每帧推进滑条时长 memo 帧号
 import { toggleEdgesHitSound, setEdgeSoundBitAll } from './edgeSounds'; // v213: 滑条 per-edge hitsound
@@ -1619,6 +1619,40 @@ class EditorStore {
     const n = convertBSplineSlidersToBezier(bm, this.selected);
     for (const o of bm.hitObjects) if (this.selected.has(o.id)) invalidatePath(o.id);
     this.saveMessage = tNow('convert.b4_converted', 'Converted {count} B4 slider(s) to Bezier (stable-compatible)', { count: n });
+    setTimeout(() => { this.saveMessage = null; this.emitPlayback(); }, 2600);
+    this.emit();
+  }
+
+  /** v464: 一键全图贝塞尔 ('B') 转 B4 (B 样条) — convertAllBSplineSliders 的反向 (一次 undo + 2.6s toast; 无 'B' 时仅提示) */
+  convertAllBezierSlidersToB4() {
+    const bm = this.beatmap;
+    if (!bm) return;
+    if (!bm.hitObjects.some(o => o.type === 'slider' && o.curveType === 'B')) {
+      this.saveMessage = tNow('convert.bez_b4_none', 'No Bezier (B) sliders in this map');
+      setTimeout(() => { this.saveMessage = null; this.emitPlayback(); }, 2600);
+      this.emitPlayback();
+      return;
+    }
+    this.pushUndo();
+    const n = convertBezierSlidersToBSpline(bm);
+    for (const o of bm.hitObjects) invalidatePath(o.id); // 同 v387: 全量失效从简
+    this.saveMessage = tNow('convert.bez_b4_converted', 'Converted {count} Bezier slider(s) to B4 (B-spline)', { count: n });
+    setTimeout(() => { this.saveMessage = null; this.emitPlayback(); }, 2600);
+    this.emit();
+  }
+
+  /** v464: 选中集中的贝塞尔 ('B') 滑条转 B4 (Inspector 按钮; 选中无 'B' 时静默不动作) */
+  convertSelectedBezierSlidersToB4() {
+    const bm = this.beatmap;
+    if (!bm) return;
+    let has = false;
+    for (const o of bm.hitObjects)
+      if (this.selected.has(o.id) && o.type === 'slider' && o.curveType === 'B') { has = true; break; }
+    if (!has) return;
+    this.pushUndo();
+    const n = convertBezierSlidersToBSpline(bm, this.selected);
+    for (const o of bm.hitObjects) if (this.selected.has(o.id)) invalidatePath(o.id);
+    this.saveMessage = tNow('convert.bez_b4_converted', 'Converted {count} Bezier slider(s) to B4 (B-spline)', { count: n });
     setTimeout(() => { this.saveMessage = null; this.emitPlayback(); }, 2600);
     this.emit();
   }

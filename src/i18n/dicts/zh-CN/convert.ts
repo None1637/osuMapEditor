@@ -122,4 +122,7 @@ export const zhCN: Record<string, string> = {
   // v387: B4 全图转贝塞尔 toast
   'convert.b4_none': '谱面中没有 B4 (B 样条) 滑条',
   'convert.b4_converted': '已将 {count} 个 B4 滑条转为贝塞尔 (stable 兼容)',
+  // v464: 反向 — 贝塞尔转 B4 toast
+  'convert.bez_b4_none': '谱面中没有贝塞尔 (B) 滑条',
+  'convert.bez_b4_converted': '已将 {count} 个贝塞尔滑条转为 B4 (B 样条)',
 };

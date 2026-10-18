@@ -34,6 +34,7 @@ export const zhCN: Record<string, string> = {
   'inspector.stream_tip': '把滑条转成连打单点 ({key})', // v429
   'inspector.arc_to_bezier': '圆弧→贝塞尔 ({n} 条)',
   'inspector.bspline_to_bezier': 'B 样条→贝塞尔 ({n} 条)', // v388: 选中集 B4 一键转 stable 兼容贝塞尔
+  'inspector.bezier_to_bspline': '贝塞尔→B4 ({n} 条)', // v464: 反向 — 选中集贝塞尔一键转 B 样条
   'inspector.selected_n': '已选中 {n} 个物件',
   'inspector.no_selection': '未选中物件',
   'inspector.convert_title': '转换',

@@ -193,6 +193,7 @@ export function Inspector() {
   const SliderConvertButtons = ({ sliders }: { sliders: HitObject[] }) => {
     const selP = sliders.filter(o => o.curveType === 'P');
     const selB4 = sliders.filter(o => parseBSplineType(o.curveType) !== null); // v388: 选中集内 B 样条
+    const selBez = sliders.filter(o => o.curveType === 'B'); // v464: 选中集内贝塞尔 (反向转 B4)
     // P->B: 三点圆弧转三次贝塞尔近似 (circleToBezier, 90° 内误差 <0.03%), 无参数不弹窗, 点击直接应用 (一次 undo)
     const onP2B = () => {
       const out = selP.map((o): HitObject | null => {
@@ -222,6 +223,12 @@ export function Inspector() {
         {selB4.length > 0 && (
           <Btn data-conv-apply="b4toB" onClick={() => store.convertSelectedBSplineSliders()}>
             {t('inspector.bspline_to_bezier', 'B-Spline → Bezier ({n})', { n: selB4.length })}
+          </Btn>
+        )}
+        {/* v464: 反向 — 选中集含贝塞尔 ('B') 时一键转 B4 (原地改不换 id, 一次 undo) */}
+        {selBez.length > 0 && (
+          <Btn data-conv-apply="btoB4" onClick={() => store.convertSelectedBezierSlidersToB4()}>
+            {t('inspector.bezier_to_bspline', 'Bezier → B4 ({n})', { n: selBez.length })}
           </Btn>
         )}
       </>

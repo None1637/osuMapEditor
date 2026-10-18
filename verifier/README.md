@@ -5155,3 +5155,21 @@
   既有遗留 (与 v463 无关, stash 验证 v462 上同样红): v379 预览+拖曳流 6 项 (2/3 段),
   v301 esbuild 打不了 rateResampler.worklet.js?raw (音频改造遗留)。
   tsc + vite build 通过。
+
+## v464 — 新功能: 贝塞尔滑条转 B4 (B 样条)
+- 用户需求: 加个将贝塞尔滑条转 B4 的功能 (v387/v388 只有反向的 B4→贝塞尔)。
+- 算法 (convertB4.ts 新增 bezierAnchorsToBSpline / convertBezierSlidersToBSpline):
+  贝塞尔路径 SliderPath.computeRawPath('B') 密集采样 → IncrementalBSplineBuilder
+  (osu-framework 移植, 与手绘落盘 finishFreehandSlider 同管线: 2px 平滑采样 + 局部曲率
+  拐角检测分段 + 最小二乘拟合; 容差 1.0px 比手绘 1.8 更贴合, 拐角阈值 0.4, degree 4) →
+  分段控制点展平 (非首段段起点 = 红锚点重复一次, .osu 惯例; 仅末段补终点)。
+  首末控制点强制 = 原贝塞尔首末锚点 — builder 按 FD_EPSILON=2px 采样, 末端拟合系统性
+  短 ~2-3px (手绘场景无感, 转换场景尾锚点必须保真; clamped B 样条过首末控制点)。
+  仅转 'B' (L/P/C/B<n> 不动); length/时间/音效/id 不变; 原地改写, 一次 undo。
+- 入口: 作图菜单「全部贝塞尔滑条转B4」(compose-convert-bezier-b4, 三语) +
+  Inspector「贝塞尔→B4 ({n} 条)」(选中集含 'B' 时出现, data-conv-apply="btoB4");
+  store.convertAllBezierSlidersToB4 / convertSelectedBezierSlidersToB4 (一次 undo + 2.6s toast;
+  无 'B' 时仅提示 convert.bez_b4_none)。
+- 验证: verifier/v464 (纯函数: S 曲线/红锚点硬拐角/直线保真 < 2px 且尖角不圆化、端点贴合、
+  退化 null、onlyIds 与字段不变; 源码接线断言; CDP: Inspector 按钮文案/点击转换/id 不变/
+  toast/撤销还原/全图只动 'B'/空态提示); v387/v388/v425/v66/v236 回归; tsc + vite build 通过。

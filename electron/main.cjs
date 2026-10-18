@@ -410,6 +410,7 @@ const MENU_LABELS = {
   "menu.merge": { en: "Merge Sliders", "zh-CN": "合并滑条", "zh-TW": "合併滑條" },
   "menu.sym_slider": { en: "Symmetrical Slider...", "zh-CN": "对称滑条...", "zh-TW": "對稱滑條..." },
   "menu.convert_b4": { en: "Convert All B4 Sliders to Bezier", "zh-CN": "全部B4滑条转贝塞尔", "zh-TW": "全部B4滑條轉貝塞爾" }, // v387
+  "menu.convert_bezier_b4": { en: "Convert All Bezier Sliders to B4", "zh-CN": "全部贝塞尔滑条转B4", "zh-TW": "全部貝塞爾滑條轉B4" }, // v464
   "menu.meter": { en: "Time Signature", "zh-CN": "节拍类型", "zh-TW": "節拍類型" },
   "menu.meter_common": { en: "4/4 (common)", "zh-CN": "4/4 (普通/四拍子)", "zh-TW": "4/4 (普通/四拍子)" },
   "menu.meter_waltz": { en: "3/4 (waltz)", "zh-CN": "3/4 (华尔兹/三拍子)", "zh-TW": "3/4 (華爾滋/三拍子)" },
@@ -561,6 +562,7 @@ function buildMenu() {
           e2("compose-merge", mT("menu.merge"), null, editState.selMulti),
           e2("compose-sym-slider", mT("menu.sym_slider"), null, editState.selSingleSlider), // v236
           e2("compose-convert-b4", mT("menu.convert_b4"), null, editState.hasMap), // v387: B4 全图转贝塞尔 (无 B4 时渲染端 toast 提示)
+          e2("compose-convert-bezier-b4", mT("menu.convert_bezier_b4"), null, editState.hasMap), // v464: 反向 — 贝塞尔全图转 B4
         ]
       })(),
     },

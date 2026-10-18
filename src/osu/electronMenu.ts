@@ -129,6 +129,7 @@ export async function handleMenuCommand(cmd: ElectronMenuCommand): Promise<void>
       return;
     }
     case 'compose-convert-b4': store.convertAllBSplineSliders(); return; // v387: B4 全图转贝塞尔 (与右侧栏警告条按钮同一 handler)
+    case 'compose-convert-bezier-b4': store.convertAllBezierSlidersToB4(); return; // v464: 反向 — 贝塞尔全图转 B4
     default: return;
   }
 }
