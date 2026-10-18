@@ -581,7 +581,11 @@ class EditorStore {
   commitDragFrame() { this.version++; this.listeners.forEach(f => f()); }
 
   setBackground(url: string | null) {
+    // v449: blob URL 所有权随参数传入 — 换新即 revoke 旧值, 否则每次刷新/换谱都钉住一份完整背景 File
+    //   (旧图已解码进 backgroundImg, revoke 只释放 blob 引用, 不影响已加载像素; 同字符串守卫防误销在用 URL)
+    const oldUrl = this.backgroundUrl;
     this.backgroundUrl = url;
+    if (oldUrl && oldUrl !== url && oldUrl.startsWith('blob:')) URL.revokeObjectURL(oldUrl);
     this.backgroundImg = null;
     if (url) {
       const img = new Image();
@@ -637,20 +641,28 @@ class EditorStore {
     // 歌曲更换: 旧变速节点持有旧 PCM, 销毁待重建
     this.destroyTempoNode(); // v447: 收口为销毁助手 (含在途加载令牌 + 播完定时器)
     this.destroyRateNode();
-    this.audioUrl = url;
-    this.audioBuffer = null;
-    this.audioMetaDuration = 0; // v442: 换歌即作废旧探针时长
-    this.degradedSync = false;
     // v444: 文件身份未变 (刷新谱面/同曲换难度) — 直接复用解码结果, 跳过 fetch+decodeAudioData 秒级耗时;
     //   时长已知 (buffer.duration), v442 的元数据探针也不必跑
     if (url && audioKey && this.audioCache?.key === audioKey) {
+      // v449: 命中时新 URL 从未被消费 (不 fetch 不解码) — 立即 revoke 释放其钉住的整份 File;
+      //   audioUrl 继续指旧 URL (同一文件, 旧 URL 仍有效), 否则每次刷新漏一份音频 blob (主进程 blob 存储单调上涨)
+      if (url !== this.audioUrl && url.startsWith('blob:')) URL.revokeObjectURL(url);
       this.audioBuffer = this.audioCache.buffer;
       this.audioMetaDuration = this.audioBuffer.duration;
+      this.degradedSync = false;
       this.ensureClock();
       // v447: 不再预热变速引擎 — 引擎各持整份 PCM 副本 (实测 ~48MB/130s@48k), 首次变速播放经 play() 既有兜底懒建
       this.emit();
       return;
     }
+    // v449: blob URL 所有权随参数传入 — 换新即 revoke 旧值 (旧值所钉 File 随即可 GC);
+    //   新 URL 在解码期供 fetch/探针使用, 之后仅作身份记录, 下次换新时回收 — 任意时刻至多存活 1 份
+    const oldAudioUrl = this.audioUrl;
+    this.audioUrl = url;
+    if (oldAudioUrl && oldAudioUrl !== url && oldAudioUrl.startsWith('blob:')) URL.revokeObjectURL(oldAudioUrl);
+    this.audioBuffer = null;
+    this.audioMetaDuration = 0; // v442: 换歌即作废旧探针时长
+    this.degradedSync = false;
     if (url) {
       // v442: 解码是秒级耗时, 先用元数据探针尽早拿到时长, 避免时间轴先按谱面长度画、解码后整体跳变
       const probe = new Audio();
@@ -661,7 +673,7 @@ class EditorStore {
           this.audioMetaDuration = probe.duration;
           this.emit();
         }
-        probe.removeAttribute('src'); // 拿到元数据即释放, 不占用连接
+        probe.removeAttribute('src'); // 拿到元数据即释放, 不占用连接 (v449: 过期探针也要释放, 移出匹配分支)
       });
       // 优先 Web Audio 解码 (采样级精度); 失败退回 HTMLAudio (降级模式)
       fetch(url).then(r => r.arrayBuffer()).then(buf => {

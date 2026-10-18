@@ -1,0 +1,452 @@
+{
+  "map": "cygnus - Book of Dark Magic (None1637) [Magic].osu",
+  "reloads": 20,
+  "steps": [
+    {
+      "tag": "r0-loaded",
+      "page": {
+        "mem": {
+          "usedJSHeapMB": 57.08,
+          "totalJSHeapMB": 59.9
+        },
+        "audio": {
+          "durS": 130.7,
+          "pcmMB": 47.85
+        },
+        "bgLoaded": true,
+        "objects": 786,
+        "audioUrlIsBlob": true
+      },
+      "os": {
+        "totalMB": 707.2,
+        "browserMB": 136.9,
+        "rendererMB": 217.7
+      }
+    },
+    {
+      "tag": "r1",
+      "page": {
+        "mem": {
+          "usedJSHeapMB": 55.76,
+          "totalJSHeapMB": 58.15
+        },
+        "audio": {
+          "durS": 130.7,
+          "pcmMB": 47.85
+        },
+        "bgLoaded": true,
+        "objects": 786,
+        "audioUrlIsBlob": true
+      },
+      "os": {
+        "totalMB": 692.7,
+        "browserMB": 123,
+        "rendererMB": 217
+      }
+    },
+    {
+      "tag": "r2",
+      "page": {
+        "mem": {
+          "usedJSHeapMB": 55.79,
+          "totalJSHeapMB": 58.15
+        },
+        "audio": {
+          "durS": 130.7,
+          "pcmMB": 47.85
+        },
+        "bgLoaded": true,
+        "objects": 786,
+        "audioUrlIsBlob": true
+      },
+      "os": {
+        "totalMB": 702.9,
+        "browserMB": 129.3,
+        "rendererMB": 220.6
+      }
+    },
+    {
+      "tag": "r3",
+      "page": {
+        "mem": {
+          "usedJSHeapMB": 56.42,
+          "totalJSHeapMB": 58.9
+        },
+        "audio": {
+          "durS": 130.7,
+          "pcmMB": 47.85
+        },
+        "bgLoaded": true,
+        "objects": 786,
+        "audioUrlIsBlob": true
+      },
+      "os": {
+        "totalMB": 714.6,
+        "browserMB": 136.5,
+        "rendererMB": 225
+      }
+    },
+    {
+      "tag": "r4",
+      "page": {
+        "mem": {
+          "usedJSHeapMB": 56.48,
+          "totalJSHeapMB": 60.15
+        },
+        "audio": {
+          "durS": 130.7,
+          "pcmMB": 47.85
+        },
+        "bgLoaded": true,
+        "objects": 786,
+        "audioUrlIsBlob": true
+      },
+      "os": {
+        "totalMB": 722.4,
+        "browserMB": 143.6,
+        "rendererMB": 225.6
+      }
+    },
+    {
+      "tag": "r5",
+      "page": {
+        "mem": {
+          "usedJSHeapMB": 56.41,
+          "totalJSHeapMB": 58.4
+        },
+        "audio": {
+          "durS": 130.7,
+          "pcmMB": 47.85
+        },
+        "bgLoaded": true,
+        "objects": 786,
+        "audioUrlIsBlob": true
+      },
+      "os": {
+        "totalMB": 727.6,
+        "browserMB": 150.7,
+        "rendererMB": 223.5
+      }
+    },
+    {
+      "tag": "r6",
+      "page": {
+        "mem": {
+          "usedJSHeapMB": 56.48,
+          "totalJSHeapMB": 58.4
+        },
+        "audio": {
+          "durS": 130.7,
+          "pcmMB": 47.85
+        },
+        "bgLoaded": true,
+        "objects": 786,
+        "audioUrlIsBlob": true
+      },
+      "os": {
+        "totalMB": 729.3,
+        "browserMB": 157.9,
+        "rendererMB": 217.9
+      }
+    },
+    {
+      "tag": "r7",
+      "page": {
+        "mem": {
+          "usedJSHeapMB": 56.66,
+          "totalJSHeapMB": 60.15
+        },
+        "audio": {
+          "durS": 130.7,
+          "pcmMB": 47.85
+        },
+        "bgLoaded": true,
+        "objects": 786,
+        "audioUrlIsBlob": true
+      },
+      "os": {
+        "totalMB": 738.6,
+        "browserMB": 165.1,
+        "rendererMB": 219.7
+      }
+    },
+    {
+      "tag": "r8",
+      "page": {
+        "mem": {
+          "usedJSHeapMB": 56.6,
+          "totalJSHeapMB": 58.65
+        },
+        "audio": {
+          "durS": 130.7,
+          "pcmMB": 47.85
+        },
+        "bgLoaded": true,
+        "objects": 786,
+        "audioUrlIsBlob": true
+      },
+      "os": {
+        "totalMB": 714,
+        "browserMB": 142.1,
+        "rendererMB": 218.1
+      }
+    },
+    {
+      "tag": "r9",
+      "page": {
+        "mem": {
+          "usedJSHeapMB": 56.63,
+          "totalJSHeapMB": 58.65
+        },
+        "audio": {
+          "durS": 130.7,
+          "pcmMB": 47.85
+        },
+        "bgLoaded": true,
+        "objects": 786,
+        "audioUrlIsBlob": true
+      },
+      "os": {
+        "totalMB": 724,
+        "browserMB": 148.5,
+        "rendererMB": 221.6
+      }
+    },
+    {
+      "tag": "r10",
+      "page": {
+        "mem": {
+          "usedJSHeapMB": 56.69,
+          "totalJSHeapMB": 60.15
+        },
+        "audio": {
+          "durS": 130.7,
+          "pcmMB": 47.85
+        },
+        "bgLoaded": true,
+        "objects": 786,
+        "audioUrlIsBlob": true
+      },
+      "os": {
+        "totalMB": 723.6,
+        "browserMB": 149.4,
+        "rendererMB": 220.2
+      }
+    },
+    {
+      "tag": "r11",
+      "page": {
+        "mem": {
+          "usedJSHeapMB": 56.68,
+          "totalJSHeapMB": 58.65
+        },
+        "audio": {
+          "durS": 130.7,
+          "pcmMB": 47.85
+        },
+        "bgLoaded": true,
+        "objects": 786,
+        "audioUrlIsBlob": true
+      },
+      "os": {
+        "totalMB": 720,
+        "browserMB": 146.8,
+        "rendererMB": 219
+      }
+    },
+    {
+      "tag": "r12",
+      "page": {
+        "mem": {
+          "usedJSHeapMB": 56.73,
+          "totalJSHeapMB": 58.65
+        },
+        "audio": {
+          "durS": 130.7,
+          "pcmMB": 47.85
+        },
+        "bgLoaded": true,
+        "objects": 786,
+        "audioUrlIsBlob": true
+      },
+      "os": {
+        "totalMB": 725.6,
+        "browserMB": 153.4,
+        "rendererMB": 217.9
+      }
+    },
+    {
+      "tag": "r13",
+      "page": {
+        "mem": {
+          "usedJSHeapMB": 56.91,
+          "totalJSHeapMB": 60.15
+        },
+        "audio": {
+          "durS": 130.7,
+          "pcmMB": 47.85
+        },
+        "bgLoaded": true,
+        "objects": 786,
+        "audioUrlIsBlob": true
+      },
+      "os": {
+        "totalMB": 726.6,
+        "browserMB": 155.1,
+        "rendererMB": 220
+      }
+    },
+    {
+      "tag": "r14",
+      "page": {
+        "mem": {
+          "usedJSHeapMB": 56.79,
+          "totalJSHeapMB": 59.4
+        },
+        "audio": {
+          "durS": 130.7,
+          "pcmMB": 47.85
+        },
+        "bgLoaded": true,
+        "objects": 786,
+        "audioUrlIsBlob": true
+      },
+      "os": {
+        "totalMB": 733.5,
+        "browserMB": 161.4,
+        "rendererMB": 220.2
+      }
+    },
+    {
+      "tag": "r15",
+      "page": {
+        "mem": {
+          "usedJSHeapMB": 56.92,
+          "totalJSHeapMB": 60.4
+        },
+        "audio": {
+          "durS": 130.7,
+          "pcmMB": 47.85
+        },
+        "bgLoaded": true,
+        "objects": 786,
+        "audioUrlIsBlob": true
+      },
+      "os": {
+        "totalMB": 735.6,
+        "browserMB": 162.5,
+        "rendererMB": 221.5
+      }
+    },
+    {
+      "tag": "r16",
+      "page": {
+        "mem": {
+          "usedJSHeapMB": 56.77,
+          "totalJSHeapMB": 59.15
+        },
+        "audio": {
+          "durS": 130.7,
+          "pcmMB": 47.85
+        },
+        "bgLoaded": true,
+        "objects": 786,
+        "audioUrlIsBlob": true
+      },
+      "os": {
+        "totalMB": 729.9,
+        "browserMB": 168.9,
+        "rendererMB": 209.2
+      }
+    },
+    {
+      "tag": "r17",
+      "page": {
+        "mem": {
+          "usedJSHeapMB": 56.86,
+          "totalJSHeapMB": 60.4
+        },
+        "audio": {
+          "durS": 130.7,
+          "pcmMB": 47.85
+        },
+        "bgLoaded": true,
+        "objects": 786,
+        "audioUrlIsBlob": true
+      },
+      "os": {
+        "totalMB": 737.5,
+        "browserMB": 169.8,
+        "rendererMB": 215.7
+      }
+    },
+    {
+      "tag": "r18",
+      "page": {
+        "mem": {
+          "usedJSHeapMB": 56.85,
+          "totalJSHeapMB": 59.4
+        },
+        "audio": {
+          "durS": 130.7,
+          "pcmMB": 47.85
+        },
+        "bgLoaded": true,
+        "objects": 786,
+        "audioUrlIsBlob": true
+      },
+      "os": {
+        "totalMB": 742.3,
+        "browserMB": 176.1,
+        "rendererMB": 214
+      }
+    },
+    {
+      "tag": "r19",
+      "page": {
+        "mem": {
+          "usedJSHeapMB": 56.91,
+          "totalJSHeapMB": 60.65
+        },
+        "audio": {
+          "durS": 130.7,
+          "pcmMB": 47.85
+        },
+        "bgLoaded": true,
+        "objects": 786,
+        "audioUrlIsBlob": true
+      },
+      "os": {
+        "totalMB": 753.9,
+        "browserMB": 177.2,
+        "rendererMB": 224.5
+      }
+    },
+    {
+      "tag": "r20",
+      "page": {
+        "mem": {
+          "usedJSHeapMB": 56.72,
+          "totalJSHeapMB": 59.4
+        },
+        "audio": {
+          "durS": 130.7,
+          "pcmMB": 47.85
+        },
+        "bgLoaded": true,
+        "objects": 786,
+        "audioUrlIsBlob": true
+      },
+      "os": {
+        "totalMB": 749.3,
+        "browserMB": 183.4,
+        "rendererMB": 213.7
+      }
+    }
+  ],
+  "deltas": {
+    "browserMB": 49.3,
+    "totalMB": 45.1,
+    "heapMB": 0.8
+  }
+}

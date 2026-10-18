@@ -4899,3 +4899,28 @@
   TestPlayOverlay 根元素显式 no-drag 双保险。仅 Electron 生效 (浏览器端 app-region 无作用)。
 - 验证: verifier/v448 (源码断言 + tsc) 全绿。
 - 注: 自本版起执行新规则 — 每版本完成即 commit + tag + push。
+
+## v449 — 刷新谱面内存泄漏修复 (blob URL 不释放)
+- 起因: 用户任务管理器报本编辑器 ~2.5GB, 确认在多次刷新谱面 (v350 reloadMap) 后累积。
+- 复现/定位: 新 verifier/v449/check.mjs — CDP 隔离 Electron 开 cygnus 后点 [data-reload-map-btn]
+  × 20 (真实 reloadMap → loadDifficulty → store.load), 每次等重解码完成 + HeapProfiler.collectGarbage
+  后采样 JS 堆 + OS 进程树 RSS (分主进程/renderer)。修复前 (mem-before.json): 主进程 RSS 单调爬升
+  123→183MB (末3次均值−前3次均值 = +49.3MB, ~2.9MB/次 ≈ 本图音频 3.1MB+背景 0.6MB 的 blob 钉住;
+  用户真实大图 10-20MB/次), renderer/JS 堆均平 — 符合 blob 存储在主进程的特征。
+- 根因: loadDifficulty 每次 URL.createObjectURL(audio/bg), store.setAudio/setBackground 换新 URL
+  从不 revokeObjectURL 旧值 — 每个 blob URL 钉住整份 File, N 次刷新累积 N 份。
+  v444 缓存命中分支更冤: 新 URL 从未被消费 (不 fetch) 也照样留存。
+- 修复 (store.ts, 均带 v449 注释; 所有权约定: blob URL 随 load/setAudio/setBackground 参数移交 store,
+  换新即 revoke 旧值, 任意时刻至多存活 1 份; 同字符串守卫防误销在用 URL, 仅 blob: 才 revoke):
+  1) setAudio 常规路径: 换新 revoke 旧 audioUrl (解码期新 URL 供 fetch/v442 探针, 之后仅作身份记录);
+  2) setAudio v444 缓存命中: 立即 revoke 未被消费的新 URL, audioUrl/audioBuffer 继续复用旧值;
+  3) setBackground: 换新 revoke 旧 backgroundUrl (旧图已解码进 backgroundImg, revoke 不影响已加载像素);
+  4) v442 元数据探针 removeAttribute('src') 移出匹配分支 — 被替换的过期探针也释放连接。
+- 复测 (mem-after.json, 同机同图 20 次刷新): 主进程 RSS 增量 −10.8MB (平顶, r1~r6 暖机微涨后
+  工作集修剪回落), 总 RSS −5.4MB, JS 堆 +0.4MB; 20/20 刷新成功, 刷新后音频解码/背景图/物件数/
+  播放暂停完好; 合成用例验证缓存命中分支新 URL 立即 revoke 且旧 URL/buffer 复用。10 项断言全绿。
+- 验证: verifier/v449 (mem-before/mem-after 对比 + 门槛断言: 暖机后主进程RSS增量<25MB /
+  总RSS<150MB); tsc + vite build 通过; 按惯例未跑大批量回归。
+- 备注: Electron 服务器模式 serverFile.getFile() 的 File 无真实 lastModified (每次取件=当时刻),
+  v444 audioKey 在该模式下永不命中 (每次刷新全量重解码, 瞬时双份 PCM 靠 GC 回收, 非常驻) —
+  属既有行为, 本版未动; 浏览器 FS-Access 模式 lastModified 稳定, 缓存命中正常 (分支 2 已覆盖)。
