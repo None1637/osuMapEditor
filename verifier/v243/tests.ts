@@ -1,8 +1,8 @@
-// 验证器 v243 行为测试: 对称滑条源为圆弧 (P) 时先转贝塞尔 (computeSymSlider 纯函数数值断言)
-//   - P 源: join='none' 副本 curveType 变 'B' 且节点数 > 3 (三点弧被展开为贝塞尔段)
-//   - 几何一致: 副本采样点 ≈ 原弧采样点 + 平移向量 (仅受副本节点取整影响, 容差 1px)
-//   - join='tail' 拼接: 结果 curveType='B', 几何全长 ≈ 2× 原弧长, endTime 翻倍延长
-//   - 非圆弧源 (L) 不受影响: 副本 curveType 保持 'L'
+// 验证器 v243 行为测试: 对称滑条源为圆弧 (P) 时的类型处理 (computeSymSlider 纯函数数值断言)
+//   v474 收窄: 仅拼接 (join≠'none') 转贝塞尔; 独立副本保留 'P' (每份仍恰好 3 点, 圆弧形状天然保留)
+//   - P 源 join='none': 副本 curveType 保持 'P' 且节点数 = 3; 几何 ≈ 原弧 (容差 1px)
+//   - join='tail' 拼接: 结果 curveType='B' (多段 P 单类型模型不支持, 转贝塞尔保形), 全长 ≈ 2× 原弧长
+//   - 非圆弧源 (L/B) 不受影响
 import { computeSymSlider, DEFAULT_SYM_SLIDER_PARAMS, type SymSliderParams } from '../../src/osu/convert/symSlider';
 import { measureSegments, deCasteljau, sliderToBezierSegments } from '../../src/osu/convert/bezierPath';
 import { genId, type Beatmap, type HitObject, type Vec2 } from '../../src/osu/parser';
@@ -37,27 +37,31 @@ const maxDev = (a: Vec2[], b: Vec2[], dx = 0, dy = 0) =>
 // 非共线三点弧 (圆心角约 90°)
 const arcPts: [number, number][] = [[100, 100], [200, 100], [200, 200]];
 
-section('P 源转贝塞尔: join=none 副本');
+section('P 源: join=none 副本保留圆弧 (v474: 不再转贝塞尔)');
 {
   const src = mkSlider(arcPts);
   const r = computeSymSlider(bm, src, mk({ mode: 'translate', dx: 0, dy: 0, count: 1, join: 'none' }));
   assert(r.length === 1, '生成 1 个副本');
-  assert(r[0].curveType === 'B', `副本 curveType = 'B' (实际 ${r[0].curveType})`);
+  assert(r[0].curveType === 'P', `副本 curveType = 'P' 保留圆弧 (v474; 实际 ${r[0].curveType})`);
   const nodeCount = (r[0].curvePoints?.length ?? 0) + 1;
-  assert(nodeCount > 3, `副本节点数 > 3 — 弧已展开为贝塞尔段 (实际 ${nodeCount})`);
-  // 几何一致: 零向量平移副本 ≈ 原弧 (仅取整误差)
+  assert(nodeCount === 3, `副本节点数 = 3 — 三点弧原样保留 (实际 ${nodeCount})`);
+  // 几何一致: 零向量平移副本 ≈ 原弧 (仅取整误差; P 副本采样走同一 perfectArc→bezier 展开)
   const dev = maxDev(samplePath(src), samplePath(r[0]));
   assert(dev <= 1, `零向量副本几何与原弧一致 (最大偏差 ${dev.toFixed(3)}px ≤ 1)`);
   // 原对象不被改 (curveType 仍 'P', 节点仍 3 个)
   assert(src.curveType === 'P' && (src.curvePoints?.length ?? 0) === 2, '原滑条不被改');
 }
 
-section('P 源转贝塞尔: 平移副本保持形状');
+section('P 源: 平移副本保持形状 (v474: 保留 P)');
 {
   const src = mkSlider(arcPts);
   const r = computeSymSlider(bm, src, mk({ mode: 'translate', dx: 120, dy: 40, count: 1, join: 'none' }));
   const dev = maxDev(samplePath(src), samplePath(r[0]), 120, 40);
-  assert(r[0].curveType === 'B' && dev <= 1, `平移 (120,40) 副本 = 原弧整体平移 (最大偏差 ${dev.toFixed(3)}px ≤ 1)`);
+  assert(r[0].curveType === 'P' && dev <= 1, `平移 (120,40) 副本 = 原弧整体平移且仍为 'P' (最大偏差 ${dev.toFixed(3)}px ≤ 1)`);
+  // 镜像副本 (axis/point 节点反转) 仍是同一圆弧
+  const rm = computeSymSlider(bm, src, mk({ mode: 'point', join: 'none' }));
+  assert(rm[0].curveType === 'P' && ((rm[0].curvePoints?.length ?? 0) + 1) === 3,
+    `中心对称副本保留 'P' 三点 (实际 ${rm[0].curveType}, ${(rm[0].curvePoints?.length ?? 0) + 1} 节点)`);
 }
 
 section('P 源转贝塞尔: join=tail 拼接 (原弧段不再退化为折线)');

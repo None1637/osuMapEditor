@@ -1,8 +1,10 @@
-// 验证器 v243: 对称滑条圆弧 (P) 源先转贝塞尔。
+// 验证器 v243: 对称滑条圆弧 (P) 源拼接前转贝塞尔 (v474 起独立副本不再转换, 保留 'P')。
 // 需求: 使用对称滑条时, 如果当前所选滑条是圆弧滑条, 需要转成贝塞尔, 否则滑条形状不一致。
-// 实现 (src/osu/convert/symSlider.ts computeSymSlider): curveType='P' 时先 sliderToBezierSegments
-//   +segmentsToPoints 展开为贝塞尔节点 (v237 误差驱动减点, ≤0.2px), workType='B' 参与变换/拼接;
-//   join='none' 副本 curveType 用 workType (随转换变 'B'), length 按 workType 几何重算。
+//   v474 用户反馈收回副本场景: 独立副本每份仍恰好 3 点, 保留 'P' 形状天然一致且可继续当圆弧编辑。
+// 实现 (src/osu/convert/symSlider.ts computeSymSlider): curveType='P' 且 join!=='none' 时
+//   sliderToBezierSegments+segmentsToPoints 展开为贝塞尔节点 (v237 误差驱动减点, ≤0.2px),
+//   workType='B' 参与变换/拼接; join='none' 副本 curveType 用 workType (P 源保留 'P'),
+//   length 按 workType 几何重算。
 // 行为断言 (esbuild 打包 tests.ts, 仿 v236): 副本/拼接 curveType、几何一致性采样、时长、L/B 源不受影响。
 // 运行: node verifier/v243/check.mjs
 import { buildSync } from 'esbuild';
@@ -31,9 +33,9 @@ section('symSlider.ts: P→B 转换源码断言');
 {
   const src = readSrc('src/osu/convert/symSlider.ts');
   assert(/import \{ segmentsToPoints, sliderToBezierSegments \} from '\.\/bezierPath'/.test(src), '导入 bezierPath 转换工具');
-  assert(/if \(o\.curveType === 'P'\)/.test(src)
+  assert(/if \(o\.curveType === 'P' && p\.join !== 'none'\)/.test(src)
     && /segmentsToPoints\(sliderToBezierSegments\(o\)\)/.test(src)
-    && /workType = 'B'/.test(src), 'P 源展开为贝塞尔节点, workType = B');
+    && /workType = 'B'/.test(src), 'P 源仅拼接时展开为贝塞尔节点 (v474 收窄), workType = B');
   assert(/curveType: workType,/.test(src), 'join=none 副本 curveType 用 workType');
   assert(/sliderGeometryLength\(workType, pts\)/.test(src), '副本 length 按 workType 几何重算');
   assert(/v243:/.test(src), 'v243 注释');
