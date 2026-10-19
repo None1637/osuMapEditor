@@ -2,6 +2,8 @@
 // 动画 (用户需求): 黑底以垂直中心为原点迅速扩大 — scaleY 0.5 → 1.1 过冲 → 回到 1.0, 约 0.1s;
 // 随后停留约 1.2s, 末尾 0.3s 淡出。悬浮于所有控件之上 (z-[200] + pointer-events-none),
 // 与 FpsCounter 同挂在 v217 zoom 容器外 (App 外层), 不随界面缩放 — 小分辨率下字号恒定。
+// v476: 字号 20px (text-xl) → 固定 28px (用户反馈高分辨率下相对 UI 太小; 依然恒定不随分辨率变化),
+//   条高 h-14 → h-16 适配。
 // 连续保存: store.saveFlashSeq 自增 → key 重挂载, 动画重新播放。
 import { useEffect, useState } from 'react';
 import { useEditor } from '@/osu/store';
@@ -33,8 +35,8 @@ export function SavedFlash() {
   100% { opacity: 0; transform: scaleY(1); }
 }`}</style>
       <div key={shownSeq} data-saved-flash
-        className="w-full h-14 bg-black/70 flex items-center justify-center text-white text-xl tracking-widest"
-        style={{ animation: `saved-flash-bar ${DURATION_MS}ms linear both` }}>
+        className="w-full h-16 bg-black/70 flex items-center justify-center text-white tracking-widest"
+        style={{ animation: `saved-flash-bar ${DURATION_MS}ms linear both`, fontSize: 28 }}>
         {t('app.saved_flash', 'Map saved')}
       </div>
     </div>

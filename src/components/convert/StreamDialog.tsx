@@ -31,7 +31,7 @@ export function StreamDialog() {
   const sliders = useMemo(
     () => (bm ? bm.hitObjects.filter(o => store.selected.has(o.id) && o.type === 'slider') : []),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [bm, store.selected, store.conversionDialog],
+    [bm, store.selected, store.conversionDialog, store.historySeq], // v476: historySeq — undo/redo 后 bm 引用不变, 靠代数刷新物件引用
   );
 
   // 实时预览: 参数/选区变化即重算 (预览物件 id 每次重算会变, 没关系 — 渲染层不按 id 缓存圆)

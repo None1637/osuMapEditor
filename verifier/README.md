@@ -5339,3 +5339,19 @@
   1.5x 且保持开窗, 物件 x 100→22 实测生效 — 滑条只驱动 x 倍率, y 框独立默认 1 不动;
   apply 按钮应用后自动关窗)。适配: v339 (12→13 全文), v225 (字号规则断言改 13px)。
   回归: v475/v339/v463/v346/v405/v225/v249/v315/v367 全绿。tsc + vite build 通过。
+
+## v476 — 修复+改进: 转换窗口 Ctrl+Z 后幽灵预览 stale (选不到滑条点); 保存提示字体放大恒定
+- 需求 1 (用户): 「地图已保存」横条字体太小 — SavedFlash 挂在 v217 zoom 容器外本就
+  不随分辨率缩放, 但 text-xl (20px) 在高分辨率下相对放大的 UI 显小; 改固定 fontSize: 28,
+  条高 h-14 → h-16, 依然恒定不随分辨率变化。
+- 需求 2 (soulten): 對稱滑條 ctrl+z 之後選不到滑條點 — 根因: restore() 就地深拷贝替换
+  hitObjects, bm 引用不变, 转换窗口物件 useMemo 依赖 [bm, selected, conversionDialog]
+  感知不到 undo/redo → obj 引用 stale, 幽灵预览停留在撤销前位置且 hideIds 把恢复后的
+  真身 (含锚点) 藏掉 — 看到的滑条点不到, 真锚点不可见。修复: store 新增 historySeq
+  字段, undo()/redo() 自增; SymSlider/Duplicate/Split/Stream 四个转换窗口 memo 依赖
+  补 store.historySeq (PolygonDialog 不引用 hitObjects 不受影响)。
+- 验证: verifier/v476 — 源码断言 (historySeq 字段/undo/redo 自增/四窗口依赖/28px 字号)
+  + CDP (对称滑条开窗鼠标真拖锚点 → undo: 幽灵几何 == 恢复后真身几何且 historySeq+1,
+  Alt 选锚点正常; redo 对称一致; SavedFlash computed fontSize = 28px zoom=1)。
+  适配: v460 (横条高度断言 h-14 → h-16)。回归: v476/v236/v243/v345/v346/v399/v460/v463/v475
+  全绿 (v379/v301 为既有红, 见各自小节)。tsc + vite build 通过。

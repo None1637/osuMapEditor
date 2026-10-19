@@ -533,6 +533,10 @@ class EditorStore {
 
   private undoStack: Snapshot[] = [];
   private redoStack: Snapshot[] = [];
+  /** v476: 撤销/重做代数 — restore() 就地深拷贝替换 hitObjects (bm 引用不变), 各转换窗口 useMemo 依赖
+   *  [bm, selected, conversionDialog] 感知不到 → 物件引用 stale (幽灵预览停留在撤销前位置, 真身被 hideIds
+   *   藏掉 = 「Ctrl+Z 后选不到滑条点」); undo()/redo() 自增此计数, 窗口 memo 依赖它即可拿到新对象 */
+  historySeq = 0;
   /** v140: 上次保存/载入时的内容指纹 (六段快照 JSON); dirty = 当前指纹 !== savedFingerprint */
   private savedFingerprint: string | null = null;
   /** v140: 当前谱面内容指纹 — 与 snapshot() 同六段 (撤销回保存态/无实际改动时指纹不变 → 不显示未保存) */
@@ -1144,6 +1148,7 @@ class EditorStore {
     this.redoStack.push(this.snapshot());
     this.restore(this.undoStack.pop()!);
     if (pv === 'obj') this.beginTransformPreview(); else if (pv === 'node') this.beginNodeTransformPreview();
+    this.historySeq++; // v476
     this.emit();
   }
 
@@ -1155,6 +1160,7 @@ class EditorStore {
     this.undoStack.push(this.snapshot());
     this.restore(this.redoStack.pop()!);
     if (pv === 'obj') this.beginTransformPreview(); else if (pv === 'node') this.beginNodeTransformPreview();
+    this.historySeq++; // v476
     this.emit();
   }
 

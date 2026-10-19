@@ -36,7 +36,7 @@ export function SymSliderDialog() {
     const o = bm.hitObjects.find(x => store.selected.has(x.id));
     return o && o.type === 'slider' ? o : null;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [bm, store.selected, store.conversionDialog]);
+  }, [bm, store.selected, store.conversionDialog, store.historySeq]); // v476: historySeq — undo/redo 后 bm 引用不变, 靠代数刷新物件引用
   // v236: 节点内容签名 (computeSymSlider 读取的全部字段) — 节点就地编辑后签名变 -> result 重算 -> 预览跟着变
   const sig = obj
     ? [obj.x, obj.y, obj.curveType, obj.length, obj.slides, obj.time, obj.endTime ?? '',

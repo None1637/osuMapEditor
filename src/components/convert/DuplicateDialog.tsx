@@ -36,7 +36,7 @@ export function DuplicateDialog() {
   const objs = useMemo(
     () => (bm ? bm.hitObjects.filter(o => store.selected.has(o.id)) : []),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [bm, store.selected, store.conversionDialog],
+    [bm, store.selected, store.conversionDialog, store.historySeq], // v476: historySeq — undo/redo 后 bm 引用不变, 靠代数刷新物件引用
   );
 
   const originMode = store.dupOriginMode; // v166: 独立原点 (不再复用左侧栏变换的 originMode)

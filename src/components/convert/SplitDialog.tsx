@@ -25,7 +25,7 @@ export function SplitDialog() {
     const sel = bm.hitObjects.filter(o => store.selected.has(o.id) && o.type === 'slider');
     return sel.length === 1 ? sel[0] : null;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [bm, store.selected, store.conversionDialog]);
+  }, [bm, store.selected, store.conversionDialog, store.historySeq]); // v476: historySeq — undo/redo 后 bm 引用不变, 靠代数刷新物件引用
 
   // 实时预览: 参数/选区变化即重算; 非法参数不生成预览
   // v346: 「未选滑条」提示在渲染期 t() (语言切换即时生效), 不塞进 useMemo 缓存

@@ -32,7 +32,7 @@ section('SavedFlash.tsx: 中央横条组件');
   assert(/useEditor/.test(src) && /store\.saveFlashSeq/.test(src), '订阅 store.saveFlashSeq');
   assert(/fixed inset-0/.test(src) && /z-\[200\]/.test(src) && /pointer-events-none/.test(src), '全屏居中浮层, z 最高, 不挡点击');
   assert(/key=\{shownSeq\}/.test(src), 'key 重挂载 — 连续保存重播动画');
-  assert(/w-full h-14 bg-black\/70/.test(src), '全宽横条黑底');
+  assert(/w-full h-16 bg-black\/70/.test(src), '全宽横条黑底 (v476: 条高 h-14 → h-16 适配 28px 字号)');
   assert(/t\('app\.saved_flash', 'Map saved'\)/.test(src), '文案 i18n (zh-CN 地图已保存 / en Map saved)');
   // 动画: 0.5 → 1.1 过冲 → 1.0 在约 0.1s 内 (总时长 1600ms: 3.75%/6.25% 关键帧 ≈ 60ms/100ms)
   assert(/@keyframes saved-flash-bar/.test(src), 'keyframes 定义');
