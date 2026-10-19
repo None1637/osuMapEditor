@@ -56,6 +56,16 @@ export function TransformDialog({ mode }: { mode: 'rotate' | 'scale' | 'symmetry
     return () => { if (nodeMode) store.endNodeTransformPreview(); else store.endTransformPreview(); };
   }, [mode, nodeMode]);
 
+  // v477: 打开旋转窗口自动聚焦角度输入框并全选 (soulten: 打開的時候能不能直接透過鍵盤輸入角度) —
+  //   组件每次开窗重新挂载 (App: transformDialog && <TransformDialog/>), 挂载后聚焦 + select,
+  //   键入直接替换当前 0; 数字框聚焦时全局快捷键本就放行输入 (App onKey INPUT 早退)
+  useEffect(() => {
+    if (mode !== 'rotate') return;
+    const el = document.querySelector<HTMLInputElement>('[data-dialog="rotate-dlg"] [data-conv="angle"]');
+    el?.focus();
+    el?.select();
+  }, [mode]);
+
   // v315: F17c — 窗口开着时切换选区: 回滚旧选区未提交的预览, 以新选区为基准重开预览会话
   //   (否则新选物件不在 tfBackup 里, 预览会在其当前态上叠加变换 = "不能正確控制")
   //   v331: 回滚同步兜底已移 store.pushUndo (effect 运行前 beginDrag 会抢先快照预览态);

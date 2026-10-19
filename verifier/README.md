@@ -5355,3 +5355,14 @@
   Alt 选锚点正常; redo 对称一致; SavedFlash computed fontSize = 28px zoom=1)。
   适配: v460 (横条高度断言 h-14 → h-16)。回归: v476/v236/v243/v345/v346/v399/v460/v463/v475
   全绿 (v379/v301 为既有红, 见各自小节)。tsc + vite build 通过。
+
+## v477 — 改进: 旋转窗口打开即聚焦角度输入框 (直接键盘输入角度)
+- 需求 (soulten): 打開的時候能不能直接透過鍵盤輸入角度 — 旋转窗口打开后不用鼠标点
+  输入框, 直接键入角度。
+- 实现: TransformDialog rotate 模式挂载后 focus + select 角度框 (组件每次开窗重新挂载,
+  mode 依赖也覆盖窗口间切换); number 输入框聚焦时全局快捷键本就放行 (App onKey INPUT
+  早退), select() 使键入直接替换当前 0 (Chrome number 框 selectionStart 恒 null,
+  全选效果由键入替换行为体现)。
+- 验证: verifier/v477 — 源码断言 + CDP (开窗焦点在角度框; Input.insertText '45' 替换
+  为 45 而非 045; 原点切游玩区中心后 45° 实时预览生效, (100,100)→(211,17) 取整)。
+  回归: v477/v475/v463/v315 全绿。tsc + vite build 通过。
