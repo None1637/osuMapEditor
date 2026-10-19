@@ -1037,6 +1037,10 @@ export function TopTimeline() {
             // v32: 选中 + 准备拖拽 (mouseup 未移动才视为点击 seek); v40: Ctrl 同 Shift 切换选中 (对齐 lazer)
             if (e.shiftKey || e.ctrlKey || e.metaKey) store.toggleSelect(id);
             else if (!store.selected.has(id)) store.select([id]);
+            // v479: 尾圆/折返点选中后再点头圆 — 物件已在选区导致旧分支不动, 节点选区残留 = 「点头选不上头」
+            //   (soulten: 選取滑條尾部之後再點頭沒辦法選取滑條頭); 点头 = 物件级选中, 清节点/尾选区
+            //   (单选限定: 多选时保持 v32 不塌缩行为, 避免误清多选)
+            else if (store.selected.size === 1 && (store.selectedEdges.size || store.selectedNodes.size)) store.select([id]);
             if (!store.lockNotes) { // v115: 锁定物件 — 可选中, 不可拖动改时间
               const bm = store.beatmap!;
               markerDragRef.current = {
@@ -1062,6 +1066,8 @@ export function TopTimeline() {
               if (barId !== null) {
                 if (e.shiftKey || e.ctrlKey || e.metaKey) store.toggleSelect(barId);
                 else if (!store.selected.has(barId)) store.select([barId]);
+                // v479: 同头圆分支 — 尾/节点选中后点连体条中段也回到物件级选中
+                else if (store.selected.size === 1 && (store.selectedEdges.size || store.selectedNodes.size)) store.select([barId]);
                 if (!store.lockNotes) { // v115: 锁定物件 — 可选中, 不可拖动改时间
                   markerDragRef.current = {
                     anchorId: barId, startX: zoomClientX(e.clientX), moved: false,
