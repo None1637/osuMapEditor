@@ -3,6 +3,8 @@
 // v249: 抗全局缩放 — 分辨率缩小 (v217 zoom<1) 时窗口保持自然大小, 仅视口比窗口自然尺寸
 //   还小才等比缩小容纳 (dialogFit)。自身 zoom c = fit/z; 定位 pos 用视觉 px,
 //   left = pos/fit (Chromium 中 left/top 与宽高一样被 祖先zoom×自身zoom 连乘)。
+// v478: 顶栏避让 (标题栏/关闭钮不进入菜单栏+页签栏区域, 打开居中区与拖拽钳制都含下界)
+//   + 内容过高时内容区滚动 (maxHeight/overflow-y), 不再只靠整窗缩小 (英文长文本字号可读性)
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode, type PointerEvent } from 'react';
 import { X } from 'lucide-react'; // v181: 关闭按钮 emoji ✕ → lucide
 import { dialogFit, useUiZoom } from '../osu/uiZoom';
@@ -12,6 +14,12 @@ import { useT } from '../i18n';
 /** 居中落点 (纯函数): 视口 (vw,vh) 内放 (w,h) 窗口的左上角, 负值钳 0 */
 export function dialogCenterPos(vw: number, vh: number, w: number, h: number) {
   return { x: Math.max(0, Math.round((vw - w) / 2)), y: Math.max(0, Math.round((vh - h) / 2)) };
+}
+
+/** v478: 顶部 UI (菜单栏+页签栏, App.tsx data-app-chrome) 底沿 (视觉 px) — 对话框标题栏避让的下界 */
+function chromeBottom(): number {
+  const el = document.querySelector('[data-app-chrome]');
+  return el ? Math.round(el.getBoundingClientRect().bottom) : 0;
 }
 
 export function DraggableDialog({ title, onClose, children, width = 300, testid }: {
@@ -25,22 +33,33 @@ export function DraggableDialog({ title, onClose, children, width = 300, testid 
   const t = useT();
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null); // v249: 视觉 px
   const [fit, setFit] = useState(1); // v249: 视口容纳系数 (1 = 自然大小)
+  // v478: 内容区滚动上限 (布局 px) — 英文等长文本使窗口自然高超过视口时, 内容滚动而非整窗缩小
+  //   (soulten: 英文界面窗口字太小 + 标题栏被顶到窗口顶部与页签栏重叠); fit 仍管宽度容纳
+  const [contentMaxH, setContentMaxH] = useState<number | null>(null);
   const boxRef = useRef<HTMLDivElement>(null);
+  const titleRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{ dx: number; dy: number } | null>(null);
   const c = fit / z; // 自身反缩放系数; 视觉 = 布局 × z × c = 布局 × fit
 
   useLayoutEffect(() => {
     const el = boxRef.current;
     if (!el) return;
+    const chrome = chromeBottom();
     const r = el.getBoundingClientRect(); // 视觉 px = 布局 × fit
     const f = dialogFit(r.width / fit, r.height / fit, window.innerWidth, window.innerHeight);
     if (Math.abs(f - fit) > 0.001) { setFit(f); return; } // fit 变化后下轮再定位 (视觉尺寸随之变)
+    // v478: 内容上限 = 视口 - 顶栏 - 边距 - 标题栏 (视觉 px) / fit → 布局 px; 封顶后下轮重测收敛
+    const titleH = titleRef.current?.getBoundingClientRect().height ?? 0;
+    const mh = Math.max(80, Math.round((window.innerHeight - chrome - 8 - titleH) / fit));
+    if (contentMaxH === null || Math.abs(contentMaxH - mh) > 1) { setContentMaxH(mh); return; }
     if (pos === null) {
-      setPos(dialogCenterPos(window.innerWidth, window.innerHeight, r.width, r.height));
+      // v478: 居中区域 = 顶栏之下 (原为全视口, 窗口过高时标题栏会顶进页签栏行)
+      const p = dialogCenterPos(window.innerWidth, window.innerHeight - chrome, r.width, r.height);
+      setPos({ x: p.x, y: chrome + p.y });
     } else {
-      // 窗口 resize 后钳回视口内 (拖过的位置不再复位, 只保证不丢到屏外)
+      // 窗口 resize 后钳回视口内 (拖过的位置不再复位, 只保证不丢到屏外); v478: y 下界 = 顶栏底沿
       const cx = Math.max(0, Math.min(pos.x, window.innerWidth - r.width));
-      const cy = Math.max(0, Math.min(pos.y, window.innerHeight - r.height));
+      const cy = Math.max(chrome, Math.min(pos.y, window.innerHeight - r.height));
       if (Math.abs(cx - pos.x) > 0.5 || Math.abs(cy - pos.y) > 0.5) setPos({ x: cx, y: cy });
     }
   });
@@ -52,19 +71,19 @@ export function DraggableDialog({ title, onClose, children, width = 300, testid 
   };
   const onPointerMove = (e: PointerEvent) => {
     const d = dragRef.current;
-    if (d) setPos({ x: Math.max(0, e.clientX - d.dx), y: Math.max(0, e.clientY - d.dy) });
+    if (d) setPos({ x: Math.max(0, e.clientX - d.dx), y: Math.max(chromeBottom(), e.clientY - d.dy) }); // v478: y 下界顶栏避让
   };
   const onPointerUp = () => { dragRef.current = null; };
 
   return (
     <div ref={boxRef} className="fixed z-40 rounded-lg border border-white/20 bg-[#1b1b24] shadow-2xl text-xs text-white/85"
       style={{ left: pos ? pos.x / fit : -9999, top: pos ? pos.y / fit : -9999, width, zoom: c, '--fs-comp': 1, '--ui-zoom': 1 } as CSSProperties} data-dialog={testid}>{/* v339: 独立窗口反缩放后为自然字号, 不参与 13px 视觉下限换算 (v475: 12→13) */}
-      <div className="flex items-center justify-between px-3 py-2 rounded-t-lg bg-[#252532] cursor-move select-none font-bold text-white/90"
+      <div ref={titleRef} className="flex items-center justify-between px-3 py-2 rounded-t-lg bg-[#252532] cursor-move select-none font-bold text-white/90"
         onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp}>
         <span>{title}</span>
         <button onClick={onClose} className="px-1.5 rounded hover:bg-white/15 text-white/60 hover:text-white flex items-center" title={t('dialog.close_no_apply', 'Close (without applying)')}><X className="w-3.5 h-3.5" /></button>
       </div>
-      <div className="p-3 space-y-2">{children}</div>
+      <div className="p-3 space-y-2 rounded-b-lg" style={contentMaxH !== null ? { maxHeight: contentMaxH, overflowY: 'auto' } : undefined}>{children}</div>
     </div>
   );
 }

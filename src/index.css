@@ -110,3 +110,5 @@ input, textarea, [contenteditable="true"] {
 .ui-zoom-root .text-\[12px\] { font-size: max(calc(12px * var(--fs-comp, 1)), calc(13px / var(--ui-zoom, 1))); }
 .ui-zoom-root .text-\[13px\] { font-size: max(calc(13px * var(--fs-comp, 1)), calc(13px / var(--ui-zoom, 1))); }
 .ui-zoom-root .text-\[15px\] { font-size: max(calc(15px * var(--fs-comp, 1)), calc(13px / var(--ui-zoom, 1))); }
+/* v478: 菜单栏字号 15→17px (英文菜单字偏小), 同款补偿 */
+.ui-zoom-root .text-\[17px\] { font-size: max(calc(17px * var(--fs-comp, 1)), calc(13px / var(--ui-zoom, 1))); }

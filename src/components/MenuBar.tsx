@@ -3,6 +3,7 @@
 // 菜单定义来自主进程 buildMenu 模板序列化 (getMenuDefinition 初始拉取 + onMenuDefinition 推送更新),
 // 点击叶子项 menuItemClick(id) 回传主进程查表执行 (click 闭包 / role 等价实现);
 // 原生菜单仍 setApplicationMenu (accelerator 全局快捷键不受影响)。
+// v478: 字号 15px → 17px (soulten: 英文菜單字有點小; v225 √zoom 缓缩下 1080p 视觉仅 13px, 英文比 CJK 显小)
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { getElectronAPI, type ElectronMenuNode } from '@/osu/electronBridge';
 
@@ -43,7 +44,7 @@ export function MenuBar({ overlay }: { overlay: boolean }) {
         if (it.submenu) {
           return (
             <div key={i} className="relative group">
-              <div className={`flex items-center px-3 py-1 text-[15px] whitespace-nowrap ${dis ? 'text-white/30' : 'text-white/85 group-hover:bg-white/10'}`}>
+              <div className={`flex items-center px-3 py-1 text-[17px] whitespace-nowrap ${dis ? 'text-white/30' : 'text-white/85 group-hover:bg-white/10'}`}>
                 <span className="flex-1">{it.label}</span>
                 <span className="ml-4 text-white/40">▸</span>
               </div>
@@ -58,7 +59,7 @@ export function MenuBar({ overlay }: { overlay: boolean }) {
         return (
           <button key={i} disabled={dis} data-menu-item={it.id}
             onClick={() => { if (it.id) { api.menuItemClick(it.id); setOpen(null); } }}
-            className={`w-full flex items-center px-3 py-1 text-[15px] text-left whitespace-nowrap ${dis ? 'text-white/30' : 'text-white/85 hover:bg-white/10'}`}>
+            className={`w-full flex items-center px-3 py-1 text-[17px] text-left whitespace-nowrap ${dis ? 'text-white/30' : 'text-white/85 hover:bg-white/10'}`}>
             <span className="w-4 shrink-0 flex items-center justify-center">
               {/* 勾选态用 CSS 图形 (v181: src 内不用符号字符); radio=实心圆点 / checkbox=对勾色块 */}
               {it.checked && <span className={`inline-block w-2 h-2 ${it.type === 'radio' ? 'rounded-full' : 'rounded-sm'} bg-cyan-300`} />}
@@ -73,7 +74,7 @@ export function MenuBar({ overlay }: { overlay: boolean }) {
 
   return (
     <div ref={rootRef} data-menu-bar
-      className="relative flex items-stretch h-7 shrink-0 select-none text-[15px] text-white/85"
+      className="relative flex items-stretch h-7 shrink-0 select-none text-[17px] text-white/85"
       style={overlay
         ? { ...DRAG, paddingRight: 140, background: 'rgba(16,16,22,0.85)' } // 窗口顶行: overlay 窗口按钮覆盖本行右侧, 留白 140 避开 (页签栏在 overlay 区域外, 不需留白)
         : { background: 'rgba(16,16,22,0.85)' }}>{/* v281: 非隐藏模式有原生标题栏, 本行纯菜单条 */}

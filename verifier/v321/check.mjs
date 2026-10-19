@@ -95,7 +95,7 @@ section('F21: 快捷键提示动态化');
 
 section('F23: 字体放大');
 {
-  assert((menuBar.match(/text-\[15px\]/g) || []).length === 3 && (menuBar.match(/text-\[13px\]/g) || []).length === 1, 'MenuBar 菜单文本 13→15px (3 处; 仅快捷键列保留 13px)');
+  assert((menuBar.match(/text-\[17px\]/g) || []).length === 3 && (menuBar.match(/text-\[13px\]/g) || []).length === 1, 'MenuBar 菜单文本 13→15→17px (v478; 3 处; 仅快捷键列保留 13px)');
   assert(/ml-6 text-white\/40 text-\[13px\]/.test(menuBar), 'MenuBar 快捷键 11→13px');
   assert(!/text-xs text-white\/70/.test(setupPage) && (setupPage.match(/text-sm text-white\/70/g) || []).length === 3, 'SetupPage 标签 xs→sm (3 处)');
   assert(/font-bold text-pink-300 text-base/.test(setupPage), 'SetupPage 节标题 sm→base');

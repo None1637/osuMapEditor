@@ -526,7 +526,7 @@ export default function App() {
           v280 二轮: 页签栏不再 paddingRight — overlay 窗口按钮 (高 32px) 只覆盖窗口顶行 (= 菜单条行,
           菜单条自身留白 140), 页签栏在其下不被覆盖 (原 140 留白导致音量/显示设置按钮被无故左移);
           v448: 测试游玩中禁拖 (游玩按住甩动鼠标会拖到窗口) */}
-      <div className="flex items-stretch gap-1 px-3 bg-[#101016] border-b border-white/10 shrink-0"
+      <div className="flex items-stretch gap-1 px-3 bg-[#101016] border-b border-white/10 shrink-0" data-app-chrome
         style={hideTitleBar ? { WebkitAppRegion: testPlay ? 'no-drag' : 'drag' } as CSSProperties : undefined}>
         {([['edit', 'compose', 'tab-compose'], ['timing', 'timing', 'tab-timing']] as const).map(([id, label, action]) => (
           <button key={id} onClick={() => setTab(id)}
