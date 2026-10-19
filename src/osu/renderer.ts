@@ -759,9 +759,15 @@ function drawSelectionDecor(rc: RenderCtx, o: HitObject, radius: number) {
     // 选中描边: 沿滑条身外形画一圈高亮环 (v340: 逐滑条 sprite 缓存, 选区变动重建装饰层时 1 次 drawImage)
     // v305: stable = 蓝色边框高亮 (sliderborder 选中变色), lazer 默认 = 青色环
     // v308: stable 改 cover 模式 — 蓝色环带覆盖原白边 (不再外凸一圈), 附外缘辉光
-    // v471: stable 描边挖掉头/尾圆区 (excludeCaps) — 蓝带不包头尾, hitcircleselect 辉光不被切断
+    // v471: stable 描边挖掉头/尾圆区 — 蓝带不包头尾, hitcircleselect 辉光不被切断
+    // v473: 挖孔半径 = 头/尾圈视觉半径 (同物件层 r*hitcircleSpriteWidth/128) — v471 的 r+12/q
+    //   外扩会删掉圈外蓝带造成暗环; 孔恰等于圈 footprint 时圈外蓝带完整、圈内白边自然显露
+    const capHoleR: readonly [number, number] | null = stableSel
+      ? [radius * hitcircleSpriteWidth(rc.skin.sliderstartcircle) / 128,
+         radius * hitcircleSpriteWidth(rc.skin.sliderendcircle) / 128]
+      : null;
     const osp = p.points.length >= 2
-      ? sliderOutlineSprite(p.points, radius, stableSel ? '#4a90e2' : '#4df3ff', stableSel, o.id, g.getTransform().a, stableSel)
+      ? sliderOutlineSprite(p.points, radius, stableSel ? '#4a90e2' : '#4df3ff', stableSel, o.id, g.getTransform().a, capHoleR)
       : null;
     if (osp) g.drawImage(osp.c, osp.dx, osp.dy, osp.w, osp.h);
     // v469: 头/尾选中标记 — stable 皮肤图, lazer 橙黄圆环
@@ -852,8 +858,12 @@ let outlineCanvas: HTMLCanvasElement | null = null;
 const outlineCache = new Map<number, { sprite: SliderBodySprite; key: string }>();
 // v471: excludeCaps (stable 选中) — 蓝边带不包头/尾圆区: stable 实机头部保持原白边 + hitcircleselect
 //   辉光直接压在上层; 不挖孔时半透明辉光被 0.81..0.925r 不透明蓝带切断 (用户反馈: 蓝色滑条边框
-//   覆盖 hitcircleselect)。挖孔半径 r+12/q (带外缘 0.925r + 辉光余量), 区内本体被头/尾圈盖住无影响。
-function sliderOutlineSprite(points: { x: number; y: number }[], r: number, color: string, cover: boolean, cacheId: number, ss: number, excludeCaps = false): SliderBodySprite {
+//   覆盖 hitcircleselect)。
+// v473: 挖孔半径修正 — v471 的 r+12/q 把孔挖得比圆圈视觉半径大, 圈外一圈蓝带(含外缘辉光)被误删
+//   → 圈附近滑条边框变暗 (用户截图反馈)。正确半径 = 头/尾圆圈的视觉半径 (与物件层绘制同公式
+//   r*hitcircleSpriteWidth/128): 孔恰好等于圈 footprint, 蓝带在圈边缘外完整保留, 圈内由物件层
+//   已绘制的圆圈(白边)自然接管。传 null 不挖孔 (lazer 模式)。
+function sliderOutlineSprite(points: { x: number; y: number }[], r: number, color: string, cover: boolean, cacheId: number, ss: number, capHoleR: readonly [number, number] | null = null): SliderBodySprite {
   const pad = r + 5 + 12; // 描边半宽 + 外缘辉光 (shadowBlur 10) 余量
   let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
   for (const p of points) {
@@ -865,7 +875,7 @@ function sliderOutlineSprite(points: { x: number; y: number }[], r: number, colo
   // v301/v306 同款尺寸上限 (防极端滑条位图打崩 GPU 进程)
   const MAX_DIM = 8192, MAX_AREA = 8192 * 4096;
   const q = Math.min(4, Math.max(0.005, ss, 1), MAX_DIM / w, MAX_DIM / h, Math.sqrt(MAX_AREA / (w * h)));
-  const key = `${r.toFixed(2)}|${q.toFixed(3)}|${color}|${cover ? 1 : 0}|${excludeCaps ? 1 : 0}`;
+  const key = `${r.toFixed(2)}|${q.toFixed(3)}|${color}|${cover ? 1 : 0}|${capHoleR ? capHoleR[0].toFixed(1) + ',' + capHoleR[1].toFixed(1) : 0}`; // v473: 缓存键含挖孔半径
   const hit = outlineCache.get(cacheId);
   if (hit && hit.key === key) return hit.sprite;
   const c = document.createElement('canvas');
@@ -889,11 +899,13 @@ function sliderOutlineSprite(points: { x: number; y: number }[], r: number, colo
     og.globalCompositeOperation = 'destination-out';
     og.lineWidth = r * 2 * 0.81;
     trace();
-    if (excludeCaps && points.length >= 2) {
-      // v471: 头/尾圆区挖孔 (连辉光一起除掉) — 蓝带只沿身体, 头部保持原白边 + 选中图压上层
+    if (capHoleR && points.length >= 2) {
+      // v471/v473: 头/尾圆区挖孔 (连辉光一起除掉) — 蓝带只沿身体到圈边缘, 头部保持原白边 + 选中图压上层;
+      //   半径 = 各端圆圈视觉半径 (v473: 不再外扩, 避免删掉圈外蓝带造成暗环)
       og.fillStyle = '#000';
-      for (const cap of [points[0]!, points[points.length - 1]!]) {
-        og.beginPath(); og.arc(cap.x, cap.y, r + 12 / q, 0, Math.PI * 2); og.fill();
+      const caps: [number, { x: number; y: number }][] = [[capHoleR[0], points[0]!], [capHoleR[1], points[points.length - 1]!]];
+      for (const [hr, cap] of caps) {
+        og.beginPath(); og.arc(cap.x, cap.y, hr, 0, Math.PI * 2); og.fill();
       }
     }
     og.globalCompositeOperation = 'source-over';

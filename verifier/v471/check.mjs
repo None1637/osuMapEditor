@@ -22,15 +22,15 @@ section('源码断言');
 {
   const src = readSrc('src/osu/renderer.ts');
   assert(/v471: excludeCaps/.test(src), 'v471 注释在');
-  assert(/function sliderOutlineSprite\(points: \{ x: number; y: number \}\[\], r: number, color: string, cover: boolean, cacheId: number, ss: number, excludeCaps = false\)/.test(src),
-    'sliderOutlineSprite 加 excludeCaps 参数');
-  assert(/\| \$\{cover \? 1 : 0\}\|\$\{excludeCaps \? 1 : 0\}`/.test(src.replace(/\$\{cover \? 1 : 0\}\|\$\{excludeCaps/, '${cover?1:0}|${excludeCaps')) || /cover \? 1 : 0\}\|\$\{excludeCaps \? 1 : 0\}/.test(src),
-    'sprite 缓存键含 excludeCaps 标志');
-  assert(/if \(excludeCaps && points\.length >= 2\) \{[\s\S]*?destination-out[\s\S]*?/.test(src) || /og\.globalCompositeOperation = 'destination-out';\s*og\.lineWidth = r \* 2 \* 0\.81;\s*trace\(\);\s*if \(excludeCaps/.test(src),
+  // v473: excludeCaps 布尔参数改为 capHoleR 半径对 (挖孔半径 = 圆圈视觉半径, 不再 r+12/q 外扩)
+  assert(/function sliderOutlineSprite\(points: \{ x: number; y: number \}\[\], r: number, color: string, cover: boolean, cacheId: number, ss: number, capHoleR: readonly \[number, number\] \| null = null\)/.test(src),
+    'sliderOutlineSprite 挖孔参数 (v471 excludeCaps → v473 capHoleR 半径对)');
+  assert(/capHoleR \? capHoleR\[0\]\.toFixed\(1\)/.test(src), 'sprite 缓存键含挖孔半径 (v473)');
+  assert(/if \(capHoleR && points\.length >= 2\) \{/.test(src) && /destination-out';\s*og\.lineWidth = r \* 2 \* 0\.81;\s*trace\(\);\s*if \(capHoleR/.test(src),
     'cover 分支内挖孔在镂空之后');
-  assert(/og\.arc\(cap\.x, cap\.y, r \+ 12 \/ q, 0, Math\.PI \* 2\)/.test(src), '挖孔半径 r+12/q (带外缘+辉光余量)');
-  assert(/sliderOutlineSprite\(p\.points, radius, stableSel \? '#4a90e2' : '#4df3ff', stableSel, o\.id, g\.getTransform\(\)\.a, stableSel\)/.test(src),
-    '调用处 stable 模式传 excludeCaps=true (lazer 不变)');
+  assert(/og\.arc\(cap\.x, cap\.y, hr, 0, Math\.PI \* 2\)/.test(src), '挖孔半径 = 圆圈视觉半径 hr (v473; v471 的 r+12/q 已修正)');
+  assert(/sliderOutlineSprite\(p\.points, radius, stableSel \? '#4a90e2' : '#4df3ff', stableSel, o\.id, g\.getTransform\(\)\.a, capHoleR\)/.test(src),
+    '调用处 stable 模式传挖孔半径 (lazer 传 null 不变)');
 }
 
 section('CDP: 头部蓝带消失 (辉光完整) + 身体蓝带保留');

@@ -7,7 +7,7 @@ export interface Skin {
   hitcircle: SkinImage;
   hitcircleoverlay: SkinImage;
   approachcircle: SkinImage;
-  /** v232: stable 编辑器选中框 (圆角方框); 可选 — 皮肤无此图时 renderer 跳过 (程序化回退总会生成, 基本必有图) */
+  /** v232: stable 编辑器选中图; 可选 — v472 起不再程序化兜底, 皮肤无此图时选中回退 lazer 橙黄环 */
   hitcircleselect?: SkinImage;
   /** v298: 判定弹出贴图 (测试游玩 HUD; 缺失回退文字) */
   hit300?: SkinImage;
