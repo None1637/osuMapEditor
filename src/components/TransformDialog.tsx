@@ -234,10 +234,16 @@ export function TransformDialog({ mode }: { mode: 'rotate' | 'scale' | 'symmetry
               </label>
             </Group>
           </div>
-          <div>
-            <button onClick={() => nodeMode ? commitNode((p, c) => scalePt(p, c, sx, sy)) : commit((objs, c) => scaleObjects(objs, c, sx, sy))} title={t('transform.apply_scale_title', 'Scale by the entered factor (uncheck an axis to leave it unscaled; slider length scales too)')} data-tf="apply-scale"
+          <div className="flex items-center gap-1 flex-wrap">
+            {/* v475: 缩放同 v463 旋转双按钮语义 — 「应用倍率」应用后自动关窗 (soulten: 應用倍率(會關閉)
+                跟應用倍率但不關閉); 「应用倍率但不关闭」保持开窗可连续应用, 每次应用一次撤销 */}
+            <button onClick={() => { nodeMode ? commitNode((p, c) => scalePt(p, c, sx, sy)) : commit((objs, c) => scaleObjects(objs, c, sx, sy)); store.closeTransformDialog(); }} title={t('transform.apply_scale_title', 'Scale by the entered factor (uncheck an axis to leave it unscaled; slider length scales too)')} data-tf="apply-scale"
               className="px-1.5 py-1 rounded bg-white/10 hover:bg-white/20 border border-white/15 text-[11px]">
               {t('transform.apply_scale', 'Apply Scale')}
+            </button>
+            <button onClick={() => nodeMode ? commitNode((p, c) => scalePt(p, c, sx, sy)) : commit((objs, c) => scaleObjects(objs, c, sx, sy))} title={t('transform.apply_scale_stay_title', 'Scale by the entered factor; the window stays open for repeated applies')} data-tf="apply-scale-stay"
+              className="px-1.5 py-1 rounded bg-white/10 hover:bg-white/20 border border-white/15 text-[11px]">
+              {t('transform.apply_scale_stay', 'Apply Scale (keep open)')}
             </button>
           </div>
         </>

@@ -27,7 +27,9 @@ export const zhCN: Record<string, string> = {
   'transform.lock_ratio': 'x:y 固定',
   'transform.lock_ratio_title': '固定 x:y 比例 — 改任一轴, 另一轴按当前比例联动',
   'transform.apply_scale': '应用倍率',
-  'transform.apply_scale_title': '按输入倍率缩放 (取消勾选某轴则该轴不动; 滑条长度同步)',
+  'transform.apply_scale_title': '按输入倍率缩放, 应用后自动关窗 (取消勾选某轴则该轴不动; 滑条长度同步)', // v475: 注明会关窗
+  'transform.apply_scale_stay': '应用倍率但不关闭', // v475
+  'transform.apply_scale_stay_title': '按输入倍率缩放, 窗口保持打开可连续应用 (每次应用一次撤销)', // v475
   'transform.sym_axis': '对称轴',
   'transform.sym_direction': '轴向',
   'transform.dir_vertical': '竖直线 (左右镜像)',
@@ -40,6 +42,6 @@ export const zhCN: Record<string, string> = {
   'transform.apply_symmetry': '应用对称',
   'transform.apply_symmetry_title': '选区关于对称轴镜像',
   'transform.sym_footer_hint': '画布虚线 = 当前对称轴预览; 每次应用一次撤销, 窗口保持打开可连续应用',
-  'transform.footer_hint': '改数值即时预览 (相对上次提交); 应用后窗口保持打开可连续应用, 每次应用一次撤销; 直接关窗回滚到最后提交',
+  'transform.footer_hint': '改数值即时预览 (相对上次提交); 「应用倍率」应用后自动关窗; 「应用倍率但不关闭」保持打开可连续应用, 每次应用一次撤销; 直接关窗回滚到最后提交', // v475: 缩放双按钮语义
   'transform.footer_hint_rotate': '改数值即时预览 (相对上次提交); 「应用旋转」应用后自动关窗; 逆/顺时针旋转一次不关窗可连续应用, 每次应用一次撤销; 直接关窗回滚到最后提交', // v463
 };

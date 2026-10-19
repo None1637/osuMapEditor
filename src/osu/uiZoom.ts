@@ -117,6 +117,6 @@ export function useCounterZoom<T extends HTMLElement = HTMLDivElement>() {
   });
   return {
     ref,
-    style: { zoom: c, transform: `translate(${st.tx}px, ${st.ty}px)`, '--fs-comp': 1, '--ui-zoom': 1 } as CSSProperties, // v339: 独立窗口自然字号, 不参与 12px 视觉下限换算
+    style: { zoom: c, transform: `translate(${st.tx}px, ${st.ty}px)`, '--fs-comp': 1, '--ui-zoom': 1 } as CSSProperties, // v339: 独立窗口自然字号, 不参与 13px 视觉下限换算 (v475: 12→13)
   };
 }

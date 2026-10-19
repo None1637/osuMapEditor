@@ -58,7 +58,7 @@ export function DraggableDialog({ title, onClose, children, width = 300, testid 
 
   return (
     <div ref={boxRef} className="fixed z-40 rounded-lg border border-white/20 bg-[#1b1b24] shadow-2xl text-xs text-white/85"
-      style={{ left: pos ? pos.x / fit : -9999, top: pos ? pos.y / fit : -9999, width, zoom: c, '--fs-comp': 1, '--ui-zoom': 1 } as CSSProperties} data-dialog={testid}>{/* v339: 独立窗口反缩放后为自然字号, 不参与 12px 视觉下限换算 */}
+      style={{ left: pos ? pos.x / fit : -9999, top: pos ? pos.y / fit : -9999, width, zoom: c, '--fs-comp': 1, '--ui-zoom': 1 } as CSSProperties} data-dialog={testid}>{/* v339: 独立窗口反缩放后为自然字号, 不参与 13px 视觉下限换算 (v475: 12→13) */}
       <div className="flex items-center justify-between px-3 py-2 rounded-t-lg bg-[#252532] cursor-move select-none font-bold text-white/90"
         onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp}>
         <span>{title}</span>

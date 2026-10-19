@@ -5322,3 +5322,20 @@
 - 验证: verifier/v243 适配 (副本断言改 'P' 保留+3 节点+几何偏差 0.000px — 比贝塞尔转换的
   ≤0.2px 更精确; 拼接断言不变仍 'B' 保形; 新增中心对称副本保留 P 断言)。回归:
   v236/v243/v387/v399/v237 全绿。tsc + vite build 通过。
+
+## v475 — 新功能+改进: 缩放浮窗双按钮 (会关闭/但不关闭); 全局视觉最小字号 12→13px
+- 需求 1 (soulten): 缩放窗口底部按钮拆成「应用倍率 (会关闭)」跟「应用倍率但不关闭」。
+  TransformDialog 缩放模式改 v463 旋转同款双按钮: 「应用倍率」(data-tf=apply-scale) =
+  commit + closeTransformDialog; 新增「应用倍率但不关闭」(data-tf=apply-scale-stay) =
+  commit 不关窗可连续应用 (每次应用一次撤销)。zh-CN 词典加 apply_scale_stay(+title),
+  apply_scale_title/footer_hint 改双按钮语义。
+- 需求 2 (soulten): 字體會不會有點小 — index.css 的 v339 视觉字号下限 12px → 13px
+  (14 条规则 max(calc(原补偿), calc(13px / var(--ui-zoom,1)))); zoom=1 时 <13px 的基础字号
+  (text-xs 12px 与 9/10/11/12px 任意值类) 一并抬到 13px, ≥13px 原样; DraggableDialog/
+  uiZoom.ts 注释同步。独立窗口 (反缩放自然字号) 不参与, 不受影响。
+- 顺手修复既有红: v346 简繁覆盖率 — v460/v461 (地图已保存/保存成功/中央横条) 引入的
+  地/功/央/横 四字未入 s2t 表 (地功央入 S2T_SAME, 横→橫 入 S2T_TABLE)。
+- 验证: verifier/v475 — 源码断言 (双按钮/词典/13px 下限) + CDP (缩放窗 stay 按钮应用
+  1.5x 且保持开窗, 物件 x 100→22 实测生效 — 滑条只驱动 x 倍率, y 框独立默认 1 不动;
+  apply 按钮应用后自动关窗)。适配: v339 (12→13 全文), v225 (字号规则断言改 13px)。
+  回归: v475/v339/v463/v346/v405/v225/v249/v315/v367 全绿。tsc + vite build 通过。
