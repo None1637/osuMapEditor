@@ -40,7 +40,7 @@ section('源码: 时间轴头尾重叠头优先 (timelineHeadHit)');
   assert(/d < or \+ 3 && d < bestD/.test(fn), '半径 rad+3 + 最近者胜出 (与 timelineMarkerHit 同规则)');
   const tl = read('src/components/Timelines.tsx');
   assert(/timelineHeadHit/.test(tl), 'Timelines 引入 timelineHeadHit');
-  assert(/const headId = hitTestHead\(e\);[\s\S]{0,200}?const tailId = headId !== null \|\| store\.lockNotes \? null : hitTestTail\(e\);/.test(tl), '命中头圆跳过拖尾分支');
+  assert(/const headId = hitTestHead\(e\);[\s\S]{0,300}?tailHit\.d < headDist\(headId, e\)/.test(tl), '命中头圆时按距离裁决拖尾 (v463 头优先 → v482 谁近谁赢)');
   assert(/const nh = headId !== null \? null : hitTestNode\(e\);/.test(tl), '命中头圆跳过尾端节点分支');
   assert(/const id = headId !== null \? headId : hitTestMarker\(e\);/.test(tl), '头圆命中直通物件选中/拖动分支');
 }

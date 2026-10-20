@@ -951,7 +951,8 @@ export function TopTimeline() {
 
   // v35: 滑条尾端命中 (css px 阈值): 拖尾 = 改折返次数, 必须优先于 hitTestMarker (尾时间在物件时长范围内)
   // v320: F22 — 命中范围扩到转盘 (拖右缘改 endTime); 悬停 ew-resize 光标提示随之自动生效
-  const hitTestTail = (e: React.MouseEvent): number | null => {
+  // v482: 返回距离 d — 头尾同时命中时与头圆距离裁决用 (soulten: 小滑条光标是选取到尾部了但拉不了尾段)
+  const hitTestTail = (e: React.MouseEvent): { id: number; d: number } | null => {
     const bm = store.beatmap;
     if (!bm) return null;
     const r = zoomRect(ref.current!); // v217: 布局空间
@@ -974,7 +975,25 @@ export function TopTimeline() {
         : Math.abs(dx);
       if (d < bestD) { bestD = d; best = o.id; }
     }
-    return best;
+    return best === null ? null : { id: best, d: bestD };
+  };
+
+  // v482: 头圆中心距离 (与 timelineHeadHit 同几何) — 头尾热区重叠时谁近谁赢;
+  //   v463 一律头优先让小滑条 (尾到头 < RAD+3) 尾段永远拉不到, 且悬停光标只看尾部 →
+  //   「光标是拖尾形状却拉不动」; 改为距离裁决后点头附近仍头优先, 尾端正中拖尾生效
+  const headDist = (id: number, e: React.MouseEvent): number => {
+    const bm = store.beatmap!;
+    const o = bm.hitObjects.find(x => x.id === id)!;
+    const r = zoomRect(ref.current!);
+    const win = 6000 / (bm.editor.timelineZoom || 1);
+    const t0 = store.currentTime - win / 2;
+    const px = zoomClientX(e.clientX) - r.left;
+    const py = zoomClientY(e.clientY) - r.top;
+    const dx = ((o.time - t0) / win) * r.width - px;
+    const si = stackInfo(bm.hitObjects).get(o.id);
+    return si && si.count > 1
+      ? Math.hypot(dx, stackLayout(si.count, OBJ_H, RAD).yOf(si.level) - py)
+      : Math.abs(dx);
   };
 
   return (
@@ -990,9 +1009,12 @@ export function TopTimeline() {
           if (store.playfieldAnchorPress?.(e.clientX, e.clientY, e)) return;
           // v463: 头尾圆重叠头优先 (soulten: 滑條頭跟尾疊再一起 優先選擇滑條頭, 現在是優先選尾) —
           //   命中头圆时跳过拖尾 (hitTestTail) 与尾端节点 (hitTestNode), 直接落物件选中/拖动分支
+          // v482: 头尾同时命中改按距离裁决 — v463 一律头优先使小滑条尾段永远拉不到
+          //   (soulten: 物件時間軸上小滑条游標是選取到尾部了但拉不了尾段); 点头附近仍头优先
           const headId = hitTestHead(e);
           // v35: 拖滑条尾端 -> 改折返次数 (优先于物件拖拽; 尾端在物件时长范围内); v115: 锁定物件禁用
-          const tailId = headId !== null || store.lockNotes ? null : hitTestTail(e);
+          const tailHit = store.lockNotes ? null : hitTestTail(e);
+          const tailId = tailHit && (headId === null || tailHit.d < headDist(headId, e)) ? tailHit.id : null;
           if (tailId !== null) {
             const bm = store.beatmap!;
             const o = bm.hitObjects.find(x => x.id === tailId)!;
@@ -1184,8 +1206,12 @@ export function TopTimeline() {
           }
           if (!store.canvasDragging && e.buttons === 0 && ref.current) {
             // v35: 悬停尾端提示可拖; v102: 悬停绿线药丸同样提示可拖
+            // v482: 与 mousedown 同一距离裁决 — 头更近时不显示 ew-resize (原光标与行为不一致)
+            const tailHit = store.lockNotes ? null : hitTestTail(e);
+            const headId = tailHit ? hitTestHead(e) : null;
+            const tailWins = tailHit && (headId === null || tailHit.d < headDist(headId, e));
             const pill = hitTestTimingPill(e);
-            ref.current.style.cursor = hitTestTail(e) || (pill && !pill.tp.uninherited) ? 'ew-resize' : 'pointer';
+            ref.current.style.cursor = tailWins || (pill && !pill.tp.uninherited) ? 'ew-resize' : 'pointer';
           }
           // v79: 移除按住拖动 scrub seek — 点击/拖动时间轴均不改变当前时间
           // v70: 鼠标下的红/绿线 (±4px) -> Timing 页签高亮对应行 (变化才 emitSelection)
