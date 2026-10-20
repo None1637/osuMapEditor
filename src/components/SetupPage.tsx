@@ -1,4 +1,6 @@
+import { useRef, useState } from 'react';
 import { store, useEditor } from '@/osu/store';
+import { planSvCompensation, applySvCompensation, type SvCompensationPlan } from '@/osu/timingSv'; // v480
 import { useT } from '@/i18n';
 
 // 基础数据页签: [General] / [Editor] / [Metadata] / [Difficulty]
@@ -6,9 +8,38 @@ export function SetupPage() {
   useEditor();
   const t = useT();
   const bm = store.beatmap;
+  // v480: 滑条速度 SV 补偿弹窗 (用户: 在song setup中调整滑条速度后需要弹出一个提示框窗,
+  //   显示是否同步调整所有绿线的sv, 无绿线覆盖的位置会加上绿线以保证滑条速度不变,
+  //   超出 0.1~10 额外提醒, 不插红线) — 连改防抖 500ms 出窗, 基线 = 本轮首改前的倍率
+  const [svComp, setSvComp] = useState<{ from: number; to: number; plan: SvCompensationPlan } | null>(null);
+  const [svDraft, setSvDraft] = useState<string | null>(null); // 输入框草稿 (聚焦期间)
+  const svCompTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const svBaseRef = useRef<number | null>(null);
   if (!bm) return null;
 
   const upd = (fn: () => void) => { store.pushUndo(); fn(); store.emit(); };
+
+  const commitSliderMultiplier = (v: number) => {
+    if (!(v > 0)) return;
+    const prev = bm.difficulty.sliderMultiplier;
+    if (v === prev) return;
+    if (!svComp && !svCompTimer.current) svBaseRef.current = prev; // 连改基线 = 首改前倍率
+    upd(() => { bm.difficulty.sliderMultiplier = v; });
+    if (svCompTimer.current) clearTimeout(svCompTimer.current);
+    svCompTimer.current = setTimeout(() => {
+      svCompTimer.current = null;
+      const base = svBaseRef.current, cur = bm.difficulty.sliderMultiplier;
+      svBaseRef.current = null;
+      if (base !== null && base !== cur)
+        setSvComp(p => p ?? { from: base, to: cur, plan: planSvCompensation(bm.timingPoints, base / cur) });
+    }, 500);
+  };
+  const closeSvComp = () => { setSvComp(null); svBaseRef.current = null; };
+  const applySvComp = () => {
+    if (!svComp) return;
+    upd(() => { bm.timingPoints = applySvCompensation(bm.timingPoints, svComp.plan); });
+    closeSvComp();
+  };
 
   const Text = ({ label, value, onChange, hint }: { label: string; value: string; onChange: (v: string) => void; hint?: string }) => (
     <label className="flex items-center gap-2 text-sm text-white/70"> {/* v321 (F23): 基础字号 xs→sm */}
@@ -87,10 +118,47 @@ export function SetupPage() {
           <Num label="CircleSize CS" value={bm.difficulty.cs} step={0.1} onChange={v => upd(() => bm.difficulty.cs = v)} hint={t('setup.circle_size_hint', 'Hit circle size, takes effect immediately')} />
           <Num label="OverallDifficulty OD" value={bm.difficulty.od} step={0.1} onChange={v => upd(() => bm.difficulty.od = v)} />
           <Num label="ApproachRate AR" value={bm.difficulty.ar} step={0.1} onChange={v => upd(() => bm.difficulty.ar = v)} hint={t('setup.approach_rate_hint', 'Approach circle speed, takes effect immediately')} />
-          <Num label={t('setup.slider_multiplier', 'SliderMultiplier Slider Velocity')} value={bm.difficulty.sliderMultiplier} step={0.1} onChange={v => upd(() => bm.difficulty.sliderMultiplier = v)} />
+          {/* v480: 滑条速度改草稿提交 (聚焦输入 blur/Enter 才落值; 滚轮等未聚焦改动即时落值),
+              落值后防抖 500ms 弹绿线 SV 补偿窗 — 避免逐击键弹窗 */}
+          <label className="flex items-center gap-2 text-sm text-white/70">
+            <span className="w-44 shrink-0">{t('setup.slider_multiplier', 'SliderMultiplier Slider Velocity')}</span>
+            <input type="number" step={0.1} value={svDraft ?? bm.difficulty.sliderMultiplier} data-setup="slider-multiplier"
+              onChange={e => {
+                setSvDraft(e.target.value);
+                if (document.activeElement !== e.target) { commitSliderMultiplier(parseFloat(e.target.value)); setSvDraft(null); }
+              }}
+              onBlur={() => { if (svDraft !== null) { commitSliderMultiplier(parseFloat(svDraft)); setSvDraft(null); } }}
+              onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+              className="w-32 bg-black/40 border border-white/15 rounded px-2 py-1 text-white" />
+          </label>
           <Num label={t('setup.slider_tick_rate', 'SliderTickRate Slider Tick Rate')} value={bm.difficulty.sliderTickRate} step={0.5} onChange={v => upd(() => bm.difficulty.sliderTickRate = v)} />
         </Section>
       </div>
+      {/* v480: 绿线 SV 补偿弹窗 */}
+      {svComp && (
+        <div className="fixed inset-0 z-[70] bg-black/70 flex items-center justify-center" data-dialog="sv-comp">
+          <div className="bg-[#1b1b24] border border-white/15 rounded-lg p-4 w-[26rem] space-y-3 text-sm text-white/85">
+            <div className="font-bold text-white/90 text-base">{t('setup.sv_comp_title', 'Adjust green line SVs to match?')}</div>
+            <div>{t('setup.sv_comp_body', 'Base slider velocity {from} → {to}. Multiply every green line SV by {f} to keep slider speeds unchanged?', { from: svComp.from, to: svComp.to, f: Math.round(svComp.plan.f * 10000) / 10000 })}</div>
+            {svComp.plan.inserts.length > 0 && (
+              <div className="text-white/60">{t('setup.sv_comp_insert', '{n} green line(s) will be inserted where no green line covers (SV = {f}).', { n: svComp.plan.inserts.length, f: Math.round(svComp.plan.f * 10000) / 10000 })}</div>
+            )}
+            {svComp.plan.outOfRange > 0 && (
+              <div className="text-yellow-300">{t('setup.sv_comp_clamp_warn', 'Note: {n} compensated SV(s) exceed 0.1~10 and will be clamped (slider speed will still change there); no red lines will be inserted.', { n: svComp.plan.outOfRange })}</div>
+            )}
+            <div className="flex gap-2 justify-end pt-1">
+              <button data-sv-comp="apply" onClick={applySvComp}
+                className="px-3 py-1 rounded bg-pink-500 hover:bg-pink-400 text-white font-bold">
+                {t('setup.sv_comp_apply', 'Adjust SVs')}
+              </button>
+              <button data-sv-comp="skip" onClick={closeSvComp}
+                className="px-3 py-1 rounded bg-white/10 hover:bg-white/20">
+                {t('setup.sv_comp_skip', 'Leave as is')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -62,3 +62,65 @@ export function svRestoreTargetAt(
   if (nextHead === Infinity) return null;
   return points.some(p => p.time > afterTime && p.time <= nextHead) ? null : nextHead;
 }
+
+// ---- v480: song setup 改基础滑条速度 (sliderMultiplier) 后的绿线 SV 补偿 ----
+// 滑条速度 = sliderMultiplier × SV; 倍率 m0 → m1 后全体 SV × f (f = m0/m1) 即保持速度不变。
+// stable 语义红线把 SV 重置为 1.0 (svPointAt, parser.ts v227), 故「无绿线覆盖」= 每条红线后
+// 到其下一条绿线之前的区间 — 补偿时在红线时刻补插 SV=f 的绿线 (同刻已有绿线则已覆盖, 不插)。
+// 超出 0.1~10 的钳到边界并计入 outOfRange (弹窗额外提醒); 不插红线突破上限 (用户明确要求)。
+export interface SvCompensationPlan {
+  /** SV 缩放系数 (= 旧倍率 / 新倍率) */
+  f: number;
+  /** 现有绿线: points 下标 + 新 SV (已钳) + 是否越界被钳 */
+  greens: { idx: number; newSv: number; clamped: boolean }[];
+  /** 待插绿线: 时刻 + SV (已钳) + 是否越界被钳 */
+  inserts: { time: number; sv: number; clamped: boolean }[];
+  /** 补偿后 SV 超出 0.1~10 的处数 (绿线 + 插入合计) */
+  outOfRange: number;
+}
+
+const clampSv = (sv: number) => Math.min(SV_MAX, Math.max(SV_MIN, sv));
+const svClamped = (sv: number) => sv < SV_MIN - 1e-9 || sv > SV_MAX + 1e-9;
+
+/** 补偿方案 (纯函数, 不改 points): 现有绿线 SV ×f + 无覆盖区间补绿线 */
+export function planSvCompensation(points: TimingPoint[], f: number): SvCompensationPlan {
+  const greens: SvCompensationPlan['greens'] = [];
+  const inserts: SvCompensationPlan['inserts'] = [];
+  let outOfRange = 0;
+  points.forEach((p, idx) => {
+    if (p.uninherited || p.beatLength >= 0) return;
+    const raw = (-100 / p.beatLength) * f;
+    const cl = svClamped(raw);
+    if (cl) outOfRange++;
+    greens.push({ idx, newSv: clampSv(raw), clamped: cl });
+  });
+  // 每条红线 = SV 重置点; 同刻无绿线 → [红线, 下一条绿线) 区间 SV=1.0 无覆盖, 补 SV=f 绿线
+  const greenTimes = new Set(points.filter(p => !p.uninherited).map(p => Math.round(p.time)));
+  const redTimes = [...new Set(points.filter(p => p.uninherited).map(p => Math.round(p.time)))];
+  if (!redTimes.length && points.length) redTimes.push(Math.round(points[0].time)); // 无红线兜底: 开头段
+  for (const tr of redTimes) {
+    if (greenTimes.has(tr)) continue;
+    const cl = svClamped(f);
+    if (cl) outOfRange++;
+    inserts.push({ time: tr, sv: clampSv(f), clamped: cl });
+  }
+  return { f, greens, inserts, outOfRange };
+}
+
+/** 应用补偿方案 — 返回新数组 (不改传入 points); 插入的绿线拷贝同刻红线的音效字段并排在红线之后
+ *  (svPointAt 顺序扫描: 同刻红线先把 SV 重置为 1, 绿线在其后才生效) */
+export function applySvCompensation(points: TimingPoint[], plan: SvCompensationPlan): TimingPoint[] {
+  const out = points.slice();
+  for (const g of plan.greens) out[g.idx] = { ...out[g.idx], beatLength: beatLengthForSv(g.newSv) };
+  for (const ins of plan.inserts) {
+    const redIdx = out.findIndex(p => p.uninherited && Math.round(p.time) === ins.time);
+    const src = redIdx >= 0 ? out[redIdx] : null;
+    const np: TimingPoint = {
+      time: ins.time, beatLength: beatLengthForSv(ins.sv),
+      meter: src?.meter ?? 4, sampleSet: src?.sampleSet ?? 1, sampleIndex: src?.sampleIndex ?? 0,
+      volume: src?.volume ?? 100, uninherited: false, effects: 0,
+    };
+    out.splice(redIdx >= 0 ? redIdx + 1 : 0, 0, np);
+  }
+  return out;
+}

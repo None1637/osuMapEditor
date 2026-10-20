@@ -20,7 +20,7 @@ section('A: 源码形态');
   assert(/data-reload-map-btn/.test(app), '刷新按钮探针钩子');
   assert(/disabled=\{!store\.mapSource \|\| reloadingMap\}/.test(app), '无磁盘来源 (mapSource=null) 时禁用');
   assert(/store\.guardUnsaved/.test(app) && /loadDifficulty\(src\.dir, src\.fileName\)/.test(app), 'guardUnsaved 确认 + loadDifficulty 重读原文件');
-  assert(/store\.load\(r\.bm, r\.audioUrl, r\.bgUrl, r\.samples, src\)/.test(app), '重载保持原 mapSource (保存仍写回原文件)');
+  assert(/store\.load\(r\.bm, r\.audioUrl, r\.bgUrl, r\.samples, src(, r\.audioKey)?\)/.test(app), '重载保持原 mapSource (保存仍写回原文件; v444: 追加 audioKey 音频复用参数)');
   assert(/store\.seek\(Math\.min\(t0, lastEnd \+ 5000\)\)/.test(app), '重载后当前时间保留 (clamp 末物件+5s)');
   const dict = read('src/i18n/dicts/zh-CN/app.ts');
   assert(dict.includes("'app.reload_map'") && dict.includes("'app.reload_map_title'") && dict.includes("'app.reload_failed'"), 'zh-CN 词典三个 key 齐全');

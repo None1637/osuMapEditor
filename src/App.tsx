@@ -185,6 +185,9 @@ export default function App() {
       alert(t('app.reload_failed', 'Reload failed: {msg}', { msg: e instanceof Error ? e.message : String(e) }));
     } finally { setReloadingMap(false); }
   };
+  // v480: 菜单命令走 ref — onMenuCommand 的 useEffect 是 [] 依赖, 直引会锁死首渲染闭包
+  const reloadMapRef = useRef(reloadMap);
+  reloadMapRef.current = reloadMap;
 
   // Electron: 首跑 (曲库目录未配置) 显示配置向导; 菜单"重新配置"也可再次打开
   useEffect(() => {
@@ -420,6 +423,7 @@ export default function App() {
       if (cmd.type === 'timing-open-settings') { setTab('timing'); return; }
       if (cmd.type === 'timing-shift-all') { setShowShiftAll(true); return; }
       if (cmd.type === 'open-backups') { void store.openBackupFolder(); return; } // v185: 文件菜单「查看备份」
+      if (cmd.type === 'reload-map') { void reloadMapRef.current(); return; } // v480: Ctrl+R 菜单命令 → 谱面刷新 (含未保存警告)
       await handleMenuCommand(cmd);
       if (cmd.type === 'open') setShowLibrary(false);
     });

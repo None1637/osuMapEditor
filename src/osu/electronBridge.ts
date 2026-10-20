@@ -127,6 +127,7 @@ export type ElectronMenuCommand =
   | { type: 'timing-delete-all' }
   | { type: 'timing-set-preview' }
   | { type: 'open-backups' } // v185: 文件菜单「查看备份」
+  | { type: 'reload-map' } // v480: 设置菜单「刷新」(Ctrl+R) — 渲染端 reloadMap (含未保存警告), 原为整页重载
   // ---- v209: 编辑菜单 (stable 同款; 快捷键仅显示, 实际按键仍走 App.tsx keydown) ----
   | { type: 'edit-undo' }
   | { type: 'edit-redo' }

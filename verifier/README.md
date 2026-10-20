@@ -5399,3 +5399,26 @@
 - 验证: verifier/v479 — 源码断言 + CDP (win=1500 实测: 点尾圆偏 15px 选尾节点避开 8px
   拖尾把手 → 点头圆正中清尾选区物件保持选中 → 再点尾圆往返通畅 → 点连体条中段同样回到
   物件级)。回归: v479/v213/v463/v465/v320/v407 全绿。tsc + vite build 通过。
+
+## v480 — 修复+新功能: Ctrl+R 刷新图谱跳未保存警告; song setup 滑条速度绿线 SV 补偿弹窗
+- 需求 1 (soulten, 极度危险): ctrl+R 刷新圖譜不會跳保存警告 — 设置菜单「刷新」用 Electron
+  role:reload = webContents.reload() 整页重载, 未保存改动直接丢弃。改为菜单项显式
+  accelerator CmdOrCtrl+R + click 发 menu-cmd {type:'reload-map'}, 渲染端 App 经
+  reloadMapRef (防 [] 依赖 effect 陈旧闭包) 走 v350 reloadMap — 内含 guardUnsaved 确认;
+  serializeMenuItems 的 role:reload 分支一并移除。
+- 需求 2 (用户): song setup 调整滑条速度 (sliderMultiplier) 后弹窗询问是否同步调整所有
+  绿线 SV 保持滑条速度不变; 无绿线覆盖的位置补绿线; SV 超 0.1~10 额外提醒; 不插红线。
+  - timingSv.ts 纯函数: planSvCompensation (现有绿线 SV ×f [f=旧/新倍率] 钳 0.1~10 并计
+    outOfRange; stable 语义红线重置 SV=1 (svPointAt v227), 故每条同刻无绿线的红线时刻补插
+    SV=f 绿线) + applySvCompensation (绿线改写 beatLength; 插入拷贝同刻红线音效字段并排在
+    红线后 — svPointAt 顺序扫描同刻红先绿后才生效)。
+  - SetupPage: 滑条速度改草稿提交输入框 (聚焦 blur/Enter 落值, v388 滚轮等未聚焦改动即时
+    落值), 落值后 500ms 防抖弹窗, 连改基线 = 本轮首改前倍率 (svBaseRef); 弹窗显示 f/插入
+    条数/越界提醒, 「同步调整」一次 undo, 「不调整」不动绿线。
+  - s2t 字表补 偿→償/钳→鉗 (S2T_TABLE) + 否乘 (S2T_SAME)。
+- 验证: verifier/v480 — 源码断言 + CDP 全链路 (造脏后经菜单定义找到「刷新」项 menuItemClick
+  → 未保存弹窗出现且改动未丢; setup 页签改倍率 2.4→1.2 → 弹窗出现含插入说明无越界提醒 →
+  应用后绿线 1→2 条, SV 1.5→3 / 插入 SV=2; 再改 f=10 → 越界提醒显示, 「不调整」绿线不变)。
+  适配: v280 (role reload 断言反转), v350 (store.load 签名补 audioKey 可选参 — v444 既有红
+  顺手修)。回归: v480/v350/v280/v281/v407/v463/v476/v120/v136/v227/v346 — v281 1 处为 v477
+  起既有红 (stash 对照确认), 其余全绿。tsc + vite build 通过。

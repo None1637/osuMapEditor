@@ -350,7 +350,6 @@ function serializeMenuItems(items) {
       const clickFn = it.click, role = it.role
       menuActions.set(id, () => {
         if (clickFn) clickFn()
-        else if (role === "reload") win?.webContents.reload()
         else if (role === "toggleDevTools") win?.webContents.toggleDevTools()
         else if (role === "quit") app.quit()
       })
@@ -610,7 +609,9 @@ function buildMenu() {
         { label: mT("menu.sv_redline_boost"), type: "checkbox", checked: editorPrefsState.svRedlineBoost, click: () => send({ type: "settings-toggle-editor-pref", key: "svRedlineBoost" }) }, // v455
         { label: mT("menu.sv_tail_restore"), type: "checkbox", checked: editorPrefsState.svTailRestore, click: () => send({ type: "settings-toggle-editor-pref", key: "svTailRestore" }) }, // v457
         { type: "separator" },
-        { role: "reload", label: mT("menu.reload") },
+        // v480: Ctrl+R 刷新圖譜不跳保存警告 (soulten, 极度危险) — role:reload 是整页重载,
+        //   未保存改动直接丢弃; 改发 menu-cmd 走渲染端 reloadMap (v350, 内含 guardUnsaved 确认)
+        { label: mT("menu.reload"), accelerator: "CmdOrCtrl+R", enabled: !!menuState, click: () => send({ type: "reload-map" }) },
         { role: "toggleDevTools", label: mT("menu.devtools") },
         { type: "separator" },
         { role: "quit", label: mT("menu.quit") },

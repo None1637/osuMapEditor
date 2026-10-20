@@ -37,6 +37,13 @@ export const zhCN: Record<string, string> = {
   'setup.approach_rate_hint': '缩圈速度, 实时生效',
   'setup.slider_multiplier': 'SliderMultiplier 滑条速度',
   'setup.slider_tick_rate': 'SliderTickRate 滑条点率',
+  // v480: 改基础滑条速度后的绿线 SV 补偿弹窗
+  'setup.sv_comp_title': '同步调整绿线 SV?',
+  'setup.sv_comp_body': '基础滑条速度 {from} → {to}。是否将所有绿线的 SV 乘以 {f}, 以保持滑条速度不变?',
+  'setup.sv_comp_insert': '无绿线覆盖的位置将插入 {n} 条绿线 (SV = {f})。',
+  'setup.sv_comp_clamp_warn': '注意: {n} 处补偿后的 SV 超出 0.1~10, 将被钳制到边界 (这些位置的滑条速度仍会变化); 不会插入红线。',
+  'setup.sv_comp_apply': '同步调整',
+  'setup.sv_comp_skip': '不调整',
 
   // FirstRunWizard
   'wizard.title': '首次配置',
