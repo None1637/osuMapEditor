@@ -194,7 +194,7 @@ export function EditorCanvas() {
     : store.originMode === 'custom' && store.selected.size > 0;
   // v166: 画布标记/拖拽当前绑定的自定义原点 (批量复制窗口打开 = 弹窗独立原点)
   const activeCustomOrigin = () => (store.conversionDialog === 'duplicate' ? store.dupCustomOrigin : store.customOrigin);
-  const cursorRef = useRef<{ x: number; y: number; inside: boolean }>({ x: 0, y: 0, inside: false });
+  const cursorRef = useRef<{ x: number; y: number; inside: boolean; over: boolean }>({ x: 0, y: 0, inside: false, over: false }); // v483: over = 光标在 canvas 元素上 (inside 是 osu 界语义, 平移/缩小后两者不再等价)
   // v245: 网格/背景/边框静态层缓存 (帧循环里按键复用, 见 loop 内静态层块)
   // v246: x/y = 层在主画布设备像素中的原点 (层裁剪到游玩区设备矩形, 不再整画布尺寸)
   const staticLayerRef = useRef<{ key: string; c: HTMLCanvasElement; x: number; y: number } | null>(null);
@@ -944,8 +944,9 @@ export function EditorCanvas() {
         const placingDrag = !!(drawCandRef.current || freehandRef.current);
         let bmRender = bmView;
         let pendingSkeleton = false;
+        (window as unknown as { __placeGhost?: HitObject[] | null }).__placeGhost = null; // v483: 验证/调试钩子 (与 __dragState 同款)
         if (!store.playing && (!store.canvasDragging || placingDrag) && !store.patternDrag && store.tool !== 'select'
-          && (cur.inside || !store.limitToPlayfield || placingDrag)) { // v163: 关「限制物件在游玩区域内」后区外同样预览
+          && (cur.over || !store.limitToPlayfield || placingDrag)) { // v163: 关「限制物件在游玩区域内」后区外同样预览; v483: 主门控改 over (光标在 canvas 上) — 开平移/缩小后 osu 界外仍是大片画布区, inside 门控会冻结预览
           const ghosts: HitObject[] = [];
           // v366: 幽灵 time = 落盘时间公式 (与 finishSlider/finishCircle 同源) — v363 的"不早于当前时间"
           //   钳制已撤销: 它让幽灵渲染时间与落盘时间不同源 (SV 绿线夹在两时刻之间时幽灵 SV/长度基准
@@ -956,7 +957,8 @@ export function EditorCanvas() {
               time: Math.round(snapTime(store.currentTime)), newCombo: store.placeNewCombo, comboSkip: 0, hitSound: store.placeHitSound }); // v241: 放置态 (与落盘同源)
           } else if (store.tool === 'slider') {
             // 与 finishSlider 同源: 路径/长度/起点时间同一公式 (预览=落盘); 幻影点只在光标在画布内时并入
-            const computed = computePendingPath(store.pendingSlider, cur.inside ? store.pendingCursor : null);
+            // v483: 门控 inside→over — 幻影尾点在 osu 界外 (平移后画布区) 同样跟随光标
+            const computed = computePendingPath(store.pendingSlider, cur.over ? store.pendingCursor : null);
             // v363: 手绘预览 (pend 带 bspline 标记) — 幽灵按控制点列渲染 (与 drawPendingSlider
             //   的 raw 同源; 跳过 preserveArcsForBezier, 3 点段不转圆预设贝塞尔)
             //   v387: 手绘幽灵直接以 'B4' + builder 控制点渲染 (computeRawPath 已支持 B 样条) — 预览=落盘同形,
@@ -979,6 +981,7 @@ export function EditorCanvas() {
             }
             bmRender = ghostViewRef.current.bmV;
           }
+          (window as unknown as { __placeGhost?: HitObject[] | null }).__placeGhost = ghosts; // v483
         }
         const __pt0 = performance.now(); // v99: 渲染性能采样 (CDP 读 window.__perfRender)
         // v340: 暂停时启用物件场景静态层 (密集谱面框选/拖曳瓶颈); 播放/中键平移 (时间/变换逐帧变) 走原路径。
@@ -1021,7 +1024,8 @@ export function EditorCanvas() {
           comboInfo: getCombos(bmRender), stackOffsets: getStackOffsets(bm),
         }, store.pendingSlider,
           // v207: 已有控制点时预览幻影用吸附后的 pendingCursor (onMouseMove 里与落点同公式), 否则原始光标 (头部幽灵)
-          cur.inside && store.tool === 'slider' && !store.playing
+          // v483: 门控 inside→over (同上)
+          cur.over && store.tool === 'slider' && !store.playing
             ? (store.pendingSlider.length > 0 ? store.pendingCursor : { x: cur.x, y: cur.y })
             : null, store.distanceLock, // v219: 预览滑条身按吸附长度截断需要锁定间距开关
           pendingSkeleton); // v318: F24a — 幽灵滑条接管身/头绘制时, pending 只画控制骨架
@@ -2272,7 +2276,7 @@ export function EditorCanvas() {
       return;
     }
     const cp = toOsu(e);
-    cursorRef.current = { x: cp.x, y: cp.y, inside: cp.x >= 0 && cp.x <= PW && cp.y >= 0 && cp.y <= PH };
+    cursorRef.current = { x: cp.x, y: cp.y, inside: cp.x >= 0 && cp.x <= PW && cp.y >= 0 && cp.y <= PH, over: true }; // v483: over — 能触发 onMouseMove 即光标在 canvas 上
     // v82: 放置中光标 -> store (上方时间轴滑条预览幻影点)
     // v207: 控制点预览走落点同款吸附 (snapSliderCtrlPoint) — 幻影节点与点击落点一致, 所见即所放
     store.pendingCursor = store.tool === 'slider' && store.pendingSlider.length > 0 ? snapSliderCtrlPoint({ x: cp.x, y: cp.y }) : null;
@@ -2712,6 +2716,7 @@ export function EditorCanvas() {
       onMouseUp={onMouseUp}
       onMouseLeave={() => {
         cursorRef.current.inside = false;
+        cursorRef.current.over = false; // v483
         hoverSliderRef.current = null; // v259: 光标出游玩区, 清 hover 滑条点预览
         hoverNodeRef.current = null;
         store.setHoverNode(null); // v381: 光标出游玩区, 清信息面板 hover 锚点

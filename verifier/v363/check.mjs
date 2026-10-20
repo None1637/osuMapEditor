@@ -32,7 +32,7 @@ section('源码: 手绘拖拽中幽灵不抑制 (Bug A)');
   const ec = read('src/components/EditorCanvas.tsx');
   assert(/const placingDrag = !!\(drawCandRef\.current \|\| freehandRef\.current\);/.test(ec), 'placingDrag = 候选/手绘拖拽中');
   assert(/!store\.playing && \(!store\.canvasDragging \|\| placingDrag\) && !store\.patternDrag/.test(ec), '幽灵门控放行放置中拖拽');
-  assert(/cur\.inside \|\| !store\.limitToPlayfield \|\| placingDrag/.test(ec), '手绘拖出游玩区幽灵同样保持');
+  assert(/cur\.over \|\| !store\.limitToPlayfield \|\| placingDrag/.test(ec), '手绘拖出游玩区幽灵同样保持 (v483: 主门控 inside→over, 更宽)');
   assert(/const bspline = store\.pendingSlider\.some\(pt => pt\.bspline\);/.test(ec), '手绘拟合点 bspline 标记检测');
   // v387 适配: 手绘幽灵直接以 'B4' + builder 控制点渲染 (computeRawPath 支持 B 样条; 撤销 v377 的 bsplineToStableBezier 拟合)
   assert(/const finalCtrl = bspline \? computed\.controlPoints : preserveArcsForBezier\(/.test(ec), '手绘预览跳过 preserveArcsForBezier (直用 builder 控制点, v387)');

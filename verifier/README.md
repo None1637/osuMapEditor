@@ -5449,3 +5449,19 @@
 - 验证: verifier/v482 — 源码断言 + CDP (布景尾距头 15px: 悬停尾 ew-resize/悬停头 pointer;
   按尾端正中右拖折返 1→5 时间不动; 按头圆心拖动整体移动折返不变)。
   适配: v463 源码断言更新为距离裁决语义。回归: v463/v479/v320 全绿。tsc + vite build 通过。
+
+## v483 — 开游玩区平移后光标在游玩区外拉滑条无法实时预览 (用户反馈)
+- 根因: 放置幽灵/幻影尾点的渲染门控用 cur.inside (osu 坐标 ∈ [0,512]×[0,384])。无平移时
+  游玩区≈铺满画布, osu 界外只有窄留白碰不到; 开平移 (尤其缩小) 后画布大片区域逆变换落在
+  osu 界外 → inside=false → 预览冻结。toOsu 对界外坐标工作正常, pendingCursor 一直在更新,
+  纯粹是渲染门控丢弃 (EditorCanvas.tsx 三处: 幽灵总开关/computePendingPath 幻影点/
+  renderPlayfield 幻影点参数)。
+- 修复: cursorRef 拆出 over (光标在 canvas 元素上, onMouseMove 置 true/onMouseLeave 置 false),
+  三处渲染门控 inside→over; inside 保留给真正需要 osu 界语义的逻辑 (limitToPlayfield 钳制、
+  间距面板预览)。幻影点 pendingCursor 与落点同公式 (snapSliderCtrlPoint), 预览=落盘不受影响。
+- 钩子: window.__placeGhost (与 __dragState 同款调试/验证钩子, 渲染循环每帧赋值)。
+- 验证: verifier/v483 — 源码断言 + CDP (开平移 scale 0.6: osu 界外两点幽灵渲染且实时跟随
+  len 480→540; 界内对照正常; mouseleave 后清除)。
+- 适配: v363 源码断言 inside→over (语义变宽, placingDrag 豁免不变)。
+- 回归: v163/v207/v223/v228/v318/v363/v366/v391 — v163×2/v223×1/v366×1/v391×1 为既有红
+  (stash 对照确认改动前后数量一致), 其余全绿。tsc + vite build 通过。
