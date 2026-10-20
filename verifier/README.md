@@ -5422,3 +5422,17 @@
   适配: v280 (role reload 断言反转), v350 (store.load 签名补 audioKey 可选参 — v444 既有红
   顺手修)。回归: v480/v350/v280/v281/v407/v463/v476/v120/v136/v227/v346 — v281 1 处为 v477
   起既有红 (stash 对照确认), 其余全绿。tsc + vite build 通过。
+
+## v481 — 滑条转连打窗口下半部分参数不记忆 (soulten)
+- 现象: 窗口上半部分 (方式/数量/间距) 能记忆上次选项, 下半部分 (自定义连打间距组:
+  expoBase/rampPercent/repeats/mirrorRepeat) 每次开窗都丢。
+- 根因: v398 migrateStreamParams 用 {...DEFAULT_STREAM_PARAMS, ...raw} 合并, 遗留字段
+  curve/endPercent/exponent 被原样带回迁移结果; v242 关窗保存又把它们写回 localStorage,
+  于是下次开窗 raw.curve !== undefined 永远成立 → 每次重新迁移, 迁移分支里的
+  expoBase=Math.max(0.01, raw.exponent ?? 2) 等映射反复覆盖用户修改。上半部分走 {...p}
+  保留用户值所以正常 — 与用户描述「下半没有, 上半好像有」完全吻合。
+- 修复 (stream.ts): 迁移时先解构剥掉 curve/endPercent/exponent 再合并, 结果干净; 老用户
+  首次开窗仍会被迁移覆盖一次 (最后一次), 之后关窗保存即干净 blob, 不再重触发。
+- 验证: verifier/v481 — 源码断言 + CDP (播种带 curve 的旧 blob → 刷新 → 开窗迁移一次 →
+  改下半部分 3.2/215/2/镜像 → X 关窗 → 断言保存 blob 无遗留字段 → 两次重开全部保持)。
+  回归: v398/v242/v476 全绿。tsc + vite build 通过。

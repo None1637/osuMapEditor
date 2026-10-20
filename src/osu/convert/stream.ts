@@ -28,10 +28,14 @@ export const DEFAULT_STREAM_PARAMS: StreamParams = {
 };
 
 /** v398: 遗留持久化参数 (v36~v222 的 curve/endPercent/exponent) 迁移到新模型;
- *  bell = repeats 2 + 镜像 (100→k→100); bellInv 中段最疏 = 倍率 200-endPercent 的镜像两段 */
+ *  bell = repeats 2 + 镜像 (100→k→100); bellInv 中段最疏 = 倍率 200-endPercent 的镜像两段
+ *  v481: 迁移结果剥掉遗留字段 (curve/endPercent/exponent) — 原实现 {...DEFAULT, ...raw} 把 curve
+ *    原样带回结果, 关窗保存又写回 localStorage → 每次开窗都重新迁移, 用户对下半部分
+ *    (自定义间距组) 的修改每次都被遗留映射覆盖 = 「下半部分不记忆, 上半有」 (soulten 反馈) */
 export function migrateStreamParams(raw: StreamParams & { curve?: string; endPercent?: number; exponent?: number }): StreamParams {
   if (raw.curve === undefined) return raw; // 已是新模型 (遗留数据必带 curve 字段)
-  const p = { ...DEFAULT_STREAM_PARAMS, ...raw };
+  const { curve: _c, endPercent: _e, exponent: _x, ...rest } = raw; // v481: 剥遗留字段
+  const p = { ...DEFAULT_STREAM_PARAMS, ...rest };
   const end = typeof raw.endPercent === 'number' ? raw.endPercent : 50;
   switch (raw.curve) {
     case 'linear': case 'accel': case 'decel':
