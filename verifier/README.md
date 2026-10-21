@@ -5479,3 +5479,18 @@
 - 适配: v360 (nodeMode 断言 >0→>1; D 段布景改 setSelectedNodes 两锚点保持测节点模式 UI)。
 - 回归: v360/v379/v315/v344/v463/v477 全绿; v304 为既有红 (esbuild 无法处理
   rateResampler.worklet.js?raw, 打包阶段失败, stash 对照确认改动前后一致)。tsc + vite build 通过。
+
+## v485 — 「這還沒修, 選轉跟縮放都不會有效果」(soulten 对 v484 的追评) — 快捷键路径
+- 确认过程: v484 只修了浮窗路径 (TransformDialog nodeMode ≥2 锚点); 排查发现快捷键路由
+  (App.tsx rot-ccw/rot-cw/flip-h/flip-v) 仍是 nodeSelectionCount 非 0 即走节点变换 — 拖锚点
+  选区收敛为 1 (v410) 后单锚点绕自身旋转/镜像 = 恒等。缩放快捷键 (open-scale) 开浮窗,
+  v484 已覆盖; 用户大概率走 Ctrl+,/Ctrl+. 快捷键旋转 → 「還沒修」。
+- 修复 (App.tsx): 4 处路由改 nodeSelectionCount > 1; 单锚点+物件在选区 → 回落物件变换
+  (游玩区中心, 与原 fallback 相同)。store 层 rotateSelectedNodes/flipSelectedNodes 不动
+  (API 语义不变, v304/v360 直测通过)。
+- 验证: verifier/v485 — 源码断言 ×4 + CDP (单锚点 Ctrl+. → 物件级旋转 (200,150)→(298,136)
+  精确命中游玩区中心旋转; 双锚点 Ctrl+, → 节点级旋转 (275,225) 保留; 单锚点 Ctrl+H →
+  物件级镜像 (312,150))。
+- 适配: v75 两条路由断言 (>0 → >1)。
+- 回归: v75/v192/v360/v379/v484 全绿; v209/v304 为既有红 (esbuild 无法处理 ?raw 导入,
+  打包阶段失败, 与本次无关)。tsc + vite build 通过。

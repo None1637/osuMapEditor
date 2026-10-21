@@ -345,11 +345,13 @@ export default function App() {
         case 'select-all': e.preventDefault(); store.selectAllObjects(); return;
         // 选区变换快捷键始终围绕游玩区中心 (256,192) — 对齐 osu!stable (v192); Inspector 面板按钮仍用界面选的原点
         // v304: F08 — 有滑条锚点选区时作用于锚点 (原点 = 锚点包围盒中心), 否则物件选区
+        // v485: ≥2 锚点才走节点变换 — 单锚点绕自身旋转/缩放/镜像 = 恒等 = 「移動滑條點後選轉跟縮放都不會有效果」
+        //   (soulten; 拖锚点会把节点选区收敛成 1 个 — v410, 此时物件在选区, 回落物件变换; 浮窗路径 v484 已修)
         case 'reverse': e.preventDefault(); store.reverseSelected(); return;
-        case 'rot-ccw': e.preventDefault(); store.nodeSelectionCount ? store.rotateSelectedNodes(-90) : store.rotateSelected(-90, 'playfield'); return;
-        case 'rot-cw': e.preventDefault(); store.nodeSelectionCount ? store.rotateSelectedNodes(90) : store.rotateSelected(90, 'playfield'); return;
-        case 'flip-h': e.preventDefault(); store.nodeSelectionCount ? store.flipSelectedNodes('h') : store.flipSelected('h', 'playfield'); return;
-        case 'flip-v': e.preventDefault(); store.nodeSelectionCount ? store.flipSelectedNodes('v') : store.flipSelected('v', 'playfield'); return;
+        case 'rot-ccw': e.preventDefault(); store.nodeSelectionCount > 1 ? store.rotateSelectedNodes(-90) : store.rotateSelected(-90, 'playfield'); return;
+        case 'rot-cw': e.preventDefault(); store.nodeSelectionCount > 1 ? store.rotateSelectedNodes(90) : store.rotateSelected(90, 'playfield'); return;
+        case 'flip-h': e.preventDefault(); store.nodeSelectionCount > 1 ? store.flipSelectedNodes('h') : store.flipSelected('h', 'playfield'); return;
+        case 'flip-v': e.preventDefault(); store.nodeSelectionCount > 1 ? store.flipSelectedNodes('v') : store.flipSelected('v', 'playfield'); return;
         case 'hs-newcombo': case 'hs-whistle': case 'hs-finish': case 'hs-clap': {
           // v241: 放置工具 (circle/slider/spinner) 下预设下次放下物件的 NC/音效 (stable 放置态);
           // select 工具维持原语义 (选中物件 / 时间轴选中节点 v213)
