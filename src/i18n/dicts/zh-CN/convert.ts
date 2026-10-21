@@ -137,4 +137,7 @@ export const zhCN: Record<string, string> = {
   'convert.stamp_sv_preview': 'SV: {from} → {to}',
   'convert.stamp_need_main': '没有主滑条 (请关闭窗口, 选中 1 根主滑条后重开)',
   'convert.stamp_summary': '将插入 {n} 处模板 (预览已显示在游玩区)',
+  // v488: 模板旋转角 (默认 90° = 垂直于主滑条)
+  'convert.stamp_rotate': '旋转',
+  'convert.stamp_rotate_hint': '(90 = 垂直于主滑条, 0 = 沿切线)',
 };

@@ -30,7 +30,11 @@ const BeatFrac = ({ num, den, setNum, setDen, idNum, idDen }: {
 export function AnchorStampDialog() {
   useEditor();
   const t = useT();
-  const [params, setParams] = useState<AnchorStampParams>(() => loadParams('anchorStamp', DEFAULT_ANCHOR_STAMP_PARAMS));
+  // v488: 旧存档的规则无 rotate 字段 → 载入时补默认 90° (垂直)
+  const [params, setParams] = useState<AnchorStampParams>(() => {
+    const p = loadParams('anchorStamp', DEFAULT_ANCHOR_STAMP_PARAMS);
+    return { ...p, rules: (p.rules ?? []).map(r => ({ ...r, rotate: Number.isFinite(r.rotate) ? r.rotate : 90 })) };
+  });
   useSaveParamsOnClose('anchorStamp', params);
   const bm = store.beatmap;
   // 开窗时固定主滑条 (之后选区让给模板捕获); 物件被删/undo 后提示
@@ -108,6 +112,12 @@ export function AnchorStampDialog() {
               <span className="text-white/50">{t('convert.stamp_erase', 'Erase')}</span>
               <BeatFrac num={r.eraseNum} den={r.eraseDen} idNum={`erase-num-${i}`} idDen={`erase-den-${i}`}
                 setNum={v => updRule(i, { eraseNum: v })} setDen={v => updRule(i, { eraseDen: v })} />
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-white/50">{t('convert.stamp_rotate', 'Rotate')}</span>
+              <DraftNum value={r.rotate} testid={`rotate-${i}`} min={-360} max={360} step={1} set={v => updRule(i, { rotate: v })} />
+              <span className="text-white/40">°</span>
+              <span className="text-white/30 text-xs">{t('convert.stamp_rotate_hint', '(90 = perpendicular to main slider, 0 = along tangent)')}</span>
             </div>
           </div>
         );

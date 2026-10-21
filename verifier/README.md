@@ -5527,3 +5527,14 @@
 - 验证: verifier/v487 — 源码断言 (focusable:false + showInactive 保留) + CDP
   (document.hasFocus()=false; rAF 渲染循环正常; F2 合成 keydown 冒烟)。
 - 回归: v486/v477/v359/v407/v242/v480/v484/v485/v483/v463。
+
+## v488 — 插入锚点 (弹簧): 模板默认垂直 + 旋转角度控制
+- 需求: 盖章模板默认垂直于主滑条方向 (原为沿切线 0°), 且支持控制旋转角度。
+- 改动: anchorStamp.ts — AnchorStampRule 加 `rotate` (度, 相对切线对齐的偏转角,
+  屏幕坐标正角 = 视觉顺时针), newRule 默认 90 (垂直); 盖章变换 dTheta =
+  theta - thetaT + rot; 旧存档无 rotate 字段回退 90 (计算层 Number.isFinite 防御 +
+  浮窗载入时补默认)。
+- 浮窗: 每条规则加「旋转」DraftNum (-360~360°) + 提示文案; zh-CN i18n ×2。
+- 验证: verifier/v488 — 源码断言 ×7 + CDP (水平主滑条+水平线模板: 默认 90° 盖章
+  偏离主线 80px 垂直; 改 0° 全共线偏离 0; 改 45° 偏离 ≈56.6 = 80·sin45°)。
+- 回归: v486 (动态几何断言不受影响)/v242/v68 全绿。tsc + vite build 通过。

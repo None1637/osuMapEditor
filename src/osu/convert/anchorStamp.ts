@@ -1,5 +1,6 @@
 // v486: 滑条批量插入锚点 (Anchor Stamp) 纯计算层 — 沿主滑条按节拍间隔采样位置/切线,
 //   把子滑条 (模板) 的锚点形状旋转对齐后批量"盖章"插入, 生成弹簧状滑条。
+// v488: 模板默认垂直于主滑条 (rule.rotate 默认 90°, 相对切线对齐的偏转角, 浮窗可调)。
 // 语义 (用户确认):
 //   - 保形: 主滑条统一转贝塞尔段后 de Casteljau 剖分 (无损), 未被吞掉的区段形状不变;
 //     模板段与主滑条段红锚点硬接 (segmentsToPoints 接缝重复点, 弹簧需要硬角)。
@@ -28,6 +29,8 @@ export interface AnchorStampRule {
   intervalNum: number; intervalDen: number;
   /** 吞掉原路径 a×1/b 拍 (0 = 纯叠加) */
   eraseNum: number; eraseDen: number;
+  /** v488: 相对切线对齐的额外偏转角 (度, 屏幕坐标正角 = 视觉顺时针; 默认 90 = 模板垂直于主滑条) */
+  rotate: number;
 }
 
 export interface AnchorStampParams { rules: AnchorStampRule[]; keepDuration: boolean }
@@ -38,7 +41,7 @@ export const DEFAULT_ANCHOR_STAMP_PARAMS: AnchorStampParams = { rules: [], keepD
 export const STAMP_DENOMINATORS = [1, 2, 3, 4, 6, 8, 12, 16, 24, 32, 48, 64, 72, 96, 128];
 
 export function newRule(priority: number): AnchorStampRule {
-  return { priority, srcId: null, template: null, intervalNum: 1, intervalDen: 4, eraseNum: 0, eraseDen: 32 };
+  return { priority, srcId: null, template: null, intervalNum: 1, intervalDen: 4, eraseNum: 0, eraseDen: 32, rotate: 90 };
 }
 
 /** 捕获滑条为模板快照 (绝对坐标) */
@@ -123,7 +126,7 @@ export function computeAnchorStamp(bm: Beatmap, main: HitObject, params: AnchorS
   if (eff < 4 || vel <= 0 || red.beatLength <= 0) { warnings.push('主滑条行程过短'); return none; }
 
   // 每条规则: 采样点列 {d, rule, 模板段, 模板头, 模板切线角}
-  interface Stamp { d: number; rule: AnchorStampRule; step: number; segs: BezierSeg[]; head: Vec2; thetaT: number; erase: number }
+  interface Stamp { d: number; rule: AnchorStampRule; step: number; segs: BezierSeg[]; head: Vec2; thetaT: number; rot: number; erase: number }
   const stamps: Stamp[] = [];
   for (const rule of params.rules) {
     const tpl = resolveTemplate(bm, rule);
@@ -136,8 +139,10 @@ export function computeAnchorStamp(bm: Beatmap, main: HitObject, params: AnchorS
     if (!tSegs.length) { warnings.push(`优先级${rule.priority}: 模板路径无效 (跳过)`); continue; }
     const tm = measureSegments(tSegs);
     const thetaT = tangentAt(tm, 0);
+    // v488: 额外偏转角 (旧存档无 rotate 字段 → 回退 90° 垂直默认)
+    const rot = (Number.isFinite(rule.rotate) ? rule.rotate : 90) * Math.PI / 180;
     const erase = red.beatLength * rule.eraseNum / Math.max(1, rule.eraseDen) * vel;
-    for (let d = step; d < eff - 1e-6; d += step) stamps.push({ d, rule, step, segs: tSegs, head: tpl.points[0], thetaT, erase });
+    for (let d = step; d < eff - 1e-6; d += step) stamps.push({ d, rule, step, segs: tSegs, head: tpl.points[0], thetaT, rot, erase });
   }
   if (!stamps.length) { warnings.push('无可插入的锚点 (检查模板与间隔)'); return none; }
 
@@ -156,7 +161,7 @@ export function computeAnchorStamp(bm: Beatmap, main: HitObject, params: AnchorS
     if (s.d < cursor - 1e-6) continue; // 落在前一印章的吞除区
     out.push(...extractRange(m, cursor, s.d));
     const theta = tangentAt(m, s.d);
-    out.push(...transformTemplate(s.segs, s.head, theta - s.thetaT, posAt(m, s.d)));
+    out.push(...transformTemplate(s.segs, s.head, theta - s.thetaT + s.rot, posAt(m, s.d)));
     cursor = s.d + s.erase;
     used++;
   }
