@@ -12,12 +12,14 @@ import {
 } from '@/osu/convert/anchorStamp';
 import { useT } from '@/i18n';
 
-/** a×1/b 拍 (分子 DraftNum + 分母 select, 到 1/128; DuplicateDialog 同款模式) */
-const BeatFrac = ({ num, den, setNum, setDen, idNum, idDen }: {
+/** a×1/b 拍 (分子 DraftNum + 分母 select, 到 1/128; DuplicateDialog 同款模式)
+ *  v489: 分子框 w-10 (原 w-20 太大); minNum 供偏移允许 0 */
+const BeatFrac = ({ num, den, setNum, setDen, idNum, idDen, minNum = 1 }: {
   num: number; den: number; setNum: (v: number) => void; setDen: (v: number) => void; idNum: string; idDen: string;
+  minNum?: number;
 }) => (
   <span className="flex items-center gap-1">
-    <DraftNum value={num} testid={idNum} min={1} max={99} set={v => setNum(Math.round(v))} />
+    <DraftNum value={num} testid={idNum} min={minNum} max={99} w="w-10" set={v => setNum(Math.round(v))} />
     <span className="text-white/40">×1/</span>
     <select value={den} data-conv={idDen} onChange={e => setDen(parseInt(e.target.value))}
       className="bg-black/40 border border-white/15 rounded px-1 py-0.5 text-white">
@@ -31,9 +33,18 @@ export function AnchorStampDialog() {
   useEditor();
   const t = useT();
   // v488: 旧存档的规则无 rotate 字段 → 载入时补默认 90° (垂直)
+  // v489: 旧存档无 offset 字段 → 补 0×1/4
   const [params, setParams] = useState<AnchorStampParams>(() => {
     const p = loadParams('anchorStamp', DEFAULT_ANCHOR_STAMP_PARAMS);
-    return { ...p, rules: (p.rules ?? []).map(r => ({ ...r, rotate: Number.isFinite(r.rotate) ? r.rotate : 90 })) };
+    return {
+      ...p,
+      rules: (p.rules ?? []).map(r => ({
+        ...r,
+        rotate: Number.isFinite(r.rotate) ? r.rotate : 90,
+        offsetNum: Number.isFinite(r.offsetNum) ? r.offsetNum : 0,
+        offsetDen: Number.isFinite(r.offsetDen) ? r.offsetDen : 4,
+      })),
+    };
   });
   useSaveParamsOnClose('anchorStamp', params);
   const bm = store.beatmap;
@@ -112,6 +123,11 @@ export function AnchorStampDialog() {
               <span className="text-white/50">{t('convert.stamp_erase', 'Erase')}</span>
               <BeatFrac num={r.eraseNum} den={r.eraseDen} idNum={`erase-num-${i}`} idDen={`erase-den-${i}`}
                 setNum={v => updRule(i, { eraseNum: v })} setDen={v => updRule(i, { eraseDen: v })} />
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="text-white/50">{t('convert.stamp_offset', 'Offset')}</span>
+              <BeatFrac num={r.offsetNum} den={r.offsetDen} idNum={`offset-num-${i}`} idDen={`offset-den-${i}`} minNum={0}
+                setNum={v => updRule(i, { offsetNum: v })} setDen={v => updRule(i, { offsetDen: v })} />
             </div>
             <div className="flex items-center gap-2">
               <span className="text-white/50">{t('convert.stamp_rotate', 'Rotate')}</span>

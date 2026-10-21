@@ -5538,3 +5538,14 @@
 - 验证: verifier/v488 — 源码断言 ×7 + CDP (水平主滑条+水平线模板: 默认 90° 盖章
   偏离主线 80px 垂直; 改 0° 全共线偏离 0; 改 45° 偏离 ≈56.6 = 80·sin45°)。
 - 回归: v486 (动态几何断言不受影响)/v242/v68 全绿。tsc + vite build 通过。
+
+## v489 — 插入锚点 (弹簧): 规则加时间偏移 + 拍数分子框收窄
+- 需求: 每条规则加时间偏移参数 (相位); 规则里 a×1/b 的 a 输入框太大, 调小一半。
+- 计算层: AnchorStampRule 加 `offsetNum/offsetDen` (a×1/b 拍, 默认 0×1/4); 采样改为
+  d 从 offset 弧长起按 step 递增 (d<1px 的头部点跳过 — offset=0 时行为与 v486 一致,
+  首点在 1 个间隔处); 旧存档无 offset 字段回退 0 (计算层 Number.isFinite + 浮窗载入补默认)。
+- 浮窗: 规则卡加「偏移」BeatFrac (分子允许 0); DraftNum 加可选 `w` 属性 (默认 w-20),
+  BeatFrac 分子传 w-10 (收窄一半, 分母 select 不变)。
+- 验证: verifier/v489 — 源码断言 ×8 + CDP (offset 0 → 插入点 100+step; offset 1×1/8 +
+  间隔 1/4 → 相位平移半间隔, 100+step/2 有点/100+step 无点; 分子框宽 40px)。
+- 回归: v488/v486/v242/v68/v477 全绿。tsc + vite build 通过。

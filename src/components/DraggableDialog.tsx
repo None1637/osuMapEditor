@@ -115,9 +115,10 @@ export function useSaveParamsOnClose<T>(key: string, v: T) {
  *  v381: 可全局关闭 (editorPrefs.dragAdjustNumbers, 关 = 按下不进入拖动调值; v386: 开关挪到菜单栏「设置」菜单) */
 /** v276: 已聚焦的输入框内按下拖动 = 原生文本框选, 不触发调值 (用户反馈「框选输入框中数字时
  *  不要触发左右拖动数值」); 调值只在未聚焦的输入框上按下拖动 (= 点击即聚焦的那次交互) */
-export function DraftNum({ value, set, testid, min, max, step = 1, digits }: {
+export function DraftNum({ value, set, testid, min, max, step = 1, digits, w = 'w-20' }: {
   value: number; set: (v: number) => void; testid: string; min?: number; max?: number; step?: number;
   digits?: number; // v367: 非草稿态显示小数位 (缩放类框 3 位, 如 0.590; 缺省 = 原始值字符串)
+  w?: string; // v489: 宽度类 (默认 w-20; 拍数分子等小框传 w-10)
 }) {
   const [draft, setDraft] = useState<string | null>(null);
   const dragRef = useRef<{ x0: number; v0: number; active: boolean } | null>(null);
@@ -182,7 +183,7 @@ export function DraftNum({ value, set, testid, min, max, step = 1, digits }: {
           e.currentTarget.blur(); // 拖动结束退出草稿态, 回显最终值
         }
       }}
-      className="w-20 bg-black/40 border border-white/15 rounded px-1 py-0.5 text-white" />
+      className={`${w} bg-black/40 border border-white/15 rounded px-1 py-0.5 text-white`} />
   );
 }
 

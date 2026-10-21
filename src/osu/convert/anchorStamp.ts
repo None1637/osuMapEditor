@@ -27,6 +27,8 @@ export interface AnchorStampRule {
   template: AnchorStampTemplate | null;
   /** 插入间隔 a×1/b 拍 */
   intervalNum: number; intervalDen: number;
+  /** v489: 时间偏移 a×1/b 拍 (相位: 首个插入点从头部推移 offset 弧长, 0 = 从 1 个间隔处开始) */
+  offsetNum: number; offsetDen: number;
   /** 吞掉原路径 a×1/b 拍 (0 = 纯叠加) */
   eraseNum: number; eraseDen: number;
   /** v488: 相对切线对齐的额外偏转角 (度, 屏幕坐标正角 = 视觉顺时针; 默认 90 = 模板垂直于主滑条) */
@@ -41,7 +43,7 @@ export const DEFAULT_ANCHOR_STAMP_PARAMS: AnchorStampParams = { rules: [], keepD
 export const STAMP_DENOMINATORS = [1, 2, 3, 4, 6, 8, 12, 16, 24, 32, 48, 64, 72, 96, 128];
 
 export function newRule(priority: number): AnchorStampRule {
-  return { priority, srcId: null, template: null, intervalNum: 1, intervalDen: 4, eraseNum: 0, eraseDen: 32, rotate: 90 };
+  return { priority, srcId: null, template: null, intervalNum: 1, intervalDen: 4, offsetNum: 0, offsetDen: 4, eraseNum: 0, eraseDen: 32, rotate: 90 };
 }
 
 /** 捕获滑条为模板快照 (绝对坐标) */
@@ -142,7 +144,14 @@ export function computeAnchorStamp(bm: Beatmap, main: HitObject, params: AnchorS
     // v488: 额外偏转角 (旧存档无 rotate 字段 → 回退 90° 垂直默认)
     const rot = (Number.isFinite(rule.rotate) ? rule.rotate : 90) * Math.PI / 180;
     const erase = red.beatLength * rule.eraseNum / Math.max(1, rule.eraseDen) * vel;
-    for (let d = step; d < eff - 1e-6; d += step) stamps.push({ d, rule, step, segs: tSegs, head: tpl.points[0], thetaT, rot, erase });
+    // v489: 时间偏移 (相位; 旧存档无 offset 字段 → 0; d<1px 的头部点跳过, offset=0 时行为同 v486 从 1 间隔起)
+    const offNum = Number.isFinite(rule.offsetNum) ? rule.offsetNum : 0;
+    const offDen = Number.isFinite(rule.offsetDen) ? rule.offsetDen : 4;
+    const offset = red.beatLength * offNum / Math.max(1, offDen) * vel;
+    for (let d = offset; d < eff - 1e-6; d += step) {
+      if (d < 1) continue;
+      stamps.push({ d, rule, step, segs: tSegs, head: tpl.points[0], thetaT, rot, erase });
+    }
   }
   if (!stamps.length) { warnings.push('无可插入的锚点 (检查模板与间隔)'); return none; }
 

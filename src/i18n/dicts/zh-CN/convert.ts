@@ -140,4 +140,6 @@ export const zhCN: Record<string, string> = {
   // v488: 模板旋转角 (默认 90° = 垂直于主滑条)
   'convert.stamp_rotate': '旋转',
   'convert.stamp_rotate_hint': '(90 = 垂直于主滑条, 0 = 沿切线)',
+  // v489: 时间偏移 (相位)
+  'convert.stamp_offset': '偏移',
 };
