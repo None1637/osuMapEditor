@@ -44,7 +44,10 @@ export function TransformDialog({ mode }: { mode: 'rotate' | 'scale' | 'symmetry
   const origin: TransformOrigin = store.currentOrigin();
   // v360: 节点模式 (soulten: 多個滑條點也能快捷鍵縮放旋轉) — 有选中滑条锚点时窗口作用于锚点,
   //   原点恒 = 锚点包围盒中心 (F08 语义), 走 store 节点预览会话 (与物件版 v301 同构)
-  const nodeMode = mode !== 'symmetry' && store.nodeSelectionCount > 0;
+  // v484: 单锚点选区不进节点模式 — 单点绕自身旋转/缩放是恒等变换 = 「移動滑條點後選轉會沒效果」
+  //   (soulten; 拖动锚点会把节点选区收敛成 1 个 — v410 语义, 此时物件在选区, 回落物件模式
+  //   旋转整条滑条, 与不移动时的基线一致)
+  const nodeMode = mode !== 'symmetry' && store.nodeSelectionCount > 1;
   const selCount = nodeMode ? store.nodeSelectionCount : store.selected.size;
   const title = mode === 'rotate' ? t('transform.rotate', 'Rotate') : mode === 'scale' ? t('transform.scale', 'Scale') : t('transform.symmetry', 'Symmetry');
   // v301: 实时预览 (F05a) — 首次改值后画布实时预览变换结果; 提交后回到已提交态, 关窗回滚到最后提交

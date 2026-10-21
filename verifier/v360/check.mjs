@@ -35,7 +35,7 @@ section('源码: store 节点预览会话 + 穿透桥');
 section('源码: TransformDialog 节点模式');
 {
   const src = read('src/components/TransformDialog.tsx');
-  assert(/const nodeMode = mode !== 'symmetry' && store\.nodeSelectionCount > 0/.test(src), 'nodeMode 判定');
+  assert(/const nodeMode = mode !== 'symmetry' && store\.nodeSelectionCount > 1/.test(src), 'nodeMode 判定 (v484: ≥2 锚点 — 单锚点旋转/缩放绕自身 = 恒等, 回落物件模式)');
   assert(/if \(nodeMode\) store\.beginNodeTransformPreview\(\); else store\.beginTransformPreview\(\)/.test(src), '按模式开预览会话');
   assert(/store\.previewNodeTransform\(\(p, c\) => rotatePt/.test(src) && /store\.previewNodeTransform\(\(p, c\) => scalePt/.test(src), '节点实时预览 (旋转+缩放)');
   // v405 适配: 节点缩放提交改传 axisScaleFactors 换算后的 sx/sy (「应用于 X/Y 轴」勾选)
@@ -199,10 +199,10 @@ section('CDP: 时间轴覆盖区锚点拖拽/取消 + 节点缩放窗口');
     assert(tf2.committed.x === tf2.origX + 25 && tf2.committed.y === tf2.origY, `提交生效 (+25 实得 ${JSON.stringify(tf2.committed)})`);
     assert(tf2.undone.x === tf2.origX && tf2.undone.y === tf2.origY, `提交一次 undo 还原 (undone=${JSON.stringify(tf2.undone)}, orig=${tf2.origX},${tf2.origY})`);
 
-    // D: 对话框节点模式 UI (隐藏原点行)
+    // D: 对话框节点模式 UI (隐藏原点行) — v484 适配: 节点模式需 ≥2 锚点 (单锚点恒等回落物件模式)
     const dlg = await evalJs(`(async () => {
       const store = window.__osuStore;
-      if (!store.selectedNodes.get(960001)?.has(1)) store.toggleSelectedNode(960001, 1);
+      store.setSelectedNodes([[960001, 0], [960001, 1]]);
       store.openTransformDialog('scale');
       await new Promise(r => setTimeout(r, 300));
       const el = document.querySelector('[data-dialog="scale-dlg"]');
