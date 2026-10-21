@@ -1492,7 +1492,7 @@ class EditorStore {
 
   // ---- 物件转换 (F1-F4: 转连打/拆分/合并/多边形/批量复制; v141: 曲线互转窗口已废弃) ----
   /** 当前打开的转换参数窗口 (null = 无) */
-  conversionDialog: 'stream' | 'split' | 'merge' | 'polygon' | 'duplicate' | 'symSlider' | null = null; // v236: +'symSlider' 对称滑条
+  conversionDialog: 'stream' | 'split' | 'merge' | 'polygon' | 'duplicate' | 'symSlider' | 'anchorStamp' | null = null; // v236: +'symSlider' 对称滑条; v486: +'anchorStamp' 批量插入锚点
   /** 转换实时预览: hideIds = 被替换的源物件 (渲染时隐藏), objects = 转换结果 (幽灵渲染); timingPoints = v68 绿线副本预览; 预览不碰谱面数据 */
   conversionPreview: { hideIds: number[]; objects: HitObject[]; timingPoints?: TimingPoint[] } | null = null;
   // ---- v68: 批量复制向量箭头 (DuplicateDialog 写入, 画布绘制/拖拽; 非响应式, 画布每帧读取) ----
@@ -1572,15 +1572,18 @@ class EditorStore {
     this.clearConversionPreviewCache();
     this.conversionPreview = p; this.emitSelection();
   }
-  /** 应用转换: 删除源物件 + 插入结果物件 (+ v68 可选绿线副本; 一次 undo), 选中结果物件, 关闭窗口 */
-  applyConversion(removeIds: number[], add: HitObject[], addTiming: TimingPoint[] = []) {
+  /** 应用转换: 删除源物件 + 插入结果物件 (+ v68 可选绿线副本; v486 可选全量替换 timing [批量插锚点 SV 改线]; 一次 undo), 选中结果物件, 关闭窗口 */
+  applyConversion(removeIds: number[], add: HitObject[], addTiming: TimingPoint[] = [], replaceTiming?: TimingPoint[] | null) {
     if (!this.beatmap) return;
     if (this.lockNotes && removeIds.length) return; // v115: 锁定物件 (纯新增的批量复制 removeIds 为空, 不受影响)
     this.pushUndo();
     const rm = new Set(removeIds);
     this.beatmap.hitObjects = this.beatmap.hitObjects.filter(o => !rm.has(o.id)).concat(add);
     this.beatmap.hitObjects.sort((a, b) => a.time - b.time);
-    if (addTiming.length) {
+    if (replaceTiming) {
+      // v486: 全量替换 (调用方已构造好同刻红先绿后; 稳定排序不打乱同刻相对序)
+      this.beatmap.timingPoints = replaceTiming.map(t => ({ ...t })).sort((a, b) => a.time - b.time);
+    } else if (addTiming.length) {
       this.beatmap.timingPoints = this.beatmap.timingPoints.concat(addTiming.map(t => ({ ...t })));
       this.beatmap.timingPoints.sort((a, b) => a.time - b.time);
     }

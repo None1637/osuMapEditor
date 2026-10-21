@@ -62,6 +62,7 @@ export const zhCN: Record<string, string> = {
   // v409: 选中锚点处分割 (节点选区存在时显示)
   'inspector.split_at_anchors': '在锚点处分割',
   'inspector.symmetric_slider': '对称滑条',
+  'inspector.anchor_stamp': '插入锚点 (弹簧)', // v486
   'inspector.delete': '删除', // v429: (Del) 挪进 tooltip
   'inspector.delete_tip': '删除选中物件 ({key})', // v429
   // v387: B 样条 curveType

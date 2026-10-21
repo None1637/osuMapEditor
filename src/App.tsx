@@ -26,6 +26,7 @@ import { TimingPointDialog } from '@/components/TimingPointDialog';
 import { PolygonDialog } from '@/components/convert/PolygonDialog';
 import { DuplicateDialog } from '@/components/convert/DuplicateDialog';
 import { SymSliderDialog } from '@/components/convert/SymSliderDialog'; // v236: 对称滑条
+import { AnchorStampDialog } from '@/components/convert/AnchorStampDialog'; // v486: 批量插入锚点 (弹簧)
 import { SplitDialog } from '@/components/convert/SplitDialog';
 import { SongLibrary } from '@/components/SongLibrary';
 import { SkinPicker } from '@/components/SkinPicker';
@@ -943,6 +944,7 @@ export default function App() {
       {store.conversionDialog === 'polygon' && <PolygonDialog />}
       {store.conversionDialog === 'duplicate' && <DuplicateDialog />}
       {store.conversionDialog === 'symSlider' && <SymSliderDialog />}{/* v236: 对称滑条 */}
+      {store.conversionDialog === 'anchorStamp' && <AnchorStampDialog />}{/* v486: 批量插入锚点 (弹簧) */}
       {store.timingPointDialog && <TimingPointDialog />}
       {store.transformDialog && <TransformDialog mode={store.transformDialog} />}{/* v209: 旋转/缩放独立窗口 (编辑菜单 / Ctrl+Shift+R/S) */}
       {showShiftAll && <ShiftAllDialog onClose={() => setShowShiftAll(false)} />}{/* v156 */}

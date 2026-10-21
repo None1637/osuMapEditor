@@ -125,4 +125,16 @@ export const zhCN: Record<string, string> = {
   // v464: 反向 — 贝塞尔转 B4 toast
   'convert.bez_b4_none': '谱面中没有贝塞尔 (B) 滑条',
   'convert.bez_b4_converted': '已将 {count} 个贝塞尔滑条转为 B4 (B 样条)',
+  // v486: 批量插入锚点 (弹簧滑条)
+  'convert.stamp_title': '插入锚点 (弹簧)',
+  'convert.stamp_priority': '优先级',
+  'convert.stamp_capture': '捕获选中滑条',
+  'convert.stamp_live': '实时',
+  'convert.stamp_interval': '间隔',
+  'convert.stamp_erase': '消除',
+  'convert.stamp_add_rule': '+ 添加规则',
+  'convert.stamp_keep_duration': '保留主滑条时长 (改 SV)',
+  'convert.stamp_sv_preview': 'SV: {from} → {to}',
+  'convert.stamp_need_main': '没有主滑条 (请关闭窗口, 选中 1 根主滑条后重开)',
+  'convert.stamp_summary': '将插入 {n} 处模板 (预览已显示在游玩区)',
 };

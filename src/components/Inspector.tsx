@@ -352,6 +352,10 @@ export function Inspector() {
             <Btn data-conv-open="symSlider" onClick={() => store.openConversion('symSlider')}>
               {t('inspector.symmetric_slider', 'Symmetric Slider')}
             </Btn>
+            {/* v486: 批量插入锚点 (弹簧滑条 — 沿主滑条按节拍间隔盖章子滑条模板) */}
+            <Btn data-conv-open="anchorStamp" onClick={() => store.openConversion('anchorStamp')}>
+              {t('inspector.anchor_stamp', 'Insert Anchors (Spring)')}
+            </Btn>
             {/* v409: 在选中锚点处分割 (节点选区存在时显示; 缝点双侧各一份, 时间顺序衔接) */}
             {store.nodeSelectionCount > 0 && (
               <Btn data-conv-apply="split-anchors" onClick={() => store.splitSelectedSliderNodes()}>

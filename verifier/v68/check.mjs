@@ -37,7 +37,7 @@ section('store.ts: 预览/应用支持绿线 + 向量视图');
 {
   const src = readSrc('src/osu/store.ts');
   assert(/objects: HitObject\[\]; timingPoints\?: TimingPoint\[\]/.test(src), 'conversionPreview 带 timingPoints');
-  assert(/applyConversion\(removeIds: number\[\], add: HitObject\[\], addTiming: TimingPoint\[\] = \[\]\)/.test(src), 'applyConversion 第三参');
+  assert(/applyConversion\(removeIds: number\[\], add: HitObject\[\], addTiming: TimingPoint\[\] = \[\], replaceTiming\?: TimingPoint\[\] \| null\)/.test(src), 'applyConversion 第三参 (v486: +可选第4参全量替换)');
   assert(/timingPoints = this\.beatmap\.timingPoints\.concat\(addTiming/.test(src), '绿线副本写入 + 排序');
   assert(/dupVectorView: \{ anchor/.test(src) && /dupVectorDragHandler/.test(src), '向量箭头视图/回调');
 }

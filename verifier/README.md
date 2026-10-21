@@ -5494,3 +5494,26 @@
 - 适配: v75 两条路由断言 (>0 → >1)。
 - 回归: v75/v192/v360/v379/v484 全绿; v209/v304 为既有红 (esbuild 无法处理 ?raw 导入,
   打包阶段失败, 与本次无关)。tsc + vite build 通过。
+
+## v486 — 滑条批量插入锚点 (弹簧滑条, 新功能)
+- 需求: 沿主滑条按节拍间隔采样位置/切线, 把子滑条模板的锚点形状按主滑条切线旋转对齐后
+  批量"盖章"插入, 生成弹簧状滑条; 多规则带优先级; 可选改 SV 保留主滑条时长。
+- 语义 (用户确认): 消除 a×1/b = 吞掉原路径 (erase=0 纯叠加); 子滑条 = 捕获选中滑条快照
+  (+ srcId 活链接); 预览期拖源滑条锚点预览实时联动 (不做插入后锚点联动拖拽)。
+- 计算层 src/osu/convert/anchorStamp.ts (纯函数): 主滑条 sliderToBezierSegments +
+  measureSegments, extractRange 保形截取 + 模板段旋转变换, segmentsToPoints 红锚点硬接;
+  优先级冲突窗 (min 两者间隔/2) 去重; 吞除推进 cursor (被吞插入点丢弃); 结果转 'B' +
+  length=sliderGeometryLength (不走 resnapSliderLength); keepDuration → svForDurationRaw
+  反解头绿线 (有则改无则插, 同刻红先绿后) + svRestoreTargetAt 恢复线, 越界 0.1~10 钳+警告。
+- 浮窗 AnchorStampDialog: 主滑条开窗时固定 (选区让给模板捕获); 规则列表 (优先级/捕获/
+  间隔 a×1/b/消除 a×1/b, 分母到 1/128 — 浮窗本地 STAMP_DENOMINATORS, 不动全局
+  BEAT_SNAP_OPTIONS); sig 签名 (含 store.getVersion) 实现源滑条拖锚点预览实时联动;
+  预览 conversionPreview (hideIds=[主滑条], timingPoints=SV 绿线, 源滑条不隐藏可拖)。
+- 基建: applyConversion 加可选第 4 参 replaceTiming (全量替换, 稳定排序保持同刻红先绿后);
+  conversionDialog +'anchorStamp'; Inspector 选中单滑条分支「插入锚点 (弹簧)」按钮; i18n 注册。
+- 验证: verifier/v486 — 源码断言 + CDP 全链路 (捕获 P/3 模板 → 预览 B 滑条 52 锚点含 SV
+  绿线 → 活链接改模板锚点预览 len 1002→1303 实时变 → SV 预览 1.00→4.18 → 应用后头绿线
+  SV=4.176 时长 487.5ms 不变 ±2ms → undo 一步还原含绿线; 优先级 P1 1/4 + P2 1/2 → P2 点
+  全被吞, 插入数=P1)。
+- 适配: v68 (applyConversion 签名断言补第 4 参)。
+- 回归: v242/v398/v481/v243/v408/v480/v407/v68 全绿。tsc + vite build 通过。
