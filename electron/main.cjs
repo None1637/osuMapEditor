@@ -197,7 +197,9 @@ async function createWindow() {
     ...(verifierPos ?? {}),
     // v406: 验证器窗口先隐藏创建, 就绪后 showInactive 显示 — 不抢焦点 (用户反馈: 跑回归测试窗口弹出让当前输入失焦);
     //   窗口仍真实可见/渲染, CDP 截图与 rAF 不受影响
-    ...(isVerifier ? { show: false } : {}),
+    // v487: + focusable:false — showInactive 在 Windows 上仍会间歇抢焦点 (用户反馈: 测试打开的 exe 窗口还是会抢焦点);
+    //   focusable:false = 窗口永不获取 OS 焦点, 页面渲染/rAF/CDP 合成事件与 Input 域注入均不受影响
+    ...(isVerifier ? { show: false, focusable: false } : {}),
     backgroundColor: "#101016",
     // v281: 两种标题栏模式统一用应用内自绘菜单条 (MenuBar.tsx) — 原生菜单栏默认隐藏;
     // 原生菜单仍 setApplicationMenu (accelerator 全局快捷键保留, Alt 可临时呼出原生菜单)

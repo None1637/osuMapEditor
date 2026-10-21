@@ -5517,3 +5517,13 @@
   全被吞, 插入数=P1)。
 - 适配: v68 (applyConversion 签名断言补第 4 参)。
 - 回归: v242/v398/v481/v243/v408/v480/v407/v68 全绿。tsc + vite build 通过。
+
+## v487 — 验证器窗口彻底不抢 OS 焦点 (focusable:false)
+- 需求: v406 (show:false + showInactive) 后用户仍反馈测试打开的 exe 窗口间歇抢焦点。
+  Windows 上 showInactive 不保证永不抢焦 (任务栏按钮/窗口管理器仍可能激活)。
+- 修复: electron/main.cjs — OSU_VERIFIER 窗口选项加 `focusable: false` (Electron
+  BrowserWindow 官方"永不获取 OS 焦点"开关); 不影响渲染/rAF, CDP Runtime.evaluate 与
+  Input.dispatch* 合成注入均绕过 OS 焦点路由, 验证器全部功能不受影响。
+- 验证: verifier/v487 — 源码断言 (focusable:false + showInactive 保留) + CDP
+  (document.hasFocus()=false; rAF 渲染循环正常; F2 合成 keydown 冒烟)。
+- 回归: v486/v477/v359/v407/v242/v480/v484/v485/v483/v463。
