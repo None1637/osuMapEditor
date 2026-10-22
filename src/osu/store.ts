@@ -17,10 +17,9 @@ import { DEFAULT_GROUP, instantiatePattern, loadPatternGroups, loadPatterns, mak
 import { reportMenuState, reportDirtyState } from './electronMenu';
 import { getElectronAPI } from './electronBridge'; // v185: 谱面备份 IPC
 import { defaultNewPoint, effectivePointAt, activePointAt, snapTimeToRedBeat, metronomeBeats, rangeTimes } from './timingEdit'; // v156; v372: rangeTimes
-import { resnapSliderLength, snapPlacementTime, placementLength, pendingSliderTimeline, sliderLengthSnapDivisor, snapSliderLength, parseBSplineType, nearestOnSegment, resolveSliderCurveType, insertAnchorGroup, splitSliderAtAnchors, deleteSliderPoints } from './sliderPath'; // v156: 重新计算滑条长度; v357: 粘贴锚点节拍吸附; v364: 调试暴露吸附纯函数; v388: 选中集 B4 判定; v408: 锚点粘贴插入; v409: 锚点处分割; v424: 批量删锚点
+import { resnapSliderLength, snapPlacementTime, placementLength, pendingSliderTimeline, sliderLengthSnapDivisor, snapSliderLength, parseBSplineType, resolveSliderCurveType, splitSliderAtAnchors, deleteSliderPoints } from './sliderPath'; // v156: 重新计算滑条长度; v357: 粘贴锚点节拍吸附; v364: 调试暴露吸附纯函数; v388: 选中集 B4 判定; v409: 锚点处分割; v424: 批量删锚点; v490: 锚点粘贴改建新滑条 (v408 插入管线引用随之移除)
 import { sliderVelocityAt, svPointAt } from './parser'; // v366: 调试暴露 (SV 绿线边界验证)
 import { snapshotNodes, withRedPartners, transformNodesFromSnapshot, nodeSelectionEquals } from './nodeSelection'; // v304: F08 节点选区快捷键变换; v462: 无差别 emit 守卫
-import { computeStackOffsets } from './stacking'; // v408: 锚点粘贴撤堆叠偏移
 import { setDisplayFlag as applyDisplayFlag, setDisplayNumber as applyDisplayNumber, setDisplayString as applyDisplayString, type BoolDisplayKey, type DisplaySettings, type StrDisplayKey } from './displaySettings'; // v132: 显示设置
 import { setEditorPref as applyEditorPref, type EditorPrefKey } from './editorPrefs'; // v381: 通用编辑器偏好
 import { setVolume as applyVolume, musicGain, effectsGain, type VolumeSettings } from './volumeSettings'; // v144: 音量设置
@@ -1713,8 +1712,9 @@ class EditorStore {
 
   paste(atTime: number) {
     if (!this.beatmap) return;
-    // v408: 锚点剪贴板 + 恰好选中一条滑条 → 锚点插入粘贴 (优先于物件粘贴; 插入位置同 Ctrl+加点规则)
-    if (this.nodeClipboard?.length && this.pasteNodesIntoSlider()) return;
+    // v490: 锚点剪贴板 → 在光标处创建使用这些锚点的新滑条 (优先于物件粘贴;
+    //   v408 的"插进选中滑条"语义作废 — 用户反馈多选锚点粘贴应生成新滑条)
+    if (this.nodeClipboard?.length && this.pasteNodesAsNewSlider(atTime)) return;
     if (!this.clipboard.length && !this.clipboardGreens.length) return;
     this.pushUndo();
     this.selected.clear();
@@ -1748,39 +1748,30 @@ class EditorStore {
     this.emit();
   }
 
-  /** v408: 锚点粘贴 — 把 nodeClipboard 整组插进恰好选中的一条滑条, 一次 undo;
-   *  插入位置与 Ctrl+加点 (v319/v326) 同规则: 段下标 = 距光标最近的非零长控制点线段 (跳过零长红对),
-   *  插入坐标 = 光标原位置 (撤堆叠偏移), 整组平移使首锚点落在光标处; 成功后选中新插入的锚点组 */
-  private pasteNodesIntoSlider(): boolean {
+  /** v490: 锚点粘贴 — 用 nodeClipboard 的锚点组在光标处创建一根新滑条 (替代 v408 的插入当前滑条), 一次 undo;
+   *  首锚点落光标原位置 (lazer 同款取整; 新物件无堆叠偏移), 时间 = 粘贴时刻吸附节拍网格 (v357/v380 同物件粘贴),
+   *  长度 resnap (遵守尾吸附开关); 需 ≥2 锚点 (单锚点无法成滑条 → 落空走物件粘贴); 成功后选中新滑条 */
+  private pasteNodesAsNewSlider(atTime: number): boolean {
     const bm = this.beatmap;
     const clip = this.nodeClipboard;
-    if (!bm || !clip?.length || this.selected.size !== 1 || !this.cursorOsu) return false;
-    const so = bm.hitObjects.find(o => o.id === [...this.selected][0]);
-    if (so?.type !== 'slider') return false;
-    const ctrl = [{ x: so.x, y: so.y }, ...(so.curvePoints ?? [])];
-    if (ctrl.length < 2) return false;
-    const off = computeStackOffsets(bm).get(so.id);
-    const odx = off?.dx ?? 0, ody = off?.dy ?? 0;
-    const p = this.cursorOsu;
-    let best = ctrl.length - 2, bestD = Infinity; // 默认末尾段 (极端: 全部零长段)
-    for (let i = 0; i < ctrl.length - 1; i++) {
-      if (ctrl[i].x === ctrl[i + 1].x && ctrl[i].y === ctrl[i + 1].y) continue; // 零长红锚点重复对跳过
-      const a = { x: ctrl[i].x + odx, y: ctrl[i].y + ody }, b = { x: ctrl[i + 1].x + odx, y: ctrl[i + 1].y + ody };
-      const n = nearestOnSegment(a, b, p);
-      if (n.dist < bestD) { bestD = n.dist; best = i; }
-    }
+    if (!bm || !clip || clip.length < 2 || !this.cursorOsu) return false;
     this.pushUndo();
-    const raw = { x: Math.round(p.x - odx), y: Math.round(p.y - ody) }; // lazer: 光标原位置 (撤堆叠偏移)
-    const group = clip.map(d => ({ x: raw.x + d.x, y: raw.y + d.y }));
-    const newPts = insertAnchorGroup(ctrl, best, group);
-    so.x = newPts[0].x; so.y = newPts[0].y;
-    so.curvePoints = newPts.slice(1);
-    // v394: 手动改过曲线类型的不强制改型 (与 EditorCanvas applySliderPoints 同款)
-    if (!this.manualCurveType.has(so.id)) so.curveType = resolveSliderCurveType(newPts, so.curveType ?? 'L');
-    resnapSliderLength(bm, so, this.beatSnap); // lazer: 插入控制点后 SnapTo
-    invalidatePath(so.id);
+    const head = { x: Math.round(this.cursorOsu.x), y: Math.round(this.cursorOsu.y) };
+    const pts = clip.map(d => ({ x: head.x + d.x, y: head.y + d.y }));
+    const o: HitObject = {
+      id: genId(), type: 'slider', x: pts[0].x, y: pts[0].y,
+      time: Math.round(snapPlacementTime(bm.timingPoints, atTime, this.beatSnap)), // v357/v380: 与物件粘贴同一吸附锚点
+      newCombo: false, comboSkip: 0, hitSound: 0,
+      curveType: resolveSliderCurveType(pts, 'L'), curvePoints: pts.slice(1), slides: 1, length: 0,
+    };
+    bm.hitObjects.push(o);
+    resnapSliderLength(bm, o, this.beatSnap); // lazer: 新控制点列 SnapTo (尾吸附开关同放置)
+    bm.hitObjects.sort((a, b) => a.time - b.time);
+    invalidatePath(o.id);
+    this.selected.clear();
+    this.selectedGreenLines.clear();
     this.selectedNodes.clear();
-    this.selectedNodes.set(so.id, new Set(group.map((_, k) => best + 1 + k))); // 选中新插入组
+    this.selected.add(o.id);
     this.emit();
     return true;
   }

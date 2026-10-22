@@ -5549,3 +5549,17 @@
 - 验证: verifier/v489 — 源码断言 ×8 + CDP (offset 0 → 插入点 100+step; offset 1×1/8 +
   间隔 1/4 → 相位平移半间隔, 100+step/2 有点/100+step 无点; 分子框宽 40px)。
 - 回归: v488/v486/v242/v68/v477 全绿。tsc + vite build 通过。
+
+## v490 — 多选滑条锚点粘贴改为创建新滑条
+- 需求: 多选滑条锚点的复制粘贴, 从「按加点规则插进当前选中滑条」(v408) 改成
+  「在光标处创建一根使用这些锚点的新滑条」。
+- 改动: store.ts — pasteNodesIntoSlider 删除, 新增 pasteNodesAsNewSlider(atTime):
+  无选中滑条要求; 需 ≥2 锚点 (单锚点落空走物件粘贴); 首锚点落光标原位置取整
+  (新物件无堆叠偏移); 时间 = round(snapPlacementTime) 与物件粘贴同一吸附锚点 (v357/v380);
+  curveType = resolveSliderCurveType(pts,'L'); 长度 resnapSliderLength (尾吸附开关同放置);
+  一次 undo; 成功后选中新滑条。未用导入清理 (sliderPath 插入管线两件 + stacking)。
+- 适配: v408 验证器 store 断言改新语义 (insertAnchorGroup 纯函数保留, tests.ts 单测不动)。
+- 验证: verifier/v490 — 源码断言 ×3 + CDP (选锚点 1,2 复制 → 清空选择 → 光标 (300.4,319.6)
+  粘贴 → 新滑条 (300,320)+(300,420), 源滑条不变, 时间吸网格, 选中新滑条, undo 还原)。
+- 回归: v408/v102/v357/v409/v424 全绿; v113/v319/v326/v380 为既有红 (stash 到 v489 复跑
+  同样失败, 与本次无关)。tsc + vite build 通过。
