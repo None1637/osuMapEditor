@@ -371,6 +371,10 @@ export function TopTimeline() {
   const markerDragRef = useRef<{
     anchorId: number; startX: number; moved: boolean;
     ids: number[]; orig: Map<number, { time: number; endTime?: number }>;
+    // v491: 边缘自动滚动 (stable/lazer handleScrollViaDrag, 与 v102 框选同参数) —
+    //   x1 = 最近指针 (布局空间 clientX); scrollMs = 滚动累积的时间轴平移 (win 与 currentTime 无关,
+    //   必须计入拖拽 delta, 物件才能越出原视窗); scrollAccum = ramp 计时; lastDelta = 帧循环去抖
+    x1: number; scrollMs: number; scrollAccum: number; lastDelta: number;
   } | null>(null);
   // v35: 拖滑条尾端改折返次数 (stable/lazer: 时间轴拉长按整 repeat 伸缩, 单次时长不变)
   // v407: Alt+拖尾 = SV 模式 — 增/改绿线 SV 调滑条持续时间, 长度/折返数不变 (timingSv.ts);
@@ -409,6 +413,40 @@ export function TopTimeline() {
     const div = red.beatLength / (divisor ?? store.beatSnap); // v463: 可选细分覆盖 (Alt 拖滑条尾走滑条长度口径 ×2)
     const snapped = red.time + Math.round((t - red.time) / div) * div;
     return snapAcrossRedLine(bm.timingPoints, t, snapped); // v285: lazer 跨红线就近规则
+  };
+
+  /** v491: 物件拖拽应用 (onMouseMove / window 兜底 / 帧循环边缘滚动三处共用) —
+   *  delta = 指针位移×win/width + scrollMs (边缘滚动累计); anchor 吸附节拍, 其余选中物件同 delta 跟随 (v32) */
+  const applyMarkerDrag = () => {
+    const md = markerDragRef.current;
+    const bm = store.beatmap;
+    if (!md || !bm || !ref.current) return;
+    const r = zoomRect(ref.current); // v217: 布局空间
+    const win = 6000 / (bm.editor.timelineZoom || 1);
+    const dMs = ((md.x1 - md.startX) / r.width) * win + md.scrollMs;
+    const anchorOrig = md.orig.get(md.anchorId);
+    if (!anchorOrig) return;
+    const delta = snapMs(anchorOrig.time + dMs) - anchorOrig.time;
+    if (delta === md.lastDelta) return; // 帧循环重入去抖 (吸附后未变不重复 emit)
+    md.lastDelta = delta;
+    for (const [oid, o0] of md.orig) {
+      const o = bm.hitObjects.find(x => x.id === oid);
+      if (!o) continue;
+      o.time = Math.round(o0.time + delta);
+      if (o0.endTime !== undefined && o.endTime !== undefined) o.endTime = Math.round(o0.endTime + delta);
+    }
+    bm.hitObjects.sort((a, b) => a.time - b.time);
+    store.emit();
+  };
+
+  /** v491: 物件拖拽指针移动 (canvas onMouseMove 与 window 兜底共用 — 拖出边界后继续跟踪, 同 v102 越界语义) */
+  const handleMarkerMove = (lx: number) => {
+    const md = markerDragRef.current;
+    if (!md || !store.beatmap) return;
+    md.x1 = lx;
+    if (!md.moved && Math.abs(lx - md.startX) <= 4) return;
+    md.moved = true;
+    applyMarkerDrag();
   };
 
   const finishMarkerDrag = () => {
@@ -503,6 +541,7 @@ export function TopTimeline() {
     const up = () => finishMarkerDrag();
     const move = (e: MouseEvent) => {
       if (marqueeRef.current || greenDragRef.current) handleDragMove(zoomClientX(e.clientX), zoomClientY(e.clientY));
+      if (markerDragRef.current) handleMarkerMove(zoomClientX(e.clientX)); // v491: 拖出 canvas 边界后继续跟踪 (边缘滚动需要)
     };
     window.addEventListener('mouseup', up);
     window.addEventListener('mousemove', move);
@@ -855,6 +894,21 @@ export function TopTimeline() {
           g.strokeRect(rx, ry, rw, rh);
           g.setLineDash([]);
         }
+        // v491: 拖物件到左右边缘自动滚动时间轴 (stable: 拖著物件到邊緣會讓時間軸移動;
+        //   lazer handleScrollViaDrag 同 v102 框选参数: 40px 容差/平方速度/5s ramp; 播放中不滚 — 视图跟音频钟);
+        //   滚动实际生效量计入 scrollMs (seek 可能被 0 钳制), applyMarkerDrag 把物件推出原视窗
+        const mdk = markerDragRef.current;
+        if (mdk && mdk.moved && !store.playing) {
+          const v = edgeScrollVelocity(mdk.x1 - r.left, r.width);
+          if (v !== 0) {
+            mdk.scrollAccum += dtMs;
+            const dScroll = v * edgeScrollRamp(mdk.scrollAccum) * dtMs * (win / r.width);
+            const tBefore = t;
+            store.seek(t + dScroll);
+            mdk.scrollMs += store.currentTime - tBefore;
+            applyMarkerDrag();
+          } else mdk.scrollAccum = 0;
+        }
         // 当前时间针
         g.strokeStyle = '#ff4d6d'; g.lineWidth = 2;
         g.beginPath(); g.moveTo(r.width / 2, 0); g.lineTo(r.width / 2, r.height); g.stroke();
@@ -1072,6 +1126,7 @@ export function TopTimeline() {
                   const o = bm.hitObjects.find(x => x.id === oid)!;
                   return [oid, { time: o.time, endTime: o.endTime }];
                 })),
+                x1: zoomClientX(e.clientX), scrollMs: 0, scrollAccum: 0, lastDelta: 0, // v491
               };
               store.beginDrag();
               store.canvasDragging = true;
@@ -1098,6 +1153,7 @@ export function TopTimeline() {
                       const o = bmBar.hitObjects.find(x => x.id === oid)!;
                       return [oid, { time: o.time, endTime: o.endTime }];
                     })),
+                    x1: zoomClientX(e.clientX), scrollMs: 0, scrollAccum: 0, lastDelta: 0, // v491
                   };
                   store.beginDrag();
                   store.canvasDragging = true;
@@ -1184,24 +1240,8 @@ export function TopTimeline() {
           }
           const md = markerDragRef.current;
           if (md) {
-            // v32: 时间轴拖拽改时间 (anchor 吸附节拍, 其余选中物件同 delta 跟随)
-            const bm = store.beatmap;
-            if (!bm) return;
-            if (!md.moved && Math.abs(zoomClientX(e.clientX) - md.startX) <= 4) return;
-            md.moved = true;
-            const r = zoomRect(ref.current!); // v217: 布局空间
-            const win = 6000 / (bm.editor.timelineZoom || 1);
-            const dMs = ((zoomClientX(e.clientX) - md.startX) / r.width) * win;
-            const anchorOrig = md.orig.get(md.anchorId)!;
-            const delta = snapMs(anchorOrig.time + dMs) - anchorOrig.time;
-            for (const [oid, o0] of md.orig) {
-              const o = bm.hitObjects.find(x => x.id === oid);
-              if (!o) continue;
-              o.time = Math.round(o0.time + delta);
-              if (o0.endTime !== undefined && o.endTime !== undefined) o.endTime = Math.round(o0.endTime + delta);
-            }
-            bm.hitObjects.sort((a, b) => a.time - b.time);
-            store.emit();
+            // v32: 时间轴拖拽改时间; v491: 逻辑抽 applyMarkerDrag (帧循环边缘滚动共用)
+            handleMarkerMove(zoomClientX(e.clientX));
             return;
           }
           if (!store.canvasDragging && e.buttons === 0 && ref.current) {

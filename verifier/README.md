@@ -5563,3 +5563,19 @@
   粘贴 → 新滑条 (300,320)+(300,420), 源滑条不变, 时间吸网格, 选中新滑条, undo 还原)。
 - 回归: v408/v102/v357/v409/v424 全绿; v113/v319/v326/v380 为既有红 (stash 到 v489 复跑
   同样失败, 与本次无关)。tsc + vite build 通过。
+
+## v491 — 拖物件到时间轴左右边缘自动滚动 (stable 对齐)
+- 需求: 物件时间轴上拖物件到左右边缘时时间轴应自动滚动, 把物件时间移到当前视窗外
+  (stable: 拖著物件到邊緣會讓時間軸移動; 旧实现 dMs = 指针位移×win/width, win 与
+  currentTime 无关, 物件最多到视窗边缘)。
+- 改动: Timelines.tsx — markerDragRef 加 x1/scrollMs/scrollAccum/lastDelta; 拖拽应用抽
+  applyMarkerDrag (delta = 指针位移 + scrollMs 滚动累计), onMouseMove/window 兜底
+  (新增物件拖拽越界跟踪)/帧循环三处共用; 帧循环内指针入边缘 40px 容差 →
+  edgeScrollVelocity/Ramp (lazer handleScrollViaDrag, 与 v102 框选同参数), seek 实际
+  生效量计入 scrollMs (钳制安全), applyMarkerDrag 推出物件; 播放中不滚 (视图跟音频钟)。
+- 验证: verifier/v491 — 源码断言 ×6 + CDP 合成鼠标 (按住右边缘 900ms 滚动 654ms,
+  物件推出原视窗右缘 +656ms, 物件跟随指针 ±600ms, undo 还原)。
+- 适配: v35 — v482 起 tailId 改距离裁决行, 旧针串 stale (既有红), 更新针串并保留
+  「拖尾判定优先于物件拖拽」顺序断言。
+- 回归: v102/v213/v320/v35/v407/v463/v479/v79 全绿; v113/v319/v326/v380 为既有红
+  (stash 到 v489 复跑同样失败)。tsc + vite build 通过。
