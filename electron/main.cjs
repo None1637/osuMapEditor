@@ -5,6 +5,7 @@ const { app, BrowserWindow, Menu, dialog, ipcMain, shell, screen } = require("el
 const fs = require("node:fs")
 const path = require("node:path")
 const http = require("node:http")
+const https = require("node:https") // v493: 更新检测 (GitHub API)
 const { spawn } = require("node:child_process")
 let win = null
 // 端点逻辑与 vite 中间件共用 (ESM 模块, 由 main() 动态 import 后赋值; createServer 闭包请求时才解引用)
@@ -13,6 +14,8 @@ let handleLocalFs = null
 let pushRecent = null
 // v185: 谱面备份核心 (ESM, main() 动态 import)
 let backupCore = null
+// v493: GitHub Releases 更新检测核心 (ESM 纯函数, main() 动态 import)
+let updateCheckCore = null
 // v185: 备份根目录 = exe 同目录/backup_beatmaps (开发时 = app/backup_beatmaps)
 const BACKUP_ROOT = () => path.join(app.isPackaged ? path.dirname(app.getPath("exe")) : path.join(__dirname, ".."), "backup_beatmaps")
 
@@ -322,6 +325,36 @@ ipcMain.handle("backup-beatmap", (_e, p) => {
   } catch (e) { return { ok: false, error: String((e && e.message) || e) } }
 })
 
+// ---------- v493: GitHub Releases 更新检测 ----------
+// 主进程发请求 (渲染端 fetch 有 CORS/混合内容顾虑, 主进程 https 直连); 8s 超时, 失败静默回 {ok:false}
+const RELEASES_LATEST_URL = "https://api.github.com/repos/None1637/osuMapEditor/releases/latest"
+function fetchJson(url) {
+  return new Promise((resolve, reject) => {
+    const req = https.get(url, {
+      headers: { "User-Agent": "osuMapEditor-update-check", Accept: "application/vnd.github+json" },
+      timeout: 8000,
+    }, (res) => {
+      if (res.statusCode !== 200) { res.resume(); reject(new Error("HTTP " + res.statusCode)); return }
+      const chunks = []
+      res.on("data", (c) => chunks.push(c))
+      res.on("end", () => { try { resolve(JSON.parse(Buffer.concat(chunks).toString("utf-8"))) } catch (e) { reject(e) } })
+    })
+    req.on("timeout", () => req.destroy(new Error("timeout")))
+    req.on("error", reject)
+  })
+}
+ipcMain.handle("check-update", async () => {
+  try {
+    const rel = await fetchJson(RELEASES_LATEST_URL)
+    return { ok: true, current: APP_VERSION, update: updateCheckCore.pickUpdateInfo(rel, APP_VERSION) }
+  } catch (e) { return { ok: false, current: APP_VERSION, error: String((e && e.message) || e) } }
+})
+// 确认更新 → 系统浏览器打开 release 页 (仅放行 https, 防渲染端注入任意协议)
+ipcMain.handle("open-external", (_e, url) => {
+  if (typeof url === "string" && url.startsWith("https://")) { shell.openExternal(url); return true }
+  return false
+})
+
 // v185: 文件菜单「查看备份」→ 渲染进程带回艺术家/歌曲名, 主进程开备份文件夹
 ipcMain.handle("open-backup-folder", (_e, p) => {
   try {
@@ -442,6 +475,7 @@ const MENU_LABELS = {
   "menu.quit": { en: "Quit", "zh-CN": "退出", "zh-TW": "結束" },
   "menu.about": { en: "About", "zh-CN": "关于", "zh-TW": "關於" },
   "menu.about_app": { en: "About osu! Map Editor (v{v})", "zh-CN": "关于 osu! Map Editor (v{v})", "zh-TW": "關於 osu! Map Editor (v{v})" },
+  "menu.check_update": { en: "Check for Updates", "zh-CN": "检查更新", "zh-TW": "檢查更新" }, // v493
   "menu.pick_osu_dir": { en: "Select osu! install folder (containing Songs / Skins)", "zh-CN": "选择 osu! 安装目录 (含 Songs / Skins 文件夹)", "zh-TW": "選擇 osu! 安裝目錄 (含 Songs / Skins 資料夾)" },
   "menu.songs_dir_missing": { en: "Songs folder does not exist: {path}", "zh-CN": "Songs 目录不存在: {path}", "zh-TW": "Songs 目錄不存在: {path}" },
   "menu.skin_dir_missing": { en: "Skin folder does not exist: {path}", "zh-CN": "皮肤目录不存在: {path}", "zh-TW": "皮膚目錄不存在: {path}" },
@@ -624,6 +658,7 @@ function buildMenu() {
       label: mT("menu.about"),
       submenu: [
         { label: mT("menu.about_app", { v: APP_VERSION }), click: openAboutWindow },
+        { label: mT("menu.check_update"), click: () => send({ type: "check-update" }) }, // v493: 渲染端弹更新窗口 (手动检查带反馈)
       ],
     },
     // (v123: v121 的菜单栏指示器已移除 — 原生菜单项无法右对齐, 改为应用内顶栏最右侧浮层)
@@ -644,6 +679,7 @@ async function main() {
   handleLocalFs = makeLocalFsHandler(createLocalFsHandler)
   pushRecent = (await import("../server/recentsCore.mjs")).pushRecent
   backupCore = await import("../server/backupCore.mjs") // v185: 谱面备份
+  updateCheckCore = await import("../server/updateCheckCore.mjs") // v493: 更新检测
   await app.whenReady()
   buildMenu()
   await createWindow()

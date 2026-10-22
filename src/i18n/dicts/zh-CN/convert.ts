@@ -142,4 +142,15 @@ export const zhCN: Record<string, string> = {
   'convert.stamp_rotate_hint': '(90 = 垂直于主滑条, 0 = 沿切线)',
   // v489: 时间偏移 (相位)
   'convert.stamp_offset': '偏移',
+  // v493: 批量插入锚点 warning 文案 (anchorStamp.ts 由中文字面量改走 i18n, 修 v346 规约)
+  'convert.astamp_warn_no_path': '主滑条无有效路径',
+  'convert.astamp_warn_too_short': '主滑条行程过短',
+  'convert.astamp_warn_no_template': '优先级{p}: 未设置模板 (跳过)',
+  'convert.astamp_warn_step_small': '优先级{p}: 间隔过小 (跳过)',
+  'convert.astamp_warn_tpl_invalid': '优先级{p}: 模板路径无效 (跳过)',
+  'convert.astamp_warn_no_stamps': '无可插入的锚点 (检查模板与间隔)',
+  'convert.astamp_warn_all_erased': '插入点全部被吞除区覆盖',
+  'convert.astamp_warn_degenerate': '结果路径退化',
+  'convert.astamp_warn_sv_clamped': '所需 SV {sv} 超出 {min}~{max}, 已钳制 (时长会变化)',
+  'convert.astamp_warn_sv_failed': 'SV 反解失败 (时长参数非法), 未生成绿线',
 };

@@ -127,4 +127,16 @@ export const zhCN: Record<string, string> = {
   // v387: B4 不兼容 stable 警告条
   'app.b4_warning': '{count} 个 B 样条 (B4) 滑条 — stable osu! 无法读取',
   'app.b4_convert_all': '全部转为贝塞尔',
+  // v493: 更新检测
+  'update.badge': '发现新版本 v{v} (点击查看)',
+  'update.dismiss': '本次忽略',
+  'update.title': '发现新版本 v{v}',
+  'update.current': '当前版本: v{v}',
+  'update.no_notes': '(无更新说明)',
+  'update.accept': '立即更新',
+  'update.skip': '跳过此版本',
+  'update.later': '暂不',
+  'update.checking': '正在检查更新…',
+  'update.latest': '已是最新版本 (v{v})',
+  'update.failed': '检查更新失败: {err}',
 };

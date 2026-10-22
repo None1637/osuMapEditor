@@ -5592,3 +5592,28 @@
 - 适配 (均为 v445 slot 签名/v492 锚位的陈旧针串, 适配前即红): v298 (drawSkinNumber slot
   首参 + 分数锚位), v300 (acc slot+锚位), v418 (进度条全宽贴底), v421 (combo slot 针串)。
 - 回归: v287/v294/v416/v417/v419/v420/v422/v423/v445/v446 全绿。tsc + vite build 通过。
+
+## v493 — GitHub Releases 更新检测 (徽章提示 + 更新内容 + 确认更新)
+- 需求: 从 GitHub Releases 检测更新 — 提示可更新、显示更新内容、用户主动点击后确认是否更新
+  (数据源 https://github.com/None1637/osuMapEditor/releases)。
+- 链路: 渲染进程不直连 GitHub (CSP/跨域) — `ipcMain.handle("check-update")` 主进程
+  node:https GET api.github.com/repos/None1637/osuMapEditor/releases/latest (UA 头,
+  8s 超时), 返回 {ok, current, update}; `open-external` IPC 仅放行 https:// →
+  shell.openExternal。纯函数在 server/updateCheckCore.mjs: parseSemverTag 只认 x.y.z
+  语义版本 tag (vXXX 构建标签/草稿/同版 → null), isNewer 三段数字比较, pickUpdateInfo
+  抽出 {version, url, publishedAt, notes}。
+- UI (components/UpdatePrompt.tsx): 启动 3s 自动静默检测 → 有更新出右下角徽章
+  (data-update-badge, ✕ 本次忽略) → 点开确认窗 (当前→新版本号/发布日期/更新内容
+  pre-wrap) → [立即更新] 浏览器打开 release 页 / [跳过此版本] localStorage
+  osu-editor:updateSkip 记忆 (自动检测不再提示同版) / [暂不] 关窗留徽章。
+  关于菜单加「检查更新」(三语) → manualCheckUpdate(): 手动检查即使跳过也开窗,
+  toast 反馈 检查中/已最新/失败。测试钩子 window.__osuUpdateTest(info, manual)。
+- 修复 (v346 回归): anchorStamp.ts 9 处中文 warning 改走 tNow i18n (zh-CN 词典
+  convert.astamp_warn_* ×10, split.ts 同款惯例); s2t.ts 补 版忽簧捕根由走吞 (S2T_SAME)
+  与 约→約 (S2T_TABLE)。
+- 验证: verifier/v493 — 纯函数段 (parseSemverTag/isNewer/pickUpdateInfo 边界) + CDP 段
+  (__osuUpdateTest 注入假更新走完整 UI: 徽章→确认窗→三按钮→跳过记忆→手动仍开窗)。
+  注意: 本机 hosts 把 github.com 指到 127.0.0.1, 真实 API 响应无法本机实测; 需用
+  x.y.z 语义版本 tag (如 v0.1.4) 创建 Release 检测才会生效。
+- 回归: v346/v486 修复后全绿; v77/v120/v185/v215/v280/v286 全绿; v209 既有红 (esbuild
+  不处理 ?raw 导入)。tsc + vite build 通过。

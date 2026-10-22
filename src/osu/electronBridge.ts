@@ -71,6 +71,18 @@ export interface ElectronAPI {
   reportError(msg: string): void;
   /** v346: 上报当前界面语言 (主进程据此重建菜单标签; 启动一次 + 切换时) */
   menuLang(lang: string): void;
+  /** v493: GitHub Releases 更新检测 (主进程请求; update = null 表示已是最新) */
+  checkUpdate(): Promise<ElectronUpdateResult>;
+  /** v493: 系统浏览器打开 https 链接 (确认更新后打开 release 页) */
+  openExternal(url: string): Promise<boolean>;
+}
+
+/** v493: 更新检测结果 (主进程 check-update IPC 返回) */
+export interface ElectronUpdateResult {
+  ok: boolean;
+  current: string;
+  update: { version: string; name: string; body: string; url: string; publishedAt: string } | null;
+  error?: string;
 }
 
 /** v280: 序列化菜单节点 (主进程 buildMenu 模板 → 渲染端自绘菜单条) */
@@ -159,6 +171,7 @@ export type ElectronMenuCommand =
   | { type: 'compose-convert-b4' } // v387: B4 全图转贝塞尔 (stable 兼容)
   | { type: 'compose-convert-bezier-b4' } // v464: 贝塞尔全图转 B4 (反向)
   // ---- v386: 设置菜单 — editorPrefs 勾选开关 (翻转, 状态经 menuEditorPrefsState 回报主进程重建勾选) ----
+  | { type: 'check-update' } // v493: 关于菜单「检查更新」(手动检查, 带反馈)
   | { type: 'settings-toggle-editor-pref'; key: 'dragAdjustNumbers' | 'moveDeadzone2px' | 'sliderHalfSnap' | 'svRedlineBoost' | 'svTailRestore' }; // v443: +sliderHalfSnap; v455: +svRedlineBoost; v457: +svTailRestore
 
 /** v209: 渲染端 -> 主进程的编辑菜单置灰状态; v212: 扩 hasSlider/selMulti (作图菜单置灰用) */

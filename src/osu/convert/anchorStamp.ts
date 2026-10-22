@@ -14,6 +14,8 @@ import { genId, sliderVelocityAt, timingAt, type Beatmap, type HitObject, type T
 import { deCasteljau, extractRange, measureSegments, segmentsToPoints, sliderToBezierSegments, type BezierSeg, type MeasuredSegments } from './bezierPath';
 import { sliderGeometryLength } from '../sliderPath';
 import { beatLengthForSv, greenLineAt, svAt, svForDurationRaw, svRestoreTargetAt, SV_MAX, SV_MIN } from '../timingSv';
+// v493: warning 文案走 i18n (v346 规约: i18n 之外的 src 无 CJK 字面量; split.ts 同款 tNow 惯例)
+import { tNow } from '@/i18n';
 
 /** 模板 (子滑条) 快照: 绝对坐标控制点列 (头 + curvePoints) + 曲线类型 */
 export interface AnchorStampTemplate { curveType: string; points: Vec2[] }
@@ -119,26 +121,26 @@ export function computeAnchorStamp(bm: Beatmap, main: HitObject, params: AnchorS
   const none: AnchorStampResult = { object: null, svLines: [], applyTiming: null, svPreview: null, stamps: 0, warnings };
   if (main.type !== 'slider') return none;
   const segs = sliderToBezierSegments(main);
-  if (!segs.length) { warnings.push('主滑条无有效路径'); return none; }
+  if (!segs.length) { warnings.push(tNow('convert.astamp_warn_no_path', 'Main slider has no valid path')); return none; }
   const m = measureSegments(segs);
   // 可见行程 = min(o.length, 几何全长) — 超出截断的部分不采样
   const eff = Math.max(0, Math.min(main.length ?? m.total, m.total));
   const red = timingAt(bm.timingPoints, main.time).red;
   const vel = sliderVelocityAt(bm.timingPoints, main.time, bm.difficulty.sliderMultiplier);
-  if (eff < 4 || vel <= 0 || red.beatLength <= 0) { warnings.push('主滑条行程过短'); return none; }
+  if (eff < 4 || vel <= 0 || red.beatLength <= 0) { warnings.push(tNow('convert.astamp_warn_too_short', 'Main slider travel too short')); return none; }
 
   // 每条规则: 采样点列 {d, rule, 模板段, 模板头, 模板切线角}
   interface Stamp { d: number; rule: AnchorStampRule; step: number; segs: BezierSeg[]; head: Vec2; thetaT: number; rot: number; erase: number }
   const stamps: Stamp[] = [];
   for (const rule of params.rules) {
     const tpl = resolveTemplate(bm, rule);
-    if (!tpl || tpl.points.length < 2) { warnings.push(`优先级${rule.priority}: 未设置模板 (跳过)`); continue; }
+    if (!tpl || tpl.points.length < 2) { warnings.push(tNow('convert.astamp_warn_no_template', 'Priority {p}: no template set (skipped)', { p: rule.priority })); continue; }
     const stepMs = red.beatLength * rule.intervalNum / Math.max(1, rule.intervalDen);
     const step = stepMs * vel;
-    if (step < 1) { warnings.push(`优先级${rule.priority}: 间隔过小 (跳过)`); continue; }
+    if (step < 1) { warnings.push(tNow('convert.astamp_warn_step_small', 'Priority {p}: interval too small (skipped)', { p: rule.priority })); continue; }
     const tObj: HitObject = { ...main, x: tpl.points[0].x, y: tpl.points[0].y, curveType: tpl.curveType, curvePoints: tpl.points.slice(1) };
     const tSegs = sliderToBezierSegments(tObj);
-    if (!tSegs.length) { warnings.push(`优先级${rule.priority}: 模板路径无效 (跳过)`); continue; }
+    if (!tSegs.length) { warnings.push(tNow('convert.astamp_warn_tpl_invalid', 'Priority {p}: template path invalid (skipped)', { p: rule.priority })); continue; }
     const tm = measureSegments(tSegs);
     const thetaT = tangentAt(tm, 0);
     // v488: 额外偏转角 (旧存档无 rotate 字段 → 回退 90° 垂直默认)
@@ -153,7 +155,7 @@ export function computeAnchorStamp(bm: Beatmap, main: HitObject, params: AnchorS
       stamps.push({ d, rule, step, segs: tSegs, head: tpl.points[0], thetaT, rot, erase });
     }
   }
-  if (!stamps.length) { warnings.push('无可插入的锚点 (检查模板与间隔)'); return none; }
+  if (!stamps.length) { warnings.push(tNow('convert.astamp_warn_no_stamps', 'No anchors to insert (check template and interval)')); return none; }
 
   // 优先级去重: d 升序贪心, 冲突窗 (min 两者间隔 /2) 内保留 priority 小者
   stamps.sort((a, b) => a.d - b.d || a.rule.priority - b.rule.priority);
@@ -175,11 +177,11 @@ export function computeAnchorStamp(bm: Beatmap, main: HitObject, params: AnchorS
     used++;
   }
   out.push(...extractRange(m, cursor, eff));
-  if (!used) { warnings.push('插入点全部被吞除区覆盖'); return none; }
+  if (!used) { warnings.push(tNow('convert.astamp_warn_all_erased', 'All insert points covered by erase regions')); return none; }
 
   // 写回: 取整 (.osu 惯例; 重复点同源取整仍相等, 红锚点语义保持)
   const pts = segmentsToPoints(out).map(p => ({ x: Math.round(p.x), y: Math.round(p.y) }));
-  if (pts.length < 2) { warnings.push('结果路径退化'); return none; }
+  if (pts.length < 2) { warnings.push(tNow('convert.astamp_warn_degenerate', 'Resulting path degenerated')); return none; }
   const newLen = sliderGeometryLength('B', pts);
   const object: HitObject = {
     ...main, id: genId(), curveType: 'B', x: pts[0].x, y: pts[0].y,
@@ -194,7 +196,7 @@ export function computeAnchorStamp(bm: Beatmap, main: HitObject, params: AnchorS
     const svReq = svForDurationRaw(newLen, slides, red.beatLength, bm.difficulty.sliderMultiplier, dur0);
     if (svReq !== null && Number.isFinite(svReq)) {
       const svTo = Math.min(SV_MAX, Math.max(SV_MIN, svReq));
-      if (svTo !== svReq) warnings.push(`所需 SV ${svReq.toFixed(2)} 超出 ${SV_MIN}~${SV_MAX}, 已钳制 (时长会变化)`);
+      if (svTo !== svReq) warnings.push(tNow('convert.astamp_warn_sv_clamped', 'Required SV {sv} out of {min}~{max}, clamped (duration will change)', { sv: svReq.toFixed(2), min: SV_MIN, max: SV_MAX }));
       const svFrom = svAt(bm.timingPoints, main.time);
       svPreview = { from: svFrom, to: svTo };
       const headGreen = greenLineAt(bm.timingPoints, main.time);
@@ -228,7 +230,7 @@ export function computeAnchorStamp(bm: Beatmap, main: HitObject, params: AnchorS
         applyTiming.splice(pos >= 0 ? pos : applyTiming.length, 0, restoreLine);
       }
     } else {
-      warnings.push('SV 反解失败 (时长参数非法), 未生成绿线');
+      warnings.push(tNow('convert.astamp_warn_sv_failed', 'SV solving failed (invalid duration params), no green line generated'));
     }
   }
   return { object, svLines, applyTiming, svPreview, stamps: used, warnings };

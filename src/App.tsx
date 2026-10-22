@@ -41,6 +41,7 @@ import { FirstRunWizard } from '@/components/FirstRunWizard';
 import { SkinListPanel } from '@/components/SkinListPanel';
 import { UnsavedDialog } from '@/components/UnsavedDialog'; // v120
 import { LangFirstRun } from '@/components/LangFirstRun'; // v349: 首次启动先选语言
+import { UpdatePrompt, manualCheckUpdate } from '@/components/UpdatePrompt'; // v493: GitHub Releases 更新检测
 import { TransformDialog } from '@/components/TransformDialog'; // v209: 旋转/缩放独立窗口
 import { FpsCounter } from '@/components/FpsCounter'; // v220: 右下角帧数显示
 import { SavedFlash } from '@/components/SavedFlash'; // v460: stable 风「地图已保存」中央横条
@@ -427,6 +428,7 @@ export default function App() {
       if (cmd.type === 'timing-shift-all') { setShowShiftAll(true); return; }
       if (cmd.type === 'open-backups') { void store.openBackupFolder(); return; } // v185: 文件菜单「查看备份」
       if (cmd.type === 'reload-map') { void reloadMapRef.current(); return; } // v480: Ctrl+R 菜单命令 → 谱面刷新 (含未保存警告)
+      if (cmd.type === 'check-update') { void manualCheckUpdate(); return; } // v493: 关于菜单「检查更新」
       await handleMenuCommand(cmd);
       if (cmd.type === 'open') setShowLibrary(false);
     });
@@ -952,6 +954,8 @@ export default function App() {
       <UnsavedDialog />
       {/* v349: 首次启动先选语言 (悬浮于所有控件之上, 选后不再出现) */}
       <LangFirstRun />
+      {/* v493: 更新提示徽章 + 确认窗口 (自动检测/手动检查共用) */}
+      <UpdatePrompt />
     </div>
     {/* v220: 右下角帧数显示 — 悬浮于所有控件之上; 挂在 v217 zoom 容器外, 不随界面缩放; v253: 显示设置可关 */}
     {displaySettings.showFps && <FpsCounter />}
