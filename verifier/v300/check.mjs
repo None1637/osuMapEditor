@@ -35,7 +35,7 @@ check('overlay: drawSkinNumber 支持 % 和 .',
   /ch === '%'\) imgs\.push\(skin\.scorePercent/.test(overlay)
   && /ch === '\.'\) imgs\.push\(skin\.scoreDot/.test(overlay));
 check('overlay: acc 走皮肤数字 + 文字回退',
-  /drawSkinNumber\(`\$\{\(sc\.accuracy \* 100\)\.toFixed\(2\)\}%`/.test(overlay)
+  /drawSkinNumber\('acc', `\$\{\(sc\.accuracy \* 100\)\.toFixed\(2\)\}%`/.test(overlay) // v445/v492 适配: slot 首参 + 窗口右上锚位
   && /fillText\(`\$\{\(sc\.accuracy \* 100\)\.toFixed\(2\)\}%`/.test(overlay));
 
 if (fails) { console.error(`v300: ${fails} check(s) failed`); process.exit(1); }

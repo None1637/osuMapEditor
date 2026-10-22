@@ -32,8 +32,8 @@ const ov = read('src/components/TestPlayOverlay.tsx');
 assert(/playProgress\(time, session\.firstTime, session\.lastEnd\)/.test(ov), '进度条取会话首/末时间');
 assert(/rgba\(255,255,255,0\.25\)/.test(ov) && /rgba\(255,255,255,0\.85\)/.test(ov), '轨道+高亮填充 (白色半透明)');
 assert(/bw \* p/.test(ov), '已播放部分按进度填充');
-// 居中横向 (避开左下 combo): 条宽 60% 居中, combo 在左下 ox+8
-assert(/bw = PW \* scale \* 0\.6/.test(ov) && /bx = ox \+ \(PW \* scale - bw\) \/ 2/.test(ov), '居中 60% 宽 (避开左下 combo)');
+// v492 适配: lazer SongProgressBar — 铺满窗口底边 (原居中 60% 宽语义作废)
+assert(/bw = r\.width, bh = 3 \* scale/.test(ov) && /bx = 0, by = r\.height - bh - 1/.test(ov), '铺满窗口底边 (v492)');
 // 进度条画在 HUD 段 (combo 之后, restore 之前)
 assert(ov.indexOf('playProgress(time, session.firstTime') > ov.indexOf('`${sc.combo}x`'), '进度条在 combo 之后绘制');
 

@@ -17,6 +17,8 @@
 // v423: break 休息段提示 (中央偏上: pass/fail 三角 + Break 字样 + 剩余秒数)。
 // v446: 背景图 cover 铺满整个覆盖层画布 (原只铺游玩区; 0.7 压暗照旧, 固定不随适配变换);
 //   编辑器侧同步全屏 (EditorCanvas 全屏背景层), 游玩区内额外 0.45 压暗保留保证物件可读性。
+// v492: HUD 锚窗口四缘 (lazer 默认布局): 左上血条, 右上分数/acc, 左下 combo, 底边全宽进度条
+//   (原锚游玩区四角, 游玩区居中时 HUD 悬在半空)。
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { store } from '@/osu/store';
 import { displaySettings } from '@/osu/displaySettings'; // v467: 测试游玩期间强制开 note 打击动画
@@ -313,26 +315,28 @@ export function TestPlayOverlay({ onClose }: { onClose: () => void }) {
       __mark('trail', __ts); __ts = __perfOn ? performance.now() : 0; // v445
       g.restore();
 
-      // HUD (布局 px 坐标): 左上血条, 右上分数/acc, 左下 combo
+      // HUD (布局 px 坐标): v492 — lazer 默认布局锚窗口四缘: 左上血条, 右上分数/acc, 左下 combo,
+      //   底边全宽进度条 (原锚游玩区四角 ox/oy/PW/PH; r = 覆盖层画布布局尺寸, v446 起背景已铺满全画布)
       if (!__skip?.hud) { // v445: profile 分阶段跳过
       g.setTransform(sx, 0, 0, sy, 0, 0);
       const sc = session.score;
       g.save();
+      const mX = 8, mTop = 8 * scale, comboBot = r.height - 12 * scale; // v492: 窗口边缘留白 (combo 底抬高避开进度条)
       // v298: 血条 — 皮肤 scorebar-bg + scorebar-colour (按贴图固有宽高比, hp 裁剪填充), 缺失回退色条
       if (skin.scorebarBg && skin.scorebarColour) {
         const bh = 14 * scale;
         const bw = bh * (skin.scorebarBg.width / skin.scorebarBg.height);
-        const by = oy - 20 * scale;
-        g.drawImage(skin.scorebarBg, ox, by, bw, bh);
+        const by = mTop; // v492: 窗口左上
+        g.drawImage(skin.scorebarBg, mX, by, bw, bh);
         g.save();
-        g.beginPath(); g.rect(ox, by, bw * sc.hp, bh); g.clip();
-        g.drawImage(skin.scorebarColour, ox, by, bw, bh);
+        g.beginPath(); g.rect(mX, by, bw * sc.hp, bh); g.clip();
+        g.drawImage(skin.scorebarColour, mX, by, bw, bh);
         g.restore();
       } else {
         g.fillStyle = 'rgba(255,255,255,0.25)';
-        g.fillRect(ox, oy - 14, PW * scale, 8);
+        g.fillRect(mX, mTop, PW * scale, 8);
         g.fillStyle = sc.hp > 0.25 ? '#7fff7f' : '#ff5f5f';
-        g.fillRect(ox, oy - 14, PW * scale * sc.hp, 8);
+        g.fillRect(mX, mTop, PW * scale * sc.hp, 8);
       }
       // v298: 皮肤数字 (score-0..9 / score-x / v300 score-percent/score-dot), 任一字形缺失整串回退文字
       // v445: slot = 缓存槽位 ('score'/'acc'/'combo') — 槽位复用位图, 内容变化才重绘
@@ -367,18 +371,18 @@ export function TestPlayOverlay({ onClose }: { onClose: () => void }) {
         g.drawImage(e.c, alignRight ? x0 - e.w : x0, y0, e.w, h);
         return true;
       };
-      if (!drawSkinNumber('score', String(sc.score).padStart(8, '0'), ox + PW * scale - 8, oy + 8 * scale, 22 * scale, true)) {
+      if (!drawSkinNumber('score', String(sc.score).padStart(8, '0'), r.width - 8, mTop, 22 * scale, true)) { // v492: 窗口右上
         g.textAlign = 'right'; g.textBaseline = 'alphabetic';
         g.fillStyle = '#fff';
         g.font = `bold ${Math.round(22 * scale)}px monospace`;
-        g.fillText(String(sc.score).padStart(8, '0'), ox + PW * scale - 8, oy + 30 * scale);
+        g.fillText(String(sc.score).padStart(8, '0'), r.width - 8, mTop + 22 * scale);
       }
       // v300: acc 同样走皮肤数字 (score-percent/score-dot), 缺失回退文字
-      if (!drawSkinNumber('acc', `${(sc.accuracy * 100).toFixed(2)}%`, ox + PW * scale - 8, oy + 36 * scale, 14 * scale, true)) {
+      if (!drawSkinNumber('acc', `${(sc.accuracy * 100).toFixed(2)}%`, r.width - 8, mTop + 28 * scale, 14 * scale, true)) {
         g.textAlign = 'right'; g.textBaseline = 'alphabetic';
         g.fillStyle = '#fff';
         g.font = `${Math.round(14 * scale)}px monospace`;
-        g.fillText(`${(sc.accuracy * 100).toFixed(2)}%`, ox + PW * scale - 8, oy + 50 * scale);
+        g.fillText(`${(sc.accuracy * 100).toFixed(2)}%`, r.width - 8, mTop + 42 * scale);
       }
       // v421: combo 弹跳 (lazer ComboCounter pop) — combo 增加时瞬时 ~1.6x, 180ms 缓动回 1.0;
       //       归零/断连击不弹 (combo 减小不触发)
@@ -387,21 +391,21 @@ export function TestPlayOverlay({ onClose }: { onClose: () => void }) {
       const popS = comboPopScale(time - comboPopAt);
       g.save();
       if (popS !== 1) { // 以 combo 左下锚点为中心缩放
-        g.translate(ox + 8, oy + PH * scale - 10 * scale);
+        g.translate(mX, comboBot);
         g.scale(popS, popS);
-        g.translate(-(ox + 8), -(oy + PH * scale - 10 * scale));
+        g.translate(-mX, -comboBot);
       }
-      if (!drawSkinNumber('combo', `${sc.combo}x`, ox + 8, oy + PH * scale - 30 * scale, 20 * scale, false)) {
+      if (!drawSkinNumber('combo', `${sc.combo}x`, mX, comboBot - 20 * scale, 20 * scale, false)) { // v492: 窗口左下
         g.textAlign = 'left';
         g.font = `bold ${Math.round(20 * scale)}px monospace`;
-        g.fillText(`${sc.combo}x`, ox + 8, oy + PH * scale - 10);
+        g.fillText(`${sc.combo}x`, mX, comboBot);
       }
       g.restore();
-      // v418: 底部歌曲进度条 (居中横向, 避开左下 combo; 细轨道 + 已播放高亮, 白色半透明)
+      // v418: 底部歌曲进度条; v492: lazer SongProgressBar — 铺满窗口底边 (原居中 60% 宽避开 combo)
       {
         const p = playProgress(time, session.firstTime, session.lastEnd);
-        const bw = PW * scale * 0.6, bh = 3 * scale;
-        const bx = ox + (PW * scale - bw) / 2, by = oy + PH * scale - 8 * scale;
+        const bw = r.width, bh = 3 * scale;
+        const bx = 0, by = r.height - bh - 1;
         g.fillStyle = 'rgba(255,255,255,0.25)';
         g.fillRect(bx, by, bw, bh);
         g.fillStyle = 'rgba(255,255,255,0.85)';

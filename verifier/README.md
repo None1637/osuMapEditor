@@ -5579,3 +5579,16 @@
   「拖尾判定优先于物件拖拽」顺序断言。
 - 回归: v102/v213/v320/v35/v407/v463/v479/v79 全绿; v113/v319/v326/v380 为既有红
   (stash 到 v489 复跑同样失败)。tsc + vite build 通过。
+
+## v492 — 测试游玩 HUD 锚窗口四缘 (lazer 默认布局)
+- 需求: 游玩模式的分数/combo/血条/进度条应在窗口边缘 (原锚游玩区四角, 游玩区居中时
+  HUD 悬在半空)。
+- 改动: TestPlayOverlay.tsx — HUD 定位从游玩区角 (ox/oy/PW/PH) 改窗口缘 (r.width/r.height):
+  血条左上 (mX=8, mTop=8×scale), 分数/acc 右上 (r.width-8), combo 左下 (comboBot =
+  r.height-12×scale, 抬高避开进度条), 进度条铺满窗口底边 (bx=0, bw=r.width, 贴底;
+  v418 居中 60% 宽语义作废 — lazer SongProgressBar 即全宽贴底)。
+- 验证: verifier/v492 — 源码断言 ×7 + CDP 像素扫描 (底边进度条横贯 100%; 右上分数/acc
+  白字; 左下 combo 白字; 左上血条; Esc 退出)。
+- 适配 (均为 v445 slot 签名/v492 锚位的陈旧针串, 适配前即红): v298 (drawSkinNumber slot
+  首参 + 分数锚位), v300 (acc slot+锚位), v418 (进度条全宽贴底), v421 (combo slot 针串)。
+- 回归: v287/v294/v416/v417/v419/v420/v422/v423/v445/v446 全绿。tsc + vite build 通过。

@@ -46,13 +46,14 @@ check('overlay: 判定弹出皮肤贴图映射 + @2x 缩放修正 + 文字回退
   && /skinScaleAdjust\.get\(img\)/.test(overlay) && /RESULT_TEXT\[p\.result\]/.test(overlay));
 check('overlay: 血条 scorebar 贴图 + hp 裁剪填充 + 色条回退',
   /skin\.scorebarBg && skin\.scorebarColour/.test(overlay) && /g\.clip\(\)/.test(overlay) && /PW \* scale \* sc\.hp/.test(overlay));
+// v492 适配: v445 起 drawSkinNumber 加 slot 首参 (缓存槽位), 针串同步更新
 check('overlay: drawSkinNumber (数字+x, 缺字形整串回退)',
-  /drawSkinNumber = \(text: string/.test(overlay) && /skin\.scoreDigits\[\+ch\]/.test(overlay)
+  /drawSkinNumber = \(slot: string, text: string/.test(overlay) && /skin\.scoreDigits\[\+ch\]/.test(overlay)
   && /skin\.scoreX \?\? null/.test(overlay) && /imgs\.some\(i => !i\)\) return false/.test(overlay));
 check('overlay: 分数/combo 走皮肤数字 (回退文字保留)',
-  /drawSkinNumber\(String\(sc\.score\)\.padStart\(8, '0'\)/.test(overlay)
-  && /drawSkinNumber\(`\$\{sc\.combo\}x`/.test(overlay)
-  && /padStart\(8, '0'\), ox \+ PW \* scale - 8, oy \+ 30/.test(overlay));
+  /drawSkinNumber\('score', String\(sc\.score\)\.padStart\(8, '0'\)/.test(overlay) // v445: slot 首参
+  && /drawSkinNumber\('combo', `\$\{sc\.combo\}x`/.test(overlay)
+  && /padStart\(8, '0'\), r\.width - 8, mTop/.test(overlay)); // v492: 分数锚窗口右上
 
 if (fails) { console.error(`v298: ${fails} check(s) failed`); process.exit(1); }
 console.log('v298: all checks passed');

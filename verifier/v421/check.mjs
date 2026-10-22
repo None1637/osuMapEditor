@@ -31,7 +31,7 @@ assert(/if \(sc\.combo > prevCombo\) comboPopAt = time/.test(ov), '仅 combo 增
 assert(/comboPopScale\(time - comboPopAt\)/.test(ov), 'rAF 每帧算缩放');
 // 缩放包裹 combo 绘制 (皮肤数字与文字回退都在 save/restore 内)
 assert(/g\.scale\(popS, popS\)/.test(ov), '缩放变换应用');
-const pi = ov.indexOf('g.scale(popS, popS)'), ci = ov.indexOf('drawSkinNumber(`${sc.combo}x`');
+const pi = ov.indexOf('g.scale(popS, popS)'), ci = ov.indexOf('drawSkinNumber(\'combo\', `${sc.combo}x`'); // v492 适配: v445 slot 首参
 assert(pi > 0 && pi < ci, '缩放包裹 combo 绘制');
 
 console.log(failures ? `\nVERIFIER_V421_FAILED: ${failures} 处失败` : '\nVERIFIER_V421_ALL_TESTS_PASSED');
