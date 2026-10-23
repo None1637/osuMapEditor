@@ -5637,3 +5637,16 @@
 - 适配: v413 源码针串 (守卫已改 hitTestAll 形式), CDP 用例全绿。
 - 回归: v102/v357/v413/v490 全绿。既有红: v380 两处 (间距输入框 undo/redo, 干净 HEAD
   上同样失败, 与本次无关, 待后续排期); v209 (esbuild 不处理 ?raw)。tsc + vite build 通过。
+
+## v496 — 时间轴 Ctrl+点击多选不再误插锚点 (soulten 实测未修复的真正场景)
+- 根因: v495 修的是游玩区画布内; 用户实际场景在**上方物件时间轴**。Timelines
+  onMouseDown 第一行即锚点穿透 (store.playfieldAnchorPress, v360/v404), 穿透链
+  singleSliderNodePress 带 Ctrl 走 v326「空白即插点」— 时间轴带映射到游玩区坐标通常
+  是空白, 于是给选中滑条插了锚点, 且穿透返回 true 吞掉事件, 时间轴 toggleSelect 没跑。
+- 改动: singleSliderNodePress 加 opts.allowBlankInsert; playfieldAnchorPress (可交互 UI
+  穿透) 传 false — UI 上 Ctrl+点击不生锚点, 还给 UI 多选; 锚点手柄上的 Ctrl 拖拽/切红
+  (v118) 仍穿透。画布 onMouseDown 与四侧不可交互 UI (playfieldNodePress) 空白插点不变。
+- 验证: verifier/v496 — 源码断言 ×4 + CDP (A 时间轴 Ctrl+点物件: 不插点且多选成功;
+  B 游玩区 Ctrl+点空白仍插点)。注意布局/客户端坐标换算要乘 uiZoom (v217)。
+- 适配 (陈旧针串): v404 (singleSliderNodePress 新签名), v413 (ctrl 分支前置 v496 守卫)。
+- 回归: v360/v378/v404/v411/v413/v459/v463/v479/v495 全绿。tsc + vite build 通过。

@@ -554,7 +554,9 @@ export function EditorCanvas() {
         return true;
       }
       if (!store.lockNotes && store.nodeSelectionCount && !mods.shiftKey && !mods.ctrlKey && !mods.metaKey && nodeGroupDragPress(p)) return true;
-      if (singleSliderNodePress(p, mods)) return true;
+      // v496: allowBlankInsert=false — 可交互 UI 上 Ctrl+点击不生锚点 (还给 UI 多选);
+      //   锚点手柄上的 Ctrl 拖拽/切红 (v118) 仍穿透
+      if (singleSliderNodePress(p, mods, { allowBlankInsert: false })) return true;
       if (unselectedSliderNodePress(p, mods)) return true;
       return false; // 物件本体/选中框手柄不穿透可交互 UI (时间轴跳转等功能优先)
     };
@@ -1557,7 +1559,9 @@ export function EditorCanvas() {
 
   // v362: 选中单滑条的节点按下 (拖锚点含红锚点成对语义; Ctrl 空白加锚点) — 从 onMouseDown 抽出,
   //   四侧 UI 覆盖区穿透 (playfieldNodePress) 与画布共用同一逻辑; 返回 true = 已处理 (调用方应 return)
-  const singleSliderNodePress = (p: Pt, mods: { ctrlKey: boolean; metaKey: boolean; shiftKey: boolean }): boolean => {
+  // v496: opts.allowBlankInsert=false 关闭 Ctrl 空白插点 — 可交互 UI (时间轴) 穿透场景:
+  //   Ctrl+点时间轴物件应多选, 不能把事件吞了还在选中滑条上生锚点 (soulten 实测未修复的反馈)
+  const singleSliderNodePress = (p: Pt, mods: { ctrlKey: boolean; metaKey: boolean; shiftKey: boolean }, opts?: { allowBlankInsert?: boolean }): boolean => {
     const bm = store.beatmap!;
     // 优先检测选中滑条的控制点手柄(节点编辑); v115: 锁定物件 — 节点拖拽/插点禁用
     if (store.lockNotes) return false;
@@ -1609,6 +1613,8 @@ export function EditorCanvas() {
     // v439: 命中对象是本滑条自己 (hit.id === so.id) 时继续插点 — v413 把「选中滑条自己的本体」也放行,
     //   导致选中滑条后 Ctrl+点滑条身加不了点 (soulten 回归反馈); 命中其他物件仍走 v413 多选
     if (mods.ctrlKey || mods.metaKey) {
+      // v496: 可交互 UI (时间轴) 穿透时不许空白插点 — 事件要还给时间轴做 Ctrl 多选
+      if (opts?.allowBlankInsert === false) return false;
       // v495: 穿透重叠 — 光标下有任何其他互动物件 (即使被本滑条身盖住, hitTest 因 v171
       //   已选优先会返回本滑条) 都不落锚点, 放行给 objectPress 多选 (soulten: 滑条点
       //   还是会生在可互动物件上); 仅本滑条自己/纯空白才继续插点

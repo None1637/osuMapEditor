@@ -29,7 +29,7 @@ section('EditorCanvas.tsx: 锚点级穿透注册');
   assert(ap.length > 0, '注册 playfieldAnchorPress');
   assert(/nodeAltPress\(p, mods\)/.test(ap), '含 Alt 锚点切换/框选');
   assert(/nodeGroupDragPress\(p\)/.test(ap), '含已选节点整组拖');
-  assert(/singleSliderNodePress\(p, mods\)/.test(ap), '含选中单滑条锚点编辑');
+  assert(/singleSliderNodePress\(p, mods(, \{ allowBlankInsert: false \})?\)/.test(ap), '含选中单滑条锚点编辑 (v496: 穿透路径传 allowBlankInsert:false, UI 上 Ctrl 不空白插点)');
   assert(/unselectedSliderNodePress\(p, mods\)/.test(ap), '含未选滑条锚点');
   assert(!/selectionHandlePress/.test(ap) && !/objectPress/.test(ap), '不含手柄/物件本体 (可交互 UI 功能优先)');
   assert(/store\.playfieldAnchorPress = null/.test(src), '卸载清理');
