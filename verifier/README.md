@@ -5650,3 +5650,17 @@
   B 游玩区 Ctrl+点空白仍插点)。注意布局/客户端坐标换算要乘 uiZoom (v217)。
 - 适配 (陈旧针串): v404 (singleSliderNodePress 新签名), v413 (ctrl 分支前置 v496 守卫)。
 - 回归: v360/v378/v404/v411/v413/v459/v463/v479/v495 全绿。tsc + vite build 通过。
+
+## v497 — 还原 v495 的「Ctrl 重叠穿透」误改
+- 背景: v495 三项改动中「Ctrl 重叠穿透」(hitTestAll 拆分 + 插点守卫升级 + objectPress
+  Ctrl 优先加选未选中物件) 系对需求理解错误, 用户要求还原; ①粘贴同时间取代保留,
+  v496 时间轴穿透禁空白插点保留。
+- 还原内容 (EditorCanvas.tsx):
+  - hitTestAll 移除, hitTest 恢复单函数 (v171 已选优先语义不变);
+  - singleSliderNodePress Ctrl 插点守卫恢复 hitTest 顶层命中判定 (v413/v439: 顶层命中
+    其他物件 → 放行多选; 命中本滑条身 — 含盖住其他物件 — 继续插点); v496 的
+    allowBlankInsert 前置守卫不动;
+  - objectPress 恢复顶层命中直接 toggleSelect。
+- 适配: verifier/v495 改为只断言粘贴取代 + 还原后语义回归 (B': 重叠区 Ctrl+点 = 插锚点
+  不多选); verifier/v413 针串还原 hitObj 形式 (放宽 v496 前置守卫)。
+- 回归: v102/v357/v404/v413/v490/v495/v496 全绿。tsc + vite build 通过。

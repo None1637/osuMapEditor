@@ -1,6 +1,7 @@
-// 验证器 v495: soulten 三连 — ①粘贴到同时间取代原有物件 (stable 语义) ②Ctrl+点击被选中
-//   滑条身盖住的互动物件不再生成锚点 (穿透重叠, v413 守卫从 hitTest 单点升级 hitTestAll)
-//   ③Ctrl 多选切换优先加选未选中物件 (否则重叠区 Ctrl+点会把本滑条减选, 多选加不上)
+// 验证器 v495: soulten 三连 — ①粘贴到同时间取代原有物件 (stable 语义) ②③Ctrl 多选/插点
+// v497 适配: ②③ 的「Ctrl 重叠穿透」(hitTestAll 拆分 + 守卫升级 + objectPress 优先加选)
+//   系理解错误已还原 — 恢复 v413/v439 顶层命中语义; 本验证器只保留 ①粘贴取代 的断言与
+//   CDP, 另加还原后语义回归 (B': 重叠区 Ctrl+点本滑条身 = 插锚点, 不多选)。
 // 运行: npm run build 后 node verifier/v495/check.mjs
 import { fileURLToPath } from 'url';
 import path from 'path';
@@ -21,9 +22,9 @@ section('源码断言');
   assert(/const pasteTimes = new Set\(this\.clipboard\.map/.test(st), 'paste: pasteTimes 收集落点时刻');
   assert(/!this\.lockNotes && pasteTimes\.size/.test(st), 'paste: 锁定物件时不删 (v115 契约)');
   const ec = read('src/components/EditorCanvas.tsx');
-  assert(/const hitTestAll = \(px: number, py: number\): HitObject\[\]/.test(ec), 'hitTestAll 拆出 (穿透重叠)');
-  assert(/hitTestAll\(p\.x, p\.y\)\.some\(o => o\.id !== so\.id\)\) return false/.test(ec), 'v413 守卫升级: 任何其他物件在光标下都不落锚点');
-  assert(/const unsel = hitTestAll\(p\.x, p\.y\)\.filter\(o => !store\.selected\.has\(o\.id\)\)/.test(ec), 'objectPress: Ctrl 切换优先加选未选中物件');
+  assert(!/hitTestAll\(/.test(ec), 'v497: hitTestAll 穿透重叠改动已还原 (无调用; 仅注释留档)');
+  assert(/const hitObj = hitTest\(p\.x, p\.y\);\s*if \(hitObj && hitObj\.id !== so\.id\) return false;/.test(ec), 'v497: 守卫恢复 hitTest 顶层命中 (v413/v439 语义)');
+  assert(/if \(mods\.ctrlKey \|\| mods\.metaKey \|\| mods\.shiftKey\) store\.toggleSelect\(hit\.id\);/.test(ec), 'v497: objectPress 恢复顶层命中直接切换');
 }
 
 section('CDP: 粘贴取代 + 重叠区 Ctrl 多选/不插点');
@@ -92,7 +93,8 @@ section('CDP: 粘贴取代 + 重叠区 Ctrl 多选/不插点');
     assert(rA.yKept && rA.pastedIsSlider, 'A: 原滑条 Y 保留, 落点是新滑条副本');
     assert(rA.pastedSelected, 'A: 粘贴副本被选中');
 
-    // B: Ctrl+点击被选中滑条身盖住的圆圈 — 不插锚点, 圆圈加选 (穿透重叠)
+    // B': 还原后语义 — Ctrl+点被选中滑条身盖住的圆圈 = 给本滑条插锚点 (v439: 顶层命中
+    //   是本滑条 → 继续插点), 不多选; v495 的「穿透重叠不插点」为误改已还原
     const rB = await evalJs(`(() => {
       const store = window.__osuStore;
       const base = store.beatmap;
@@ -101,7 +103,6 @@ section('CDP: 粘贴取代 + 重叠区 Ctrl 多选/不插点');
       store.load({ ...base, hitObjects: [
         { id: 975011, type: 'slider', x: 100, y: 100, time: t, newCombo: true, comboSkip: 0, hitSound: 0,
           curveType: 'L', curvePoints: [{ x: 300, y: 100 }], slides: 1, length: 200 },
-        // 圆圈在滑条身正上方 (200,100), 时间紧邻 (可见窗口重叠)
         { id: 975012, type: 'circle', x: 200, y: 100, time: t + 20, newCombo: false, comboSkip: 0, hitSound: 0 },
       ] }, store.audioUrl);
       store.pause && store.pause();
@@ -116,8 +117,8 @@ section('CDP: 粘贴取代 + 重叠区 Ctrl 多选/不插点');
       const a = store.beatmap.hitObjects.find(x => x.id === 975011);
       return { pts: a.curvePoints.length, selS: store.selected.has(975011), selC: store.selected.has(975012) };
     })()`);
-    assert(rB.pts === 1, `B: 重叠物件上不生成锚点 (curvePoints 仍 ${rB.pts})`);
-    assert(rB.selS && rB.selC, 'B: Ctrl+点重叠圆圈 = 加选 (滑条+圆圈都选中)');
+    assert(rB.pts === 2, `B': 重叠区 Ctrl+点 = 插锚点 (还原 v439; curvePoints → ${rB.pts})`);
+    assert(rB.selS && !rB.selC, "B': 选区不变 (不多选)");
 
     // C: 回归 — Ctrl+点纯空白仍给选中滑条插锚点 (v326 语义不失效)
     const rC = await evalJs(`(() => {
@@ -130,7 +131,7 @@ section('CDP: 粘贴取代 + 重叠区 Ctrl 多选/不插点');
       const a = store.beatmap.hitObjects.find(x => x.id === 975011);
       return { pts: a.curvePoints.length, selOnlyS: store.selected.size === 1 && store.selected.has(975011) };
     })()`);
-    assert(rC.pts === 2, `C: Ctrl+点空白 = 插锚点 (curvePoints → ${rC.pts})`);
+    assert(rC.pts === 3, `C: Ctrl+点空白 = 插锚点 (curvePoints → ${rC.pts})`);
     assert(rC.selOnlyS, 'C: 选区未被改动');
 
     ws.close();
