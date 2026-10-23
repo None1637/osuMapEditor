@@ -1434,7 +1434,10 @@ export function EditorCanvas() {
     return best;
   };
 
-  const hitTest = (px: number, py: number): HitObject | null => {
+  // v495: 拆出 hitTestAll (光标下全部可互动物件) — v413 守卫与 Ctrl 多选需要穿透重叠:
+  //   命中含已选中物件时 hitTest 优先返回已选者 (v171), 导致「Ctrl+点被选中滑条身盖住的圆圈」
+  //   判定为命中本滑条而照旧插锚点 (soulten: 滑条点还是会生在可互动物件上)
+  const hitTestAll = (px: number, py: number): HitObject[] => {
     const bm = store.beatmap!;
     const r = csToRadius(bm.difficulty.cs);
     const offs = getStackOffsets(bm); // 命中测试用堆叠后显示位置
@@ -1458,6 +1461,11 @@ export function EditorCanvas() {
         if (Math.hypot(256 - px, 192 - py) <= 170) hits.push(o);
       } else if (Math.hypot(o.x + dx - px, o.y + dy - py) <= r * 1.1) hits.push(o);
     }
+    return hits;
+  };
+
+  const hitTest = (px: number, py: number): HitObject | null => {
+    const hits = hitTestAll(px, py);
     // v171: 命中中含已选中物件时优先返回已选中者 — 拖动/右键已选物件不被重叠的未选中物件抢走;
     //       多个已选物件重叠时仍在已选子集里挑离当前时间最近者
     const selHits = hits.filter(o => store.selected.has(o.id));
@@ -1601,8 +1609,10 @@ export function EditorCanvas() {
     // v439: 命中对象是本滑条自己 (hit.id === so.id) 时继续插点 — v413 把「选中滑条自己的本体」也放行,
     //   导致选中滑条后 Ctrl+点滑条身加不了点 (soulten 回归反馈); 命中其他物件仍走 v413 多选
     if (mods.ctrlKey || mods.metaKey) {
-      const hitObj = hitTest(p.x, p.y);
-      if (hitObj && hitObj.id !== so.id) return false; // v413/v439: 落在别的物件上不落锚点 → 落到物件点选/多选
+      // v495: 穿透重叠 — 光标下有任何其他互动物件 (即使被本滑条身盖住, hitTest 因 v171
+      //   已选优先会返回本滑条) 都不落锚点, 放行给 objectPress 多选 (soulten: 滑条点
+      //   还是会生在可互动物件上); 仅本滑条自己/纯空白才继续插点
+      if (hitTestAll(p.x, p.y).some(o => o.id !== so.id)) return false;
       if (ctrl.length >= 2) {
         let best = ctrl.length - 2, bestD = Infinity; // 默认末尾段 (极端: 全部零长段)
         for (let i = 0; i < ctrl.length - 1; i++) {
@@ -1740,7 +1750,16 @@ export function EditorCanvas() {
     const hit = hitTest(p.x, p.y);
     if (!hit) return false;
     // v40: Ctrl+点击 切换选中 (对齐 lazer/stable; Shift 兼容保留)
-    if (mods.ctrlKey || mods.metaKey || mods.shiftKey) store.toggleSelect(hit.id);
+    // v495: Ctrl 切换且光标下有未选中物件时优先切未选者 (加选) — 否则重叠区 Ctrl+点
+    //   被选中滑条盖住的圆圈会切到本滑条 (v171 已选优先) 把它减选, 多选加不上 (soulten)
+    if (mods.ctrlKey || mods.metaKey || mods.shiftKey) {
+      let target = hit;
+      if ((mods.ctrlKey || mods.metaKey) && store.selected.has(hit.id)) {
+        const unsel = hitTestAll(p.x, p.y).filter(o => !store.selected.has(o.id));
+        if (unsel.length) target = pickTimeNearestHit(unsel, store.currentTime) ?? hit;
+      }
+      store.toggleSelect(target.id);
+    }
     else if (!store.selected.has(hit.id)) store.select([hit.id]);
     if (!store.lockNotes) { // v115: 锁定物件 — 可选中, 不可拖动
       store.beginDrag();

@@ -25,7 +25,8 @@ section('源码: Ctrl 插点前置物件命中守卫 (v439: 本滑条身除外)'
   const ec = read('src/components/EditorCanvas.tsx');
   assert(/v439: 命中对象是本滑条自己/.test(ec), 'v439 版本注释');
   const fn = ec.match(/const singleSliderNodePress = \(p: Pt[\s\S]*?\n  \};/)?.[0] ?? '';
-  assert(/if \(mods\.ctrlKey \|\| mods\.metaKey\) \{\s*const hitObj = hitTest\(p\.x, p\.y\);\s*if \(hitObj && hitObj\.id !== so\.id\) return false;/.test(fn), 'Ctrl+命中其他物件 → 放行多选; 命中本滑条身 → 继续插点 (v439)');
+  // v495 适配: 守卫从 hitTest 单点 (v171 已选优先会穿透失败) 升级 hitTestAll 全命中扫描
+  assert(/if \(mods\.ctrlKey \|\| mods\.metaKey\) \{\s*\/\/ v495[\s\S]*?hitTestAll\(p\.x, p\.y\)\.some\(o => o\.id !== so\.id\)\) return false;/.test(fn), 'Ctrl+命中其他物件 (含被本滑条盖住者) → 放行多选; 纯空白/仅本滑条 → 继续插点 (v495)');
   assert(/newPts = \[\.\.\.ctrl\.slice\(0, best \+ 1\), raw, \.\.\.ctrl\.slice\(best \+ 1\)\]/.test(fn), '空白插点逻辑保留 (v326)');
 }
 

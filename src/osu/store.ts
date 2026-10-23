@@ -1726,6 +1726,17 @@ class EditorStore {
     // 修复「复制粘贴放置的物件与期望吸附点偏差 1ms」(非整节拍 tick 如 55749.507: 点击放置落 55750,
     // 旧粘贴 floor 落 55749)。v196 的 floor 语义 (对齐底部时间戳 floor 显示) 由此作废 — 粘贴与放置同刻优先。
     // 物件与绿线仍同一路径同一取整 (相等 => timingAt 不会取错 SV)。
+    // v495: stable 语义 — 粘贴落点时刻已有物件则取代 (清掉同时间原有物件, soulten:
+    //   複製滑條到同個時間 stable 會清掉原本同時間上的滑條); v115 锁定物件时不删 (锁定 = 不可删)
+    const pasteTimes = new Set(this.clipboard.map(c => Math.round(c.time + at)));
+    if (!this.lockNotes && pasteTimes.size) {
+      const removed = this.beatmap.hitObjects.filter(o => pasteTimes.has(Math.round(o.time)));
+      if (removed.length) {
+        const removedIds = new Set(removed.map(o => o.id));
+        this.beatmap.hitObjects = this.beatmap.hitObjects.filter(o => !removedIds.has(o.id));
+        for (const id of removedIds) this.selectedNodes.delete(id); // 清残留节点选区
+      }
+    }
     for (const c of this.clipboard) {
       const o = deepCopy(c);
       o.id = genId();
