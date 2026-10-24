@@ -26,6 +26,8 @@ export interface BpmDetectResult {
   /** 全部检出节拍时刻 (ms, 亚帧精修后), 预览窗画刻度用 */
   beats: number[];
   segments: BpmSegment[];
+  /** v499: 分析中间产物 (onset 包络) — 变速证据复核用; 随结果结构化克隆 */
+  analysis?: { env: Float32Array; hopMs: number };
 }
 
 export interface BpmDetectOptions {
@@ -515,7 +517,7 @@ export function detectBpm(buf: AudioBufferLike, opts: BpmDetectOptions = {}): Bp
   prog(0.92, 'segment');
   const segments = segmentBeats(beats, opts);
   prog(1, 'done');
-  return { beats, segments };
+  return { beats, segments, analysis: { env, hopMs } };
 }
 
 /** 恒速提炼结果: 单条红线的 BPM + offset, 及网格覆盖信息 */
@@ -525,61 +527,132 @@ export interface ConstantTempoResult {
   offsetMs: number;
   /** 主网格 (含 1/8、1/6 细分) 能解释的节拍比例 0~1 */
   coverage: number;
-  /** 原始分段数 (>1 表示可能变速, UI 提示) */
+  /** 原始分段数 (检出碎段数量, 仅供参考; 变速判定看 variableSections) */
   segmentCount: number;
   /** 主段 BPM 原始检出值 (未量化) */
   rawBpm: number;
+  /** v499: 疑似真变速段 — 未被主网格 1/8/1/6 细分解释 (允许最佳相位拟合)、≥8 拍、
+   *  周期与主 BPM 不同 (>2%)、内部一致 (CV<0.1) 且主周期支撑明显弱 (<0.7×) 的段;
+   *  另有 8s 滑窗补逐拍连续变速判定。空数组 = 恒速 (碎段不算变速) */
+  variableSections: { time: number; bpm: number; beats: number }[];
 }
 
 /**
- * v498: 从检出结果提炼恒速答案 — 取节拍数最多的段为主段, 其余"碎段"若其 onset
- * 能准确落在主网格的 1/8 或 1/6 节拍细分上 (偏差 ≤15ms 的比例 ≥90%) 则视为同
- * BPM 合并 (breakdown 里半程/三连音节奏不应拆出新红线); 剩余不合并段才是疑似真变速。
- * 周期/相位直接用主段值 — 不做跨段全局重拟合: 不同段相位差 (kick 音色差异) 会被
- * LSQ 学成周期误差 (实测 220→220.1, 5 分钟漂移 135ms 毁掉后半首)。
- * offset 取首个被解释节拍最近的格点。
+ * v498: 从检出结果提炼恒速答案 — 取节拍数最多的段为主段, 周期/相位直接用主段值
+ * (不做跨段全局重拟合: 段间相位差会被 LSQ 学成周期误差); offset = 首个被解释节拍最近格点。
+ * v499: 变速判定不再按碎段数:
+ *  - 每个 onset 能落在主网格 **1/8 或 1/6 节拍细分** 上 (容差 min(15ms, P/24)) 即视为
+ *    同 BPM — 没有明显节拍的段落也按此豁免 (半程/三连音/稀疏段不再误报);
+ *  - 逐段复核: 段内 <90% onset 合网格 (允许最佳相位拟合, 同周期族相位平移段豁免)
+ *    + ≥8 拍 + 周期与主 BPM 差 >2% + 间隔 CV<0.1 才报疑似真变速段;
+ *    短碎段/同周期相位偏移段/跟踪噪声段都不算变速。
  */
 export function extractConstantTempo(result: BpmDetectResult, quantize = 0.1): ConstantTempoResult | null {
   const segs = result.segments;
   if (!segs.length || !result.beats.length) return null;
   const dom = [...segs].sort((a, b) => b.beats - a.beats)[0];
   let P = 60000 / dom.bpm;
-  let phi = dom.time;
+  const phi = dom.time;
   const beats = result.beats;
-  // 每段的节拍范围 [seg.time, 下一段首)
-  const segBeats = segs.map((s, i) => {
-    const end = i + 1 < segs.length ? segs[i + 1].time : Infinity;
-    return beats.filter(b => b >= s.time - 1 && b < end - 1);
-  });
-  const gridDist = (b: number, p: number, ph: number, sub: number): number => {
-    const g = p / sub;
-    const d = ((b - ph) % g + g) % g;
+  const tol = Math.min(15, P / 24);
+  const gridDist = (b: number, sub: number): number => {
+    const g = P / sub;
+    const d = ((b - phi) % g + g) % g;
     return Math.min(d, g - d);
   };
-  const domIdx = segs.indexOf(dom);
-  const merged = new Set<number>([domIdx]);
-  for (let i = 0; i < segs.length; i++) {
-    if (i === domIdx) continue;
-    const bs = segBeats[i];
-    if (!bs.length) continue;
+  const explained = beats.map(b => gridDist(b, 8) <= tol || gridDist(b, 6) <= tol);
+  // 变速段判定 (v499): 逐段评估 — ①段内 ≥90% onset 能落主网格 1/8/1/6 → 同 BPM
+  // (稀疏/无明确节拍段豁免); ② <8 拍碎段 → 噪点忽略; ③ 周期与主 BPM 差 ≤2%
+  // → 同 BPM (相位重置/段首偏移不算变速); ④ 间隔 CV ≥0.1 → 跟踪噪声不是真变速。
+  // 四条全不通过 (不合网格 + ≥8 拍 + 周期不同 + 内部一致) 才报疑似真变速段。
+  const variableSections: { time: number; bpm: number; beats: number }[] = [];
+  // 相位优化网格拟合: 同周期族 (2×/0.5×) 但相位平移的段, 在最佳相位下仍能合主网格
+  // → 不是变速。逐段在 [0, P/sub) 扫 24 个相位, 任一相位 ≥90% 合网格即豁免
+  const bestFitRatio = (bs: number[]): number => {
+    let best = 0;
     for (const sub of [8, 6]) {
-      const ok = bs.filter(b => gridDist(b, P, phi, sub) <= 15).length;
-      if (ok / bs.length >= 0.9) { merged.add(i); break; }
+      const g = P / sub;
+      for (let step = 0; step < 24; step++) {
+        const d0 = (g * step) / 24;
+        let ok = 0;
+        for (const b of bs) {
+          const d = ((b - phi - d0) % g + g) % g;
+          if (Math.min(d, g - d) <= tol) ok++;
+        }
+        if (ok / bs.length > best) best = ok / bs.length;
+      }
     }
+    return best;
+  };
+  for (let i = 0; i < segs.length; i++) {
+    const s = segs[i];
+    if (s.beats < 8) continue;
+    if (Math.abs(60000 / s.bpm - P) / P <= 0.02) continue;
+    const end = i + 1 < segs.length ? segs[i + 1].time : Infinity;
+    const bs = beats.filter(b => b >= s.time - 1 && b < end - 1);
+    if (bs.length < 8) continue;
+    const ivs: number[] = [];
+    for (let k = 1; k < bs.length; k++) ivs.push(bs[k] - bs[k - 1]);
+    const mean = ivs.reduce((a, b) => a + b, 0) / ivs.length;
+    const cv = Math.sqrt(ivs.reduce((a, b) => a + (b - mean) * (b - mean), 0) / ivs.length) / mean;
+    if (cv >= 0.1) continue;
+    if (bestFitRatio(bs) >= 0.9) continue;
+    // 证据复核 (v499): 主周期在该段 onset 包络上仍有相当支撑 (≥0.7×) 则不是变速 —
+    // 稠密 16/32 分音符段跟踪会锁到伪周期, 但主周期通量分依然很高; 真变速处主周期
+    // 支撑应明显弱于局部新周期
+    const a = result.analysis;
+    if (a) {
+      const f0 = Math.max(0, Math.round(s.time / a.hopMs));
+      const f1 = Math.min(a.env.length, Math.round((end === Infinity ? bs[bs.length - 1] : end) / a.hopMs));
+      const win = a.env.subarray(f0, f1);
+      const sDom = trackScore(win, P / a.hopMs);
+      const sVar = trackScore(win, (60000 / s.bpm) / a.hopMs);
+      if (sDom >= sVar * 0.7) continue;
+    }
+    variableSections.push({ time: s.time, bpm: s.bpm, beats: s.beats });
   }
-  const mergedBeats = beats.filter(b => {
-    const i = segs.findIndex((s, k) => b >= s.time - 1 && b < (k + 1 < segs.length ? segs[k + 1].time : Infinity) - 1);
-    return i >= 0 && merged.has(i);
-  });
-  const first = mergedBeats.length ? Math.min(...mergedBeats) : phi;
+  // 逐拍连续变速 (ritardando 型) 补充判定 (v499): 分段一致性检查抓不到逐拍变化,
+  // 用 8s 滑窗 (步 4s): 窗内 ≥6 拍、未解释 onset ≥50%、间隔中位数与主周期差 >2%,
+  // 且新周期支撑明显强于主周期 (同一 trackScore 证据复核) → 报一段疑似变速。
+  // 同 BPM 相位重置段间隔中位数≈P, 不会误报
+  const a0 = result.analysis;
+  if (a0) {
+    const winMs = 8000, stepMs = 4000;
+    const songEnd = beats[beats.length - 1];
+    let marked: { t0: number; t1: number; med: number; n: number }[] = [];
+    for (let t0 = Math.max(0, dom.time - winMs); t0 < songEnd; t0 += stepMs) {
+      const idxs: number[] = [];
+      for (let i = 0; i < beats.length; i++) if (beats[i] >= t0 && beats[i] < t0 + winMs) idxs.push(i);
+      if (idxs.length < 6) continue;
+      const un = idxs.filter(i => !explained[i]);
+      if (un.length / idxs.length < 0.5) continue;
+      const bs = idxs.map(i => beats[i]);
+      const ivs: number[] = [];
+      for (let k = 1; k < bs.length; k++) ivs.push(bs[k] - bs[k - 1]);
+      const med = median(ivs);
+      if (Math.abs(med - P) / P <= 0.02) continue;
+      const f0 = Math.round(t0 / a0.hopMs), f1 = Math.min(a0.env.length, Math.round((t0 + winMs) / a0.hopMs));
+      const win = a0.env.subarray(f0, f1);
+      if (trackScore(win, P / a0.hopMs) >= trackScore(win, med / a0.hopMs) * 0.7) continue;
+      marked.push({ t0, t1: t0 + winMs, med, n: idxs.length });
+    }
+    for (const m of marked) {
+      if (variableSections.some(v => Math.abs(v.time - m.t0) < winMs)) continue;
+      variableSections.push({ time: Math.round(m.t0), bpm: Math.round(60000 / m.med * 1000) / 1000, beats: m.n });
+    }
+    variableSections.sort((a, b) => a.time - b.time);
+  }
+  const explainedBeats = beats.filter((_, i) => explained[i]);
+  const first = explainedBeats.length ? Math.min(...explainedBeats) : phi;
   const bpm = quantize > 0 ? Math.round((60000 / P) / quantize) * quantize : 60000 / P;
   P = 60000 / bpm;
   const offset = Math.round(phi + Math.round((first - phi) / P) * P);
   return {
     bpm: Math.round(bpm * 1000) / 1000,
     offsetMs: offset,
-    coverage: mergedBeats.length / beats.length,
+    coverage: explainedBeats.length / beats.length,
     segmentCount: segs.length,
     rawBpm: dom.bpm,
+    variableSections,
   };
 }

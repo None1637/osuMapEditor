@@ -13,7 +13,7 @@ export function BpmDetectDialog({ onClose }: { onClose: () => void }) {
   const [bpm, setBpm] = useState(120);
   const [offset, setOffset] = useState(0);
   const [coverage, setCoverage] = useState(1);
-  const [segmentCount, setSegmentCount] = useState(1);
+  const [variableSections, setVariableSections] = useState(0); // v499: 疑似真变速段数 (非碎段数)
   const [confirmReplace, setConfirmReplace] = useState(false);
   const workerRef = useRef<Worker | null>(null);
 
@@ -39,7 +39,7 @@ export function BpmDetectDialog({ onClose }: { onClose: () => void }) {
         setBpm(c.bpm);
         setOffset(c.offsetMs);
         setCoverage(c.coverage);
-        setSegmentCount(c.segmentCount);
+        setVariableSections((c.variableSections ?? []).length);
         setPhase('done');
       } else if (m?.type === 'error') {
         setError(m.message ?? 'error');
@@ -80,7 +80,7 @@ export function BpmDetectDialog({ onClose }: { onClose: () => void }) {
             </div>
             <div className="text-white/50 text-xs" data-testid="bpm-detect-info">
               {t('timing.bpmdetect_coverage', 'Main grid covers {n}% of detected beats', { n: Math.round(coverage * 100) })}
-              {segmentCount > 1 && <div className="text-amber-300/90 mt-0.5">{t('timing.bpmdetect_variable_hint', '{n} possible tempo-change sections found; the constant result fits only the main tempo — adjust other sections manually', { n: segmentCount })}</div>}
+              {variableSections > 0 && <div className="text-amber-300/90 mt-0.5">{t('timing.bpmdetect_variable_hint', '{n} possible tempo-change sections found; the constant result fits only the main tempo — adjust other sections manually', { n: variableSections })}</div>}
             </div>
             {confirmReplace && <div className="text-amber-300 text-xs">{t('timing.bpmdetect_confirm_replace', 'This replaces all {n} existing timing points. Click Apply again to confirm.', { n: redCount })}</div>}
             <div className="flex gap-2 mt-1">
