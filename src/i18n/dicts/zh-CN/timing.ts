@@ -5,6 +5,7 @@ export const zhCN: Record<string, string> = {
   'timing.detect_bpm': '检测 BPM',
   'timing.bpmdetect_title': '自动 BPM 检测',
   'timing.bpmdetect_no_audio': '尚未加载音频，无法检测 BPM',
+  'timing.bpmdetect_no_bookmarks': '当前没有书签，请先在当前位置添加书签',
   'timing.bpmdetect_empty': '未检出节拍，请手动对轴',
   'timing.bpmdetect_running': '正在分析音频… {p}%',
   'timing.bpmdetect_offset': '偏移 (ms)',

@@ -126,6 +126,8 @@ export type ElectronMenuCommand =
   | { type: 'open'; folderRel: string; file: string }
   | { type: 'timing-set-meter'; meter: number }
   | { type: 'timing-toggle-metronome' }
+  | { type: 'bpm-detect-song' }
+  | { type: 'bpm-detect-bookmark' }
   | { type: 'timing-add-red' }
   | { type: 'timing-add-green' }
   | { type: 'timing-reset-current' }

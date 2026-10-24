@@ -1993,11 +1993,12 @@ class EditorStore {
   }
 
   /** v498: 应用自动 BPM 检测结果 — 一次 pushUndo 替换全部红线 (绿线保留);
-   *  新红线字段 (音效集/序号/音量等) 克隆同时刻生效点, beatLength = 60000/bpm。 */
-  applyDetectedTiming(points: { time: number; bpm: number; meter?: number }[]) {
+   *  新红线字段 (音效集/序号/音量等) 克隆同时刻生效点, beatLength = 60000/bpm。
+   *  v508: 可选 range 只替换区间内红线 (bookmark 区间测 timing, 区间外不动) */
+  applyDetectedTiming(points: { time: number; bpm: number; meter?: number }[], range?: { startMs: number; endMs: number }) {
     const bm = this.beatmap; if (!bm || !points.length) return;
     this.pushUndo();
-    bm.timingPoints = bm.timingPoints.filter(tp => !tp.uninherited);
+    bm.timingPoints = bm.timingPoints.filter(tp => !tp.uninherited || (range && tp.time >= range.startMs && tp.time < range.endMs));
     for (const p of points) {
       const time = Math.round(p.time);
       const np = defaultNewPoint(bm.timingPoints, time, true);
@@ -2008,6 +2009,33 @@ class EditorStore {
     bm.timingPoints.sort((a, b) => a.time - b.time);
     this.emit();
   }
+
+  // v508: 测全曲/当前 bookmark 区间 timing 入口状态
+  bpmDetectOpen = false;
+  bpmDetectRange: { startMs: number; endMs: number } | null = null;
+  bpmDetectNoBookmark = false;
+  openBpmDetect(range?: { startMs: number; endMs: number }) {
+    this.bpmDetectRange = range ?? null;
+    this.bpmDetectNoBookmark = false;
+    this.bpmDetectOpen = true;
+    this.emit();
+  }
+  openBpmDetectBookmark() {
+    const marks = [...(this.beatmap?.editor.bookmarks ?? [])].sort((a, b) => a - b);
+    if (!marks.length) {
+      this.bpmDetectNoBookmark = true;
+      this.bpmDetectRange = null;
+      this.bpmDetectOpen = true;
+      this.emit();
+      return;
+    }
+    const t = this.currentTime;
+    const start = Math.max(0, ...marks.filter(m => m <= t));
+    const next = marks.find(m => m > t);
+    const end = next ?? (this.audioBuffer ? this.audioBuffer.duration * 1000 : Number.MAX_SAFE_INTEGER);
+    this.openBpmDetect({ startMs: start, endMs: end });
+  }
+  closeBpmDetect() { this.bpmDetectOpen = false; this.emit(); }
 
   /** v372: 批量删除选中 timing 点 (红绿通用; 一次 undo) */
   deleteTimingPointsAt(times: Iterable<number>) {

@@ -460,6 +460,8 @@ const MENU_LABELS = {
   "menu.shift_all": { en: "Shift All Objects' Time...", "zh-CN": "整体平移所有物件的时间...", "zh-TW": "整體平移所有物件的時間..." },
   "menu.recalc_sliders": { en: "Recalculate Slider Lengths", "zh-CN": "重新计算滑条长度", "zh-TW": "重新計算滑條長度" },
   "menu.delete_all_timing": { en: "Delete All Timing Points", "zh-CN": "删除所有Timing区间", "zh-TW": "刪除所有Timing區間" },
+  "menu.bpm_detect_song": { en: "Detect BPM (Whole Song)", "zh-CN": "测量全曲 timing", "zh-TW": "測量全曲 timing" },
+  "menu.bpm_detect_bookmark": { en: "Detect BPM (Bookmark Range)", "zh-CN": "测量当前 bookmark 区间 timing", "zh-TW": "測量當前 bookmark 區間 timing" },
   "menu.set_preview": { en: "Set Current Position as Preview Point", "zh-CN": "把当前位置设为预览点", "zh-TW": "把當前位置設為預覽點" },
   "menu.settings": { en: "Settings", "zh-CN": "设置", "zh-TW": "設置" },
   "menu.reconfigure": { en: "Reconfigure osu! Folder & Skin", "zh-CN": "重新配置 osu! 目录与皮肤", "zh-TW": "重新配置 osu! 目錄與皮膚" },
@@ -623,6 +625,8 @@ function buildMenu() {
         { label: mT("menu.delete_timing"), accelerator: acc("timing-delete-current", "CmdOrCtrl+I"), enabled: !!menuState, click: () => send({ type: "timing-delete-current" }) },
         { label: mT("menu.resnap_current"), enabled: !!menuState, click: () => send({ type: "timing-resnap-current" }) },
         { label: mT("menu.resnap_bookmarks"), enabled: !!menuState, click: () => send({ type: "timing-resnap-bookmarks" }) }, // v355
+        { label: mT("menu.bpm_detect_song"), enabled: !!menuState, click: () => send({ type: "bpm-detect-song" }) },
+        { label: mT("menu.bpm_detect_bookmark"), enabled: !!menuState, click: () => send({ type: "bpm-detect-bookmark" }) },
         { label: mT("menu.timing_setup"), accelerator: acc("timing-open-settings", "F6"), click: () => send({ type: "timing-open-settings" }) },
         { type: "separator" },
         { label: mT("menu.resnap_all"), enabled: !!menuState, click: () => send({ type: "timing-resnap-all" }) },

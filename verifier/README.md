@@ -5820,3 +5820,15 @@
   合成到对应行位置; 叠加红线/刻度/标注的坐标不再受影响。
 - 验证: v503 CDP 新增像素断言 (绿像素>50、亮像素>500, 空白预览必失败) 及其它
   预览/回归用例全绿。tsc + vite build 通过。
+
+## v508 — Timing 菜单「测量全曲 timing / 测量当前 bookmark 区间 timing」
+- 入口: 顶部 Timing 菜单新增两项 (原「检测 BPM」按钮也保留, 现统一走 store.openBpmDetect)。
+  全曲 = 整首分析; bookmark 区间 = 当前播放位置所在书签到下一条书签 (无下一条则到曲尾,
+  无书签时弹提示)。App 经 menu-cmd `bpm-detect-song` / `bpm-detect-bookmark` 打开同一
+  BpmDetectDialog。
+- 区间实现: 按区间裁剪 PCM 送 worker, 检出结果 (beats/segments/constant.lines/
+  variableSections) 全部 +startMs 平移回全曲时间轴; `applyDetectedTiming(points, range)`
+  只替换区间内红线 (区间外红线/全部绿线不动), 一次 pushUndo 可 undo。
+- 验证: v508 CDP — 菜单含两项 → 全曲应用单红线; 两条书签 [5000,12000] 区间内检测
+  offset 落在区间内, 应用后区间内 1 根新线、区间外 0 根 (原红线被替换语义正确);
+  无书签弹提示。源码断言 (菜单项/App/store/切片) 全过; v498-v507 回归全绿。

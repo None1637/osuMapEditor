@@ -5,7 +5,6 @@ import type { TimingPoint } from '@/osu/parser';
 import { defaultNewPoint, setEffectBit, EFFECT_KIAI, EFFECT_OMIT_BARLINE, formatMsTime, parseMsTime, activeGreenAt, scrollTargetIndex, sampleSetCode, fmtTpPrec, fmtBpm, fmtSv } from '@/osu/timingEdit';
 import { hotkeyLabel } from '@/osu/hotkeys'; // v321 (F21): 快捷键提示随改键同步
 import { useT } from '@/i18n';
-import { BpmDetectDialog } from './BpmDetectDialog'; // v498: 自动 BPM 检测
 
 /** v372: 高精度数值输入 (BPM/SV) — 聚焦期间保留用户原文 ( controlled 值重算会吞掉输入中的 "." ),
  *  失焦后回到规范显示 (最多 13 位有效小数, stable 同精度); 输入过程中每次合法值即时提交 */
@@ -62,7 +61,6 @@ export function TimingPanel({ full = false }: { full?: boolean }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   // v157: All/红线/绿线 页签过滤 (仅 full 窗口; 过滤不影响全局索引 i, updateTp/滚动定位不变)
   const [filter, setFilter] = useState<'all' | 'red' | 'green'>('all');
-  const [showBpmDetect, setShowBpmDetect] = useState(false); // v498: 自动 BPM 检测入口
 
   // v359: 滚动定位复用 (挂载自动滚到生效绿线 / 加新线后滚到新行 — soulten: 加新線不在畫面中要自己滾下去)
   const scrollRowToCenter = (idx: number) => {
@@ -155,7 +153,7 @@ export function TimingPanel({ full = false }: { full?: boolean }) {
             </label>
           ))}
           <button onClick={() => addTimingPoint(true)} className="px-2 py-0.5 rounded bg-red-500/30 hover:bg-red-500/50 border border-red-400/40">{t('timing.add_red', '+ Timing Point (BPM)')}</button>
-          <button onClick={() => setShowBpmDetect(true)} data-testid="bpm-detect-open" className="px-2 py-0.5 rounded bg-sky-500/30 hover:bg-sky-500/50 border border-sky-400/40">{t('timing.detect_bpm', 'Detect BPM')}</button>
+          <button onClick={() => store.openBpmDetect()} data-testid="bpm-detect-open" className="px-2 py-0.5 rounded bg-sky-500/30 hover:bg-sky-500/50 border border-sky-400/40">{t('timing.detect_bpm', 'Detect BPM')}</button>
           <button onClick={() => addTimingPoint(false)} className="px-2 py-0.5 rounded bg-green-500/30 hover:bg-green-500/50 border border-green-400/40">{t('timing.add_green', '+ Inherited Timing Point (SV)')}</button>
         </div>
       </div>
@@ -386,7 +384,6 @@ export function TimingPanel({ full = false }: { full?: boolean }) {
           </tbody>
         </table>
       </div>
-      {showBpmDetect && <BpmDetectDialog onClose={() => setShowBpmDetect(false)} />}
     </div>
   );
 }

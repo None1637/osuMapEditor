@@ -7,7 +7,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { DraggableDialog, DraftNum } from './DraggableDialog';
 import { store } from '@/osu/store';
 import { useT } from '@/i18n';
-import { extractConstantTempo, type BpmDetectResult } from '@/osu/bpmDetect';
+import { extractConstantTempo, type BpmDetectResult, type ConstantTempoResult } from '@/osu/bpmDetect';
 import { formatMsTime } from '@/osu/timingEdit';
 import { BpmPreview } from './BpmPreview'; // v503: 多层波形/频谱预览
 
@@ -29,6 +29,13 @@ export function BpmDetectDialog({ onClose }: { onClose: () => void }) {
   const workerRef = useRef<Worker | null>(null);
 
   useEffect(() => {
+    // v508: 当前 bookmark 区间 (无书签时提示) / 全曲 两种检测范围
+    if (store.bpmDetectNoBookmark) {
+      setError(t('timing.bpmdetect_no_bookmarks', 'No bookmarks yet — add one at the current position first'));
+      setPhase('error');
+      return;
+    }
+    const range = store.bpmDetectRange;
     const buf = store.getAudioBuffer();
     if (!buf) {
       setError(t('timing.bpmdetect_no_audio', 'Audio not loaded yet — cannot detect BPM'));
@@ -46,7 +53,20 @@ export function BpmDetectDialog({ onClose }: { onClose: () => void }) {
           setPhase('error');
           return;
         }
-        setResult(m.result as BpmDetectResult);
+        const r = m.result as BpmDetectResult;
+        if (range) {
+          // v508: 区间检出结果平移回全曲时间轴
+          const shift = range.startMs;
+          r.beats = r.beats.map(b => b + shift);
+          for (const s of r.segments) s.time += shift;
+          const cr = (r as unknown as { constant?: ConstantTempoResult | null }).constant;
+          if (cr) {
+            cr.offsetMs += shift;
+            for (const l of cr.lines) l.time += shift;
+            for (const v of cr.variableSections) v.time += shift;
+          }
+        }
+        setResult(r);
         setPhase('done');
       } else if (m?.type === 'error') {
         setError(m.message ?? 'error');
@@ -54,9 +74,12 @@ export function BpmDetectDialog({ onClose }: { onClose: () => void }) {
       }
     };
     worker.onerror = e => { setError(e.message ?? 'worker error'); setPhase('error'); };
+    const sr = buf.sampleRate;
+    const start = range ? Math.max(0, Math.floor(range.startMs / 1000 * sr)) : 0;
+    const end = range ? Math.min(buf.length, Math.ceil(range.endMs / 1000 * sr)) : buf.length;
     const channels: Float32Array[] = [];
-    for (let i = 0; i < buf.numberOfChannels; i++) channels.push(buf.getChannelData(i).slice());
-    worker.postMessage({ type: 'detect', channels, sampleRate: buf.sampleRate, length: buf.length }, channels.map(c => c.buffer as ArrayBuffer));
+    for (let i = 0; i < buf.numberOfChannels; i++) channels.push(buf.getChannelData(i).slice(start, end));
+    worker.postMessage({ type: 'detect', channels, sampleRate: sr, length: end - start }, channels.map(c => c.buffer as ArrayBuffer));
     return () => { worker.terminate(); workerRef.current = null; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -74,12 +97,12 @@ export function BpmDetectDialog({ onClose }: { onClose: () => void }) {
     if (redCount > 0 && !confirmReplace) { setConfirmReplace(true); return; }
     if (mode === 'constant') {
       if (!(bpm > 0) || !isFinite(bpm) || !isFinite(offset)) return;
-      store.applyDetectedTiming([{ time: Math.round(offset), bpm, meter: 4 }]);
+      store.applyDetectedTiming([{ time: Math.round(offset), bpm, meter: 4 }], store.bpmDetectRange ?? undefined);
     } else {
       if (!result || !constant) return;
       const points = constant.lines.filter((_, i) => !deletedSegs.has(i)); // v501: 合并后红线列 (恒速不再列碎段)
       if (!points.length) return;
-      store.applyDetectedTiming(points);
+      store.applyDetectedTiming(points, store.bpmDetectRange ?? undefined);
     }
     onClose();
   };
