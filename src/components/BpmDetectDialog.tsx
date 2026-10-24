@@ -73,15 +73,14 @@ export function BpmDetectDialog({ onClose }: { onClose: () => void }) {
       if (!(bpm > 0) || !isFinite(bpm) || !isFinite(offset)) return;
       store.applyDetectedTiming([{ time: Math.round(offset), bpm, meter: 4 }]);
     } else {
-      if (!result) return;
-      const points = result.segments.filter((_, i) => !deletedSegs.has(i))
-        .map(s => ({ time: s.time, bpm: s.bpm, meter: s.meter }));
+      if (!result || !constant) return;
+      const points = constant.lines.filter((_, i) => !deletedSegs.has(i)); // v501: 合并后红线列 (恒速不再列碎段)
       if (!points.length) return;
       store.applyDetectedTiming(points);
     }
     onClose();
   };
-  const applyDisabled = mode === 'variable' && (!result || result.segments.every((_, i) => deletedSegs.has(i)));
+  const applyDisabled = mode === 'variable' && (!constant || constant.lines.every((_, i) => deletedSegs.has(i)));
 
   return (
     <DraggableDialog title={t('timing.bpmdetect_title', 'Auto BPM Detection')} onClose={onClose} width={380} testid="bpm-detect-dialog">
@@ -121,9 +120,9 @@ export function BpmDetectDialog({ onClose }: { onClose: () => void }) {
               </>
             ) : (
               <div className="flex flex-col gap-1">
-                <div className="text-white/50 text-xs">{t('timing.bpmdetect_segments', '{n} timing sections detected (click × to drop false ones)', { n: result.segments.length - deletedSegs.size })}</div>
+                <div className="text-white/50 text-xs">{t('timing.bpmdetect_segments', '{n} timing sections detected (click × to drop false ones)', { n: constant.lines.length - deletedSegs.size })}</div>
                 <div className="max-h-48 overflow-y-auto border border-white/10 rounded" data-testid="bpm-detect-segments">
-                  {result.segments.map((s, i) => !deletedSegs.has(i) && (
+                  {constant.lines.map((s, i) => !deletedSegs.has(i) && (
                     <div key={i} className="flex items-center gap-2 px-2 py-0.5 text-xs odd:bg-white/5">
                       <span className="w-24">{formatMsTime(s.time)}</span>
                       <span className="flex-1">{s.bpm.toFixed(2)} BPM</span>

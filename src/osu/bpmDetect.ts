@@ -404,13 +404,14 @@ export function refineBeats(env: Float32Array, beats: number[], hopMs: number): 
 
 /** 游程分段 + 最小二乘量化 → 红线列 */
 export function segmentBeats(beatsMs: number[], opts: BpmDetectOptions = {}): BpmSegment[] {
-  const tol = opts.segmentTol ?? 0.02;
   const meter = opts.meter ?? 4;
   const quantize = opts.quantize ?? 0.1;
   if (beatsMs.length < 2) return [];
-  // 游程: 间隔偏离当前游程中位数 > tol 即切段。
-  // v498: 用中值3滤波后的间隔判离群 + 连续 2 个离群才切段 — 单拍抖动
-  //   (真实音频精修抖动 ±10ms, 恒速歌实测每 ~30 拍被抖断一次) 不再切碎游程
+  // 游程分段 (v500 行为恢复): 中值3滤波间隔 + 连续 2 个离群 (>2%) 才切段,
+  // 相邻周期差 <1.5% 合并。v501 曾试 DP 变点检测 (λ 惩罚): 恒速段数能减少但
+  // 真变速边界精度下降 (20 段变速网格 77.9%→63%), 故还原游程法;
+  // 恒速碎段问题改由 extractConstantTempo 的合并输出解决 (v501)。
+  const tol = opts.segmentTol ?? 0.02;
   const runs: [number, number][] = []; // [首拍下标, 末拍下标] 闭区间
   const ivs: number[] = [];
   for (let i = 1; i < beatsMs.length; i++) ivs.push(beatsMs[i] - beatsMs[i - 1]);
@@ -427,9 +428,6 @@ export function segmentBeats(beatsMs: number[], opts: BpmDetectOptions = {}): Bp
     } else outlier = 0;
   }
   runs.push([s, beatsMs.length - 1]);
-  // v498: 相邻游程合并 — 包络抖动会把同一 tempo 段切成 2~4 拍的碎片 (实测稳态段
-  //   每 ~30 拍断一次), 碎片 LSQ 周期不准还打断网格连续性; 周期差 <1.5% 的相邻
-  //   游程合并后重拟合
   const merged: [number, number][] = [];
   for (const r of runs) {
     const prev = merged[merged.length - 1];
@@ -535,6 +533,9 @@ export interface ConstantTempoResult {
    *  周期与主 BPM 不同 (>2%)、内部一致 (CV<0.1) 且主周期支撑明显弱 (<0.7×) 的段;
    *  另有 8s 滑窗补逐拍连续变速判定。空数组 = 恒速 (碎段不算变速) */
   variableSections: { time: number; bpm: number; beats: number }[];
+  /** v501: 合并后的红线列 (主恒速线 + 疑似变速段线, 按时间排序) — 变速模式输出用;
+   *  恒速歌只有一条主恒速线, 不再列出近百条碎段 */
+  lines: { time: number; bpm: number; meter: number }[];
 }
 
 /**
@@ -552,8 +553,40 @@ export function extractConstantTempo(result: BpmDetectResult, quantize = 0.1, to
   if (!segs.length || !result.beats.length) return null;
   const dom = [...segs].sort((a, b) => b.beats - a.beats)[0];
   let P = 60000 / dom.bpm;
-  const phi = dom.time;
+  let phi = dom.time;
   const beats = result.beats;
+  const domIdx = segs.indexOf(dom);
+  const segBeats: number[][] = segs.map((s, i) => {
+    const end = i + 1 < segs.length ? segs[i + 1].time : Infinity;
+    return beats.filter(b => b >= s.time - 1 && b < end - 1);
+  });
+  // v501: 共享周期 + 逐段相位 的全局精修 — 段间相位重置不再被 LSQ 学成周期误差
+  // (v498 曾致 220→220.1 漂移); 周期取全段 L1 残差最小的候选 (±0.4%, 步 0.01%),
+  // 主段相位按精修周期取中位数残差。解决主段 BPM 量化误差 (127.9) 在全曲累积漂移
+  let bestP = P, bestCost = Infinity;
+  for (let d = -0.004; d <= 0.0040001; d += 0.0001) {
+    const cand = P * (1 + d);
+    let cost = 0;
+    for (const bs of segBeats) {
+      if (bs.length < 2) continue;
+      const res = bs.map(b => b - Math.round((b - bs[0]) / cand) * cand);
+      const ph = median(res);
+      for (const r of res) cost += Math.abs(r - ph);
+    }
+    if (cost < bestCost) { bestCost = cost; bestP = cand; }
+  }
+  P = bestP;
+  {
+    const bs = segBeats[domIdx];
+    if (bs.length) phi = median(bs.map(b => b - Math.round((b - bs[0]) / P) * P));
+  }
+  // 量化 (默认 0.1 BPM) 后重取主段相位, 后续网格判定统一用最终周期
+  const bpmOut = quantize > 0 ? Math.round((60000 / P) / quantize) * quantize : 60000 / P;
+  P = 60000 / bpmOut;
+  {
+    const bs = segBeats[domIdx];
+    if (bs.length) phi = median(bs.map(b => b - Math.round((b - bs[0]) / P) * P));
+  }
   // v500: 容差 ms 可选 (UI 传入, 默认 15ms)。P/360 缩放保持与旧版 min(15, P/24)
   // 完全一致的默认行为 — 高 BPM 网格密, 容差必须随周期缩小, 否则随机 onset 全被"解释"
   const tol = tolMs * Math.min(1, P / 360);
@@ -646,15 +679,27 @@ export function extractConstantTempo(result: BpmDetectResult, quantize = 0.1, to
   }
   const explainedBeats = beats.filter((_, i) => explained[i]);
   const first = explainedBeats.length ? Math.min(...explainedBeats) : phi;
-  const bpm = quantize > 0 ? Math.round((60000 / P) / quantize) * quantize : 60000 / P;
-  P = 60000 / bpm;
+  // v501: 相邻疑似变速段周期差 <3% 时并段 (同一真变速区被碎段切开的情况,
+  // 如 Nare outro 347/347.1/347.4 三段实为一段)
+  const vsMerged: { time: number; bpm: number; beats: number }[] = [];
+  for (const v of variableSections) {
+    const prev = vsMerged[vsMerged.length - 1];
+    if (prev && Math.abs(60000 / prev.bpm - 60000 / v.bpm) / (60000 / v.bpm) < 0.03) {
+      prev.bpm = Math.round((prev.bpm * prev.beats + v.bpm * v.beats) / (prev.beats + v.beats) * 1000) / 1000;
+      prev.beats += v.beats;
+    } else vsMerged.push({ ...v });
+  }
   const offset = Math.round(phi + Math.round((first - phi) / P) * P);
   return {
-    bpm: Math.round(bpm * 1000) / 1000,
+    bpm: Math.round(bpmOut * 1000) / 1000,
     offsetMs: offset,
     coverage: explainedBeats.length / beats.length,
     segmentCount: segs.length,
     rawBpm: dom.bpm,
-    variableSections,
+    variableSections: vsMerged,
+    lines: [
+      { time: offset, bpm: Math.round(bpmOut * 1000) / 1000, meter: dom.meter },
+      ...vsMerged.map(v => ({ time: v.time, bpm: v.bpm, meter: dom.meter })),
+    ].sort((a, b) => a.time - b.time),
   };
 }

@@ -33,7 +33,7 @@ section('B: 源码契约');
   for (const id of ['bpm-detect-mode-constant', 'bpm-detect-mode-variable', 'bpm-detect-tolerance', 'bpm-detect-segments'])
     assert(dlg.includes(id), `testid ${id}`);
   assert(/extractConstantTempo\(result, 0\.1, tolMs\)/.test(dlg), '容差变化本地重算 (不重跑检测)');
-  assert(/result\.segments\.filter\(\(_, i\) => !deletedSegs\.has\(i\)\)/.test(dlg), '变速模式可删段后应用');
+  assert(/constant\.lines\.filter\(\(_, i\) => !deletedSegs\.has\(i\)\)/.test(dlg), '变速模式可删段后应用 (v501 合并后红线列)');
   const bp = read('src/osu/bpmDetect.ts');
   assert(/extractConstantTempo\(result: BpmDetectResult, quantize = 0\.1, tolMs = 15\)/.test(bp), 'extractConstantTempo tolMs 参数');
   const dict = read('src/i18n/dicts/zh-CN/timing.ts');
@@ -76,15 +76,16 @@ section('C: CDP (变速模式删段应用 + 容差)');
       const s = window.__osuStore;
       const sr = 44100;
       const ctx = new AudioContext();
-      // 前 30 拍 128 + 后 30 拍 200 (保证变速段列表 ≥2 段, 覆盖删段分支)
-      const buf = ctx.createBuffer(1, Math.ceil((500 + 30 * (60000 / 128) + 30 * 300 + 500) / 1000 * sr), sr);
+      // 前 30 拍 128 + 后 30 拍 167 (非网格兼容比, 保证 ≥2 段覆盖删段分支;
+      // v501 注: 128+200 会被 1/8 细分规则正确合并为同 BPM, 不能用作本用例)
+      const buf = ctx.createBuffer(1, Math.ceil((500 + 30 * (60000 / 128) + 30 * (60000 / 167) + 500) / 1000 * sr), sr);
       const d = buf.getChannelData(0);
       const put = (t, amp) => {
         const st = Math.round(t / 1000 * sr), len = Math.round(0.03 * sr);
         for (let i = 0; i < len && st + i < d.length; i++) { const tt = i / sr; d[st + i] += Math.sin(2 * Math.PI * 2000 * tt) * Math.exp(-tt / 0.006) * amp; }
       };
       let t = 500;
-      for (const [bpm, n] of [[128, 30], [200, 30]]) {
+      for (const [bpm, n] of [[128, 30], [167, 30]]) {
         const spb = 60000 / bpm;
         for (let i = 0; i < n; i++) { put(t, 0.9); put(t + spb / 2, 0.35); t += spb; }
       }
