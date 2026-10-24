@@ -63,8 +63,8 @@ function mixClicks(parts: { beats: number[]; scale: number }[], durMs: number, s
 // ② 长真变速段 (中段 24 拍 167) → 仍应报
 {
   const a = beatsOf(128, 40);
-  const mid = beatsOf(167, 24, a[a.length - 1] + 60000 / 128);
-  const rest = beatsOf(128, 36, mid[mid.length - 1] + 60000 / 167);
+  const mid = beatsOf(173, 24, a[a.length - 1] + 60000 / 128); // v506: 用非网格兼容 tempo (167 的 onset 能落 128 的 1/8 细分, 按规则应并线)
+  const rest = beatsOf(128, 36, mid[mid.length - 1] + 60000 / 173);
   const beats = [...a, ...mid, ...rest];
   const c = extractConstantTempo(detectBpm(clickTrack(beats, dur(beats))))!;
   assert(c.variableSections.length >= 1, `② 长真变速段应报 (实际 ${c.variableSections.length})`);

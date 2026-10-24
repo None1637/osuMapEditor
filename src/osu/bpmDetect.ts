@@ -643,7 +643,9 @@ export function extractConstantTempo(result: BpmDetectResult, quantize = 0.1, to
   };
   for (let i = 0; i < segs.length; i++) {
     const s = segs[i];
-    if (s.beats < 8) continue;
+    // v506: 拍数占比过滤 — 不足全曲 3% 拍点的短段不报 (开头安静段误报;
+    // 不按时长过滤, Carnival 真红线最短 136ms 也允许)
+    if (s.beats < Math.max(8, result.beats.length * 0.03)) continue;
     if (Math.abs(60000 / s.bpm - P) / P <= 0.02) continue;
     const end = i + 1 < segs.length ? segs[i + 1].time : Infinity;
     const bs = beats.filter(b => b >= s.time - 1 && b < end - 1);
