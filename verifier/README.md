@@ -5664,3 +5664,40 @@
 - 适配: verifier/v495 改为只断言粘贴取代 + 还原后语义回归 (B': 重叠区 Ctrl+点 = 插锚点
   不多选); verifier/v413 针串还原 hitObj 形式 (放宽 v496 前置守卫)。
 - 回归: v102/v357/v404/v413/v490/v495/v496 全绿。tsc + vite build 通过。
+
+## v498 — 自动 BPM 检测 (恒速优先: worker 后台分析 + BPM/offset 对话框)
+- 功能: Timing 页「检测 BPM」按钮 → `bpmDetectWorker.ts` 后台分析整曲音频 (不卡 UI)
+  → `BpmDetectDialog` 直接显示恒速 BPM + offset (可编辑, 用户要求不做多层波形/频谱预览)
+  → 「应用」写入单条红线 (已有红线二次确认; `store.applyDetectedTiming` 一次 pushUndo,
+  绿线保留, 新红线字段克隆同时刻生效点)。
+- DSP (`src/osu/bpmDetect.ts`, 纯 TS 无依赖, fft 复用; essentia.js AGPL 排除):
+  混单声道降采样 11025Hz → STFT(win 512/hop 64≈5.8ms) log 幅度谱通量 onset 包络 →
+  双尺度窗 (4s+1.6s) comb-ACF 候选 + 贪心跟踪网格分 (拍点强度一致性 cv 罚 + 未解释峰罚,
+  裁决 T/2T/1.5T 歧义) → Viterbi 跨窗 tempo 曲线 (adj² 发射 + 全局先验弱拉力 + 每窗注入
+  先验候选, 稀疏/段首弱证据不再乱锁) → DP 节拍跟踪 (逐帧周期) → 抛物线亚帧精修 →
+  中值 3 滤波游程分段 (连续 2 离群才切, 单拍抖动不碎段) + 相邻段合并 LSQ。
+  tempo 范围 60~440, 曲线贴底 ≥3% 时第二遍 45~440 (渐慢段)。
+- 恒速提炼 `extractConstantTempo` (用户规则): 节拍数最多段为主段; 其余碎段的 onset 若能
+  落主网格 **1/8 或 1/6 节拍细分** (≤15ms 比例 ≥90%) 即视为同 BPM 合并 — breakdown 的
+  半程/三连音节奏不拆新红线。周期/相位直接取主段 (跨段全局重拟合会把段间相位差学成
+  周期误差, 实测 220→220.1 毁掉后半首, 已弃用); offset = 首个被解释节拍最近格点。
+- 编码延迟: ffmpeg 将 Xing/Info/VBRI 头帧解码为一帧静音 (~26ms), stable(BASS/mpg123)
+  跳过该帧 → 验证器按文件头补偿 25ms (无头帧不补); app 内 detectBpm 直接吃
+  decodeAudioData 结果, 与播放同一条解码路径, 无需额外补偿。
+- 验收 (用户口径): 恒速时比对红线 1/2 节拍细分时间点, ≥99% 落在 ±15ms 内即通过;
+  **检出 BPM 翻倍/减半时网格天然兼容, 也算通过**。
+  - 合成 (verifier/v498/tests.ts): 恒速 128 / 160 均 100%; 恒速+半程 breakdown
+    (1/8 合并) 100%; 变速 20 段 77.9% (回归监控, 非验收线)。
+  - 真实谱面 (real.ts, 本地 F:\Backup fixture, **音频/谱面文件不入库**):
+    Drop it! Yoko! 100% (640/640, 检出 281.6=2×140.8);
+    09 Turupeta 100% (960/960, 检出 360=2×180);
+    Carnival 恒速区 0~187s 100% (1358/1358)。
+  - Carnival 全曲 67.2%: 187~226s 为逐拍人工对轴 ritardando, 且 225693 红线相位重置
+    (225693−1961 非 272.727 整数倍) — 这两处本来就需要多条红线, 单红线覆盖不了;
+    对话框会以「疑似变速段」提示, 由用户手动处理。
+- 已知边界: 无节拍前奏/逐拍人工对轴/极端短段变速不准; 老谱面若 mapper 自身 offset 有
+  偏差 (实测 OTN +30ms、ECHO +55ms), 检出 offset 以音频为准, 可在对话框手调。
+- CDP 冒烟: 页面内合成 128BPM 点击轨 (自生成音频, 不入库) → Timing 页开检测 →
+  对话框 BPM+offset 网格覆盖 ≥99% → 应用替换为单红线 → undo 还原。
+- i18n: timing.detect_bpm / timing.bpmdetect_*; s2t 补字 尚疑似(SAME) 适余(TABLE)。
+- 回归: v346 全绿。tsc + vite build 通过。

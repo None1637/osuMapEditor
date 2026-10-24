@@ -1992,6 +1992,23 @@ class EditorStore {
     this.emit();
   }
 
+  /** v498: 应用自动 BPM 检测结果 — 一次 pushUndo 替换全部红线 (绿线保留);
+   *  新红线字段 (音效集/序号/音量等) 克隆同时刻生效点, beatLength = 60000/bpm。 */
+  applyDetectedTiming(points: { time: number; bpm: number; meter?: number }[]) {
+    const bm = this.beatmap; if (!bm || !points.length) return;
+    this.pushUndo();
+    bm.timingPoints = bm.timingPoints.filter(tp => !tp.uninherited);
+    for (const p of points) {
+      const time = Math.round(p.time);
+      const np = defaultNewPoint(bm.timingPoints, time, true);
+      np.beatLength = 60000 / p.bpm;
+      if (p.meter) np.meter = p.meter;
+      bm.timingPoints.push(np);
+    }
+    bm.timingPoints.sort((a, b) => a.time - b.time);
+    this.emit();
+  }
+
   /** v372: 批量删除选中 timing 点 (红绿通用; 一次 undo) */
   deleteTimingPointsAt(times: Iterable<number>) {
     const bm = this.beatmap; if (!bm) return;
