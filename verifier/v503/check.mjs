@@ -100,6 +100,19 @@ section('D: CDP 预览');
     assert(done, '检测完成');
     const h0 = await evalJs(`document.querySelector('[data-testid="bpm-detect-preview"] canvas')?.height ?? 0`);
     assert(h0 > 0, `预览画布存在 (高 ${h0})`);
+    // v507: 波形/频谱必须真有内容 (drawWave/drawSpectro setTransform 曾把分层全画到一处)
+    const pix = await evalJs(`(() => {
+      const cv = document.querySelector('[data-testid="bpm-detect-preview"] canvas');
+      const g = cv.getContext('2d');
+      const d = g.getImageData(0, 0, cv.width, cv.height).data;
+      let green = 0, bright = 0;
+      for (let i = 0; i < d.length; i += 4) {
+        if (d[i + 1] > d[i] && d[i + 1] > 40) green++;
+        if (d[i] + d[i + 1] + d[i + 2] > 90) bright++;
+      }
+      return { green, bright };
+    })()`);
+    assert(pix.green > 50 && pix.bright > 500, `波形/频谱有实际内容 (绿像素 ${pix.green}, 亮像素 ${pix.bright})`);
     // 滚轮缩小每行时长 → 行数变多 → 画布变高
     await evalJs(`(() => {
       const cv = document.querySelector('[data-testid="bpm-detect-preview"] canvas');

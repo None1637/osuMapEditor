@@ -41,11 +41,20 @@ export function BpmPreview({ buf, lines, secPerRow, onSeek, onZoom }: {
       const t0 = r * winMs;
       g.save();
       g.translate(0, r * rowH);
-      drawWave(g, buf, t0, winMs, W, waveH, dpr);
-      g.translate(0, waveH);
+      // v507: drawWave/drawSpectro 内部 setTransform 会抹掉分层平移 — 改离屏分行绘制再合成
+      const waveCv = document.createElement('canvas');
+      waveCv.width = W * dpr; waveCv.height = waveH * dpr;
+      const wg = waveCv.getContext('2d')!;
+      wg.scale(dpr, dpr);
+      drawWave(wg, buf, t0, winMs, W, waveH, dpr);
+      g.drawImage(waveCv, 0, 0);
+      const specCv = document.createElement('canvas');
+      specCv.width = W * dpr; specCv.height = specH * dpr;
+      const sg = specCv.getContext('2d')!;
+      sg.scale(dpr, dpr);
       if (!spectroRefs.current[r]) spectroRefs.current[r] = { current: null };
-      drawSpectro(g, buf, t0, winMs, W, specH, spectroRefs.current[r]);
-      g.translate(0, -waveH);
+      drawSpectro(sg, buf, t0, winMs, W, specH, spectroRefs.current[r]);
+      g.drawImage(specCv, 0, waveH);
       const xOf = (t: number) => ((t - t0) / winMs) * W;
       // 已有红线 (灰, 供对比)
       g.strokeStyle = 'rgba(180,180,180,0.35)';
