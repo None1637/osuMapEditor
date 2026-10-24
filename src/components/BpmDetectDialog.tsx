@@ -24,8 +24,7 @@ export function BpmDetectDialog({ onClose }: { onClose: () => void }) {
   const [manualEdit, setManualEdit] = useState(false);
   const [confirmReplace, setConfirmReplace] = useState(false);
   const [deletedSegs, setDeletedSegs] = useState<Set<number>>(new Set());
-  const [secPerRow, setSecPerRow] = useState(30); // v503: 预览每行秒数 (滚轮缩放)
-  const [spectro, setSpectro] = useState(false); // v503: 波形/频谱切换
+  const [secPerRow, setSecPerRow] = useState(() => 6000 / ((store.beatmap?.editor.timelineZoom || 1) * 1000)); // v505: 默认与上方时间轴同缩放
   const [showPreview, setShowPreview] = useState(true);
   const workerRef = useRef<Worker | null>(null);
 
@@ -145,17 +144,12 @@ export function BpmDetectDialog({ onClose }: { onClose: () => void }) {
                   buf={store.getAudioBuffer()!}
                   lines={mode === 'constant' ? [{ time: Math.round(offset), bpm, meter: 4 }] : constant.lines.filter((_, i) => !deletedSegs.has(i))}
                   secPerRow={secPerRow}
-                  spectro={spectro}
                   onSeek={ms => store.seek(ms)}
-                  onZoom={dir => setSecPerRow(v => Math.min(60, Math.max(5, v + dir * 5)))}
+                  onZoom={dir => setSecPerRow(v => Math.min(60, Math.max(0.5, v + dir * 5)))} // v505: 允许比默认更细 (timelineZoom 大时默认每行 <5s)
                 />
               </div>
             )}
             <div className="flex items-center gap-2 text-xs text-white/50">
-              <label className="flex items-center gap-1 cursor-pointer">
-                <input type="checkbox" checked={spectro} onChange={e => setSpectro(e.target.checked)} />
-                {t('timing.bpmdetect_spectro', 'Spectrogram')}
-              </label>
               <label className="flex items-center gap-1 cursor-pointer">
                 <input type="checkbox" checked={showPreview} onChange={e => setShowPreview(e.target.checked)} />
                 {t('timing.bpmdetect_preview', 'Preview')}

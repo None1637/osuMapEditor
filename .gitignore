@@ -34,3 +34,6 @@ backup_beatmaps/
 
 # v246: CDP 探针浏览器 profile 残留 (防再次误提交)
 verifier/**/.edge-profile-*/
+
+# 验证器本地临时音频 (真实歌曲解码 PCM, 不入库)
+*.pcm

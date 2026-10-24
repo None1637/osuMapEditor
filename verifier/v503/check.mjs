@@ -33,10 +33,12 @@ for (const [name, src, marker] of [['A 纯函数', 'tests', 'V503_PURE_PASSED'],
 section('C: 源码契约');
 {
   const pv = read('src/components/BpmPreview.tsx');
-  assert(/drawWave\(g, buf, t0, winMs, W, rowH, dpr\)/.test(pv), 'drawWave 复用');
-  assert(/drawSpectro\(g, buf, t0, winMs, W, rowH/.test(pv), 'drawSpectro 复用');
+  assert(/drawWave\(g, buf, t0, winMs, W, waveH, dpr\)/.test(pv), 'drawWave 复用');
+  assert(/drawWave\(g, buf, t0, winMs, W, waveH, dpr\)/.test(pv) && /drawSpectro\(g, buf, t0, winMs, W, specH/.test(pv), 'v505: 每层上波形下频谱');
   assert(/onSeek={ms => store.seek\(ms\)}/.test(read('src/components/BpmDetectDialog.tsx')), '点击 seek 接线');
   assert(/data-testid="bpm-detect-preview"/.test(read('src/components/BpmDetectDialog.tsx')), '预览 testid');
+  assert(/6000 \/ \(\(store\.beatmap\?\.editor\.timelineZoom \|\| 1\) \* 1000\)/.test(read('src/components/BpmDetectDialog.tsx')), 'v505: 默认缩放与上方时间轴一致');
+  assert(/formatMsTime\(t\)/.test(pv) && /store\.beatSnap/.test(pv), 'v505: 每 4/1 拍时间标注 + beatSnap 细分刻度');
   const dict = read('src/i18n/dicts/zh-CN/timing.ts');
   for (const k of ['timing.bpmdetect_spectro', 'timing.bpmdetect_preview']) assert(dict.includes(`'${k}'`), `zh-CN ${k}`);
 }
@@ -107,15 +109,9 @@ section('D: CDP 预览');
     await sleep(400);
     const h1 = await evalJs(`document.querySelector('[data-testid="bpm-detect-preview"] canvas')?.height ?? 0`);
     assert(h1 > h0, `滚轮缩放后画布变高 (${h0}→${h1})`);
-    // 频谱切换
-    await evalJs(`(() => {
-      const boxes = document.querySelectorAll('[data-dialog="bpm-detect-dialog"] input[type="checkbox"]');
-      boxes[0].click();
-      return true;
-    })()`);
-    await sleep(400);
-    const spectroOn = await evalJs(`document.querySelector('[data-dialog="bpm-detect-dialog"] input[type="checkbox"]').checked`);
-    assert(spectroOn, '频谱模式可切换');
+    // v505: 每层上波形下频谱 (行高 = 48+64), 默认与上方时间轴同缩放 (6s/行)
+    const wh = await evalJs(`document.querySelector('[data-testid="bpm-detect-preview"] canvas')?.height ?? 0`);
+    assert(wh > 0 && wh % 112 === 0, `v505: 每层上波形下频谱 (行高 112 的倍数, 实际 ${wh})`);
     // 点击 seek
     const before = await evalJs(`window.__osuStore.currentTime`);
     await evalJs(`(() => {

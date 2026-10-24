@@ -1,27 +1,29 @@
-// v503: 多层波形/频谱预览 — 每行一段连续时间 (下一行接续上一行), 叠加检出红线
-//   (红竖线+BPM)、当前线节拍刻度 (白)、已有红线 (灰, 供对比)、播放位置 (青)。
-//   滚轮缩放每行时长 (5~60s), 点击定位播放头; 波形/频谱两种模式复用 waveformDraw。
+// v505: 多层波形+频谱预览 — 每层上面波形、下面频谱图, 后一层接续上一层时间;
+// 默认缩放与上方时间轴一致 (win = 6000/timelineZoom); 检出红线 (红竖线+BPM)、
+// 已有红线 (灰, 供对比)、当前 beatSnap 细分刻度、每 4 拍 (放大时每 1 拍) 时间标注、
+// 播放位置 (青), 点击定位播放头, 滚轮缩放每行时长。
 import { useEffect, useRef } from 'react';
 import { drawWave, drawSpectro, type SpectroScroll } from '@/osu/waveformDraw';
 import { store } from '@/osu/store';
+import { formatMsTime } from '@/osu/timingEdit';
 
 export interface PreviewLine { time: number; bpm: number; meter?: number }
 
-export function BpmPreview({ buf, lines, secPerRow, onSeek, onZoom, spectro = false }: {
+export function BpmPreview({ buf, lines, secPerRow, onSeek, onZoom }: {
   buf: AudioBuffer;
   lines: PreviewLine[];
   secPerRow: number;
   onSeek: (ms: number) => void;
   onZoom?: (dir: number) => void;
-  spectro?: boolean;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const spectroRefs = useRef<Record<number, { current: SpectroScroll | null }>>({});
   const durMs = buf.duration * 1000;
   const W = 560;
-  const rowH = spectro ? 88 : 64;
+  const waveH = 48, specH = 64, rowH = waveH + specH;
   const rows = Math.max(1, Math.ceil(durMs / (secPerRow * 1000)));
   const winMs = secPerRow * 1000;
+  const snap = store.beatSnap || 4;
 
   useEffect(() => {
     const cv = canvasRef.current;
@@ -39,12 +41,11 @@ export function BpmPreview({ buf, lines, secPerRow, onSeek, onZoom, spectro = fa
       const t0 = r * winMs;
       g.save();
       g.translate(0, r * rowH);
-      if (spectro) {
-        if (!spectroRefs.current[r]) spectroRefs.current[r] = { current: null };
-        drawSpectro(g, buf, t0, winMs, W, rowH, spectroRefs.current[r]);
-      } else {
-        drawWave(g, buf, t0, winMs, W, rowH, dpr);
-      }
+      drawWave(g, buf, t0, winMs, W, waveH, dpr);
+      g.translate(0, waveH);
+      if (!spectroRefs.current[r]) spectroRefs.current[r] = { current: null };
+      drawSpectro(g, buf, t0, winMs, W, specH, spectroRefs.current[r]);
+      g.translate(0, -waveH);
       const xOf = (t: number) => ((t - t0) / winMs) * W;
       // 已有红线 (灰, 供对比)
       g.strokeStyle = 'rgba(180,180,180,0.35)';
@@ -56,22 +57,48 @@ export function BpmPreview({ buf, lines, secPerRow, onSeek, onZoom, spectro = fa
         g.moveTo(x, 0); g.lineTo(x, rowH);
       }
       g.stroke();
-      // 当前线节拍刻度 (白): 以每根检出线为起点, 到下根线/曲尾
-      g.strokeStyle = 'rgba(255,255,255,0.45)';
-      g.beginPath();
+      // 当前线节拍刻度: 细分 (beatSnap) + 每 4 拍强线 + 时间标注
+      g.font = '9px sans-serif';
       for (let i = 0; i < lines.length; i++) {
         const L = lines[i];
         const end = i + 1 < lines.length ? lines[i + 1].time : durMs;
         const spb = 60000 / L.bpm;
-        for (let t = L.time; t < end; t += spb) {
-          if (t < t0 || t >= t0 + winMs) continue;
-          const x = xOf(t);
-          g.moveTo(x, rowH * 0.55); g.lineTo(x, rowH * 0.8);
+        const meter = L.meter ?? 4;
+        const everyN = secPerRow <= 3 ? 1 : meter; // 放大时每 1 拍也标注
+        let k = 0;
+        for (let t = L.time; t < end; t += spb, k++) {
+          const isBar = k % everyN === 0;
+          if (isBar) {
+            g.strokeStyle = 'rgba(255,255,255,0.55)';
+            g.lineWidth = 1;
+            g.beginPath();
+            if (t >= t0 && t < t0 + winMs) {
+              const x = xOf(t);
+              g.moveTo(x, 0); g.lineTo(x, rowH);
+              g.fillStyle = 'rgba(255,255,255,0.75)';
+              g.fillText(formatMsTime(t), Math.min(x + 3, W - 62), 10);
+            }
+            g.stroke();
+          } else if (t >= t0 && t < t0 + winMs) {
+            const x = xOf(t);
+            g.strokeStyle = 'rgba(255,255,255,0.4)';
+            g.beginPath();
+            g.moveTo(x, rowH * 0.5); g.lineTo(x, rowH * 0.72);
+            g.stroke();
+          }
+          // 细分刻度 (beatSnap)
+          for (let s = 1; s < snap; s++) {
+            const ts = t + (spb * s) / snap;
+            if (ts >= end || ts < t0 || ts >= t0 + winMs) continue;
+            const x = xOf(ts);
+            g.strokeStyle = 'rgba(255,255,255,0.22)';
+            g.beginPath();
+            g.moveTo(x, rowH * 0.62); g.lineTo(x, rowH * 0.8);
+            g.stroke();
+          }
         }
       }
-      g.stroke();
       // 检出红线 + BPM 文本
-      g.font = '10px sans-serif';
       for (const L of lines) {
         if (L.time < t0 || L.time >= t0 + winMs) continue;
         const x = xOf(L.time);
@@ -81,7 +108,7 @@ export function BpmPreview({ buf, lines, secPerRow, onSeek, onZoom, spectro = fa
         g.moveTo(x, 0); g.lineTo(x, rowH);
         g.stroke();
         g.fillStyle = '#ff8899';
-        g.fillText(`${L.bpm.toFixed(1)}`, Math.min(x + 3, W - 38), 12);
+        g.fillText(`${L.bpm.toFixed(1)}`, Math.min(x + 3, W - 38), 22);
       }
       // 播放位置 (青)
       if (cur >= t0 && cur < t0 + winMs) {
@@ -97,7 +124,7 @@ export function BpmPreview({ buf, lines, secPerRow, onSeek, onZoom, spectro = fa
       g.fillText(`${Math.round(t0 / 1000)}s`, 4, rowH - 4);
       g.restore();
     }
-  }, [buf, lines, secPerRow, rows, rowH, winMs, durMs, spectro]);
+  }, [buf, lines, secPerRow, rows, rowH, winMs, durMs, snap]);
 
   // v503: 原生 wheel (React onWheel 为 passive, 无法 preventDefault)
   useEffect(() => {
