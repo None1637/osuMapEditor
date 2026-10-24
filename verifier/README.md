@@ -5754,3 +5754,17 @@
 - 验证: v501 纯函数 (恒速/breakdown 单线; 变速多线且 < 原始碎段) + 真实谱面
   (Yoko/Turupeta 单线, Nare ≤3 线) + v500 CDP (变速模式删段应用) 全绿;
   v498/v499/v500 回归全绿。tsc + vite build 通过。
+
+## v502 — 立体声分声道独立检测选最优 (Carnival 主区 220 修复)
+- 用户反馈: Carnival 主区 220, 却检出 97.8。逐层排查 (app 导出 PCM 在 node 同为 220,
+  worker 却 97.8) 定位为**右声道内容差异** — ffmpeg 右声道单独检测也是 97.7,
+  左右混合后伪周期压过主 tempo; 不是 decodeAudioData/重采样/编码延迟问题。
+- 方案: `detectBpm` 拆出 `detectBpmMono`; 立体声时每声道独立跑完整管线, 以
+  `constant.coverage × result.beats.length` 选最优声道返回 (左 128 右 90 / 右静音 /
+  双同轨用例齐全)。单声道路径不变; 立体声耗时约 2× (worker 内, 进度按声道合并)。
+- 验证: v502 纯函数 + 真实谱面 (Carnival 48kHz 立体声检出 220, 恒速区网格 100%)
+  + app CDP 复测 (decodeAudioData 加载 Carnival, 对话框 220.000 / 覆盖 94%) 全绿;
+  v498/v499/v500/v501 回归全绿。tsc + vite build 通过。
+- 验证器基建修正 (v502 期间发现): v498/v500 CDP 注入合成音频前需等初始谱面音频解码
+  完成, 否则初始 setAudio 的异步解码会覆盖注入轨 (实测被 Carnival 覆盖, 检出 220 而非
+  合成 128); v500 undo 断言改为对照 before (用户最近打开谱面红线数不是恒 1)。

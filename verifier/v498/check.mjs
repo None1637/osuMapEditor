@@ -84,6 +84,9 @@ section('D: CDP 冒烟 (页面内合成 128BPM 点击轨 → 检测 → 应用 �
     await normalizeEnv(evalJs);
 
     // 页面内合成 128BPM 点击轨 (自生成音频, 不入库): 60 拍, 500ms 起, 半拍 0.35 弱击
+    // v502: 等初始谱面音频解码完成再注入合成轨 — 上次打开谱面的 setAudio 异步解码
+    // 可能在注入后才完成, 会把合成轨覆盖掉 (实测被 Carnival 音频覆盖致检出 220)
+    await evalJs(`(async () => { const s = window.__osuStore; for (let i = 0; i < 120 && !s.audioBuffer; i++) await new Promise(r => setTimeout(r, 250)); })()`);
     await evalJs(`(() => {
       const s = window.__osuStore;
       const sr = 44100, bpm = 128, spb = 60000 / bpm, beats = 60;

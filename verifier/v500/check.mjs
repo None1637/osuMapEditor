@@ -72,6 +72,9 @@ section('C: CDP (变速模式删段应用 + 容差)');
     }
     if (!ready) throw new Error('应用未就绪');
     await normalizeEnv(evalJs);
+    // v502: 等初始谱面音频解码完成再注入合成轨 — 上次打开谱面的 setAudio 异步解码
+    // 可能在注入后才完成, 会把合成轨覆盖掉 (实测被 Carnival 音频覆盖致检出 220)
+    await evalJs(`(async () => { const s = window.__osuStore; for (let i = 0; i < 120 && !s.audioBuffer; i++) await new Promise(r => setTimeout(r, 250)); })()`);
     await evalJs(`(() => {
       const s = window.__osuStore;
       const sr = 44100;
@@ -121,6 +124,7 @@ section('C: CDP (变速模式删段应用 + 容差)');
     if (segCount >= 2) await evalJs(`document.querySelector('[data-seg-del]').click()`);
     await sleep(200);
     const expectN = segCount >= 2 ? segCount - 1 : segCount;
+    const before = await evalJs(`window.__osuStore.beatmap.timingPoints.filter(t => t.uninherited).length`);
     for (let i = 0; i < 2; i++) {
       await evalJs(`document.querySelector('[data-testid="bpm-detect-apply"]')?.click()`);
       await sleep(250);
@@ -130,7 +134,7 @@ section('C: CDP (变速模式删段应用 + 容差)');
     const reds = await evalJs(`window.__osuStore.beatmap.timingPoints.filter(t => t.uninherited).length`);
     assert(reds === expectN, `变速模式应用后红线数 (${reds}=${expectN})`);
     const undone = await evalJs(`(() => { const s = window.__osuStore; s.undo(); return s.beatmap.timingPoints.filter(t => t.uninherited).length; })()`);
-    assert(undone === 1, `undo 还原 (${undone}=1)`);
+    assert(undone === before, `undo 还原 (${undone}=${before})`);
   } catch (e) {
     failures++;
     console.error('  FAIL: CDP 异常:', e.message);

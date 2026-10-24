@@ -489,6 +489,28 @@ function median(xs: number[]): number {
 
 /** 全管线入口 (纯函数, worker 壳与 node 单测共用) */
 export function detectBpm(buf: AudioBufferLike, opts: BpmDetectOptions = {}): BpmDetectResult {
+  // v502: 立体声分声道独立检测选最优 — 左右声道内容可能差异巨大 (Carnival 右声道
+  // 与左声道鼓组结构不同, 混合后检出 97.8 而非主区 220), 以 coverage×拍点数 选最佳
+  const numCh = Math.max(1, buf.numberOfChannels);
+  if (numCh === 1) return detectBpmMono(buf, opts);
+  let best: { result: BpmDetectResult; score: number } | null = null;
+  for (let ch = 0; ch < numCh; ch++) {
+    const sub: AudioBufferLike = {
+      sampleRate: buf.sampleRate,
+      numberOfChannels: 1,
+      length: buf.length,
+      getChannelData: () => buf.getChannelData(ch),
+    };
+    const subOpts: BpmDetectOptions = { ...opts, onProgress: (p, stage) => opts.onProgress?.((ch + p) / numCh, stage) };
+    const result = detectBpmMono(sub, subOpts);
+    const c = extractConstantTempo(result);
+    const score = c ? c.coverage * result.beats.length : 0;
+    if (!best || score > best.score) best = { result, score };
+  }
+  return best!.result;
+}
+
+function detectBpmMono(buf: AudioBufferLike, opts: BpmDetectOptions = {}): BpmDetectResult {
   const prog = opts.onProgress ?? (() => {});
   prog(0.02, 'mixdown');
   const mono = mixDownResample(buf);
