@@ -19,6 +19,8 @@ export const zhCN: Record<string, string> = {
   'timing.bpmdetect_mode_variable': '变速 (假设歌曲变速)',
   'timing.bpmdetect_tolerance': '容差 (ms)',
   'timing.bpmdetect_segments': '检出 {n} 段红线 (点 × 删除误检段)',
+  'timing.bpmdetect_spectro': '频谱图',
+  'timing.bpmdetect_preview': '预览',
   'timing.add_green': '+ 绿线(SV)',
   'timing.tab_all': 'All',
   'timing.red_line': '红线',

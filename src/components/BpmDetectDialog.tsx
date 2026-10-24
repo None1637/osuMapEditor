@@ -9,6 +9,7 @@ import { store } from '@/osu/store';
 import { useT } from '@/i18n';
 import { extractConstantTempo, type BpmDetectResult } from '@/osu/bpmDetect';
 import { formatMsTime } from '@/osu/timingEdit';
+import { BpmPreview } from './BpmPreview'; // v503: 多层波形/频谱预览
 
 export function BpmDetectDialog({ onClose }: { onClose: () => void }) {
   const t = useT();
@@ -23,6 +24,9 @@ export function BpmDetectDialog({ onClose }: { onClose: () => void }) {
   const [manualEdit, setManualEdit] = useState(false);
   const [confirmReplace, setConfirmReplace] = useState(false);
   const [deletedSegs, setDeletedSegs] = useState<Set<number>>(new Set());
+  const [secPerRow, setSecPerRow] = useState(30); // v503: 预览每行秒数 (滚轮缩放)
+  const [spectro, setSpectro] = useState(false); // v503: 波形/频谱切换
+  const [showPreview, setShowPreview] = useState(true);
   const workerRef = useRef<Worker | null>(null);
 
   useEffect(() => {
@@ -83,7 +87,7 @@ export function BpmDetectDialog({ onClose }: { onClose: () => void }) {
   const applyDisabled = mode === 'variable' && (!constant || constant.lines.every((_, i) => deletedSegs.has(i)));
 
   return (
-    <DraggableDialog title={t('timing.bpmdetect_title', 'Auto BPM Detection')} onClose={onClose} width={380} testid="bpm-detect-dialog">
+    <DraggableDialog title={t('timing.bpmdetect_title', 'Auto BPM Detection')} onClose={onClose} width={600} testid="bpm-detect-dialog">
       <div className="p-3 flex flex-col gap-2 text-sm">
         {phase === 'running' && (
           <div data-testid="bpm-detect-progress">
@@ -134,6 +138,29 @@ export function BpmDetectDialog({ onClose }: { onClose: () => void }) {
               </div>
             )}
             {confirmReplace && <div className="text-amber-300 text-xs">{t('timing.bpmdetect_confirm_replace', 'This replaces all {n} existing timing points. Click Apply again to confirm.', { n: redCount })}</div>}
+            {/* v503: 多层波形/频谱预览 (检出红线+节拍刻度+已有红线对比) */}
+            {showPreview && store.getAudioBuffer() && (
+              <div className="max-h-72 overflow-y-auto border border-white/10 rounded" data-testid="bpm-detect-preview">
+                <BpmPreview
+                  buf={store.getAudioBuffer()!}
+                  lines={mode === 'constant' ? [{ time: Math.round(offset), bpm, meter: 4 }] : constant.lines.filter((_, i) => !deletedSegs.has(i))}
+                  secPerRow={secPerRow}
+                  spectro={spectro}
+                  onSeek={ms => store.seek(ms)}
+                  onZoom={dir => setSecPerRow(v => Math.min(60, Math.max(5, v + dir * 5)))}
+                />
+              </div>
+            )}
+            <div className="flex items-center gap-2 text-xs text-white/50">
+              <label className="flex items-center gap-1 cursor-pointer">
+                <input type="checkbox" checked={spectro} onChange={e => setSpectro(e.target.checked)} />
+                {t('timing.bpmdetect_spectro', 'Spectrogram')}
+              </label>
+              <label className="flex items-center gap-1 cursor-pointer">
+                <input type="checkbox" checked={showPreview} onChange={e => setShowPreview(e.target.checked)} />
+                {t('timing.bpmdetect_preview', 'Preview')}
+              </label>
+            </div>
             <div className="flex gap-2 mt-1">
               <button data-testid="bpm-detect-apply" onClick={apply} disabled={applyDisabled} className="px-3 py-1 rounded bg-pink-500 hover:bg-pink-400 disabled:opacity-40 text-white font-bold">
                 {confirmReplace ? t('timing.bpmdetect_confirm_apply', 'Confirm Replace') : t('timing.bpmdetect_apply', 'Apply')}
