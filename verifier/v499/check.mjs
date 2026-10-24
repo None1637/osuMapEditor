@@ -37,7 +37,7 @@ section('C: 源码契约');
   assert(/bestFitRatio/.test(bp) && /trackScore\(win, P \/ a0?\.hopMs\)/.test(bp), '最佳相位拟合 + 证据复核');
   assert(/winMs = 8000/.test(bp), '8s 滑窗逐拍变速判定');
   const dlg = read('src/components/BpmDetectDialog.tsx');
-  assert(/c\.variableSections \?\? \[\]\)\.length/.test(dlg) && !/segmentCount > 1/.test(dlg), '对话框提示改用 variableSections (不再按碎段数)');
+  assert(/constant\.variableSections\.length/.test(dlg) && !/segmentCount > 1/.test(dlg), '对话框提示改用 variableSections (不再按碎段数)');
 }
 
 console.log(failures ? `\nVERIFIER_V499_FAILED: ${failures} 处失败` : '\nVERIFIER_V499_ALL_TESTS_PASSED');

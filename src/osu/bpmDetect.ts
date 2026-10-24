@@ -547,14 +547,16 @@ export interface ConstantTempoResult {
  *    + ≥8 拍 + 周期与主 BPM 差 >2% + 间隔 CV<0.1 才报疑似真变速段;
  *    短碎段/同周期相位偏移段/跟踪噪声段都不算变速。
  */
-export function extractConstantTempo(result: BpmDetectResult, quantize = 0.1): ConstantTempoResult | null {
+export function extractConstantTempo(result: BpmDetectResult, quantize = 0.1, tolMs = 15): ConstantTempoResult | null {
   const segs = result.segments;
   if (!segs.length || !result.beats.length) return null;
   const dom = [...segs].sort((a, b) => b.beats - a.beats)[0];
   let P = 60000 / dom.bpm;
   const phi = dom.time;
   const beats = result.beats;
-  const tol = Math.min(15, P / 24);
+  // v500: 容差 ms 可选 (UI 传入, 默认 15ms)。P/360 缩放保持与旧版 min(15, P/24)
+  // 完全一致的默认行为 — 高 BPM 网格密, 容差必须随周期缩小, 否则随机 onset 全被"解释"
+  const tol = tolMs * Math.min(1, P / 360);
   const gridDist = (b: number, sub: number): number => {
     const g = P / sub;
     const d = ((b - phi) % g + g) % g;

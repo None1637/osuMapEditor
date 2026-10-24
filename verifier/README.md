@@ -5722,3 +5722,16 @@
   vs Carnival 11.8%, 无阈值可分), 未采用。真变速检出义务由合成用例 ⑤ 保证。
 - 验证: verifier/v499 (合成+真实谱面+源码契约) 全绿; v498 全量回归 (含 CDP) 全绿。
   tsc + vite build 通过。
+
+## v500 — BPM 检测: 容差 ms 可选 + 恒速/变速两种模式
+- 容差 (ms): `extractConstantTempo(result, quantize, tolMs)` 第三参; UI 调容差后本地重算
+  (音频分析只跑一次)。`tol = tolMs × min(1, P/360)` — 与旧版 min(15, P/24) 默认行为完全
+  一致 (高 BPM 网格密, 容差必须随周期缩小, 否则随机 onset 全被"解释"), 调大调小线性生效。
+- 模式: 恒速(假设歌曲恒速) = 单 BPM+offset 单红线 (v498 流程); 变速(假设歌曲变速) =
+  全部检出段列表 (时间+BPM), 可点 × 删误检段, 应用经 `applyDetectedTiming(points[])`
+  一次 pushUndo 写入多条红线 (已有红线同样二次确认)。
+- 验证: v500 纯函数 (默认容差与旧版逐字节一致 / 3ms vs 30ms 覆盖率 22.1%→100% /
+  判定回归) + CDP (容差可调 30ms; 双 tempo 轨变速段列表 ≥2 段, 删一段后应用红线数
+  与列表一致, undo 还原)。v498/v499 回归全绿 (v499 对话框针串随 v500 结构更新)。
+- i18n: timing.bpmdetect_mode_constant / mode_variable / tolerance / segments;
+  s2t 补 假 (SAME)。
