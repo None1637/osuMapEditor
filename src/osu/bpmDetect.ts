@@ -648,9 +648,6 @@ export function extractConstantTempo(result: BpmDetectResult, quantize = 0.1, to
     const end = i + 1 < segs.length ? segs[i + 1].time : Infinity;
     const bs = beats.filter(b => b >= s.time - 1 && b < end - 1);
     if (bs.length < 8) continue;
-    // v503: <4s 且 <16 拍的短段不报疑似变速 (前奏/稀疏段误报红线, 如开头 549ms 处)
-    const span = (end === Infinity ? bs[bs.length - 1] : end) - s.time;
-    if (span < 4000 && s.beats < 16) continue;
     const ivs: number[] = [];
     for (let k = 1; k < bs.length; k++) ivs.push(bs[k] - bs[k - 1]);
     const mean = ivs.reduce((a, b) => a + b, 0) / ivs.length;
@@ -668,6 +665,9 @@ export function extractConstantTempo(result: BpmDetectResult, quantize = 0.1, to
       const sDom = trackScore(win, P / a.hopMs);
       const sVar = trackScore(win, (60000 / s.bpm) / a.hopMs);
       if (sDom >= sVar * 0.7) continue;
+      // v503b: 绝对支撑阈值 (替代 v503 的 ≥4s/≥16 拍时长过滤 — Carnival 真实红线
+      // 最短仅隔 136ms, 时长过滤不合理): 安静前奏 sVar≈0.04 不报, 真变速 sVar 高
+      if (sVar < 0.06) continue;
     }
     variableSections.push({ time: s.time, bpm: s.bpm, beats: s.beats });
   }

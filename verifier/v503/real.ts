@@ -14,7 +14,7 @@ const pcm = all.subarray(Math.round(25 * 11.025));
 const buf = { sampleRate: 11025, numberOfChannels: 1, length: pcm.length, getChannelData: () => pcm as Float32Array };
 const c = extractConstantTempo(detectBpm(buf))!;
 assert(Math.abs(c.bpm - 220) <= 1.1, `Carnival 主区 220 (实际 ${c.bpm})`);
-assert(c.variableSections.every(v => v.time >= 30000 || v.beats >= 16),
+assert(c.variableSections.every(v => v.time >= 30000), // v503b: 安静前奏低支撑误报被 sVar<0.06 过滤
   `Carnival 开头 30s 内无误报变速线 (实际 ${c.variableSections.map(v => `${v.time}@${v.bpm.toFixed(0)}`).join(' ') || '(无)'})`);
 console.log('  info: lines =', c.lines.map(l => `${l.time}@${l.bpm.toFixed(1)}`).join(' '));
 
