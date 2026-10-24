@@ -33,8 +33,8 @@ for (const [name, src, marker] of [['A 纯函数', 'tests', 'V503_PURE_PASSED'],
 section('C: 源码契约');
 {
   const pv = read('src/components/BpmPreview.tsx');
-  assert(/drawWave\(g, buf, t0, winMs, W, waveH, dpr\)/.test(pv), 'drawWave 复用');
-  assert(/drawWave\(g, buf, t0, winMs, W, waveH, dpr\)/.test(pv) && /drawSpectro\(g, buf, t0, winMs, W, specH/.test(pv), 'v505: 每层上波形下频谱');
+  assert(/drawWave\(wg, buf, t0, winMs, W, waveH, dpr\)/.test(pv), 'drawWave 复用 (v507 离屏)');
+  assert(/drawWave\(wg, buf, t0, winMs, W, waveH, dpr\)/.test(pv) && /drawSpectro\(sg, buf, t0, winMs, W, specH/.test(pv), 'v505: 每层上波形下频谱');
   assert(/onSeek={ms => store.seek\(ms\)}/.test(read('src/components/BpmDetectDialog.tsx')), '点击 seek 接线');
   assert(/data-testid="bpm-detect-preview"/.test(read('src/components/BpmDetectDialog.tsx')), '预览 testid');
   assert(/6000 \/ \(\(store\.beatmap\?\.editor\.timelineZoom \|\| 1\) \* 1000\)/.test(read('src/components/BpmDetectDialog.tsx')), 'v505: 默认缩放与上方时间轴一致');

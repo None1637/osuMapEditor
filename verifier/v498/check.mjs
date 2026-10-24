@@ -38,8 +38,8 @@ section('C: 源码契约');
   const w = read('src/osu/bpmDetectWorker.ts');
   assert(/detectBpm\(buf, \{ onProgress/.test(w) && /extractConstantTempo\(result\)/.test(w), 'worker: 检测 + 恒速提炼 + 进度');
   const st = read('src/osu/store.ts');
-  assert(/applyDetectedTiming\(points: \{ time: number; bpm: number; meter\?: number \}\[\]\)/.test(st), 'store.applyDetectedTiming');
-  assert(/this\.pushUndo\(\);[\s\S]{0,200}?filter\(tp => !tp\.uninherited\)/.test(st), '一次 undo 替换全部红线保留绿线');
+  assert(/applyDetectedTiming\(points: \{ time: number; bpm: number; meter\?: number \}\[\], range\?: \{ startMs: number; endMs: number \}\)/.test(st), 'store.applyDetectedTiming (v508 range 可选)');
+  assert(/this\.pushUndo\(\);[\s\S]{0,300}?filter\(tp => !tp\.uninherited/.test(st), '一次 undo 替换全部红线保留绿线');
   const dlg = read('src/components/BpmDetectDialog.tsx');
   for (const id of ['bpm-detect-dialog', 'bpm-detect-bpm', 'bpm-detect-offset', 'bpm-detect-apply', 'bpm-detect-open'])
     assert(id === 'bpm-detect-open' ? read('src/components/TimingPanel.tsx').includes(id) : dlg.includes(id), `testid ${id}`);
@@ -48,7 +48,7 @@ section('C: 源码契约');
   for (const k of ['timing.detect_bpm', 'timing.bpmdetect_title', 'timing.bpmdetect_offset', 'timing.bpmdetect_coverage', 'timing.bpmdetect_variable_hint', 'timing.bpmdetect_confirm_replace'])
     assert(dict.includes(`'${k}'`), `zh-CN ${k}`);
   const tp = read('src/components/TimingPanel.tsx');
-  assert(/setShowBpmDetect\(true\)/.test(tp) && /<BpmDetectDialog onClose/.test(tp), 'TimingPanel 入口接线');
+  assert(/store\.openBpmDetect\(\)/.test(tp) && /store\.bpmDetectOpen && <BpmDetectDialog/.test(read('src/App.tsx')), 'v508: 检测入口 (TimingPanel 按钮 + App 弹窗)');
 }
 
 section('D: CDP 冒烟 (页面内合成 128BPM 点击轨 → 检测 → 应用 → undo)');
