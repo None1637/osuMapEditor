@@ -33,7 +33,7 @@ section('objectSnap.ts: lazer TrySnapToNearbyObjects');
 section('EditorCanvas.tsx: 放置/拖拽吸附接线 (物件吸附 > 锁定间距)');
 {
   const src = readSrc('src/components/EditorCanvas.tsx');
-  assert(/import \{ objectSnapPoints, snapToNearby, snapDragDelta(, type Pt)? \} from '@\/osu\/objectSnap'/.test(src), '引入 objectSnap');
+  assert(/import \{ objectSnapPoints, snapToNearby, snapDragDelta, [^}]*\} from '@\/osu\/objectSnap'/.test(src), '引入 objectSnap (含 v512 sliderTailPoint)');
   const iNear = src.indexOf('snapToNearby(p, objectSnapPoints');
   const iLock = src.indexOf("if (!store.distanceLock || bm.editor.distanceSpacing <= 0) return gridSnapAt(bm, p);");
   assert(iNear > 0 && iLock > 0 && iNear < iLock, 'snapPlacement 先物件吸附后锁定间距');

@@ -22,7 +22,7 @@ section('源码: 本滑条身继续插点 / 其他物件放行多选');
   assert(/v439: 命中对象是本滑条自己/.test(ec), 'v439 版本注释');
   const fn = ec.match(/const singleSliderNodePress = \(p: Pt[\s\S]*?\n  \};/)?.[0] ?? '';
   assert(fn.length > 0, 'singleSliderNodePress 存在');
-  assert(/const hitObj = hitTest\(p\.x, p\.y\);\s*if \(hitObj && hitObj\.id !== so\.id\) return false;/.test(fn), '命中守卫按 id 排除本滑条');
+  assert(/const hitObj = hitTest\(p\.x, p\.y\);\s*if \(hitObj && hitObj\.id !== so\.id && !onOwnTrack\) return false;/.test(fn), '命中守卫排除本滑条/自身轨道 (v513)');
   assert(!/if \(hitTest\(p\.x, p\.y\)\) return false; \/\/ v413/.test(fn), 'v413 旧一刀切守卫已移除');
 }
 

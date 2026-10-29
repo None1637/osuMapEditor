@@ -4,7 +4,7 @@ import { getSkin, type Skin } from '@/osu/skin'; // v318: hitcircleSpriteWidth �
 import { renderPlayfield, computeCombos, getSliderPath, invalidatePath, mergedWithPreview, drawDistanceGuideRing, drawPendingSpinner, drawSliderControlPoints } from '@/osu/renderer'; // v259: hover 预览滑条点复用控制点绘制; v308: hover 选中环移除
 import { computePendingPath, deleteSliderPoint, toggleSliderPointRed, resolveSliderCurveType, nearestOnSegment, sliderGeometryLength, snapSliderLength, resnapSliderLength, redPairPartner, isRedPairPoint, altNodeToggleGroup, SliderPath, preserveArcsForBezier, placementLength, snapPlacementTime, spinnerPlacementEnd, BEAT_SNAP_OPTIONS } from '@/osu/sliderPath'; // v319: 插点改 lazer 原位置插入 (旧投影插点函数弃用); v321: BEAT_SNAP_OPTIONS (Ctrl+滚轮循环细分)
 // v387: bsplineToStableBezier 移出本文件 — 手绘落盘/预览均保留 'B4'; 全图转贝塞尔见 convert/convertB4.ts
-import { objectSnapPoints, snapToNearby, snapDragDelta, type Pt } from '@/osu/objectSnap';
+import { objectSnapPoints, snapToNearby, snapDragDelta, sliderTailPoint, type Pt } from '@/osu/objectSnap';
 import { sliderHelperCircle, sliderHelperLines, clipLineToBox, geoHelperSnap, geoHelperSources, geoDistSources, distGuideSnap, geoDragCorrection, GEO_CLIP_BOX, type GeoLine, type GeoCircle } from '@/osu/geometryHelpers';
 import { instantiatePattern } from '@/osu/patternLibrary';
 import { snapToGrid, squareNormals, triangleGrid, type Pt as GridPt } from '@/osu/gridSnap';
@@ -285,7 +285,8 @@ export function EditorCanvas() {
     if (!bm) return p;
     // v55: 物件吸附优先于锁定间距 (lazer: 对象吸附 > 距离吸附; 目标 = 可见且未选中物件的中心/滑条尾)
     // v84: 并入几何辅助吸附 (选中滑条的辅助点/线/圆), 与物件吸附取更近者
-    const near = snapWithGeo(bm, p, snapToNearby(p, objectSnapPoints(bm, bm.hitObjects.filter(o => !store.selected.has(o.id) && isVisibleAt(bm, o, store.currentTime)))));
+    // v515: 放置/预览不是拖拽, 选中参考滑条也提供头/尾吸附点; 拖拽移动仍排除选中物件防自锁
+    const near = snapWithGeo(bm, p, snapToNearby(p, objectSnapPoints(bm, bm.hitObjects.filter(o => isVisibleAt(bm, o, store.currentTime)))));
     if (near) return gridSnapAt(bm, near);
     if (!store.distanceLock || bm.editor.distanceSpacing <= 0) return gridSnapAt(bm, p);
     // v145: 参考件/期望距离收敛到 spacing.ts 共享纯函数 — 修复滑条结束时刻被当开始时刻
@@ -1436,6 +1437,14 @@ export function EditorCanvas() {
     return best;
   };
 
+  // v512: 滑条头/最终尾圈按 note 外缘 r, 中段只按轨道外缘 0.8125r; 白边/外阴影不算身体命中
+  const sliderHitAt = (bm: Beatmap, o: HitObject, px: number, py: number, dx: number, dy: number, r: number): boolean => {
+    if (Math.hypot(o.x + dx - px, o.y + dy - py) <= r) return true;
+    const tail = sliderTailPoint(bm, o);
+    if (Math.hypot(tail.x + dx - px, tail.y + dy - py) <= r) return true;
+    return getSliderPath(bm, o).points.some(pt => Math.hypot(pt.x + dx - px, pt.y + dy - py) <= r * 0.8125);
+  };
+
   const hitTest = (px: number, py: number): HitObject | null => {
     const bm = store.beatmap!;
     const r = csToRadius(bm.difficulty.cs);
@@ -1452,13 +1461,10 @@ export function EditorCanvas() {
       const off = offs.get(o.id);
       const dx = off?.dx ?? 0, dy = off?.dy ?? 0;
       if (o.type === 'slider') {
-        const p = getSliderPath(bm, o);
-        for (const pt of p.points) {
-          if (Math.hypot(pt.x + dx - px, pt.y + dy - py) <= r) { hits.push(o); break; }
-        }
+        if (sliderHitAt(bm, o, px, py, dx, dy, r)) hits.push(o);
       } else if (o.type === 'spinner') {
         if (Math.hypot(256 - px, 192 - py) <= 170) hits.push(o);
-      } else if (Math.hypot(o.x + dx - px, o.y + dy - py) <= r * 1.1) hits.push(o);
+      } else if (Math.hypot(o.x + dx - px, o.y + dy - py) <= r) hits.push(o); // v512: note 不再外扩 10%
     }
     // v171: 命中中含已选中物件时优先返回已选中者 — 拖动/右键已选物件不被重叠的未选中物件抢走;
     //       多个已选物件重叠时仍在已选子集里挑离当前时间最近者
@@ -1611,8 +1617,17 @@ export function EditorCanvas() {
       // v413/v439: 落在别的物件上不落锚点 → 落到物件点选/多选; 命中本滑条身 → 继续插点
       // v497: 还原 v495 的 hitTestAll 穿透重叠改动 (理解错误) — 恢复顶层命中判定,
       //   被本滑条身盖住的其他物件不再拦截插点 (soulten 确认 v413/v439 语义才是要的)
+      // v513: 自身轨道用 v512 同口径显式放行; 不在自身轨道但命中其它滑条离轨锚点时,
+      //   交还 unselectedSliderNodePress (hitTest 只测物件本体, 旧逻辑会在这种手柄上误插点)
+      const onOwnTrack = sliderHitAt(bm, so, p.x, p.y, odx, ody, csToRadius(bm.difficulty.cs));
       const hitObj = hitTest(p.x, p.y);
-      if (hitObj && hitObj.id !== so.id) return false;
+      if (hitObj && hitObj.id !== so.id && !onOwnTrack) return false;
+      if (!onOwnTrack) {
+        const otherSliders = bm.hitObjects.filter(o => o.id !== so.id && o.type === 'slider'
+          && (sliderAnchorInteractiveAt(bm, o, store.currentTime) || store.selected.has(o.id) || store.selectedNodes.has(o.id)));
+        const offs = getStackOffsets(bm);
+        if (nearestNode(otherSliders, offs, p, devicePxPerOsu())) return false;
+      }
       if (ctrl.length >= 2) {
         let best = ctrl.length - 2, bestD = Infinity; // 默认末尾段 (极端: 全部零长段)
         for (let i = 0; i < ctrl.length - 1; i++) {
@@ -1992,10 +2007,11 @@ export function EditorCanvas() {
 
   // v207: 滑条控制点吸附公式 (v56 规则: 物件吸附+辅助线 > 网格, 不走锁定间距) —
   // mousedown 落点与预览幻影 (pendingCursor/画布光标) 共用, 预览所见即所放
+  // v515: 与 snapPlacement 同口径, 选中参考滑条的尾点也参与放置吸附
   const snapSliderCtrlPoint = (p: { x: number; y: number }) => {
     const bm0 = store.beatmap;
     if (!bm0) return p;
-    return gridSnapAt(bm0, snapWithGeo(bm0, p, snapToNearby(p, objectSnapPoints(bm0, bm0.hitObjects.filter(o => !store.selected.has(o.id) && isVisibleAt(bm0, o, store.currentTime))))) ?? p);
+    return gridSnapAt(bm0, snapWithGeo(bm0, p, snapToNearby(p, objectSnapPoints(bm0, bm0.hitObjects.filter(o => isVisibleAt(bm0, o, store.currentTime))))) ?? p);
   };
 
   const finishSlider = () => {

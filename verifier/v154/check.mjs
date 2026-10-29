@@ -42,10 +42,11 @@ section('EditorCanvas.tsx: hitTest 收集全部命中 + 时间最近挑选');
   // v171 适配: 有已选命中时先在已选子集内挑时间最近, 无已选才走全命中时间最近
   assert(/return pickTimeNearestHit\(selHits\.length \? selHits : hits, store\.currentTime\);/.test(blk), '返回值走时间最近挑选 (v171: 已选优先)');
   assert(!blk.includes('for (let i = objs.length - 1; i >= 0; i--)'), '旧倒序首个命中已移除');
-  // 命中几何不变 (滑条路径点 r / 转盘中心 170 / 单点 r*1.1)
-  assert(/<= r\) \{ hits\.push\(o\); break; \}/.test(blk), '滑条命中几何不变 (r, 命中即收)');
+  // v512: 滑条头尾 r / 身体 0.8125r / 转盘中心 170 / 单点 r (不再外扩)
+  assert(/if \(sliderHitAt\(bm, o, px, py, dx, dy, r\)\) hits\.push\(o\)/.test(blk), '滑条走 v512 分区域命中');
+  assert(/r \* 0\.8125/.test(src) && /sliderTailPoint\(bm, o\)/.test(src), '身体=轨道 0.8125r, 最终尾圈仍 r');
   assert(/<= 170\) hits\.push\(o\)/.test(blk), '转盘命中几何不变 (170)');
-  assert(/<= r \* 1\.1\) hits\.push\(o\)/.test(blk), '单点命中几何不变 (r*1.1)');
+  assert(/<= r\) hits\.push\(o\); \/\/ v512: note 不再外扩 10%/.test(blk), '单点命中可视外缘 r (不再 r*1.1)');
   assert(/objectSelectableAt\(bm, o, store\.currentTime\)/.test(blk), '可见性过滤保留 (v467: 走 objectSelectableAt, 滑条按滑条身窗口)');
 }
 

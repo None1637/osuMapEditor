@@ -43,7 +43,7 @@ export function TransformDialog({ mode }: { mode: 'rotate' | 'scale' | 'symmetry
   const originMode = store.originMode;
   const origin: TransformOrigin = store.currentOrigin();
   // v360: 节点模式 (soulten: 多個滑條點也能快捷鍵縮放旋轉) — 有选中滑条锚点时窗口作用于锚点,
-  //   原点恒 = 锚点包围盒中心 (F08 语义), 走 store 节点预览会话 (与物件版 v301 同构)
+  //   原点恒 = 锚点点集质心 (v516) (F08 语义), 走 store 节点预览会话 (与物件版 v301 同构)
   // v484: 单锚点选区不进节点模式 — 单点绕自身旋转/缩放是恒等变换 = 「移動滑條點後選轉會沒效果」
   //   (soulten; 拖动锚点会把节点选区收敛成 1 个 — v410 语义, 此时物件在选区, 回落物件模式
   //   旋转整条滑条, 与不移动时的基线一致)
@@ -131,13 +131,13 @@ export function TransformDialog({ mode }: { mode: 'rotate' | 'scale' | 'symmetry
     store.commitTransformPreview(fn, origin);
     previewOn.current = false; // 提交后显示已提交态, 下次改值重新预览
   };
-  // v360: 节点版提交 (原点由 store 取锚点包围盒中心)
+  // v360: 节点版提交 (原点由 store 取锚点点集质心 (v516))
   const commitNode = (fn: (p: { x: number; y: number }, c: { x: number; y: number }) => { x: number; y: number }) => {
     store.commitNodeTransform(fn);
     previewOn.current = false;
   };
 
-  // v405: 原点分组框 (旋转/缩放共用; 节点模式原点恒为锚点包围盒中心, 不显示)
+  // v405: 原点分组框 (旋转/缩放共用; 节点模式原点恒为锚点点集质心 (v516), 不显示)
   const originGroup = !nodeMode && (
     <Group label={t('transform.origin', 'Origin')}>
       {([['playfield', t('transform.center', 'Playfield Centre')], ['selection', t('transform.selection', 'Selection Centre')], ['custom', t('transform.custom', 'Custom')]] as const).map(([m, label]) => (
@@ -160,9 +160,9 @@ export function TransformDialog({ mode }: { mode: 'rotate' | 'scale' | 'symmetry
     <DraggableDialog title={t('transform.dialog_title', '{mode} ({n} selected)', { mode: title, n: selCount })}
       testid={mode === 'rotate' ? 'rotate-dlg' : mode === 'scale' ? 'scale-dlg' : 'symmetry-dlg'} width={340}
       onClose={() => store.closeTransformDialog()}>
-      {/* v360: 节点模式提示 (原点恒 = 锚点包围盒中心) */}
+      {/* v360: 节点模式提示 (原点恒 = 锚点质心, v516) */}
       {mode !== 'symmetry' && nodeMode && (
-        <div className="text-white/45">{t('transform.node_mode_hint', 'Applying to selected slider anchors (origin = anchor bounding box center)')}</div>
+        <div className="text-white/45">{t('transform.node_mode_hint', 'Applying to selected slider anchors (origin = anchor centroid)')}</div>
       )}
       {/* v379: 无选区开窗提示 (预览/应用此时为 no-op, 选中物件后即生效) */}
       {mode !== 'symmetry' && selCount === 0 && (

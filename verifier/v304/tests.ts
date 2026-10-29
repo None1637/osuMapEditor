@@ -1,4 +1,4 @@
-// v304 store 层测试: F08 多选滑条锚点快捷键变换 (旋转/镜像, 原点 = 锚点包围盒中心)
+// v304 store 层测试: F08 多选滑条锚点快捷键变换 (旋转/镜像, 原点 = 锚点质心 (v516))
 // 运行: cd app && npx esbuild verifier/v304/tests.ts --bundle --platform=node --outfile=verifier/v304/_bundle.mjs && node verifier/v304/_bundle.mjs
 import { store } from '../../src/osu/store';
 import type { Beatmap, HitObject, TimingPoint } from '../../src/osu/parser';
@@ -29,7 +29,7 @@ function reset(hitObjects: HitObject[]) {
   store.lockNotes = false;
 }
 
-section('F08: rotateSelectedNodes 绕锚点包围盒中心旋转, 头部不动 (未选头)');
+section('F08: rotateSelectedNodes 绕锚点质心 (v516)旋转, 头部不动 (未选头)');
 {
   reset([slider(1)]);
   store.selectedNodes.set(1, new Set([1, 2])); // 选中两个锚点 (200,100) / (200,300), 包围盒中心 (200,200)

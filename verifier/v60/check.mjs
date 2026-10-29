@@ -53,7 +53,7 @@ section('store.ts: tempo 引擎接线');
   assert(/clock\.rate = this\.playbackRate/.test(src) && /clock\.onStartedAtCtxTime\(startW, offset \* 1000\)/.test(src), '时钟锚定与 source 路径一致 (v251: 锚定到采样网格吸附后的 offset, 与 source.start 同一值)');
   assert(/this\.audioBuffer !== buf/.test(src), '加载期间换歌守卫');
   assert(/v447: 不再预热变速引擎/.test(src), 'v447: 解码完成不再预热引擎 (引擎各持整份 PCM 副本, 首次变速经 play() 兜底懒建)');
-  assert(/worklet 未就绪: 本次退回 playbackRate[\s\S]{0,120}?ensureTempoNode\(\)/.test(src), 'play() 兜底懒建 tempo 引擎保留 (v447 懒建依赖此路径)');
+  assert(/v509: signalsmith 尚未就绪[\s\S]{0,500}?ensureTempoNode\(\)/.test(src) && /this\.audio\.preservesPitch = true/.test(src), 'play() 兜底懒建 tempo + v509 保时音高 HTMLAudio');
   // v295: preservesPitch 跟随 rateAdjustPitch 开关 (不变调时 true)
   assert(/this\.audio\.preservesPitch = !this\.rateAdjustPitch/.test(src) && /webkitPreservesPitch/.test(src), 'HTMLAudio 降级路径 preservesPitch 跟随 rateAdjustPitch (v295)');
   assert(/tempoReady: !!this\.tempoNode/.test(src) && /tempoActive: this\.tempoActive/.test(src), 'debugState 暴露 tempo 状态');

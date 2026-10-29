@@ -1,17 +1,24 @@
 // 验证器 v63: 上时间轴 +红/+绿 插入按钮 + 双击 BPM/SV 胶囊开全参数编辑弹窗
 // 运行: cd app && node verifier/v63/check.mjs; node verifier/v63/cdp-v63.mjs (需 7100 dev server)
-import { buildSync } from 'esbuild';
+import { build } from 'esbuild';
 import { fileURLToPath } from 'url';
 import path from 'path';
 import fs from 'fs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const out = path.join(root, 'verifier/v63/_bundle.mjs');
+const rawText = {
+  name: 'raw-text',
+  setup(build) {
+    build.onResolve({ filter: /\?raw$/ }, args => ({ path: path.resolve(args.resolveDir, args.path), namespace: 'raw-text' }));
+    build.onLoad({ filter: /.*/, namespace: 'raw-text' }, args => ({ contents: fs.readFileSync(args.path.replace(/\?raw$/, ''), 'utf8'), loader: 'text' }));
+  },
+};
 
-buildSync({
+await build({
   entryPoints: [path.join(root, 'verifier/v63/tests.ts')],
   bundle: true, format: 'esm', platform: 'node', outfile: out,
-  alias: { '@': path.join(root, 'src') },
+  alias: { '@': path.join(root, 'src') }, plugins: [rawText],
 });
 
 let failures = 0;

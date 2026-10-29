@@ -42,14 +42,15 @@ interface Snapshot {
   rawSections?: Record<string, string[]>;
 }
 
-function deepCopy<T>(v: T): T { return v === undefined ? v : JSON.parse(JSON.stringify(v)); } // v344: undefined 防御 (JSON.parse("undefined") 会抛)
+function deepCopy<T>(v: T): T { return v === undefined ? v : structuredClone(v); } // v344/v517: undefined 防御; 保留 NaN/Infinity (JSON 会变 null)
 
-/** 变换原点: 'selection' 选区包围盒中心 / 'playfield' 游玩区中心 (256,192) / {x,y} 自定义位置 */
+/** 变换原点: 'selection' 选区点集质心 (v511) / 'playfield' 游玩区中心 (256,192) / {x,y} 自定义位置 */
 export type TransformOrigin = 'selection' | 'playfield' | Pt;
 
 export type Tool = 'select' | 'circle' | 'slider' | 'spinner';
 
 export const PLAYBACK_RATES = [0.5, 0.75, 1] as const;
+const WHEEL_GESTURE_END_MS = 90; // v514: 短滚轮手势静默上限, 到时补发不足一刻度的唯一一步
 
 /** v101: hitsound 总线增益 (留余量防削波; 所有 hitsound 经此总线再到 destination) */
 export const HITSOUND_BUS_GAIN = 0.8;
@@ -370,8 +371,10 @@ class EditorStore {
   starRating: number | null = null;
   setStarRating(v: number | null) { this.starRating = v; this.emitSelection(); }
   audioUrl: string | null = null;
-  audio: HTMLAudioElement | null = null; // 兜底(解码失败时, 无 1ms 保证, degradedSync=true)
+  audio: HTMLAudioElement | null = null; // 兜底(解码失败 / v509 不变调引擎未就绪; 无 1ms 保证)
   degradedSync = false;
+  private htmlAudioActive = false; // v509: audioBuffer 存在但暂走 <audio> 时, 位置/暂停/seek 也切换到时钟外通道
+
   backgroundUrl: string | null = null;
   backgroundImg: HTMLImageElement | null = null;
   // Web Audio: 采样级时钟, 消除播放offset
@@ -598,6 +601,7 @@ class EditorStore {
   }
 
   load(bm: Beatmap, audioUrl: string | null, backgroundUrl: string | null = null, samples?: Map<string, File>, source: MapSource | null = null, audioKey: string | null = null) {
+    this.resetWheelGesture(); // v514: 换谱后不得补发上一张谱的滚轮余量
     invalidatePath(); // v378: 换谱几何缓存全部失效 — pathCache 按物件 id 缓存, 新谱物件 id 与旧谱滑条
     //   重合时 hitTest/渲染沿用旧几何 (点不中/画错形状); restore() 已有同款清理, load 漏了
     this.beatmap = bm;
@@ -640,6 +644,7 @@ class EditorStore {
   setAudio(url: string | null, audioKey: string | null = null) {
     this.stopSource();
     if (this.audio) { this.audio.pause(); this.audio = null; }
+    this.htmlAudioActive = false; // v509
     // 歌曲更换: 旧变速节点持有旧 PCM, 销毁待重建
     this.destroyTempoNode(); // v447: 收口为销毁助手 (含在途加载令牌 + 播完定时器)
     this.destroyRateNode();
@@ -688,7 +693,7 @@ class EditorStore {
           this.audioBuffer = decoded;
           if (audioKey) this.audioCache = { key: audioKey, buffer: decoded }; // v444: 解码成功入缓存
           // v447: 不再预热变速引擎 (v382 曾预热当前模式) — 引擎节点各持整份 PCM 副本, 常驻几十~上百 MB;
-          //   首次变速播放走 play() 既有兜底: 本次退回原生 playbackRate, 引擎就绪后自动重进, 变速音质最终不变
+          //   首次慢放走 play() 的 v509 兜底: 本次用 <audio preservesPitch>, 引擎就绪后自动重进, 全程不降调
           this.emit();
         }
       }).catch(() => {
@@ -759,7 +764,7 @@ class EditorStore {
         this.tempoAnalyser = an;
         this.tempoGain = g;
       } catch (err) {
-        console.warn('signalsmith-stretch tempo 节点不可用, 变速将退化为变调', err);
+        console.warn('signalsmith-stretch tempo 节点不可用, 慢放退化为 <audio preservesPitch>', err);
       }
     })();
   }
@@ -1083,7 +1088,7 @@ class EditorStore {
 
   // 当前精确播放位置 (ms): 对齐人耳可闻位置, WebAudio 时钟误差 < 1ms
   positionMs(): number {
-    if (this.playing && this.audioBuffer && this.clock) {
+    if (this.playing && this.audioBuffer && this.clock && !this.htmlAudioActive) { // v509: HTML 慢放兜底不能读未启动的 WebAudio 时钟
       this.rebuildEventsIfDirty();
       this.scheduler?.tick();
       this.tickSlideLoops();
@@ -2060,7 +2065,7 @@ class EditorStore {
 
   // ---- 选区几何变换 (旋转/镜像/缩放; 一次操作一次 undo) ----
   // 原点三种模式 (lazer SelectionRotationHandler 的 origin 参数语义):
-  //  'selection' = 选区包围盒中心, 'playfield' = 游玩区中心 (256,192), {x,y} = 自定义位置
+  //  'selection' = 选区点集质心 (v511), 'playfield' = 游玩区中心 (256,192), {x,y} = 自定义位置
   // 原点模式与自定义点是 UI 状态 (不进 undo): Inspector 与画布标记共用, 画布上可拖拽
   originMode: 'selection' | 'playfield' | 'custom' = 'selection';
   customOrigin: Pt = { x: 256, y: 192 };
@@ -2169,7 +2174,7 @@ class EditorStore {
 
   // ---- v360: 节点选区旋转/缩放窗口预览 (soulten: 多個滑條點也能快捷鍵縮放旋轉) ----
   // 与物件版 (v301) 同构: begin 备份选中节点坐标+滑条长度 → preview 回滚后按当前参数变换
-  //   (原点恒 = 锚点包围盒中心, F08 语义) → commit 回滚+pushUndo(预览前)+正式应用并重置基准
+  //   (原点恒 = 锚点点集质心 (v516), F08 语义) → commit 回滚+pushUndo(预览前)+正式应用并重置基准
   //   → end 回滚到最后提交态。预览全程不碰 undo 栈。
   private tfNodeBackup: { snap: Map<number, Map<number, Pt>>; lens: Map<number, number | undefined> } | null = null;
 
@@ -2191,17 +2196,16 @@ class EditorStore {
     }
   }
 
-  /** 备份态锚点包围盒中心 (F08 原点; 预览全程按备份态解析, 与物件版 resolveOrigin 同款稳定基准) */
+  /** v516: 备份态锚点质心 (预览全程按备份态解析, 与物件版 resolveOrigin 同款稳定基准) */
   private nodeBackupCenter(): Pt | null {
     const b = this.tfNodeBackup;
     if (!b) return null;
-    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity, n = 0;
+    let sumX = 0, sumY = 0, n = 0;
     for (const m of b.snap.values()) for (const p of m.values()) {
-      if (p.x < x0) x0 = p.x; if (p.y < y0) y0 = p.y;
-      if (p.x > x1) x1 = p.x; if (p.y > y1) y1 = p.y;
+      sumX += p.x; sumY += p.y;
       n++;
     }
-    return n ? { x: (x0 + x1) / 2, y: (y0 + y1) / 2 } : null;
+    return n ? { x: sumX / n, y: sumY / n } : null;
   }
 
   /** 节点版实时预览: 回滚到基准后按当前参数变换 (不入 undo); 需在 beginNodeTransformPreview 之后调用 */
@@ -2247,7 +2251,7 @@ class EditorStore {
     this.emit();
   }
 
-  // ---- v304: F08 节点选区快捷键变换 (多选滑条锚点; 原点 = 选中锚点包围盒中心; 一次操作一次 undo) ----
+  // ---- v304: F08 节点选区快捷键变换 (多选滑条锚点; 原点 = 选中锚点点集质心 (v516); 一次操作一次 undo) ----
   private applyNodeTransform(fn: (p: Pt, c: Pt) => Pt) {
     if (this.lockNotes || !this.beatmap || !this.selectedNodes.size) return;
     const bm = this.beatmap;
@@ -2255,13 +2259,10 @@ class EditorStore {
     const pts: Pt[] = [];
     for (const m of snap.values()) pts.push(...m.values());
     if (!pts.length) return;
-    // 原点 = 锚点包围盒中心 (F08 指定)
-    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
-    for (const p of pts) {
-      if (p.x < x0) x0 = p.x; if (p.y < y0) y0 = p.y;
-      if (p.x > x1) x1 = p.x; if (p.y > y1) y1 = p.y;
-    }
-    const c = { x: (x0 + x1) / 2, y: (y0 + y1) / 2 };
+    // v516: 原点 = 选中锚点质心 (等边三角形转 120° 不再跑位)
+    let sumX = 0, sumY = 0;
+    for (const p of pts) { sumX += p.x; sumY += p.y; }
+    const c = { x: sumX / pts.length, y: sumY / pts.length };
     this.pushUndo();
     const ids = transformNodesFromSnapshot(bm, snap, p => fn(p, c));
     for (const id of ids) {
@@ -2272,7 +2273,7 @@ class EditorStore {
     this.emit();
   }
 
-  /** 旋转选中锚点 (角度制, 顺时针为正; 原点 = 锚点包围盒中心) */
+  /** 旋转选中锚点 (角度制, 顺时针为正; 原点 = 锚点点集质心 (v516)) */
   rotateSelectedNodes(deg: number) {
     const r = (deg * Math.PI) / 180, cos = Math.cos(r), sin = Math.sin(r);
     this.applyNodeTransform((p, c) => ({
@@ -2281,7 +2282,7 @@ class EditorStore {
     }));
   }
 
-  /** 镜像选中锚点: 'h' 水平 (左右) / 'v' 垂直 (上下); 原点 = 锚点包围盒中心 */
+  /** 镜像选中锚点: 'h' 水平 (左右) / 'v' 垂直 (上下); 原点 = 锚点点集质心 (v516) */
   flipSelectedNodes(axis: 'h' | 'v') {
     this.applyNodeTransform((p, c) => axis === 'h' ? { x: 2 * c.x - p.x, y: p.y } : { x: p.x, y: 2 * c.y - p.y });
   }
@@ -2465,6 +2466,7 @@ class EditorStore {
   }
 
   seek(t: number) {
+    this.resetWheelGesture(); // v514: 显式 seek 取消尚未补发的滚轮余量
     t = Math.max(0, t);
     if (this.playing) {
       // 播放中seek: 先暂停(避免位置被回放), 重启 source 重新锚定时钟
@@ -2484,18 +2486,21 @@ class EditorStore {
 
   // ---- v193: 滚轮 seek (对齐 lazer Editor.OnScroll + EditorClock.seek) ----
   private wheelAccum: WheelAccum = { acc: 0 }; // lazer Editor.scrollAccumulation (三处滚轮入口共享)
+  private wheelFlushTimer: ReturnType<typeof setTimeout> | null = null; // v514
+  private wheelGestureActive = false;
+  private wheelGestureHadSteps = false;
 
-  /**
-   * 滚轮 seek 总入口 (游玩区/上时间轴/下时间轴共用):
-   *  - 累积增量到 1 刻度 (120px, lazer precision=1) 才触发, 触摸板精密滚动不再每事件都 seek;
-   *  - 暂停: 每步沿方向吸附一个 1/beatSnap 网格点 (seekByBeats, v179 语义);
-   *  - 播放中: 不吸附, 步长 = BeatLength × BPM/120 × (1+250/(int)BeatLength), 轻量重定位 (不 pause/play)。
-   */
-  wheelSeek(deltaY: number, deltaMode: number) {
+  private resetWheelGesture() {
+    if (this.wheelFlushTimer !== null) clearTimeout(this.wheelFlushTimer);
+    this.wheelFlushTimer = null;
+    this.wheelAccum.acc = 0;
+    this.wheelGestureActive = false;
+    this.wheelGestureHadSteps = false;
+  }
+
+  private applyWheelSteps(steps: number) {
     const bm = this.beatmap;
-    if (!bm) return;
-    const steps = wheelSteps(this.wheelAccum, deltaY, deltaMode);
-    if (!steps) return;
+    if (!bm || !steps) return;
     if (this.playing) {
       const step = playingWheelStepMs(bm.timingPoints, this.currentTime);
       this.seekWhilePlaying(this.positionMs() + steps * step);
@@ -2505,6 +2510,42 @@ class EditorStore {
     const dir = steps > 0 ? 1 : -1;
     for (let i = 0; i < Math.abs(steps); i++) t = seekByBeats(bm.timingPoints, this.beatSnap, t, dir);
     this.seek(t);
+  }
+
+  private finishWheelGesture() {
+    this.wheelFlushTimer = null;
+    if (!this.wheelGestureActive) return;
+    // v514: 只有整段手势都没凑出刻度才补一步; 已触发过则舍弃余量, 不多发
+    const flush = this.beatmap && !this.wheelGestureHadSteps && this.wheelAccum.acc !== 0;
+    if (flush) this.applyWheelSteps(Math.sign(this.wheelAccum.acc));
+    else this.resetWheelGesture();
+  }
+
+  /**
+   * 滚轮 seek 总入口 (游玩区/上时间轴/下时间轴共用):
+   *  - 连续手势仍按 120px 累积; v514: 静默 90ms 后, 若整段手势一步都没产生, 按余量方向补一步;
+   *  - 暂停: 每步沿方向吸附一个 1/beatSnap 网格点 (seekByBeats, v179 语义);
+   *  - 播放中: 不吸附, 步长 = BeatLength × BPM/120 × (1+250/(int)BeatLength), 轻量重定位 (不 pause/play)。
+   */
+  wheelSeek(deltaY: number, deltaMode: number) {
+    const bm = this.beatmap;
+    if (!bm) { this.resetWheelGesture(); return; }
+    if (!this.wheelGestureActive) {
+      this.wheelAccum.acc = 0;
+      this.wheelGestureHadSteps = false;
+      this.wheelGestureActive = true;
+    }
+    if (this.wheelFlushTimer !== null) clearTimeout(this.wheelFlushTimer);
+    this.wheelFlushTimer = null;
+    const steps = wheelSteps(this.wheelAccum, deltaY, deltaMode);
+    const hadSteps = this.wheelGestureHadSteps || steps !== 0;
+    const acc = this.wheelAccum.acc;
+    // applyWheelSteps 内部 seek 会 resetWheelGesture; 恢复本次连续手势状态后再排结束定时器
+    if (steps) this.applyWheelSteps(steps);
+    this.wheelGestureActive = true;
+    this.wheelGestureHadSteps = hadSteps;
+    this.wheelAccum.acc = acc;
+    this.wheelFlushTimer = setTimeout(() => this.finishWheelGesture(), WHEEL_GESTURE_END_MS);
   }
 
   /**
@@ -2518,10 +2559,12 @@ class EditorStore {
    * 旧区间音效会照原时刻补响, 听感 = 滚过的物件 hitsound 全部补播。
    */
   seekWhilePlaying(t: number) {
+    this.resetWheelGesture(); // v514: 同 seek, 取消旧滚轮补步
     if (!this.playing) { this.seek(t); return; }
+    this.resumeFloorMs = null; // v514: 显式重定位后不再被旧暂停点的防闪回下限钳回
     t = Math.max(0, Math.min(t, this.songLength()));
     this.currentTime = t;
-    if (this.audioBuffer && this.actx && this.clock) {
+    if (this.audioBuffer && this.actx && this.clock && !this.htmlAudioActive) { // v509
       const actx = this.actx;
       const sr = actx.sampleRate;
       // v251: 采样网格吸附 — Chromium 对 when 非采样整数的 AudioBufferSourceNode 走线性插值渲染,
@@ -2626,7 +2669,36 @@ class EditorStore {
 
   play() {
     this.playing = true;
+    // v509: signalsmith 尚未就绪时也不能用原生 playbackRate 冒充慢放 (那会降调)。
+    // 本次先走浏览器 <audio preservesPitch>；引擎就绪后自动重进采样级时钟主路径。
+    if (this.audioBuffer && this.audioUrl && this.playbackRate !== 1 && !this.rateAdjustPitch && !this.tempoNode) {
+      this.stopSource();
+      this.ensureTempoNode();
+      this.tempoLoading?.then(() => {
+        if (this.playing && this.playbackRate !== 1 && !this.rateAdjustPitch && this.tempoNode && !this.tempoActive) { this.pause(); this.play(); }
+      });
+      if (!this.audio) {
+        this.audio = new Audio(this.audioUrl);
+        this.audio.addEventListener('ended', () => {
+          if (this.htmlAudioActive) this.currentTime = this.songLength();
+          this.playing = false;
+          this.htmlAudioActive = false;
+          this.emit();
+        });
+      }
+      this.htmlAudioActive = true;
+      this.audio.volume = musicGain();
+      this.audio.preservesPitch = true;
+      (this.audio as HTMLAudioElement & { webkitPreservesPitch?: boolean }).webkitPreservesPitch = true;
+      this.audio.currentTime = this.currentTime / 1000;
+      this.audio.playbackRate = this.playbackRate;
+      this.audio.play().catch(() => { });
+      this.emit();
+      return;
+    }
+    this.htmlAudioActive = false;
     if (this.audioBuffer) {
+      this.audio?.pause(); // v509: 从 HTML 慢放兜底切回时不得留下第二路声音
       const clock = this.ensureClock();
       this.actx!.resume().catch(() => { });
       this.stopSource();
@@ -2705,13 +2777,6 @@ class EditorStore {
             if (this.playing && this.playbackRate !== 1 && this.rateAdjustPitch && this.rateNode && !this.rateActive) { this.pause(); this.play(); }
           });
         }
-        if (this.playbackRate !== 1 && !this.rateAdjustPitch && !this.tempoNode) { // v295
-          // worklet 未就绪: 本次退回 playbackRate (变调), 就绪后自动重进不变调引擎
-          this.ensureTempoNode();
-          this.tempoLoading?.then(() => {
-            if (this.playing && this.playbackRate !== 1 && !this.rateAdjustPitch && this.tempoNode && !this.tempoActive) { this.pause(); this.play(); }
-          });
-        }
         const src = this.actx!.createBufferSource();
         src.buffer = this.audioBuffer;
         src.playbackRate.value = this.playbackRate;
@@ -2742,7 +2807,7 @@ class EditorStore {
   }
 
   pause() {
-    if (this.playing && this.audioBuffer && this.clock) {
+    if (this.playing && this.audioBuffer && this.clock && !this.htmlAudioActive) { // v509
       this.currentTime = this.clock.onStopped();
       this.scheduler?.setMuted(true);
     } else if (this.playing) {
@@ -2750,6 +2815,7 @@ class EditorStore {
     }
     this.resumeFloorMs = null; // v261: 暂停即失效 (下次 play 重新记录)
     this.playing = false;
+    this.htmlAudioActive = false; // v509: 必须先取回 <audio> 位置再清标志
     this.stopSource();
     this.stopSlideLoops();
     this.audio?.pause();

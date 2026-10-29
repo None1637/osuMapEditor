@@ -347,7 +347,7 @@ export default function App() {
         case 'cut': e.preventDefault(); store.cut(); return;
         case 'select-all': e.preventDefault(); store.selectAllObjects(); return;
         // 选区变换快捷键始终围绕游玩区中心 (256,192) — 对齐 osu!stable (v192); Inspector 面板按钮仍用界面选的原点
-        // v304: F08 — 有滑条锚点选区时作用于锚点 (原点 = 锚点包围盒中心), 否则物件选区
+        // v304: F08 — 有滑条锚点选区时作用于锚点 (原点 = 锚点点集质心 (v516)), 否则物件选区
         // v485: ≥2 锚点才走节点变换 — 单锚点绕自身旋转/缩放/镜像 = 恒等 = 「移動滑條點後選轉跟縮放都不會有效果」
         //   (soulten; 拖锚点会把节点选区收敛成 1 个 — v410, 此时物件在选区, 回落物件变换; 浮窗路径 v484 已修)
         case 'reverse': e.preventDefault(); store.reverseSelected(); return;

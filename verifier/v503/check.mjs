@@ -87,6 +87,8 @@ section('D: CDP 预览');
       };
       for (let i = 0; i < 60; i++) { put(500 + i * spb, 0.9); put(500 + (i + 0.5) * spb, 0.35); }
       s.audioBuffer = buf;
+      s.beatmap.editor.timelineZoom = 1; // 验证器环境归一: 避免真实配置的缩放影响点击 seek 目标
+      s.seek(5000); // 与初始播放位置无关地验证点击 seek
       s.emit();
     })()`);
     await evalJs(`window.dispatchEvent(new KeyboardEvent('keydown', { key: 'F2', code: 'F2', bubbles: true }))`);

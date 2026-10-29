@@ -1,0 +1,8 @@
+# 本地真实歌曲录音/频谱图与临时文件不得提交
+*.wav
+*.webm
+*.png
+*.log
+/.tempoWorklet.bundle.mjs
+/.diag.mjs
+/.test-com*.ps1

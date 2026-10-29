@@ -8,16 +8,20 @@ import { useT } from '@/i18n';
 
 /** v372: 高精度数值输入 (BPM/SV) — 聚焦期间保留用户原文 ( controlled 值重算会吞掉输入中的 "." ),
  *  失焦后回到规范显示 (最多 13 位有效小数, stable 同精度); 输入过程中每次合法值即时提交 */
-function PreciseInput({ value, onCommit, className, dataAttr, dataValue, autoFocus }: { value: number; onCommit: (v: number) => void; className: string; dataAttr?: string; dataValue?: string; autoFocus?: boolean }) {
+function PreciseInput({ value, onCommit, className, dataAttr, dataValue, autoFocus, allowNaN = false }: {
+  value: number; onCommit: (v: number) => void; className: string; dataAttr?: string; dataValue?: string; autoFocus?: boolean; allowNaN?: boolean;
+}) {
   const [raw, setRaw] = useState<string | null>(null);
   return (
-    <input type="number" step="any" className={className} autoFocus={autoFocus}
+    <input type={allowNaN ? 'text' : 'number'} step="any" className={className} autoFocus={autoFocus}
       {...(dataAttr ? { [dataAttr]: dataValue ?? true } : {})}
       value={raw ?? fmtTpPrec(value)}
       onFocus={() => setRaw(fmtTpPrec(value))}
       onChange={e => {
-        setRaw(e.target.value);
-        const v = parseFloat(e.target.value);
+        const text = e.target.value;
+        setRaw(text);
+        if (allowNaN && text.trim().toLowerCase() === 'nan') { onCommit(NaN); return; } // v517: 显式 token, 空串不提交
+        const v = parseFloat(text);
         if (isFinite(v)) onCommit(v);
       }}
       onBlur={() => setRaw(null)} />
@@ -173,8 +177,8 @@ export function TimingPanel({ full = false }: { full?: boolean }) {
         <div data-tp-batch className="flex flex-wrap items-center justify-center gap-2 px-3 py-1.5 border-y border-emerald-400/30 bg-emerald-500/10">
           <span className="text-emerald-300">{t('timing.green_selected', '{n} inherited lines selected', { n: selGreens.length })}</span>
           <label className="flex items-center gap-1">SV
-            <PreciseInput value={-100 / batchFirst.beatLength} dataAttr="data-tp-batch-input" dataValue="sv"
-              onCommit={v => batchApply({ beatLength: -100 / (v || 1) })}
+            <PreciseInput value={-100 / batchFirst.beatLength} dataAttr="data-tp-batch-input" dataValue="sv" allowNaN
+              onCommit={v => batchApply({ beatLength: Number.isNaN(v) ? NaN : -100 / (v || 1) })}
               className={`w-24 ${inp}`} />x
           </label>
           <label className="flex items-center gap-1">{t('timing.sample_set', 'Sample Set')}
@@ -307,12 +311,12 @@ export function TimingPanel({ full = false }: { full?: boolean }) {
                       <span className="ml-1 text-white/40">{tp.uninherited ? 'BPM' : 'x'}</span>
                     </>}
                     edit={() => tp.uninherited ? (
-                      <PreciseInput autoFocus value={60000 / tp.beatLength} dataAttr="data-tp-input" dataValue="bpm"
-                        onCommit={v => updateTp(i, { beatLength: 60000 / (v || 120) })}
+                      <PreciseInput autoFocus value={60000 / tp.beatLength} dataAttr="data-tp-input" dataValue="bpm" allowNaN
+                        onCommit={v => updateTp(i, { beatLength: Number.isNaN(v) ? NaN : 60000 / (v || 120) })}
                         className={`w-24 ${inp}`} />
                     ) : (
-                      <PreciseInput autoFocus value={-100 / tp.beatLength} dataAttr="data-tp-input" dataValue="sv"
-                        onCommit={v => updateTp(i, { beatLength: -100 / (v || 1) })}
+                      <PreciseInput autoFocus value={-100 / tp.beatLength} dataAttr="data-tp-input" dataValue="sv" allowNaN
+                        onCommit={v => updateTp(i, { beatLength: Number.isNaN(v) ? NaN : -100 / (v || 1) })}
                         className={`w-24 ${inp}`} />
                     )} />
                   {/* v372: 拍号显示为 n/4; 绿线不显示拍号; v374: 点击才出输入框 */}

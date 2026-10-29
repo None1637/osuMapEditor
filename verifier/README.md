@@ -5832,3 +5832,86 @@
 - 验证: v508 CDP — 菜单含两项 → 全曲应用单红线; 两条书签 [5000,12000] 区间内检测
   offset 落在区间内, 应用后区间内 1 根新线、区间外 0 根 (原红线被替换语义正确);
   无书签弹提示。源码断言 (菜单项/App/store/切片) 全过; v498-v507 回归全绿。
+
+## v509 (2026-10-25) — 慢放兜底保时音高 + 无混音 PCM 诊断
+- 问题: 用户反馈任何慢放音质都不正确。本次不再用系统回录/MediaRecorder (会混入其它程序声音或经
+  Opus 压缩), 新增 `realtime-raw.mjs` 从 `tempoGain` 直接抓未压缩 PCM。0.5×/0.75× 实测均
+  `tempoActive=true / rateActive=false / nativeSource=false`; 真实歌曲只本地验证, WAV 不入库。
+- 主路径结论: signalsmith 主路径没有降调或明显高频缺失; 48kHz 下真实歌曲频谱与 ffmpeg 同倍率
+  参考相符。不同保时音高算法的相位/瞬态不同, 不能仅凭波形相关度判定音质, 也不把该参考当作
+  「与 osu! 样本完全一致」的验收。待人工 Audacity 的 osu! 录音可用 `compare.mjs` 对齐比较。
+- 确认并修复一个独立 bug: signalsmith 尚未就绪/不可用时, 旧兜底会把 `playbackRate` 直接设在
+  BufferSource 上, 导致降调。v509 改为本次先走 `<audio preservesPitch=true>` (含 webkit 前缀),
+  引擎就绪后自动接管并暂停 HTML 第二路声音; DT/HT 的变调 sinc/原生兜底语义不变。
+- 新增 `htmlAudioActive`: 兜底期间 `positionMs`、播放中 seek、暂停均使用 HTMLAudio 的实际位置,
+  不读未启动的 WebAudio 时钟; 自然播完停在曲尾, 切回主路径、换歌、暂停时清理状态。
+- 验证: `verifier/v509/check.mjs` 用内存生成的 12s 440Hz WAV (无真实音频依赖), 覆盖 0.5× 兜底
+  preservesPitch/无 native source、位置推进、播放中 seek、暂停取回位置、自然播完、signalsmith 自动接管,
+  17 项全绿。`npm run build`、v60 (含 DSP)、v295、v382、v385、v447 全绿; v295 的陈旧 500 字符
+  匹配上限仅扩到 1200, 产品逻辑未变。
+- 工具: `node verifier/v509/realtime-raw.mjs <mapDir> <rate> <seconds> <outWav>`;
+  `node verifier/v509/compare.mjs <editor.wav> <osu.wav>` (先约 1.4kHz 粗对齐再精修, lag 输出 ms;
+  支持 Audacity 常见 24-bit / float / WAVE_FORMAT_EXTENSIBLE, 已用合成 sine 自比对验证)。
+- 用户 Audacity 平铺频谱留档 (50%, 上=编辑器 / 下=stable): 音高、谐波结构、节奏与高频延伸总体一致,
+  未见降调或固定低通; 差异主要在瞬态/谐波细部纹理, 指向两种保时音高算法的瞬态/相位/调制噪声差异。
+  截图未统一采样起点、增益与轨道高度, 不能据此判定降质或完全一致。仍待两份原始 WAV 做采样对齐、
+  增益归一、分频带能量/频谱质心/瞬态衰减对比; soulten 的主路径听感问题不宣称已解决。
+
+## v510 — 对称滑条取消/换选后绑定当前滑条
+- 根因: `selected` Set 原地修改, `SymSliderDialog` 的 memo 却以其引用为依赖; 取消或 A→B 后仍计算/应用 A。
+- 修复: 提取单选 `selectedId` 作为 memo 依赖, 保留 `historySeq` 和节点签名; 空选区清预览并禁用 Apply。
+- 验证: v510 CDP 覆盖 A→空→B→A→B 的 hideIds/坐标/按钮刷新, 拼接 Apply 后 A 保留、B 被替换且结果
+  来自 B; 源码断言与 `npm run build` 全绿。
+
+## v511 — Selection Centre 改点集质心 (等边三角形旋转)
+- 根因: 旧 `selectionCenter` 取所有点的 AABB 中心; 等边三角形的 AABB 中心不是三角形质心, 120°
+  旋转会整体跑位。现改为圆圈位置、滑条头与全部控制点的算术平均; 旋转/缩放/镜像/批量复制的
+  Selection Centre 定义一致, 空选区与只选转盘仍无中心。
+- 验证: v511 等边三角形质心精确断言、120° 后顶点集合不变、预览回滚/提交一次 undo; v17/v210/v301
+  相关回归全绿。v210/v301 测试构建补 `?raw`+ESM 加载, v301 同步 v405 的 sx/sy 与质心数值断言。
+
+## v512 — note/滑条按可见区域命中
+- note 命中从 `r*1.1` 收为 `r`, 去掉圈外十余屏幕像素的误选; 滑条头/最终尾圈仍按 `r`, 中段只按
+  轨道外缘 `0.8125r`, 白边与外阴影不再算身体。堆叠偏移、可见性与重叠优先规则不变。
+- 验证: v512 在 scale=1/1.6 下各 8 组边界真值 (note r±、身体 track±、头尾 0.9r/r+2) 全绿;
+  v154 同步新几何断言并通过, `npm run build` 通过。
+
+## v513 — 重叠滑条/离轨锚点的 Ctrl 插点
+- 保留 v439/v497 语义: 已选滑条自身轨道与圆圈/另一滑条重叠仍允许插点, 不恢复 hitTestAll 穿透。
+  自身轨道改用 v512 同一 `sliderHitAt` 测量。补上物件命中之外的其它滑条离轨控制点检测: 不在自身
+  轨道时交还 `unselectedSliderNodePress`, 不再误插; 自身已有锚点与时间轴禁止空白插点不变。
+- 验证: v513 覆盖叠圆圈/叠滑条/仅其它物件/其它离轨锚点/自身轨道叠离轨锚点/纯空白六组场景;
+  v413/v438/v439/v495/v496 全绿 (旧静态守卫断言适配 v513), `npm run build` 通过。
+
+## v514 — 时间轴滚轮短手势与播放中向后 seek 失效
+- 两个根因: ① 不足 120px 的短手势余量会一直攒着, 首次滚动看似无响应; ② 恢复播放后的
+  `resumeFloorMs` 未在显式 seek 时清除, 向后重定位会被钳回旧暂停点。
+- 修复: 保留连续手势 120px 累积; 静默 90ms 后, 仅整段手势未出刻度时按余量方向补一步, 已出刻度
+  不多补。显式 seek/播放 seek/换谱取消旧补步; `seekWhilePlaying` 清防闪回下限。Alt/Ctrl 缩放语义不变。
+- 验证: v514 真实计时器覆盖 40+40、40+40+40、160、LINE、反向、显式 seek/新手势; CDP 验证上下
+  时间轴 40+40 均只补一格, 恢复播放立即向后滚不被钳回。v193/v251/v261 与 `npm run build` 全绿。
+
+## v515 — 放置/预览可吸附到选中参考滑条尾
+- 根因: `objectSnapPoints` 本就含滑条尾, 但 `snapPlacement`/`snapSliderCtrlPoint` 沿用了拖拽防自锁的
+  选中物件过滤; 用户选中参考滑条再放置时, 其头/尾都被排除, 看似没有尾点吸附。
+- 修复: 放置、圆圈/滑条预览与控制点不再排除选中参考物件; 实际拖拽移动仍排除选中物件防自锁,
+  `objectSnapEnabled` 总开关与网格/几何辅助优先级不变。
+- 验证: v515 CDP 覆盖选中参考滑条时圆圈预览、实际落盘、滑条控制点均吸附到尾点, 总开关关闭不吸;
+  v55/v207/v235 全绿 (v55 import 断言兼容 v512 新增 sliderTailPoint), `npm run build` 通过。
+
+## v516 — 多选滑条锚点的旋转窗口也改质心
+- 用户复核指出旋转窗口仍是包围盒中心: v511 已修物件选区, 但节点模式的 `nodeBackupCenter` 与快捷键
+  `applyNodeTransform` 是另一套 AABB 实现。两处均改为选中锚点坐标算术平均, 节点提示与注释同步。
+- 验证: v516 直接旋转/预览/提交/undo 全绿; 真实 Rotate 窗口选中 3 个锚点输入 120°, 预览与应用后
+  等边三角形顶点集合均不变且一次 undo。v304/v360 相关回归通过, `npm run build` 通过。
+
+## v517 — 红绿线显式 NaN BPM/SV
+- 输入: `DraftNum`/`PreciseInput` 增加仅限 BPM/SV 的 `allowNaN` opt-in (文本框), 显式 `NaN` token
+  才写 `beatLength=NaN`; 空串不提交, 普通数值框不变。弹窗、Timing 行内和批量 SV 都去掉 `v || 默认值` 的
+  NaN 吞并, 滚轮/拖动可从 NaN 回到数值。
+- 数据: `.osu` 保存/读回保留 NaN; 深拷贝改 `structuredClone`, undo/redo/剪贴板不再变 null; 脏指纹用
+  非有限数标记编码。`fmtTpPrec/fmtBpm/fmtSv` 显示 NaN, 不伪装成 0。
+- 安全: `beatTicks`、底部全局时间轴、节拍器遇非有限/非正拍长直接跳过该红线段, 避免无界循环/10 万条
+  NaN 拍点。其它运行时语义不在本次需求中改写。
+- 验证: v517 纯函数 (.osu 往返/显示/拍点/脏指纹) + CDP (弹窗、行内、批量、undo/redo、NaN 渲染存活)
+  全绿; v53/v63/v70/v140/v156/v157/v158/v344/v372/v375 全绿 (v63 测试构建补 `?raw` 加载), `npm run build` 通过。

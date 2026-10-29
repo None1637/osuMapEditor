@@ -28,7 +28,7 @@ const check = (name, cond) => { if (!cond) { fails++; console.error('FAIL:', nam
 check('store: rateAdjustPitch 字段默认 false (v385)',
   /rateAdjustPitch:\s*boolean\s*=\s*false/.test(store));
 check('store: setRateAdjustPitch 播放中重启 + emit',
-  /setRateAdjustPitch\(v:\s*boolean\)[\s\S]{0,500}this\.playing\s*&&\s*this\.playbackRate\s*!==\s*1[\s\S]{0,200}this\.emit\(\)/.test(store));
+  /setRateAdjustPitch\(v:\s*boolean\)[\s\S]{0,1200}this\.playing\s*&&\s*this\.playbackRate\s*!==\s*1[\s\S]{0,200}this\.emit\(\)/.test(store));
 // store: play() 变速支路条件带 !rateAdjustPitch (不变调才走 signalsmith)
 check('store: tempoNode 支路要求不变调',
   store.includes('this.playbackRate !== 1 && !this.rateAdjustPitch && this.tempoNode'));

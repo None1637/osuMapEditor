@@ -115,15 +115,17 @@ export function useSaveParamsOnClose<T>(key: string, v: T) {
  *  v381: 可全局关闭 (editorPrefs.dragAdjustNumbers, 关 = 按下不进入拖动调值; v386: 开关挪到菜单栏「设置」菜单) */
 /** v276: 已聚焦的输入框内按下拖动 = 原生文本框选, 不触发调值 (用户反馈「框选输入框中数字时
  *  不要触发左右拖动数值」); 调值只在未聚焦的输入框上按下拖动 (= 点击即聚焦的那次交互) */
-export function DraftNum({ value, set, testid, min, max, step = 1, digits, w = 'w-20' }: {
+export function DraftNum({ value, set, testid, min, max, step = 1, digits, w = 'w-20', allowNaN = false }: {
   value: number; set: (v: number) => void; testid: string; min?: number; max?: number; step?: number;
   digits?: number; // v367: 非草稿态显示小数位 (缩放类框 3 位, 如 0.590; 缺省 = 原始值字符串)
   w?: string; // v489: 宽度类 (默认 w-20; 拍数分子等小框传 w-10)
+  allowNaN?: boolean; // v517: 仅 BPM/SV 等显式允许的输入框接受字面量 NaN
 }) {
   const [draft, setDraft] = useState<string | null>(null);
   const dragRef = useRef<{ x0: number; v0: number; active: boolean } | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const clamp = (v: number) => Math.min(max ?? Infinity, Math.max(min ?? -Infinity, v));
+  const numericValue = Number.isFinite(value) ? value : (min ?? 0); // v517: NaN 时滚轮/拖动可回到数值
   // 按 step 的小数位取整, 避免 0.1 步进累出 0.30000000004
   const decimals = Math.max(0, -Math.floor(Math.log10(step) + 1e-9));
   const round = (v: number) => { const p = 10 ** decimals; return Math.round(v * p) / p; };
@@ -135,8 +137,8 @@ export function DraftNum({ value, set, testid, min, max, step = 1, digits, w = '
     const onWheel = (e: WheelEvent) => {
       e.preventDefault();
       const mult = e.shiftKey ? 10 : e.altKey ? 0.1 : 1;
-      const base = draft !== null ? parseFloat(draft) : value;
-      const v = clamp(round((isNaN(base) ? value : base) + (e.deltaY < 0 ? 1 : -1) * step * mult));
+      const base = draft !== null ? parseFloat(draft) : numericValue;
+      const v = clamp(round((isNaN(base) ? numericValue : base) + (e.deltaY < 0 ? 1 : -1) * step * mult));
       setDraft(String(v)); // 聚焦态显示走 draft, 滚轮同步刷新
       set(v);
     };
@@ -144,11 +146,13 @@ export function DraftNum({ value, set, testid, min, max, step = 1, digits, w = '
     return () => el.removeEventListener('wheel', onWheel);
   });
   return (
-    <input ref={inputRef} type="number" value={draft ?? (digits !== undefined ? value.toFixed(digits) : value)} min={min} max={max} step={step} data-conv={testid}
+    <input ref={inputRef} type={allowNaN ? 'text' : 'number'} value={draft ?? (digits !== undefined ? value.toFixed(digits) : value)} min={min} max={max} step={step} data-conv={testid}
       onFocus={() => setDraft(String(value))}
       onChange={e => {
-        setDraft(e.target.value);
-        const v = parseFloat(e.target.value);
+        const raw = e.target.value;
+        setDraft(raw);
+        if (allowNaN && raw.trim().toLowerCase() === 'nan') { set(NaN); return; } // v517: 显式 token, 空串仍不提交
+        const v = parseFloat(raw);
         if (!isNaN(v)) set(clamp(v));
       }}
       onBlur={() => setDraft(null)}
@@ -156,7 +160,7 @@ export function DraftNum({ value, set, testid, min, max, step = 1, digits, w = '
         if (e.button !== 0) return;
         if (!editorPrefs.dragAdjustNumbers) return; // v381: 设置里关掉拖动调值 — 拖动不改值 (滚轮/键入保留)
         if (document.activeElement === e.currentTarget) return; // v276: 已聚焦 → 拖动留给文本框选
-        dragRef.current = { x0: e.clientX, v0: value, active: false };
+        dragRef.current = { x0: e.clientX, v0: numericValue, active: false };
         e.currentTarget.setPointerCapture(e.pointerId);
       }}
       onPointerMove={e => {

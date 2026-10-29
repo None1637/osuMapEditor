@@ -4,8 +4,16 @@ import { fileURLToPath } from 'url';
 import path from 'path';
 import fs from 'fs';
 import { execSync } from 'child_process';
+import { build } from 'esbuild';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
+const rawText = {
+  name: 'raw-text',
+  setup(build) {
+    build.onResolve({ filter: /\?raw$/ }, args => ({ path: path.resolve(args.resolveDir, args.path), namespace: 'raw-text' }));
+    build.onLoad({ filter: /.*/, namespace: 'raw-text' }, args => ({ contents: fs.readFileSync(args.path.replace(/\?raw$/, ''), 'utf8'), loader: 'text' }));
+  },
+};
 let failures = 0;
 function assert(cond, msg) { if (!cond) { failures++; console.error('  FAIL:', msg); } else console.log('  ok:', msg); }
 function section(name) { console.log('== ' + name); }
@@ -14,7 +22,7 @@ function readSrc(rel) { return fs.readFileSync(path.join(root, rel), 'utf8'); }
 section('store 纯函数单测 (tests.ts: F08 节点选区变换)');
 {
   const out = path.join(root, 'verifier/v304/_bundle.mjs');
-  execSync(`npx esbuild "${path.join(root, 'verifier/v304/tests.ts')}" --bundle --platform=node --outfile="${out}"`, { cwd: root, stdio: 'pipe' });
+  await build({ entryPoints: [path.join(root, 'verifier/v304/tests.ts')], bundle: true, format: 'esm', platform: 'node', outfile: out, plugins: [rawText] });
   const r = execSync(`node "${out}"`, { cwd: root, encoding: 'utf8' });
   console.log(r.trim().split('\n').map(l => '    ' + l).join('\n'));
 }
@@ -33,13 +41,13 @@ section('store.ts: F08 节点选区变换 API');
   const src = readSrc('src/osu/store.ts');
   assert(/rotateSelectedNodes\(deg: number\)/.test(src), 'rotateSelectedNodes 存在');
   assert(/flipSelectedNodes\(axis: 'h' \| 'v'\)/.test(src), 'flipSelectedNodes 存在');
-  assert(/原点 = 锚点包围盒中心/.test(src), '原点 = 锚点包围盒中心');
+  assert(/原点 = 锚点点集质心 \(v516\)/.test(src), '原点 = 锚点质心 (v516)');
   assert(/transformNodesFromSnapshot\(bm, snap, p => fn\(p, c\)\)/.test(src), '变换走节点快照 (含红锚点成对)');
 }
 {
   const app = readSrc('src/App.tsx');
-  assert(/store\.nodeSelectionCount \? store\.rotateSelectedNodes\(90\) : store\.rotateSelected\(90, 'playfield'\)/.test(app), '快捷键 rot-cw 节点优先');
-  assert(/store\.nodeSelectionCount \? store\.flipSelectedNodes\('h'\) : store\.flipSelected\('h', 'playfield'\)/.test(app), '快捷键 flip-h 节点优先');
+  assert(/store\.nodeSelectionCount > 1 \? store\.rotateSelectedNodes\(90\) : store\.rotateSelected\(90, 'playfield'\)/.test(app), '快捷键 rot-cw ≥2 锚点优先 (v485)');
+  assert(/store\.nodeSelectionCount > 1 \? store\.flipSelectedNodes\('h'\) : store\.flipSelected\('h', 'playfield'\)/.test(app), '快捷键 flip-h ≥2 锚点优先 (v485)');
   const em = readSrc('src/osu/electronMenu.ts');
   assert(/store\.nodeSelectionCount \? store\.rotateSelectedNodes\(-90\)/.test(em), 'Electron 菜单同步节点优先');
 }

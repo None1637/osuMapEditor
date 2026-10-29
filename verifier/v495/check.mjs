@@ -23,7 +23,7 @@ section('源码断言');
   assert(/!this\.lockNotes && pasteTimes\.size/.test(st), 'paste: 锁定物件时不删 (v115 契约)');
   const ec = read('src/components/EditorCanvas.tsx');
   assert(!/hitTestAll\(/.test(ec), 'v497: hitTestAll 穿透重叠改动已还原 (无调用; 仅注释留档)');
-  assert(/const hitObj = hitTest\(p\.x, p\.y\);\s*if \(hitObj && hitObj\.id !== so\.id\) return false;/.test(ec), 'v497: 守卫恢复 hitTest 顶层命中 (v413/v439 语义)');
+  assert(/const hitObj = hitTest\(p\.x, p\.y\);\s*if \(hitObj && hitObj\.id !== so\.id && !onOwnTrack\) return false;/.test(ec), 'v497/v513: 顶层命中守卫 + 自身轨道豁免');
   assert(/if \(mods\.ctrlKey \|\| mods\.metaKey \|\| mods\.shiftKey\) store\.toggleSelect\(hit\.id\);/.test(ec), 'v497: objectPress 恢复顶层命中直接切换');
 }
 

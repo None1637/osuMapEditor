@@ -4,8 +4,16 @@ import { fileURLToPath } from 'url';
 import path from 'path';
 import fs from 'fs';
 import { execSync } from 'child_process';
+import { build } from 'esbuild';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
+const rawText = {
+  name: 'raw-text',
+  setup(build) {
+    build.onResolve({ filter: /\?raw$/ }, args => ({ path: path.resolve(args.resolveDir, args.path), namespace: 'raw-text' }));
+    build.onLoad({ filter: /.*/, namespace: 'raw-text' }, args => ({ contents: fs.readFileSync(args.path.replace(/\?raw$/, ''), 'utf8'), loader: 'text' }));
+  },
+};
 let failures = 0;
 function assert(cond, msg) { if (!cond) { failures++; console.error('  FAIL:', msg); } else console.log('  ok:', msg); }
 function section(name) { console.log('== ' + name); }
@@ -14,7 +22,7 @@ function readSrc(rel) { return fs.readFileSync(path.join(root, rel), 'utf8'); }
 section('store/transform 纯函数单测 (tests.ts)');
 {
   const out = path.join(root, 'verifier/v210/_bundle.mjs');
-  execSync(`npx esbuild "${path.join(root, 'verifier/v210/tests.ts')}" --bundle --platform=node --outfile="${out}"`, { cwd: root, stdio: 'pipe' });
+  await build({ entryPoints: [path.join(root, 'verifier/v210/tests.ts')], bundle: true, format: 'esm', platform: 'node', outfile: out, plugins: [rawText] });
   const r = execSync(`node "${out}"`, { cwd: root, encoding: 'utf8' });
   console.log(r.trim().split('\n').map(l => '    ' + l).join('\n'));
 }

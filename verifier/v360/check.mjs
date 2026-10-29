@@ -28,7 +28,7 @@ section('源码: store 节点预览会话 + 穿透桥');
   assert(/previewNodeTransform\(fn/.test(src) && /restoreNodeTransformBackup/.test(src), 'previewNodeTransform (回滚后变换)');
   assert(/commitNodeTransform\(fn/.test(src) && /this\.pushUndo\(\); \/\/ 快照 = 预览前/.test(src), 'commitNodeTransform (undo 快照 = 预览前)');
   assert(/endNodeTransformPreview\(\)/.test(src), 'endNodeTransformPreview');
-  assert(/nodeBackupCenter/.test(src), '原点 = 锚点包围盒中心 (F08)');
+  assert(/nodeBackupCenter/.test(src), '原点 = 锚点质心 (v516)');
   assert(/playfieldNodePress: \(\(clientX/.test(src), 'playfieldNodePress 桥字段');
 }
 
@@ -57,7 +57,7 @@ section('源码: 穿透 (EditorCanvas 注册 + TopTimeline 询问)');
 section('源码: i18n');
 {
   const zh = read('src/i18n/dicts/zh-CN/transform.ts');
-  assert(/'transform\.node_mode_hint': '作用于选中的滑条锚点 \(原点 = 锚点包围盒中心\)'/.test(zh), 'zh-CN: node_mode_hint');
+  assert(/'transform\.node_mode_hint': '作用于选中的滑条锚点 \(原点 = 锚点质心, v516\)'/.test(zh), 'zh-CN: node_mode_hint (v516 质心)');
 }
 
 section('CDP: 时间轴覆盖区锚点拖拽/取消 + 节点缩放窗口');

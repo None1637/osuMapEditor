@@ -27,7 +27,7 @@ section('源码: Ctrl 插点前置物件命中守卫 (v439: 本滑条身除外)'
   const fn = ec.match(/const singleSliderNodePress = \(p: Pt[\s\S]*?\n  \};/)?.[0] ?? '';
   // v495→v497 适配: hitTestAll 穿透重叠为误改已还原, 恢复 hitTest 顶层命中守卫;
   //   v496 在 ctrl 分支前置了 allowBlankInsert 守卫 (时间轴穿透不空白插点), 放宽开头匹配
-  assert(/if \(mods\.ctrlKey \|\| mods\.metaKey\) \{[\s\S]*?const hitObj = hitTest\(p\.x, p\.y\);\s*if \(hitObj && hitObj\.id !== so\.id\) return false;/.test(fn), 'Ctrl+命中其他物件 → 放行多选; 命中本滑条身 → 继续插点 (v439/v497)');
+  assert(/if \(mods\.ctrlKey \|\| mods\.metaKey\) \{[\s\S]*?const hitObj = hitTest\(p\.x, p\.y\);\s*if \(hitObj && hitObj\.id !== so\.id && !onOwnTrack\) return false;/.test(fn), 'Ctrl+命中其他物件 → 放行多选; 自身轨道继续插点 (v439/v497/v513)');
   assert(/newPts = \[\.\.\.ctrl\.slice\(0, best \+ 1\), raw, \.\.\.ctrl\.slice\(best \+ 1\)\]/.test(fn), '空白插点逻辑保留 (v326)');
 }
 

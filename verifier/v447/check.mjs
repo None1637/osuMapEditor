@@ -2,7 +2,7 @@
 // 优化内容 (前后数据见 verifier/v447/README 节 / mem-baseline.json / mem-after.json, mem-profile.mjs 同条件复测):
 //   1) 变速引擎懒建 + 互斥销毁 — 解码/缓存命中不再预热引擎 (引擎节点各持整份 PCM 副本, 实测 ~48MB/130s@48k);
 //      play() 一支路起用即销毁另一支路, setRateAdjustPitch 切换同步销毁; 在途加载用 gen 令牌防复活。
-//      首次变速播放走既有兜底 (本次原生 playbackRate, 就绪自动重进), 变速音质最终不变。
+//      首次变速播放走兜底并自动重进; v509 起不变调慢放兜底改 <audio preservesPitch>, 不再原生降调。
 //   2) 撤销栈上限 200→50 — 快照 = 六段全表 JSON 深拷贝 (实测 ~0.1MB/条@786物件), 满栈 20MB→5MB。
 //   3) 离开频谱模式释放 mono 混合+LRU 列缓存 (waveformData.dropSpectroCols, ~35MB/130s@48k), 重进现算。
 // 运行: node verifier/v447/check.mjs

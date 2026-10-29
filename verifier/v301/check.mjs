@@ -4,8 +4,16 @@ import { fileURLToPath } from 'url';
 import path from 'path';
 import fs from 'fs';
 import { execSync } from 'child_process';
+import { build } from 'esbuild';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
+const rawText = {
+  name: 'raw-text',
+  setup(build) {
+    build.onResolve({ filter: /\?raw$/ }, args => ({ path: path.resolve(args.resolveDir, args.path), namespace: 'raw-text' }));
+    build.onLoad({ filter: /.*/, namespace: 'raw-text' }, args => ({ contents: fs.readFileSync(args.path.replace(/\?raw$/, ''), 'utf8'), loader: 'text' }));
+  },
+};
 let failures = 0;
 function assert(cond, msg) { if (!cond) { failures++; console.error('  FAIL:', msg); } else console.log('  ok:', msg); }
 function section(name) { console.log('== ' + name); }
@@ -14,7 +22,7 @@ function readSrc(rel) { return fs.readFileSync(path.join(root, rel), 'utf8'); }
 section('store 纯函数单测 (tests.ts: F05b 回归 + F05a 预览会话)');
 {
   const out = path.join(root, 'verifier/v301/_bundle.mjs');
-  execSync(`npx esbuild "${path.join(root, 'verifier/v301/tests.ts')}" --bundle --platform=node --outfile="${out}"`, { cwd: root, stdio: 'pipe' });
+  await build({ entryPoints: [path.join(root, 'verifier/v301/tests.ts')], bundle: true, format: 'esm', platform: 'node', outfile: out, plugins: [rawText] });
   const r = execSync(`node "${out}"`, { cwd: root, encoding: 'utf8' });
   console.log(r.trim().split('\n').map(l => '    ' + l).join('\n'));
 }
@@ -55,10 +63,10 @@ section('TransformDialog.tsx: 实时预览接线');
   const src = readSrc('src/components/TransformDialog.tsx');
   assert(/if \(nodeMode\) store\.beginNodeTransformPreview\(\); else store\.beginTransformPreview\(\);[\s\S]{0,120}?if \(nodeMode\) store\.endNodeTransformPreview\(\); else store\.endTransformPreview\(\);/.test(src), '开窗 begin / 关窗 end (v360: 节点模式分支)');
   assert(/store\.previewTransform\(\(objs, c\) => rotateObjects\(objs, c, angle\), origin\)/.test(src), '角度变化实时预览旋转');
-  assert(/store\.previewTransform\(\(objs, c\) => scaleObjects\(objs, c, factor, factorY\), origin\)/.test(src), '倍率变化实时预览缩放');
+  assert(/store\.previewTransform\(\(objs, c\) => scaleObjects\(objs, c, sx, sy\), origin\)/.test(src), '倍率变化实时预览缩放');
   assert(/commit\(\(objs, c\) => rotateObjects\(objs, c, Math\.abs\(angle\)\)\)/.test(src), '顺时针按钮走 commit');
   assert(/commit\(\(objs, c\) => rotateObjects\(objs, c, -Math\.abs\(angle\)\)\)/.test(src), '逆时针按钮走 commit');
-  assert(/commit\(\(objs, c\) => scaleObjects\(objs, c, factor, factorY\)\)/.test(src), '应用倍率走 commit');
+  assert(/commit\(\(objs, c\) => scaleObjects\(objs, c, sx, sy\)\)/.test(src), '应用倍率走 commit');
   assert(!/store\.rotateSelected\(/.test(src) && !/store\.scaleSelected\(/.test(src), '对话框不再直接调 rotateSelected/scaleSelected');
   assert(/t\('transform\.footer_hint', 'Changing values previews instantly/.test(src)
     && readSrc('src/i18n/dicts/zh-CN/transform.ts').includes("'transform.footer_hint': '改数值即时预览"),

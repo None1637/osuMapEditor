@@ -51,6 +51,8 @@ export function beatTicks(points: TimingPoint[], t0: number, t1: number, divisor
     const from = Math.max(t0, red.time), to = Math.min(t1, segEnd);
     if (from >= to) continue;
     const step = red.beatLength / divisor;
+    // v517: 非有限/非正步长跳过该段, 防止 NaN 时 k++ 永不推进造成无界循环
+    if (!Number.isFinite(step) || step <= 0 || !Number.isFinite(red.time)) continue;
     // 浮点误差保护: 从首个 >= from 的 tick 开始, 索引取整避免累计误差
     const k0 = Math.ceil((from - red.time) / step - 1e-6);
     for (let k = k0; ; k++) {

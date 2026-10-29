@@ -33,11 +33,11 @@ export function TimingPointDialog() {
         </Row>
         {red ? (
           <Row label="BPM">
-            <DraftNum value={+(60000 / draft.beatLength).toFixed(2)} set={v => patch({ beatLength: 60000 / (v || 120) })} min={1} step={0.01} testid="bpmOrSv" />
+            <DraftNum value={+(60000 / draft.beatLength).toFixed(2)} set={v => patch({ beatLength: Number.isNaN(v) ? NaN : 60000 / (v || 120) })} min={1} step={0.01} testid="bpmOrSv" allowNaN />
           </Row>
         ) : (
           <Row label={t('timing.sv_multiplier', 'SV Multiplier')}>
-            <DraftNum value={+(-100 / draft.beatLength).toFixed(2)} set={v => patch({ beatLength: -100 / (v || 1) })} min={0.01} step={0.01} testid="bpmOrSv" />
+            <DraftNum value={+(-100 / draft.beatLength).toFixed(2)} set={v => patch({ beatLength: Number.isNaN(v) ? NaN : -100 / (v || 1) })} min={0.01} step={0.01} testid="bpmOrSv" allowNaN />
           </Row>
         )}
         <Row label={t('timing.meter', 'Meter')}>

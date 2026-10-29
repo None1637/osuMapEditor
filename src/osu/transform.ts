@@ -1,7 +1,7 @@
-// 选区几何变换 (纯函数, 可单测): 旋转 / 水平垂直镜像 / 缩放, 围绕选区包围盒中心
+// 选区几何变换 (纯函数, 可单测): 旋转 / 水平垂直镜像 / 缩放, 围绕选区点集质心 (v511)
 // 规则 (对齐 lazer Compose 变换行为):
 //  - 单点变换自身坐标; 滑条变换全部控制点 (curvePoints 为绝对坐标, 必须整体变换否则变形);
-//  - 转盘位置固定 (256,192), 不参与任何位置变换, 也不计入包围盒;
+//  - 转盘位置固定 (256,192), 不参与任何位置变换, 也不计入质心;
 //  - 缩放时滑条 pixelLength 同步乘系数 (几何路径与 length 保持一致, 否则滑条身被截断);
 //  - 坐标写回取整; 不做游玩区钳制 (.osu 允许出界坐标, stable/lazer 变换也不钳制)。
 import type { HitObject } from './parser';
@@ -15,17 +15,15 @@ function objectPoints(o: HitObject): Pt[] {
   return [];
 }
 
-/** 选区包围盒中心 (含滑条控制点); 选区无有效点时返回 null (如只选了转盘) */
+/** v511: 选区点集质心 (含滑条控制点; 等边三角形绕自身中心旋转不再跑位); 无有效点返回 null */
 export function selectionCenter(objs: HitObject[]): Pt | null {
-  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity, n = 0;
+  let sumX = 0, sumY = 0, n = 0;
   for (const o of objs) for (const p of objectPoints(o)) {
-    if (p.x < minX) minX = p.x;
-    if (p.x > maxX) maxX = p.x;
-    if (p.y < minY) minY = p.y;
-    if (p.y > maxY) maxY = p.y;
+    sumX += p.x;
+    sumY += p.y;
     n++;
   }
-  return n ? { x: (minX + maxX) / 2, y: (minY + maxY) / 2 } : null;
+  return n ? { x: sumX / n, y: sumY / n } : null;
 }
 
 /** 对物件逐个应用点变换 (原地写回, 坐标取整); 返回被改动的滑条 (调用方负责 invalidatePath) */

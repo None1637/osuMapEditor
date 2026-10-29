@@ -16,7 +16,8 @@ function assert(cond, msg) { if (!cond) { failures++; console.error('  FAIL:', m
 const src = fs.readFileSync(path.join(root, 'src/components/DraggableDialog.tsx'), 'utf8');
 assert(/v276: 已聚焦的输入框内按下拖动 = 原生文本框选/.test(src), 'v276 注释在');
 assert(/if \(document\.activeElement === e\.currentTarget\) return;/.test(src), '已聚焦时 pointerdown 不进入调值');
-assert(/dragRef\.current = \{ x0: e\.clientX, v0: value, active: false \};/.test(src), '未聚焦按下仍记录拖动起点 (调值保留)');
+assert(/dragRef\.current = \{ x0: e\.clientX, v0: numericValue, active: false \};/.test(src)
+  && /const numericValue = Number\.isFinite\(value\)/.test(src), '未聚焦按下仍记录拖动起点 (v517 NaN 回退不改变普通调值)');
 assert(/d\.v0 \+ \(dx \/ 5\) \* step \* mult/.test(src), '5px = 1 step 公式不变 (v269)');
 
 if (failures) { console.error(`\nV276_FAILED: ${failures} 处失败`); process.exit(1); }

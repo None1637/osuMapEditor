@@ -1425,6 +1425,8 @@ export function BottomTimeline({ onTestPlay }: { onTestPlay: () => void }) { // 
             const rects: number[][] = [[], []]; // [0]=普通拍, [1]=小节首拍
             for (let ri = 0; ri < reds.length; ri++) {
               const rd = reds[ri];
+              // v517: NaN/非正值红线不生成节拍, 避免无界 push 卡死主线程
+              if (!Number.isFinite(rd.beatLength) || rd.beatLength <= 0 || !Number.isFinite(rd.time)) continue;
               const segEnd = reds[ri + 1]?.time ?? len;
               const meter = Math.max(1, rd.meter);
               for (let k = 0; ; k++) {

@@ -87,7 +87,7 @@ section('HitSoundScheduler: 非零下事件按精确 ctx 时刻排程');
 }
 
 // ---------- 3. 选区几何变换 ----------
-section('transform: 包围盒中心 (含滑条控制点, 转盘不计)');
+section('transform: 点集质心 (含滑条控制点, 转盘不计; v511)');
 {
   const circle: HitObject = { id: 1, type: 'circle', x: 100, y: 100, time: 0 };
   const slider: HitObject = { id: 2, type: 'slider', x: 200, y: 100, time: 0, curveType: 'L', curvePoints: [{ x: 300, y: 100 }], slides: 1, length: 100 };

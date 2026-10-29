@@ -1,6 +1,6 @@
 // v65: 批量复制 — 选中物件复制 N 份放到后续时间 (lazer 无此功能, 自研; 用户确认参数集)
 // 每份相对源: 时间 +i×间隔拍 (逐红线段换算, BPM 变化下保持各物件拍位), 绕锚点旋转 i×角度, 平移 i×向量
-// 锚点三模式与普通旋转相同: 选区包围盒中心 / 游玩区中心 (256,192) / 自定义点
+// 锚点三模式与普通旋转相同: 选区点集质心 (v511) / 游玩区中心 (256,192) / 自定义点
 import type { Beatmap, HitObject, TimingPoint } from './parser';
 import { genId, sliderVelocityAt } from './parser';
 import { selectionCenter, type Pt } from './transform';

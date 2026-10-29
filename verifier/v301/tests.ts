@@ -64,9 +64,9 @@ section('F05a 预览相对基准不叠加 (连续改值)');
   store.beginTransformPreview();
   store.previewTransform((objs, c) => rotateObjects(objs, c, 90), 'selection');
   store.previewTransform((objs, c) => rotateObjects(objs, c, 180), 'selection');
-  // 180° 绕选区中心旋转后, 头 (100,100) 与尾锚点 (200,200) 对调: 头应落在原包围盒对角
+  // v511: 三节点质心=(166.67,133.33), 头 (100,100) 转 180° -> (233.33,166.67)
   const o = store.beatmap!.hitObjects[0];
-  assert(Math.abs(o.x - 200) <= 1 && Math.abs(o.y - 200) <= 1, '第二次预览=相对基准 180° (非叠加 270°)');
+  assert(Math.abs(o.x - 233) <= 1 && Math.abs(o.y - 167) <= 1, '第二次预览=相对基准 180° (非叠加 270°; 质心)');
   store.endTransformPreview();
 }
 

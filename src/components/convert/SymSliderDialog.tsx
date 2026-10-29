@@ -30,13 +30,15 @@ export function SymSliderDialog() {
   const [params, setParams] = useState<SymSliderParams>(() => loadParams('symSlider', DEFAULT_SYM_SLIDER_PARAMS));
   useSaveParamsOnClose('symSlider', params); // v242: 关窗 (含取消/X) 也保存
   const bm = store.beatmap;
+  // v510: selected Set 原地修改, 不能把其引用当 memo 依赖; 提取 id 让取消/直接换选都失效重算
+  const selectedId = store.selected.size === 1 ? [...store.selected][0] : null;
   // 恰好选中 1 个滑条才有意义; 打开后选中漂移则提示并禁用应用 (不强制关窗)
   const obj = useMemo(() => {
-    if (!bm || store.selected.size !== 1) return null;
-    const o = bm.hitObjects.find(x => store.selected.has(x.id));
+    if (!bm || selectedId === null) return null;
+    const o = bm.hitObjects.find(x => x.id === selectedId);
     return o && o.type === 'slider' ? o : null;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [bm, store.selected, store.conversionDialog, store.historySeq]); // v476: historySeq — undo/redo 后 bm 引用不变, 靠代数刷新物件引用
+  }, [bm, selectedId, store.conversionDialog, store.historySeq]); // v476: historySeq — undo/redo 后 bm 引用不变, 靠代数刷新物件引用
   // v236: 节点内容签名 (computeSymSlider 读取的全部字段) — 节点就地编辑后签名变 -> result 重算 -> 预览跟着变
   const sig = obj
     ? [obj.x, obj.y, obj.curveType, obj.length, obj.slides, obj.time, obj.endTime ?? '',

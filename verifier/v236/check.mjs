@@ -56,7 +56,7 @@ section('symSlider.ts: 纯函数模块');
 section('store.ts: conversionDialog 联合类型含 symSlider + 锚点圈/对称轴字段');
 {
   const src = readSrc('src/osu/store.ts');
-  assert(/conversionDialog: 'stream' \| 'split' \| 'merge' \| 'polygon' \| 'duplicate' \| 'symSlider' \| null = null/.test(src), "conversionDialog 联合类型含 'symSlider'");
+  assert(/conversionDialog: [^;]*'symSlider'[^;]*\| null = null/.test(src), "conversionDialog 联合类型含 'symSlider' (v486 后续扩展兼容)");
   // 修正3: 自定义锚点圈 store 字段 (dupVector 同款非响应式模式)
   assert(/symSliderAnchorView: \{ x: number; y: number \} \| null = null/.test(src), 'symSliderAnchorView 字段');
   assert(/symSliderAnchorDragHandler: \(\(x: number, y: number\) => void\) \| null = null/.test(src), 'symSliderAnchorDragHandler 字段');

@@ -95,6 +95,8 @@ export function metronomeBeats(points: TimingPoint[], songLength: number): { t: 
   const out: { t: number; down: boolean }[] = [];
   for (let i = 0; i < reds.length; i++) {
     const red = reds[i];
+    // v517: NaN/非正值红线不生成拍点, 防止 k++ 永不推进产生 10 万条 NaN
+    if (!Number.isFinite(red.beatLength) || red.beatLength <= 0 || !Number.isFinite(red.time)) continue;
     const end = reds[i + 1]?.time ?? songLength;
     const meter = Math.max(1, red.meter);
     for (let k = 0; ; k++) {
@@ -121,6 +123,7 @@ export function rangeTimes(visibleTimes: number[], anchor: number, target: numbe
 
 /** v372: BPM/SV 高精度显示 — 13 位有效数字 (stable 输入精度), toPrecision 去尾零防浮点噪声 */
 export function fmtTpPrec(v: number): string {
+  if (Number.isNaN(v)) return 'NaN'; // v517: 输入/显示保留 NaN, 不伪装成 0
   if (!isFinite(v)) return '0';
   return String(+v.toPrecision(13));
 }
@@ -128,9 +131,11 @@ export function fmtTpPrec(v: number): string {
 /** v375: Timing 行文本显示 — BPM 统一 3 位小数, SV 统一 2 位小数 (编辑态仍走 fmtTpPrec 全精度) */
 export function fmtBpm(beatLength: number): string {
   const v = 60000 / beatLength;
+  if (Number.isNaN(v)) return 'NaN';
   return isFinite(v) ? v.toFixed(3) : '0.000';
 }
 export function fmtSv(beatLength: number): string {
   const v = -100 / beatLength;
+  if (Number.isNaN(v)) return 'NaN';
   return isFinite(v) ? v.toFixed(2) : '0.00';
 }
