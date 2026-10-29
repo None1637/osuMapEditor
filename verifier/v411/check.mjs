@@ -72,7 +72,7 @@ section('CDP: 上时间轴 Alt+拖尾 = SV 模式 (不再拉框)');
     };
     await normalizeEnv(evalJs);
     await evalJs(`window.__osuSetLang && window.__osuSetLang('en')`);
-    await sleep(800);
+    await sleep(2100); // v518: 等布局移动后的 zoomRect 2s 缓存过期
 
     // 造一条滑条, 自制 timing (只留一条红线, 无绿线 — sv=1, 尾时间可精确算); seek 使其在上时间轴窗口内; 预选该滑条
     const setup = await evalJs(`(() => {
@@ -90,11 +90,12 @@ section('CDP: 上时间轴 Alt+拖尾 = SV 模式 (不再拉框)');
       store.select([964001]); // v411 观测点: Alt 穿透旧路径会清物件选区 (v265), 拖尾路径保留
       const c = [...document.querySelectorAll('canvas')].find(c => Math.abs(c.getBoundingClientRect().height - 92) < 2);
       const r = c.getBoundingClientRect();
+      const z = Math.max(0.6, Math.min(1, Math.min(innerWidth / 2560, innerHeight / 1440)));
       const win = 6000 / (base.editor.timelineZoom || 1);
       const vel = 100 * base.difficulty.sliderMultiplier / red.beatLength; // px/ms (sv=1)
       const endMs = t + 200 / vel;
       const t0 = store.currentTime - win / 2;
-      return { x: r.left + ((endMs - t0) / win) * r.width, y: r.top + 10, beatLength: red.beatLength };
+      return { x: r.left + ((endMs - t0) / win) * r.width, y: r.top + 30 * z, beatLength: red.beatLength };
     })()`);
 
     // A: Alt+拖尾向右 ~200px — 应走 SV 模式: 折返数不变, 尾时间变长 (新建/改绿线), 选区保留, 不出节点框选
@@ -131,6 +132,7 @@ section('CDP: 上时间轴 Alt+拖尾 = SV 模式 (不再拉框)');
       const sleep = (ms) => new Promise(r => setTimeout(r, ms));
       const c = [...document.querySelectorAll('canvas')].find(c => Math.abs(c.getBoundingClientRect().height - 92) < 2);
       const r = c.getBoundingClientRect();
+      const z = Math.max(0.6, Math.min(1, Math.min(innerWidth / 2560, innerHeight / 1440)));
       const bm = store.beatmap;
       const o = bm.hitObjects.find(x => x.id === 964001);
       const red = bm.timingPoints.find(p => p.uninherited);
@@ -140,7 +142,7 @@ section('CDP: 上时间轴 Alt+拖尾 = SV 模式 (不再拉框)');
       const endMs = o.time + o.length / vel * o.slides;
       const win = 6000 / (bm.editor.timelineZoom || 1);
       const t0 = store.currentTime - win / 2;
-      const x = r.left + ((endMs - t0) / win) * r.width, y = r.top + 10;
+      const x = r.left + ((endMs - t0) / win) * r.width, y = r.top + 30 * z;
       const s0 = o.slides;
       c.dispatchEvent(new MouseEvent('mousedown', { clientX: x, clientY: y, button: 0, bubbles: true, cancelable: true }));
       c.dispatchEvent(new MouseEvent('mousemove', { clientX: x + 400, clientY: y, bubbles: true }));

@@ -64,7 +64,7 @@ section('CDP: 时间轴 Ctrl+点物件 = 多选且不插锚点');
     };
     await normalizeEnv(evalJs);
     await evalJs(`window.__osuSetLang && window.__osuSetLang('en')`);
-    await sleep(800);
+    await sleep(2100); // v518: 等布局移动后的 zoomRect 2s 缓存过期
 
     // 选中滑条 S + 另一圆圈 C; 在时间轴上 Ctrl+点 C 的头圆 → 应多选 (S+C), S 不生锚点
     const rA = await evalJs(`(async () => {

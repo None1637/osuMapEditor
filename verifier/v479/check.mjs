@@ -62,6 +62,7 @@ section('CDP: 时间轴点尾圆 → 再点头圆 → 尾选区清除, 物件保
     }
     if (!ready) throw new Error('应用未就绪');
     await normalizeEnv(evalJs);
+    await sleep(2100); // v518: 等布局移动后的 zoomRect 2s 缓存过期
 
     const r1 = await evalJs(`(async () => {
       const store = window.__osuStore;

@@ -85,7 +85,7 @@ section('CDP: Alt 拖尾超界 → 1ms 窗口三件套 + 滑条前移 + 尾落�
     }
     if (!ready) throw new Error('应用未就绪');
     await normalizeEnv(evalJs);
-    await sleep(500);
+    await sleep(2100); // v518: 等布局移动后的 zoomRect 2s 缓存过期
 
     const r = await evalJs(`(async () => {
       const store = window.__osuStore;
@@ -105,13 +105,14 @@ section('CDP: Alt 拖尾超界 → 1ms 窗口三件套 + 滑条前移 + 尾落�
         store.seek(t + 200); store.select([966001]);
       };
       const c = [...document.querySelectorAll('canvas')].find(cv => Math.abs(cv.getBoundingClientRect().height - 92) < 2);
+      const z = Math.max(0.6, Math.min(1, Math.min(innerWidth / 2560, innerHeight / 1440)));
       const xOf = (ms) => {
         const r = c.getBoundingClientRect();
         const win = 6000 / (store.beatmap.editor.timelineZoom || 1);
         return r.left + ((ms - (store.currentTime - win / 2)) / win) * r.width;
       };
       const dragTail = async (targetMs) => { // 一次完整拖拽: 尾把手按下 → 移到 targetMs → 松开
-        const y = c.getBoundingClientRect().top + 10;
+        const y = c.getBoundingClientRect().top + 30 * z;
         const endMs0 = store.beatmap.hitObjects.find(x => x.id === 966001).time + L / (100 * SM / B);
         c.dispatchEvent(new MouseEvent('mousedown', { clientX: xOf(endMs0), clientY: y, button: 0, altKey: true, bubbles: true, cancelable: true }));
         await sleep(60);
@@ -149,7 +150,7 @@ section('CDP: Alt 拖尾超界 → 1ms 窗口三件套 + 滑条前移 + 尾落�
       // B: boost 开, 扩程中拖回原尾 (同一拖拽内) → 全部还原
       loadMap(); await sleep(200);
       {
-        const y = c.getBoundingClientRect().top + 10;
+        const y = c.getBoundingClientRect().top + 30 * z;
         const endMs0 = t + L / (100 * SM / B);
         c.dispatchEvent(new MouseEvent('mousedown', { clientX: xOf(endMs0), clientY: y, button: 0, altKey: true, bubbles: true, cancelable: true }));
         await sleep(60);
