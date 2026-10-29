@@ -37,12 +37,13 @@ section('mousedown: 连体条中段命中 -> 选中 + 拖动改时间');
   assert(/store\.toggleSelect\(barId\)/.test(tl), 'Shift/Ctrl 加选/减选 (与圆命中同款)');
   // 分支顺序: 尾端 resize -> 圆命中 -> 中段 bar -> 绿线药丸 -> 框选
   // v463 适配: 尾端/圆命中两行加 headId 头优先守卫, 针串同步更新
-  const iTail = tl.indexOf('const tailId = headId !== null || store.lockNotes ? null : hitTestTail(e);');
+  const iTail = tl.indexOf('const tailHit = store.lockNotes ? null : hitTestTail(e);');
+  const iTailId = tl.indexOf('const tailId = tailHit &&');
   const iMarker = tl.indexOf('const id = headId !== null ? headId : hitTestMarker(e);');
   const iBar = tl.indexOf('const barId = timelineBarHit(bmBar');
   const iPill = tl.indexOf('const pill = hitTestTimingPill(e);\n            if (pill && !pill.tp.uninherited)');
   const iMarquee = tl.indexOf('marqueeRef.current = {');
-  assert(iTail > 0 && iTail < iMarker && iMarker < iBar && iBar < iPill && iPill < iMarquee, '命中优先级: 尾端 > 头/尾圆 > 中段 > 绿线药丸 > 框选');
+  assert(iTail > 0 && iTailId > iTail && iTailId < iMarker && iMarker < iBar && iBar < iPill && iPill < iMarquee, '命中优先级: 尾端距离裁决(v482) > 头/尾圆 > 中段 > 绿线药丸 > 框选');
   // v115 锁定物件: 中段同样只可选中不可拖
   const barBlk = tl.slice(iBar, iPill);
   assert(/if \(!store\.lockNotes\)/.test(barBlk), '锁定物件禁用中段拖动 (v115 语义)');

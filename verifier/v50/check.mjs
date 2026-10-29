@@ -57,7 +57,7 @@ section('Timelines.tsx: 框选修复 (hitTestMarker 像素阈值)');
 {
   const src = readSrc('src/components/Timelines.tsx');
   const hit = readSrc('src/osu/timelineHit.ts'); // v79: 命中逻辑抽为纯函数
-  assert(/dHead < or \+ 3/.test(hit), 'hitTestMarker 改像素阈值 (RAD+3; v162: 按件半径 or)');
+  assert(/dHead < or && dHead < bestD/.test(hit), 'hitTestMarker 按实际半径 rad (v518: 去掉 rad+3 容差)');
   assert(!/bestD = win \/ 40/.test(src + hit), '旧 win/40 时间窗已移除');
   assert(/timelineMarkerHit\(bm\.hitObjects, objEnd/.test(src), '按像素距离命中 marker (纯函数接线)');
   assert(!/ms >= o\.time && ms <= end/.test(src + hit), '时长条范围短路已移除 (长滑条条不再抢走空白点击, 框选可达)');

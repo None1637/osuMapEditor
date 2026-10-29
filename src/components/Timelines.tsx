@@ -559,10 +559,10 @@ export function TopTimeline() {
     return objectEndAt(tps, bm.difficulty.sliderMultiplier, o);
   };
 
-  /** v162: 堆叠命中几何 — 仅同刻堆叠件返回 {y, rad} (2D 命中跟着堆叠位置); 非堆叠 undefined = 旧 x-only 行为 */
+  /** v518: 所有物件都返回实际显示几何 (含非堆叠) — 命中必须同时满足 x/y, 不再整行竖条误选 */
   const stackGeomOf = (stacks: Map<number, { level: number; count: number }>) => (o: { id: number }) => {
     const si = stacks.get(o.id);
-    if (!si || si.count <= 1) return undefined;
+    if (!si) return undefined;
     const lay = stackLayout(si.count, OBJ_H, RAD);
     return { y: lay.yOf(si.level), rad: lay.rad };
   };
@@ -873,14 +873,17 @@ export function TopTimeline() {
           }
           // v102: 时间锚定 (lazer TimelineDragBox): 锚边钉在 tAnchor, 跨滚动累积选中;
           // 物件要求纵跨物件行 (v45), 绿线要求纵跨 SV 药丸带
-          const t1 = t0 + (mq.x1 / r.width) * win;
-          const msA = Math.min(mq.tAnchor, t1), msB = Math.max(mq.tAnchor, t1);
-          const objIds = bandHit(mq.y0, mq.y1, 0, OBJ_H) ? marqueeObjectIds(bm.hitObjects, objEnd, msA, msB) : [];
-          const greens = bandHit(mq.y0, mq.y1, GREEN_PILL_TOP, PILL_HEIGHT) ? marqueeGreenTimes(bm.timingPoints, msA, msB) : [];
-          const selKey = objIds.join(',') + '|' + greens.join(',');
-          if (selKey !== mq.selKey) {
-            mq.selKey = selKey;
-            store.selectWithGreens([...mq.base, ...objIds], [...mq.baseGreens, ...greens]);
+          // v518: 零宽单击不是框选, 不在物件行里凭空改选区 (尤其 Shift+空白)
+          if (mq.moved) {
+            const t1 = t0 + (mq.x1 / r.width) * win;
+            const msA = Math.min(mq.tAnchor, t1), msB = Math.max(mq.tAnchor, t1);
+            const objIds = bandHit(mq.y0, mq.y1, 0, OBJ_H) ? marqueeObjectIds(bm.hitObjects, objEnd, msA, msB) : [];
+            const greens = bandHit(mq.y0, mq.y1, GREEN_PILL_TOP, PILL_HEIGHT) ? marqueeGreenTimes(bm.timingPoints, msA, msB) : [];
+            const selKey = objIds.join(',') + '|' + greens.join(',');
+            if (selKey !== mq.selKey) {
+              mq.selKey = selKey;
+              store.selectWithGreens([...mq.base, ...objIds], [...mq.baseGreens, ...greens]);
+            }
           }
           // 矩形 (锚边 = tAnchor 的当前屏幕位置, 与游玩区同款青色虚线)
           const ax = x(mq.tAnchor);
@@ -1022,11 +1025,9 @@ export function TopTimeline() {
       const end = objEnd(o);
       if (end < t0 || o.time > t0 + win) continue;
       const dx = ((end - t0) / win) * r.width - px;
-      // v162: 堆叠件 2D 命中 (跟着堆叠后的尾圆位置); 非堆叠保持旧 x-only 竖条
-      const si = stacks.get(o.id);
-      const d = si && si.count > 1
-        ? Math.hypot(dx, stackLayout(si.count, OBJ_H, RAD).yOf(si.level) - py)
-        : Math.abs(dx);
+      // v518: 尾圆按实际显示位置做二维命中 (非堆叠也不再 x-only)
+      const gm = stackGeomOf(stacks)(o);
+      const d = gm ? Math.hypot(dx, gm.y - py) : Math.abs(dx);
       if (d < bestD) { bestD = d; best = o.id; }
     }
     return best === null ? null : { id: best, d: bestD };
@@ -1044,10 +1045,8 @@ export function TopTimeline() {
     const px = zoomClientX(e.clientX) - r.left;
     const py = zoomClientY(e.clientY) - r.top;
     const dx = ((o.time - t0) / win) * r.width - px;
-    const si = stackInfo(bm.hitObjects).get(o.id);
-    return si && si.count > 1
-      ? Math.hypot(dx, stackLayout(si.count, OBJ_H, RAD).yOf(si.level) - py)
-      : Math.abs(dx);
+    const gm = stackGeomOf(stackInfo(bm.hitObjects))(o);
+    return gm ? Math.hypot(dx, gm.y - py) : Math.abs(dx);
   };
 
   return (

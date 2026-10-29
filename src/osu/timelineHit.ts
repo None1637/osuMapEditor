@@ -1,5 +1,5 @@
 // v79: 上方时间轴物件命中 (纯函数, 从 Timelines.tsx 抽出以便单测)
-// 头圆/尾圆 (半径 rad+3 css px) 最近者胜出; 连体条中段不命中 — v50 教训: 长滑条/转盘的
+// 头圆/尾圆按实际半径 rad 做二维命中 (v518: 去掉 rad+3 与整行 x-only 热区); 连体条中段不命中 — v50 教训: 长滑条/转盘的
 // 连体条覆盖物件行大部分区域, 若中段可命中则空白处点击总被条抢走, 框选永远进不去
 export interface TimelineObjLike { id: number; time: number }
 
@@ -47,7 +47,7 @@ export function timelineHeadHit<T extends TimelineObjLike>(
     const or = gm?.rad ?? rad;
     const dx = ((o.time - t0) / win) * width - px;
     const d = gm !== undefined && py !== undefined ? Math.hypot(dx, gm.y - py) : Math.abs(dx);
-    if (d < or + 3 && d < bestD) { bestD = d; best = o.id; }
+    if (d < or && d < bestD) { bestD = d; best = o.id; }
   }
   return best;
 }
@@ -62,7 +62,7 @@ export function timelineMarkerHit<T extends TimelineObjLike>(
   for (const o of objects) {
     const end = endOf(o);
     if (end < t0 || o.time > t0 + win) continue;
-    // v162: geom 仅对堆叠件返回几何 (2D 距离跟着堆叠位置/缩小半径); 非堆叠返回 undefined = 旧 x-only 行为
+    // v162: geom 仅对堆叠件返回几何 (2D 距离跟着堆叠位置/缩小半径); 非堆叠也由调用方提供实际几何 (v518)
     const gm = geom?.(o);
     const or = gm?.rad ?? rad;
     const dist = (mx: number) => {
@@ -70,11 +70,11 @@ export function timelineMarkerHit<T extends TimelineObjLike>(
       return gm !== undefined && py !== undefined ? Math.hypot(dx, gm.y - py) : Math.abs(dx);
     };
     const dHead = dist(((o.time - t0) / win) * width);
-    if (dHead < or + 3 && dHead < bestD) { bestD = dHead; best = o.id; }
+    if (dHead < or && dHead < bestD) { bestD = dHead; best = o.id; }
     // 尾圆与头圆同为命中目标 (v79: 点尾圆应能选中/右键删除)
     if (end - o.time > 1) {
       const dTail = dist(((end - t0) / win) * width);
-      if (dTail < or + 3 && dTail < bestD) { bestD = dTail; best = o.id; }
+      if (dTail < or && dTail < bestD) { bestD = dTail; best = o.id; }
     }
   }
   return best;
@@ -84,7 +84,7 @@ export function timelineMarkerHit<T extends TimelineObjLike>(
 // v142: mousedown 中段命中也走本函数 (选中 + 按住拖动改时间) — 框选从物件行空白处/行下方全高度起手,
 //       v50 教训由"中段不参与 mousedown"改由"全高度框选"化解 (长滑条条占满行时仍有起手区域)
 // 多条重叠时取 time 最晚者 (绘制顺序 = 时间序, 最晚的画在最上层)
-// v162: geom 对堆叠件返回 {y, rad} — 条带垂直厚度跟着堆叠半径; 非堆叠 undefined = 旧行为 (行内任意 y)
+// v162/v518: geom 对全部物件返回 {y, rad} — 条带垂直厚度按实际显示, 不再非堆叠行内任意 y
 // v213: 滑条节点命中 (折返点/尾端圆, k=1..slides; 不含头 — 头圆走 timelineMarkerHit 的物件级选中)
 // spansOf 返回滑条折返数 (非滑条返回 0 跳过); 命中返回 { id, edge } (edge = 节点下标, slides = 尾)
 export function timelineNodeHit<T extends TimelineObjLike>(
@@ -106,7 +106,7 @@ export function timelineNodeHit<T extends TimelineObjLike>(
       const mx = ((o.time + (end - o.time) * k / slides - t0) / win) * width;
       const dx = mx - px;
       const d = gm !== undefined && py !== undefined ? Math.hypot(dx, gm.y - py) : Math.abs(dx);
-      if (d < or + 3 && d < bestD) { bestD = d; best = { id: o.id, edge: k }; }
+      if (d < or && d < bestD) { bestD = d; best = { id: o.id, edge: k }; }
     }
   }
   return best;

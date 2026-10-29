@@ -60,6 +60,8 @@ section('CDP: 小滑条拖尾生效 / 点头仍头优先 / 光标一致');
     }
     if (!ready) throw new Error('应用未就绪');
     await normalizeEnv(evalJs);
+    // 归一会关闭曲库/改语言，时间轴位置随之变化；等 zoomRect 的 2s 缓存过期再取坐标。
+    await sleep(2100);
 
     const out = await evalJs(`(async () => {
       const store = window.__osuStore;
@@ -84,7 +86,8 @@ section('CDP: 小滑条拖尾生效 / 点头仍头优先 / 光标一致');
       const o0 = store.beatmap.hitObjects.find(x => x.id === 482001);
       const endMs = o0.time + o0.length / vel * o0.slides;
       const tx = r.left + ((endMs - t0w) / win) * r.width;
-      const y = r.top + 20;
+      const z = Math.max(0.6, Math.min(1, Math.min(innerWidth / 2560, innerHeight / 1440)));
+      const y = r.top + 30 * z; // v518: 拖尾/悬停均按圆心二维命中; client 坐标需乘全局 UI zoom
       const out = { pxOff: tx - hx };
       // 1) 悬停尾端 → ew-resize; 悬停头 → pointer (光标与行为一致)
       c.dispatchEvent(new MouseEvent('mousemove', { clientX: tx, clientY: y, buttons: 0, bubbles: true }));
@@ -94,6 +97,7 @@ section('CDP: 小滑条拖尾生效 / 点头仍头优先 / 光标一致');
       // 2) 按住尾端正中右拖 → 拖尾改折返 (v482 前: 被头优先抢走 = 整体移动)
       const slides0 = o0.slides, time0 = o0.time;
       c.dispatchEvent(new MouseEvent('mousedown', { clientX: tx, clientY: y, button: 0, bubbles: true, cancelable: true }));
+      await sleep(60); // 让按下分支先稳定，再开始真实拖动
       c.dispatchEvent(new MouseEvent('mousemove', { clientX: tx + 60, clientY: y, buttons: 1, bubbles: true }));
       await sleep(150);
       c.dispatchEvent(new MouseEvent('mouseup', { clientX: tx + 60, clientY: y, bubbles: true }));
@@ -106,6 +110,7 @@ section('CDP: 小滑条拖尾生效 / 点头仍头优先 / 光标一致');
       const t0w2 = store.currentTime - win / 2;
       const hx2 = r.left + ((o1.time - t0w2) / win) * r.width;
       c.dispatchEvent(new MouseEvent('mousedown', { clientX: hx2, clientY: y, button: 0, bubbles: true, cancelable: true }));
+      await sleep(60);
       c.dispatchEvent(new MouseEvent('mousemove', { clientX: hx2 + 120, clientY: y, buttons: 1, bubbles: true }));
       await sleep(150);
       c.dispatchEvent(new MouseEvent('mouseup', { clientX: hx2 + 120, clientY: y, bubbles: true }));

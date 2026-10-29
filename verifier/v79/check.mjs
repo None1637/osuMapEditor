@@ -27,7 +27,7 @@ section('timelineHit.ts: 纯函数命中');
   const src = readSrc('src/osu/timelineHit.ts');
   assert(/export function timelineMarkerHit</.test(src), '导出 timelineMarkerHit (泛型)');
   assert(/dTail/.test(src) && /end - o\.time > 1/.test(src), '尾圆同为命中目标');
-  assert(/dHead < or \+ 3/.test(src), '像素阈值 rad+3 (v162: 按件半径 or)');
+  assert(/dHead < or && dHead < bestD/.test(src), '按实际半径 rad (v518: 去掉 rad+3 容差)');
   assert(/export function timelineBarHit</.test(src) && /end - o\.time <= 1/.test(src), 'v80: timelineBarHit 连体条兜底 (排除无时长物件)');
   assert(/o\.time >= bestTime/.test(src), '条重叠时取 time 最晚者 (最上层)');
 }

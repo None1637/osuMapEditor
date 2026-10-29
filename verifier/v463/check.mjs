@@ -37,7 +37,7 @@ section('源码: 时间轴头尾重叠头优先 (timelineHeadHit)');
   assert(/export function timelineHeadHit/.test(th), 'timelineHeadHit 导出');
   const fn = th.match(/export function timelineHeadHit[\s\S]*?\n\}/)?.[0] ?? '';
   assert(fn.length > 0 && !/endOf\(o\).*\) \* width.*dTail/.test(fn) && !/dTail/.test(fn), '头圆命中不含尾圆判定');
-  assert(/d < or \+ 3 && d < bestD/.test(fn), '半径 rad+3 + 最近者胜出 (与 timelineMarkerHit 同规则)');
+  assert(/d < or && d < bestD/.test(fn), '实际半径 rad + 最近者胜出 (v518)');
   const tl = read('src/components/Timelines.tsx');
   assert(/timelineHeadHit/.test(tl), 'Timelines 引入 timelineHeadHit');
   assert(/const headId = hitTestHead\(e\);[\s\S]{0,300}?tailHit\.d < headDist\(headId, e\)/.test(tl), '命中头圆时按距离裁决拖尾 (v463 头优先 → v482 谁近谁赢)');
@@ -123,7 +123,7 @@ section('CDP: 行为 (Alt 拖尾 SV 两态 / 头尾重叠头优先 / 旋转应�
         const tick8 = red0.beatLength / 8;
         const target = t + 3 * tick8; // 1/8 奇数格 — 不在 1/4 网格
         const t0w = store.currentTime - win / 2;
-        const x0 = r.left + ((endMs0 - t0w) / win) * r.width, y = r.top + 10;
+        const x0 = r.left + ((endMs0 - t0w) / win) * r.width, y = r.top + 30; // v518: 拖尾也需点在尾圆中心
         const x1 = r.left + ((target - t0w) / win) * r.width;
         c.dispatchEvent(new MouseEvent('mousedown', { clientX: x0, clientY: y, button: 0, altKey: true, bubbles: true, cancelable: true }));
         c.dispatchEvent(new MouseEvent('mousemove', { clientX: x1, clientY: y, altKey: true, bubbles: true }));

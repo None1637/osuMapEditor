@@ -39,14 +39,14 @@ section('Timelines.tsx: 渲染堆叠');
   const src = readSrc('src/components/Timelines.tsx');
   assert(/map: stackInfo\(drawList\)/.test(src) && /const stacks = memoStacks\.map;/.test(src), '绘制前计算堆叠信息 (v245: 帧级 memo, dataVersion+引用双键)');
   assert(/drawTimelineObject\(g, sx, ex, lay\.yOf\(si\.level\), lay\.rad,/.test(src), '按堆叠位置/半径绘制');
-  assert(/const stackGeomOf = /.test(src), 'stackGeomOf: 非堆叠 undefined (旧 x-only 行为)');
+  assert(/const stackGeomOf = /.test(src) && /stackLayout\(si\.count, OBJ_H, RAD\)/.test(src), 'stackGeomOf: 非堆叠也返回显示几何 (v518)');
 }
 
 section('Timelines.tsx: 命中跟随 (4 处)');
 {
   const src = readSrc('src/components/Timelines.tsx');
   assert(/timelineMarkerHit\(bm\.hitObjects, objEnd, t0, win, r\.width, px, RAD, py, stackGeomOf/.test(src), 'hitTestMarker 传 py + 堆叠几何');
-  assert(/Math\.hypot\(dx, stackLayout\(si\.count, OBJ_H, RAD\)\.yOf\(si\.level\) - py\)/.test(src), '滑条尾端堆叠 2D 命中');
+  assert(/gm \? Math\.hypot\(dx, gm\.y - py\) : Math\.abs\(dx\)/.test(src), '滑条尾端按显示几何做 2D 命中 (v518)');
   const barCalls = src.match(/timelineBarHit\([^\n]*?stackGeomOf\(stackInfo\(/g) ?? []; // v217 起坐标包 zoomClientX(...) 有嵌套括号, [^)]* 会漏匹配, 改按单行匹配
   assert(barCalls.length === 3, `三处 barHit 调用点都传堆叠几何 (单击兜底/mousedown 中段/右键; 实际 ${barCalls.length})`);
 }
