@@ -1,15 +1,15 @@
 // v486: 批量插入锚点 (弹簧滑条) 浮窗 — 沿主滑条按节拍间隔批量盖章子滑条模板 (computeAnchorStamp 纯函数,
 //   本文件只管规则参数面板 + 预览/应用接线)。
 // 主滑条在开窗时固定 (mainId) — 之后用户可在游玩区改选其他滑条用于「捕获」模板, 不像 SymSlider 那样跟踪选区。
-// 预览期联动: 模板规则记 srcId 活链接, 游玩区拖源滑条锚点 (就地改对象) → sig 签名变 → 重算 → 预览实时更新
-//   (SymSliderDialog :41 同款防死循环技巧 — sig 不变则 result 引用稳定)。
+// v519: 子滑条在窗口内直接编辑; 捕获只覆盖模板快照, params 变化 → 重算 → 预览实时更新。
 import { useEffect, useMemo, useState } from 'react';
 import { store, useEditor } from '@/osu/store';
 import { DraggableDialog, DraftNum, loadParams, saveParams, useSaveParamsOnClose } from '../DraggableDialog';
 import {
-  captureTemplate, computeAnchorStamp, DEFAULT_ANCHOR_STAMP_PARAMS, newRule, STAMP_DENOMINATORS,
-  type AnchorStampParams,
+  captureTemplate, computeAnchorStamp, DEFAULT_ANCHOR_STAMP_PARAMS, newRule, normalizeAnchorStampParams,
+  STAMP_DENOMINATORS, type AnchorStampParams,
 } from '@/osu/convert/anchorStamp';
+import { AnchorStampTemplateCanvas } from './AnchorStampTemplateCanvas';
 import { useT } from '@/i18n';
 
 /** a×1/b 拍 (分子 DraftNum + 分母 select, 到 1/128; DuplicateDialog 同款模式)
@@ -32,21 +32,13 @@ const BeatFrac = ({ num, den, setNum, setDen, idNum, idDen, minNum = 1 }: {
 export function AnchorStampDialog() {
   useEditor();
   const t = useT();
-  // v488: 旧存档的规则无 rotate 字段 → 载入时补默认 90° (垂直)
-  // v489: 旧存档无 offset 字段 → 补 0×1/4
-  const [params, setParams] = useState<AnchorStampParams>(() => {
-    const p = loadParams('anchorStamp', DEFAULT_ANCHOR_STAMP_PARAMS);
-    return {
-      ...p,
-      rules: (p.rules ?? []).map(r => ({
-        ...r,
-        rotate: Number.isFinite(r.rotate) ? r.rotate : 90,
-        offsetNum: Number.isFinite(r.offsetNum) ? r.offsetNum : 0,
-        offsetDen: Number.isFinite(r.offsetDen) ? r.offsetDen : 4,
-      })),
-    };
-  });
+  // v519: 旧存档补稳定 uid 与默认模板; v488/v489 后增字段一并在 normalize 中迁移
+  const [params, setParams] = useState<AnchorStampParams>(() =>
+    normalizeAnchorStampParams(loadParams('anchorStamp', DEFAULT_ANCHOR_STAMP_PARAMS)));
   useSaveParamsOnClose('anchorStamp', params);
+  // v520: 编辑区右/下边缘可拖动, 浮窗宽度随画布; 每条规则高度独立 (仅本次开窗)
+  const [dialogWidth, setDialogWidth] = useState(430);
+  const [canvasHeights, setCanvasHeights] = useState<Record<string, number>>({});
   const bm = store.beatmap;
   // 开窗时固定主滑条 (之后选区让给模板捕获); 物件被删/undo 后提示
   const [mainId] = useState<number | null>(() => {
@@ -60,20 +52,14 @@ export function AnchorStampDialog() {
     return o && o.type === 'slider' ? o : null;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bm, mainId, store.historySeq]); // v476: historySeq — undo/redo 后 bm 引用不变
-  // sig: 主滑条 + 所有活链接源滑条的几何签名 (节点就地拖拽后签名变 → 预览重算)
+  // sig: 主滑条几何签名 (节点就地拖拽后签名变 → 预览重算); v519 模板由 params 快照驱动
   const sig = useMemo(() => {
-    if (!bm) return '';
-    const parts: (string | number)[] = [];
-    const push = (o: { x: number; y: number; curveType?: string; length?: number; curvePoints?: { x: number; y: number }[] }) =>
-      parts.push(o.x, o.y, o.curveType ?? '', o.length ?? 0, ...(o.curvePoints ?? []).map(p => `${p.x},${p.y}`));
-    if (main) push(main);
-    for (const r of params.rules) {
-      const s = r.srcId !== null ? bm.hitObjects.find(o => o.id === r.srcId) : null;
-      if (s) { parts.push(s.id); push(s); }
-    }
+    if (!bm || !main) return '';
+    const parts: (string | number)[] = [main.x, main.y, main.curveType ?? '', main.length ?? 0,
+      ...(main.curvePoints ?? []).map(p => `${p.x},${p.y}`)];
     return parts.join('|');
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [bm, main, params.rules, store.historySeq, store.getVersion()]); // getVersion: 节点拖拽 commitDragFrame 只 bump version
+  }, [bm, main, store.historySeq, store.getVersion()]); // getVersion: 节点拖拽 commitDragFrame 只 bump version
   const result = useMemo(
     () => (bm && main ? computeAnchorStamp(bm, main, params) : null),
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -90,32 +76,39 @@ export function AnchorStampDialog() {
   const upd = (patch: Partial<AnchorStampParams>) => setParams(p => ({ ...p, ...patch }));
   const updRule = (i: number, patch: Partial<AnchorStampParams['rules'][number]>) =>
     setParams(p => ({ ...p, rules: p.rules.map((r, k) => k === i ? { ...r, ...patch } : r) }));
-  // 捕获: 当前选中的第一根非主滑条 (都没有则允许主滑条自身) → 快照 + srcId 活链接
+  const resizeTemplate = (uid: string, next: { dialogWidth: number; height: number }) => {
+    setDialogWidth(next.dialogWidth);
+    setCanvasHeights(h => ({ ...h, [uid]: next.height }));
+  };
+  // v519: 捕获只覆盖窗口快照; 主滑条仍固定, 源滑条之后的编辑不再联动
   const capture = (i: number) => {
     const sels = bm.hitObjects.filter(o => store.selected.has(o.id) && o.type === 'slider');
     const sel = sels.find(o => o.id !== mainId) ?? sels[0];
     if (!sel) return;
-    updRule(i, { srcId: sel.id, template: captureTemplate(sel) });
+    updRule(i, { template: captureTemplate(sel) });
   };
 
   return (
-    <DraggableDialog title={t('convert.stamp_title', 'Insert Anchors (Spring)')} testid="anchorStamp" width={430} onClose={() => store.closeConversion()}>
+    <DraggableDialog title={t('convert.stamp_title', 'Insert Anchors (Spring)')} testid="anchorStamp" width={dialogWidth} onClose={() => store.closeConversion()}>
       {!main && <div className="text-red-300">{t('convert.stamp_need_main', 'No main slider (re-select 1 slider and reopen)')}</div>}
       {params.rules.map((r, i) => {
-        const live = r.srcId !== null && bm.hitObjects.some(o => o.id === r.srcId && o.type === 'slider');
         const tplLabel = r.template ? `${r.template.curveType}/${r.template.points.length}` : null;
         return (
-          <div key={i} className="rounded border border-white/10 p-2 space-y-1.5" data-conv={`rule-${i}`}>
+          <div key={r.uid} className="rounded border border-white/10 p-2 space-y-1.5" data-conv={`rule-${i}`}>
             <div className="flex items-center gap-2">
               <span className="text-white/50">{t('convert.stamp_priority', 'Priority')}</span>
               <DraftNum value={r.priority} testid={`priority-${i}`} min={1} max={99} set={v => updRule(i, { priority: Math.round(v) })} />
               <button data-conv={`capture-${i}`} onClick={() => capture(i)}
-                className="px-2 py-0.5 rounded bg-cyan-600/70 hover:bg-cyan-500 text-white">
-                {tplLabel ? `${tplLabel}${live ? ` (${t('convert.stamp_live', 'live')})` : ''}` : t('convert.stamp_capture', 'Capture selected slider')}
+                className="px-2 py-0.5 rounded bg-cyan-600/70 hover:bg-cyan-500 text-white font-semibold whitespace-nowrap">
+                {/* v520: 始终显示动作文案, 模板类型/点数只作后缀, 避免按钮看起来只是状态标签 */}
+                {t('convert.stamp_capture', 'Capture selected slider')}{tplLabel ? ` (${tplLabel})` : ''}
               </button>
               <button data-conv={`del-${i}`} onClick={() => setParams(p => ({ ...p, rules: p.rules.filter((_, k) => k !== i) }))}
                 className="ml-auto px-1.5 rounded hover:bg-white/15 text-white/60">✕</button>
             </div>
+            {r.template && <AnchorStampTemplateCanvas uid={r.uid} testid={`template-${i}`} template={r.template} base={bm}
+              dialogWidth={dialogWidth} height={canvasHeights[r.uid] ?? 150} onResize={next => resizeTemplate(r.uid, next)}
+              onChange={next => updRule(i, { template: next })} />}
             <div className="flex items-center gap-3">
               <span className="text-white/50">{t('convert.stamp_interval', 'Interval')}</span>
               <BeatFrac num={r.intervalNum} den={r.intervalDen} idNum={`interval-num-${i}`} idDen={`interval-den-${i}`}

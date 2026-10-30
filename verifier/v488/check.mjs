@@ -23,7 +23,7 @@ section('源码');
   assert(/theta - s\.thetaT \+ s\.rot/.test(c), '盖章变换叠加偏转角');
   const dlg = read('src/components/convert/AnchorStampDialog.tsx');
   assert(/testid=\{`rotate-\$\{i\}`\}/.test(dlg), '浮窗旋转输入框');
-  assert(/Number\.isFinite\(r\.rotate\) \? r\.rotate : 90/.test(dlg), '浮窗载入补默认 90°');
+  assert(/normalizeAnchorStampParams/.test(dlg) && /Number\.isFinite\(r\.rotate\) \? r\.rotate : 90/.test(c), '浮窗载入经 normalize 补默认 90° (v519)');
   const dict = read('src/i18n/dicts/zh-CN/convert.ts');
   assert(dict.includes("'convert.stamp_rotate'") && dict.includes("'convert.stamp_rotate_hint'"), 'zh-CN i18n');
 }

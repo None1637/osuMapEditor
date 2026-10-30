@@ -21,11 +21,11 @@ import { tNow } from '@/i18n';
 export interface AnchorStampTemplate { curveType: string; points: Vec2[] }
 
 export interface AnchorStampRule {
+  /** v519: 窗口编辑会话的稳定键 (不随规则排序/删除变化) */
+  uid: string;
   /** 优先级 (数字小者高) */
   priority: number;
-  /** 活链接: 源滑条 id — 谱面中仍存在时模板取它的实时锚点 (预览期拖源滑条锚点实时联动) */
-  srcId: number | null;
-  /** 捕获快照 (源滑条删除后回落; 随参数持久化) */
+  /** v519: 窗口内唯一模板真源 (捕获只覆盖快照, 不再活链接源滑条) */
   template: AnchorStampTemplate | null;
   /** 插入间隔 a×1/b 拍 */
   intervalNum: number; intervalDen: number;
@@ -44,8 +44,31 @@ export const DEFAULT_ANCHOR_STAMP_PARAMS: AnchorStampParams = { rules: [], keepD
 /** v486: 间隔/消除的分母选项 (用户要求到 1/128; 浮窗本地参数, 不动全局 BEAT_SNAP_OPTIONS) */
 export const STAMP_DENOMINATORS = [1, 2, 3, 4, 6, 8, 12, 16, 24, 32, 48, 64, 72, 96, 128];
 
+let ruleUidSeq = 0;
+const newRuleUid = () => `r${Date.now().toString(36)}-${(++ruleUidSeq).toString(36)}`;
+
+/** v519: 默认两点短直线 (每次返回独立点列, 编辑器可安全就地改写) */
+export function defaultAnchorStampTemplate(): AnchorStampTemplate {
+  return { curveType: 'L', points: [{ x: 0, y: 0 }, { x: 64, y: 0 }] };
+}
+
+/** v519: 载入旧参数 — 补稳定 uid/默认模板及 v488/v489 后增字段 */
+export function normalizeAnchorStampParams(p: AnchorStampParams): AnchorStampParams {
+  return {
+    ...p,
+    rules: (p.rules ?? []).map((r, i) => ({
+      ...r,
+      uid: r.uid || `legacy-${i}`,
+      template: r.template && r.template.points.length >= 2 ? r.template : defaultAnchorStampTemplate(),
+      rotate: Number.isFinite(r.rotate) ? r.rotate : 90,
+      offsetNum: Number.isFinite(r.offsetNum) ? r.offsetNum : 0,
+      offsetDen: Number.isFinite(r.offsetDen) ? r.offsetDen : 4,
+    })),
+  };
+}
+
 export function newRule(priority: number): AnchorStampRule {
-  return { priority, srcId: null, template: null, intervalNum: 1, intervalDen: 4, offsetNum: 0, offsetDen: 4, eraseNum: 0, eraseDen: 32, rotate: 90 };
+  return { uid: newRuleUid(), priority, template: defaultAnchorStampTemplate(), intervalNum: 1, intervalDen: 4, offsetNum: 0, offsetDen: 4, eraseNum: 0, eraseDen: 32, rotate: 90 };
 }
 
 /** 捕获滑条为模板快照 (绝对坐标) */
@@ -53,12 +76,8 @@ export function captureTemplate(o: HitObject): AnchorStampTemplate {
   return { curveType: o.curveType ?? 'L', points: [{ x: o.x, y: o.y }, ...(o.curvePoints ?? []).map(p => ({ x: p.x, y: p.y }))] };
 }
 
-/** 解析模板: srcId 活链接优先 (源滑条存在 → 实时锚点), 否则快照 */
-export function resolveTemplate(bm: Beatmap, rule: AnchorStampRule): AnchorStampTemplate | null {
-  if (rule.srcId !== null) {
-    const o = bm.hitObjects.find(x => x.id === rule.srcId && x.type === 'slider');
-    if (o) return captureTemplate(o);
-  }
+/** v519: 只解析窗口快照; 旧存档遗留 srcId 不再读取 */
+export function resolveTemplate(rule: AnchorStampRule): AnchorStampTemplate | null {
   return rule.template;
 }
 
@@ -133,7 +152,7 @@ export function computeAnchorStamp(bm: Beatmap, main: HitObject, params: AnchorS
   interface Stamp { d: number; rule: AnchorStampRule; step: number; segs: BezierSeg[]; head: Vec2; thetaT: number; rot: number; erase: number }
   const stamps: Stamp[] = [];
   for (const rule of params.rules) {
-    const tpl = resolveTemplate(bm, rule);
+    const tpl = resolveTemplate(rule);
     if (!tpl || tpl.points.length < 2) { warnings.push(tNow('convert.astamp_warn_no_template', 'Priority {p}: no template set (skipped)', { p: rule.priority })); continue; }
     const stepMs = red.beatLength * rule.intervalNum / Math.max(1, rule.intervalDen);
     const step = stepMs * vel;

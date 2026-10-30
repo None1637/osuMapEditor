@@ -129,7 +129,6 @@ export const zhCN: Record<string, string> = {
   'convert.stamp_title': '插入锚点 (弹簧)',
   'convert.stamp_priority': '优先级',
   'convert.stamp_capture': '捕获选中滑条',
-  'convert.stamp_live': '实时',
   'convert.stamp_interval': '间隔',
   'convert.stamp_erase': '消除',
   'convert.stamp_add_rule': '+ 添加规则',
@@ -137,6 +136,9 @@ export const zhCN: Record<string, string> = {
   'convert.stamp_sv_preview': 'SV: {from} → {to}',
   'convert.stamp_need_main': '没有主滑条 (请关闭窗口, 选中 1 根主滑条后重开)',
   'convert.stamp_summary': '将插入 {n} 处模板 (预览已显示在游玩区)',
+  // v519: 窗口内子滑条编辑器
+  'convert.stamp_curve': '曲线',
+  'convert.stamp_editor_hint': 'Alt 选择 / Ctrl 加点或转红 / 右键删除',
   // v488: 模板旋转角 (默认 90° = 垂直于主滑条)
   'convert.stamp_rotate': '旋转',
   'convert.stamp_rotate_hint': '(90 = 垂直于主滑条, 0 = 沿切线)',

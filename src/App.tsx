@@ -36,6 +36,7 @@ import { fetchServerDirs, serverDir } from '@/osu/serverFs';
 import { applyServerSkin } from '@/osu/serverSkin';
 import { getElectronAPI, isElectron } from '@/osu/electronBridge';
 import { handleMenuCommand, openServerDifficulty } from '@/osu/electronMenu';
+import { dispatchAnchorStampGeometryCommand, dispatchAnchorStampMenuCommand } from '@/osu/convert/anchorStampEditScope'; // v519: 模板局部编辑作用域
 import { computeStarRating } from '@/osu/starRating'; // v167: 谱面星数 (lazer 移植)
 import { FirstRunWizard } from '@/components/FirstRunWizard';
 import { SkinListPanel } from '@/components/SkinListPanel';
@@ -311,6 +312,9 @@ export default function App() {
         else if (id0 === 'cancel') { e.preventDefault(); store.closeTransformDialog(); }
         return;
       }
+      // v519: 变换窗口优先; 其后活动子滑条模板处理几何命令, 不落入主谱面选区/undo
+      const idStamp = findHotkeyAction(e);
+      if (idStamp && dispatchAnchorStampGeometryCommand(idStamp)) { e.preventDefault(); e.stopPropagation(); return; }
       // v321 (F26): Shift+数字 1..8 = 直接设节拍细分 (stable 同款; 用 e.code 防 Shift 变换键符如 '!';
       // 必须先于 findHotkeyAction — 其 Shift 松弛匹配会把 Shift+1 误判成 tool-select)
       if (e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && /^Digit[1-8]$/.test(e.code)) {
@@ -432,6 +436,7 @@ export default function App() {
       if (cmd.type === 'open-backups') { void store.openBackupFolder(); return; } // v185: 文件菜单「查看备份」
       if (cmd.type === 'reload-map') { void reloadMapRef.current(); return; } // v480: Ctrl+R 菜单命令 → 谱面刷新 (含未保存警告)
       if (cmd.type === 'check-update') { void manualCheckUpdate(); return; } // v493: 关于菜单「检查更新」
+      if (!store.transformDialog && dispatchAnchorStampMenuCommand(cmd.type)) return; // v519: 变换窗口优先, 其余几何命令路由到活动模板
       await handleMenuCommand(cmd);
       if (cmd.type === 'open') setShowLibrary(false);
     });

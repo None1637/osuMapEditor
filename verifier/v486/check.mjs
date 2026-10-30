@@ -1,6 +1,6 @@
 // 验证器 v486: 滑条批量插入锚点 (弹簧滑条)
-//   - 浮窗规则 (优先级/捕获模板+活链接/间隔 a×1/b 到 1/128/消除吞除) + 保形盖章 (转B de Casteljau)
-//   - 预览 (conversionPreview 含 SV 绿线) + 预览期拖源滑条锚点实时联动 (sig 签名)
+//   - 浮窗规则 (优先级/捕获模板/间隔 a×1/b 到 1/128/消除吞除) + 保形盖章 (转B de Casteljau)
+//   - 预览 (conversionPreview 含 SV 绿线); v519 起捕获为快照, 源滑条后续编辑不联动
 //   - 保留时长: SV 反解头绿线改/插 + applyConversion 全量 timing 替换 (第 4 参 replaceTiming)
 //   - 优先级: 同位置冲突 priority 小者胜
 // 运行: npm run build 后 node verifier/v486/check.mjs
@@ -37,7 +37,7 @@ section('源码');
     assert(dict.includes(`'convert.${k}'`), `zh-CN ${k}`);
 }
 
-section('CDP: 全链路 (捕获/预览/活链接/应用/SV/优先级/undo)');
+section('CDP: 全链路 (捕获/快照预览/应用/SV/优先级/undo)');
 {
   const PORT = 9499;
   const sleep = (ms) => new Promise(r => setTimeout(r, ms));
@@ -108,16 +108,16 @@ section('CDP: 全链路 (捕获/预览/活链接/应用/SV/优先级/undo)');
             hide: store.conversionPreview.hideIds, sv: (store.conversionPreview.timingPoints || []).length }
         : null;
       out.previewLen = store.conversionPreview ? store.conversionPreview.objects[0].length : 0;
-      // 4) 活链接: 改模板锚点 → 预览几何实时变
+      // 4) v519 快照语义: 捕获后改源滑条锚点 → 窗口模板与预览不变
       const o2 = store.beatmap.hitObjects.find(o => o.id === 486002);
       o2.curvePoints = [{ x: 150, y: 340 }, { x: 180, y: 400 }];
       store.emit();
       await sleep(250);
-      out.liveLen = store.conversionPreview ? store.conversionPreview.objects[0].length : 0;
+      out.sourceEditLen = store.conversionPreview ? store.conversionPreview.objects[0].length : 0;
       // 5) SV 预览文本
       const svEl = document.querySelector('[data-conv="sv-preview"]');
       out.svText = svEl ? svEl.textContent : null;
-      out.expectSv = out.liveLen / 312; // v486 修正: 活链接改动后的最新几何长度
+      out.expectSv = out.sourceEditLen / 312; // v519: 使用捕获快照的几何长度
       // 6) 应用
       document.querySelector('[data-conv="apply"]').click();
       await sleep(300);
@@ -146,7 +146,7 @@ section('CDP: 全链路 (捕获/预览/活链接/应用/SV/优先级/undo)');
       `预览: 1 根 B 结果滑条且隐藏主滑条 (${JSON.stringify(out.preview)})`);
     assert(out.preview.sv >= 1, `预览含 SV 绿线 (${out.preview.sv} 条)`);
     assert(out.preview.anchors > 3 * out.expectStamps, `预览锚点数 ${out.preview.anchors} > ${3 * out.expectStamps} (模板×${out.expectStamps}处)`);
-    assert(Math.abs(out.liveLen - out.previewLen) > 1, `活链接: 改模板锚点预览实时变 (len ${out.previewLen.toFixed(1)} → ${out.liveLen.toFixed(1)})`);
+    assert(out.sourceEditLen === out.previewLen, `v519 快照: 捕获后改源滑条不影响预览 (len ${out.previewLen.toFixed(1)} → ${out.sourceEditLen.toFixed(1)})`);
     const m = /SV: ([\d.]+) → ([\d.]+)/.exec(out.svText || '');
     assert(m && Math.abs(parseFloat(m[2]) - out.expectSv) < 0.02, `SV 预览 = 1.00 → ${out.expectSv.toFixed(2)} (实际 ${out.svText})`);
     assert(out.applied && out.applied.mainGone && out.applied.selected && out.applied.type === 'B',
