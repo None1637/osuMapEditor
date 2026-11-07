@@ -407,6 +407,7 @@ const acc = (id, def) => accelOverrides[id] ?? def
 // 应用内菜单条经现有 onMenuDefinition 推送链路自动刷新
 const MENU_LABELS = {
   "menu.file": { en: "File", "zh-CN": "文件", "zh-TW": "檔案" },
+  "menu.new": { en: "New Beatmap", "zh-CN": "新建谱面", "zh-TW": "新建譜面" },
   "menu.save": { en: "Save", "zh-CN": "保存", "zh-TW": "儲存" },
   "menu.open_difficulty": { en: "Open a Difficulty", "zh-CN": "打开一个难度", "zh-TW": "開啟一個難度" },
   "menu.no_beatmap": { en: "(no beatmap loaded)", "zh-CN": "(未加载谱面)", "zh-TW": "(未載入譜面)" },
@@ -506,6 +507,7 @@ function buildMenu() {
     {
       label: mT("menu.file"),
       submenu: [
+        { label: mT("menu.new"), accelerator: acc("new", "CmdOrCtrl+N"), click: () => send({ type: "new" }) }, // v521
         { label: mT("menu.save"), accelerator: acc("save", "CmdOrCtrl+S"), enabled: !!menuState, click: () => send({ type: "save" }) },
         { type: "separator" },
         {

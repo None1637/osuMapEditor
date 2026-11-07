@@ -24,7 +24,7 @@ assert(/dirty = false;/.test(store) && /pendingAction: \(\(\) => void\) \| null 
 assert(/pushSnapshot\(\) \{[\s\S]{0,700}v140: 不再在此置脏/.test(store), 'pushSnapshot: v140 起不再盲置脏 (改 emit() 指纹对比, 无实际改动不脏; v379: 入栈抽至 pushSnapshot, 注释随行)');
 assert(/this\.setDirty\(false\); \/\/ v120/.test(store), 'save 成功: 清脏标记');
 assert(/async save\(\): Promise<boolean>/.test(store), 'save: 返回是否成功 (保存并继续依赖)');
-assert(/this\.pendingAction = null; \/\/ v120/.test(store) && /this\.setDirty\(false\); \/\/ v120: 载入即干净状态/.test(store), 'load: 清脏 + 丢弃待执行动作');
+assert(/this\.pendingAction = null; \/\/ v120/.test(store) && /load\([\s\S]{0,180}initialDirty = false\)/.test(store) && /this\.setDirty\(initialDirty\)/.test(store), 'load: 默认清脏 + 丢弃待执行动作 (v521 initialDirty 可选)');
 assert(/guardUnsaved\(action: \(\) => void\): boolean \{[\s\S]{0,600}if \(!this\.beatmap \|\| !this\.dirty\) return true;/.test(store), 'guardUnsaved: 干净/无谱面放行 (v136 起前有 bypass 一次性放行块)');
 assert(/resolvePendingAction\(run: boolean\)/.test(store), 'resolvePendingAction: 取消/确认');
 

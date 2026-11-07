@@ -45,15 +45,16 @@ section('TimingPanel.tsx: stable F6 样式');
     && /\{tp\.volume\}%/.test(src), '行音量 n% 显示 (v374: 平时文本, 点击出输入框)');
 }
 
-section('多选: 行点击 + 红线批量栏');
+section('多选: 行点击 + v522 红线批量弹窗');
 {
   const src = read('src/components/TimingPanel.tsx');
   assert(/store\.clickTimingLine\(tp\.time, \{ ctrl: e\.ctrlKey \|\| e\.metaKey, shift: e\.shiftKey \}, visibleTimes\)/.test(src),
     '行点击 → clickTimingLine (Ctrl/Shift)');
   assert(/closest\('input,select,button,label'\)/.test(src), '点在输入控件上不触发多选');
   assert(/const isSel = store\.selectedGreenLines\.has\(tp\.time\);/.test(src), '红绿线行均可高亮选中');
-  assert(/data-tp-batch-red/.test(src) && /store\.deleteTimingPointsAt\(selReds/.test(src), '红线批量编辑栏 + 删除');
-  assert(/store\.updateTimingPointsAt\(selReds\.map/.test(src), '红线批量修改');
+  assert(/data-tp-batch-red/.test(src) && /store\.deleteTimingPointsAt\(selReds/.test(src), '红线批量栏 + 删除');
+  const dlg = read('src/components/TimingBatchDialog.tsx');
+  assert(/data-tp-batch-red-open/.test(src) && /store\.updateTimingPointsAt\(selectedTimes/.test(dlg), '红线批量修改弹窗 (v522)');
 }
 
 section('store.ts: 多选与批量 API');
@@ -65,11 +66,12 @@ section('store.ts: 多选与批量 API');
   assert(/deleteTimingPointsAt\(times: Iterable<number>/.test(src), 'deleteTimingPointsAt (红绿通用)');
 }
 
-section('回归: v157 绿线批量栏结构保留');
+section('回归: v157 绿线批量功能保留 (v522 弹窗)');
 {
   const src = read('src/components/TimingPanel.tsx');
-  assert(/data-tp-batch-input="sampleSet"/.test(src) && /data-tp-batch-input="volume"/.test(src), '绿线批量字段保留');
-  assert(/store\.updateGreenLinesAt\(selGreens\.map\(g => g\.time\), patch\)/.test(src), '绿线批量修改沿用 updateGreenLinesAt');
+  const dlg = read('src/components/TimingBatchDialog.tsx');
+  assert(/data-tp-batch-input/.test(dlg) && /testid="batch-volume"/.test(dlg), '绿线批量字段保留');
+  assert(/store\.updateGreenLinesAt\(selectedTimes/.test(dlg), '绿线批量修改沿用 updateGreenLinesAt');
   assert(/data-tp-batch-delete/.test(src) && /store\.deleteGreenLinesAt\(selGreens/.test(src), '绿线删除所选按钮保留');
   assert(/data-tp-select="green"/.test(src) && /store\.toggleGreenLineSelected\(tp\.time\)/.test(src), '绿线行首 checkbox 保留');
 }

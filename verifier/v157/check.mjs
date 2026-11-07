@@ -34,25 +34,21 @@ section('TimingPanel.tsx: All/红线/绿线 页签');
   assert(/\.map\(\(tp, i\) => \(\{ tp, i \}\)\)/.test(src), '过滤前绑定全局索引 i (updateTp/滚动定位不受影响)');
 }
 
-section('TimingPanel.tsx: 绿线行首勾选 + 批量编辑栏');
+section('TimingPanel.tsx: 绿线行首勾选 + v522 批量修改弹窗');
 {
   const src = readSrc('src/components/TimingPanel.tsx');
   assert(/data-tp-select="green"/.test(src), '绿线行首 checkbox');
   assert(/store\.toggleGreenLineSelected\(tp\.time\)/.test(src), '勾选切换选中');
   assert(/store\.selectedGreenLines\.has\(tp\.time\)/.test(src), '与上时间轴药丸选区共享同一集合');
-  assert(/data-tp-batch/.test(src), '批量编辑栏 data-tp-batch');
-  // v346 i18n 改造后: 已选数量文案走 t('timing.green_selected', ...), 中文译文在词典分片里
+  assert(/data-tp-batch-open/.test(src) && /<TimingBatchDialog/.test(src), '批量修改按钮打开独立弹窗 (v522)');
   assert(/t\('timing\.green_selected', '\{n\} inherited lines selected', \{ n: selGreens\.length \}\)/.test(src), '显示已选数量 (i18n key)');
   const timingDict = readSrc('src/i18n/dicts/zh-CN/timing.ts');
   assert(timingDict.includes("'timing.green_selected': '已选 {n} 条绿线'"), '已选数量 zh-CN 译文正确');
-  assert(/store\.updateGreenLinesAt\(selGreens\.map\(g => g\.time\), patch\)/.test(src), '修改即时应用到所有选中绿线');
-  for (const f of ['sv', 'sampleSet', 'sampleIndex', 'volume', 'kiai']) {
-    // v372: sv 改走 PreciseInput 属性透传 (dataAttr + dataValue), 其余字段保持原样
-    const ok = f === 'sv'
-      ? /dataAttr="data-tp-batch-input" dataValue="sv"/.test(src)
-      : new RegExp(`data-tp-batch-input="${f}"`).test(src);
-    assert(ok, `批量字段 ${f}`);
-  }
+  const dlg = readSrc('src/components/TimingBatchDialog.tsx');
+  assert(/store\.updateGreenLinesAt\(selectedTimes/.test(dlg), '弹窗应用到所有选中绿线');
+  assert(/testid="batch-sv"/.test(dlg), '批量字段 sv');
+  for (const f of ['sampleSet', 'kiai']) assert(new RegExp(`input\\('${f}'\\)`).test(dlg), `批量字段 ${f}`);
+  assert(/testid="batch-index"/.test(dlg) && /testid="batch-volume"/.test(dlg), '批量字段 sampleIndex/volume');
   assert(/data-tp-batch-delete/.test(src) && /store\.deleteGreenLinesAt\(selGreens/.test(src), '删除所选按钮');
 }
 

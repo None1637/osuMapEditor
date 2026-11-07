@@ -122,6 +122,7 @@ export interface ElectronMenuState {
 
 /** v77: 主进程 -> 渲染端的菜单命令; v156: Timing 菜单命令组 */
 export type ElectronMenuCommand =
+  | { type: 'new' } // v521: 新建谱面
   | { type: 'save' }
   | { type: 'open'; folderRel: string; file: string }
   | { type: 'timing-set-meter'; meter: number }

@@ -3,8 +3,9 @@
 //  - handleMenuCommand: 菜单命令 — save = store.save (与 Ctrl+S 相同), open = 经服务器目录加载指定难度
 //    ("打开一个难度" 与 "打开最近的难度" 共用; 目录/文件已删除时静默失败并 console.error, 不打断编辑器)。
 import { store } from './store';
-import { serverDir } from './serverFs';
+import { fetchServerDirs, serverDir } from './serverFs';
 import { listDifficulties, loadDifficulty } from './library';
+import { createEmptyBeatmap, createNewBeatmapSource } from './newBeatmap'; // v521
 import { getElectronAPI, type ElectronMenuCommand } from './electronBridge';
 import { getLang, onLangChange } from '@/i18n'; // v346: 多语言 — 语言上报主进程 (菜单标签重建)
 import { editorPrefs } from './editorPrefs'; // v386: 设置菜单 editorPrefs 勾选开关
@@ -65,8 +66,19 @@ export async function openServerDifficulty(folderRel: string, file: string): Pro
   }
 }
 
+/** v521: 参考 lazer — 新建空谱面后进入 Song Setup; 返回 false = 未保存提示尚未确认/取消 */
+export async function newBeatmap(onCreated?: () => void): Promise<boolean> {
+  if (!store.guardUnsaved(() => { void newBeatmap(onCreated); })) return false;
+  const dirs = await fetchServerDirs();
+  const source = dirs?.songsDir ? createNewBeatmapSource() : null;
+  store.load(createEmptyBeatmap(), null, null, undefined, source, null, true);
+  onCreated?.(); //  guardUnsaved 确认后的重入也必须进入 Song Setup
+  return true;
+}
+
 /** 菜单命令入口 (App.tsx 订阅 onMenuCommand; CDP 经 window.__osuMenuCmd 直接调用) */
-export async function handleMenuCommand(cmd: ElectronMenuCommand): Promise<void> {
+export async function handleMenuCommand(cmd: ElectronMenuCommand, onCreated?: () => void) {
+  if (cmd.type === 'new') return newBeatmap(onCreated);
   if (cmd.type === 'save') { await store.save(); return; }
   if (cmd.type === 'open') { await openServerDifficulty(cmd.folderRel, cmd.file); return; }
   // v156: Timing 菜单 (timing-open-settings / timing-shift-all 由 App.tsx 处理 — 涉及页签切换/弹窗 UI)

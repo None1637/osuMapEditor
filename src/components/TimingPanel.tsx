@@ -4,6 +4,7 @@ import { store, useEditor, usePlaybackFrame } from '@/osu/store';
 import type { TimingPoint } from '@/osu/parser';
 import { defaultNewPoint, setEffectBit, EFFECT_KIAI, EFFECT_OMIT_BARLINE, formatMsTime, parseMsTime, activeGreenAt, scrollTargetIndex, sampleSetCode, fmtTpPrec, fmtBpm, fmtSv } from '@/osu/timingEdit';
 import { hotkeyLabel } from '@/osu/hotkeys'; // v321 (F21): 快捷键提示随改键同步
+import { TimingBatchDialog } from './TimingBatchDialog'; // v522: 多选批量修改弹窗
 import { useT } from '@/i18n';
 
 /** v372: 高精度数值输入 (BPM/SV) — 聚焦期间保留用户原文 ( controlled 值重算会吞掉输入中的 "." ),
@@ -65,6 +66,7 @@ export function TimingPanel({ full = false }: { full?: boolean }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   // v157: All/红线/绿线 页签过滤 (仅 full 窗口; 过滤不影响全局索引 i, updateTp/滚动定位不变)
   const [filter, setFilter] = useState<'all' | 'red' | 'green'>('all');
+  const [batchDialog, setBatchDialog] = useState<'red' | 'green' | null>(null); // v522
 
   // v359: 滚动定位复用 (挂载自动滚到生效绿线 / 加新线后滚到新行 — soulten: 加新線不在畫面中要自己滾下去)
   const scrollRowToCenter = (idx: number) => {
@@ -125,14 +127,10 @@ export function TimingPanel({ full = false }: { full?: boolean }) {
   // 当前时间生效的绿线 (红线后 SV 复位; 随 currentTime 实时变化)
   const activeGreen = activeGreenAt(bm.timingPoints, store.currentTime);
 
-  // v157: 批量编辑栏 — 已选中的绿线 (与上时间轴药丸选区共享 store.selectedGreenLines)
+  // v157/v522: 多选绿线 (与上时间轴药丸共享集合), 内联字段改为独立批量修改弹窗
   const selGreens = bm.timingPoints.filter(tp => !tp.uninherited && store.selectedGreenLines.has(tp.time));
-  const batchFirst = selGreens[0];
-  const batchApply = (patch: Partial<TimingPoint>) => store.updateGreenLinesAt(selGreens.map(g => g.time), patch);
-  // v372: 已选中的红线 (行点击多选; 批量编辑/删除, 与绿线栏并列)
+  // v372/v522: 多选红线同样使用批量修改弹窗
   const selReds = bm.timingPoints.filter(tp => tp.uninherited && store.selectedGreenLines.has(tp.time));
-  const batchRedFirst = selReds[0];
-  const batchRedApply = (patch: Partial<TimingPoint>) => store.updateTimingPointsAt(selReds.map(g => g.time), patch);
   // v372: 当前页签可见行 time 序 (Shift 范围选择的区间基准)
   const visibleTimes = bm.timingPoints.filter(tp => filter === 'all' || (filter === 'red') === tp.uninherited).map(tp => tp.time);
 
@@ -172,73 +170,31 @@ export function TimingPanel({ full = false }: { full?: boolean }) {
           ))}
         </div>
       )}
-      {/* v157: 绿线多选批量编辑栏 (勾选行首 checkbox 后出现; 修改即时应用到所有选中绿线, 一次 undo) */}
-      {full && selGreens.length > 0 && batchFirst && (
+      {/* v522: 绿线多选后点按钮打开独立批量修改窗口, 不再把整排字段挤在页面上 */}
+      {full && selGreens.length > 0 && (
         <div data-tp-batch className="flex flex-wrap items-center justify-center gap-2 px-3 py-1.5 border-y border-emerald-400/30 bg-emerald-500/10">
           <span className="text-emerald-300">{t('timing.green_selected', '{n} inherited lines selected', { n: selGreens.length })}</span>
-          <label className="flex items-center gap-1">SV
-            <PreciseInput value={-100 / batchFirst.beatLength} dataAttr="data-tp-batch-input" dataValue="sv" allowNaN
-              onCommit={v => batchApply({ beatLength: Number.isNaN(v) ? NaN : -100 / (v || 1) })}
-              className={`w-24 ${inp}`} />x
-          </label>
-          <label className="flex items-center gap-1">{t('timing.sample_set', 'Sample Set')}
-            <select value={batchFirst.sampleSet} data-tp-batch-input="sampleSet"
-              onChange={e => batchApply({ sampleSet: parseInt(e.target.value) })}
-              className="bg-black/40 border border-white/15 rounded px-1 py-0.5 text-white">
-              <option value={1}>Normal</option><option value={2}>Soft</option><option value={3}>Drum</option>
-            </select>
-          </label>
-          <label className="flex items-center gap-1">{t('timing.sample_index', 'Index')}
-            <input type="number" min="0" max="99" value={batchFirst.sampleIndex} data-tp-batch-input="sampleIndex"
-              onChange={e => batchApply({ sampleIndex: parseInt(e.target.value) || 0 })}
-              className={`w-12 ${inp}`} />
-          </label>
-          <label className="flex items-center gap-1">{t('timing.volume', 'Volume')}
-            <input type="number" min="0" max="100" value={batchFirst.volume} data-tp-batch-input="volume"
-              onChange={e => batchApply({ volume: parseInt(e.target.value) || 0 })}
-              className={`w-12 ${inp}`} />{/* v372 */}%
-          </label>
-          <label className="flex items-center gap-1">
-            <input type="checkbox" checked={(batchFirst.effects & EFFECT_KIAI) !== 0} data-tp-batch-input="kiai"
-              onChange={e => batchApply({ effects: setEffectBit(batchFirst.effects, EFFECT_KIAI, e.target.checked) })} />
-            kiai
-          </label>
-          <button data-tp-batch-delete
-            onClick={() => store.deleteGreenLinesAt(selGreens.map(g => g.time))}
+          <button data-tp-batch-open onClick={() => setBatchDialog('green')}
+            className="px-2 py-0.5 rounded bg-emerald-500/30 hover:bg-emerald-500/50 border border-emerald-400/40">
+            {t('timing.batch_edit', 'Batch Edit')}</button>
+          <button data-tp-batch-delete onClick={() => store.deleteGreenLinesAt(selGreens.map(g => g.time))}
             className="px-2 py-0.5 rounded bg-red-500/30 hover:bg-red-500/50 border border-red-400/40">{t('timing.delete_selected', 'Delete Selected')}</button>
         </div>
       )}
-      {/* v372: 红线多选批量编辑栏 (行点击 Ctrl/Shift 多选; 批量音效集/序号/音量/kiai/删除) */}
-      {full && selReds.length > 0 && batchRedFirst && (
+      {/* v522: 红线多选批量修改弹窗 */}
+      {full && selReds.length > 0 && (
         <div data-tp-batch-red className="flex flex-wrap items-center justify-center gap-2 px-3 py-1.5 border-y border-red-400/30 bg-red-500/10">
           <span className="text-red-300">{t('timing.red_selected', '{n} timing points selected', { n: selReds.length })}</span>
-          <label className="flex items-center gap-1">{t('timing.sample_set', 'Sample Set')}
-            <select value={batchRedFirst.sampleSet} data-tp-batch-red-input="sampleSet"
-              onChange={e => batchRedApply({ sampleSet: parseInt(e.target.value) })}
-              className="bg-black/40 border border-white/15 rounded px-1 py-0.5 text-white">
-              <option value={1}>Normal</option><option value={2}>Soft</option><option value={3}>Drum</option>
-            </select>
-          </label>
-          <label className="flex items-center gap-1">{t('timing.sample_index', 'Index')}
-            <input type="number" min="0" max="99" value={batchRedFirst.sampleIndex} data-tp-batch-red-input="sampleIndex"
-              onChange={e => batchRedApply({ sampleIndex: parseInt(e.target.value) || 0 })}
-              className={`w-12 ${inp}`} />
-          </label>
-          <label className="flex items-center gap-1">{t('timing.volume', 'Volume')}
-            <input type="number" min="0" max="100" value={batchRedFirst.volume} data-tp-batch-red-input="volume"
-              onChange={e => batchRedApply({ volume: parseInt(e.target.value) || 0 })}
-              className={`w-12 ${inp}`} />%
-          </label>
-          <label className="flex items-center gap-1">
-            <input type="checkbox" checked={(batchRedFirst.effects & EFFECT_KIAI) !== 0} data-tp-batch-red-input="kiai"
-              onChange={e => batchRedApply({ effects: setEffectBit(batchRedFirst.effects, EFFECT_KIAI, e.target.checked) })} />
-            kiai
-          </label>
-          <button data-tp-batch-red-delete
-            onClick={() => store.deleteTimingPointsAt(selReds.map(g => g.time))}
+          <button data-tp-batch-red-open onClick={() => setBatchDialog('red')}
+            className="px-2 py-0.5 rounded bg-red-500/30 hover:bg-red-500/50 border border-red-400/40">
+            {t('timing.batch_edit', 'Batch Edit')}</button>
+          <button data-tp-batch-red-delete onClick={() => store.deleteTimingPointsAt(selReds.map(g => g.time))}
             className="px-2 py-0.5 rounded bg-red-500/30 hover:bg-red-500/50 border border-red-400/40">{t('timing.delete_selected', 'Delete Selected')}</button>
         </div>
       )}
+      {batchDialog && <TimingBatchDialog kind={batchDialog}
+        times={(batchDialog === 'red' ? selReds : selGreens).map(tp => tp.time)}
+        onClose={() => setBatchDialog(null)} />}
       {/* v71: 滚动条在窗口内部 (表格区独立滚动); v359: full 模式 flex-1 撑满垂直空间 */}
       <div ref={scrollRef} data-tp-scroll className={`px-3 pb-2 overflow-auto ${full ? 'flex-1 min-h-0' : 'max-h-44'}`}>
         {/* v374-2: table-fixed + 固定列宽 — 点击单元格切换编辑控件时列宽/窗口宽度不再跳动 */}

@@ -10,6 +10,7 @@ import {
   STAMP_DENOMINATORS, type AnchorStampParams,
 } from '@/osu/convert/anchorStamp';
 import { AnchorStampTemplateCanvas } from './AnchorStampTemplateCanvas';
+import { ChevronDown, ChevronRight } from 'lucide-react'; // v523: 单规则折叠
 import { useT } from '@/i18n';
 
 /** a×1/b 拍 (分子 DraftNum + 分母 select, 到 1/128; DuplicateDialog 同款模式)
@@ -39,6 +40,7 @@ export function AnchorStampDialog() {
   // v520: 编辑区右/下边缘可拖动, 浮窗宽度随画布; 每条规则高度独立 (仅本次开窗)
   const [dialogWidth, setDialogWidth] = useState(430);
   const [canvasHeights, setCanvasHeights] = useState<Record<string, number>>({});
+  const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set()); // v523: 按 uid 折叠单规则
   const bm = store.beatmap;
   // 开窗时固定主滑条 (之后选区让给模板捕获); 物件被删/undo 后提示
   const [mainId] = useState<number | null>(() => {
@@ -80,6 +82,11 @@ export function AnchorStampDialog() {
     setDialogWidth(next.dialogWidth);
     setCanvasHeights(h => ({ ...h, [uid]: next.height }));
   };
+  const toggleCollapsed = (uid: string) => setCollapsed(prev => {
+    const next = new Set(prev);
+    if (next.has(uid)) next.delete(uid); else next.add(uid);
+    return next;
+  });
   // v519: 捕获只覆盖窗口快照; 主滑条仍固定, 源滑条之后的编辑不再联动
   const capture = (i: number) => {
     const sels = bm.hitObjects.filter(o => store.selected.has(o.id) && o.type === 'slider');
@@ -96,6 +103,11 @@ export function AnchorStampDialog() {
         return (
           <div key={r.uid} className="rounded border border-white/10 p-2 space-y-1.5" data-conv={`rule-${i}`}>
             <div className="flex items-center gap-2">
+              <button data-conv={`collapse-${i}`} aria-expanded={!collapsed.has(r.uid)}
+                title={collapsed.has(r.uid) ? t('convert.stamp_expand', 'Expand') : t('convert.stamp_collapse', 'Collapse')}
+                onClick={() => toggleCollapsed(r.uid)} className="px-1 py-0.5 rounded hover:bg-white/15 text-white/60">
+                {collapsed.has(r.uid) ? <ChevronRight className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              </button>
               <span className="text-white/50">{t('convert.stamp_priority', 'Priority')}</span>
               <DraftNum value={r.priority} testid={`priority-${i}`} min={1} max={99} set={v => updRule(i, { priority: Math.round(v) })} />
               <button data-conv={`capture-${i}`} onClick={() => capture(i)}
@@ -106,27 +118,30 @@ export function AnchorStampDialog() {
               <button data-conv={`del-${i}`} onClick={() => setParams(p => ({ ...p, rules: p.rules.filter((_, k) => k !== i) }))}
                 className="ml-auto px-1.5 rounded hover:bg-white/15 text-white/60">✕</button>
             </div>
-            {r.template && <AnchorStampTemplateCanvas uid={r.uid} testid={`template-${i}`} template={r.template} base={bm}
-              dialogWidth={dialogWidth} height={canvasHeights[r.uid] ?? 150} onResize={next => resizeTemplate(r.uid, next)}
-              onChange={next => updRule(i, { template: next })} />}
-            <div className="flex items-center gap-3">
-              <span className="text-white/50">{t('convert.stamp_interval', 'Interval')}</span>
-              <BeatFrac num={r.intervalNum} den={r.intervalDen} idNum={`interval-num-${i}`} idDen={`interval-den-${i}`}
-                setNum={v => updRule(i, { intervalNum: v })} setDen={v => updRule(i, { intervalDen: v })} />
-              <span className="text-white/50">{t('convert.stamp_erase', 'Erase')}</span>
-              <BeatFrac num={r.eraseNum} den={r.eraseDen} idNum={`erase-num-${i}`} idDen={`erase-den-${i}`}
-                setNum={v => updRule(i, { eraseNum: v })} setDen={v => updRule(i, { eraseDen: v })} />
-            </div>
-            <div className="flex items-center gap-3">
-              <span className="text-white/50">{t('convert.stamp_offset', 'Offset')}</span>
-              <BeatFrac num={r.offsetNum} den={r.offsetDen} idNum={`offset-num-${i}`} idDen={`offset-den-${i}`} minNum={0}
-                setNum={v => updRule(i, { offsetNum: v })} setDen={v => updRule(i, { offsetDen: v })} />
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-white/50">{t('convert.stamp_rotate', 'Rotate')}</span>
-              <DraftNum value={r.rotate} testid={`rotate-${i}`} min={-360} max={360} step={1} set={v => updRule(i, { rotate: v })} />
-              <span className="text-white/40">°</span>
-              <span className="text-white/30 text-xs">{t('convert.stamp_rotate_hint', '(90 = perpendicular to main slider, 0 = along tangent)')}</span>
+            {/* v523: hidden 仅隐藏配置, 不卸载画布, 保留选区/undo/编辑会话 */}
+            <div hidden={collapsed.has(r.uid)} className="space-y-1.5" data-conv={`config-${i}`}>
+              {r.template && <AnchorStampTemplateCanvas uid={r.uid} testid={`template-${i}`} template={r.template} base={bm}
+                dialogWidth={dialogWidth} height={canvasHeights[r.uid] ?? 150} onResize={next => resizeTemplate(r.uid, next)}
+                onChange={next => updRule(i, { template: next })} />}
+              <div className="flex items-center gap-3">
+                <span className="text-white/50">{t('convert.stamp_interval', 'Interval')}</span>
+                <BeatFrac num={r.intervalNum} den={r.intervalDen} idNum={`interval-num-${i}`} idDen={`interval-den-${i}`}
+                  setNum={v => updRule(i, { intervalNum: v })} setDen={v => updRule(i, { intervalDen: v })} />
+                <span className="text-white/50">{t('convert.stamp_erase', 'Erase')}</span>
+                <BeatFrac num={r.eraseNum} den={r.eraseDen} idNum={`erase-num-${i}`} idDen={`erase-den-${i}`}
+                  setNum={v => updRule(i, { eraseNum: v })} setDen={v => updRule(i, { eraseDen: v })} />
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-white/50">{t('convert.stamp_offset', 'Offset')}</span>
+                <BeatFrac num={r.offsetNum} den={r.offsetDen} idNum={`offset-num-${i}`} idDen={`offset-den-${i}`} minNum={0}
+                  setNum={v => updRule(i, { offsetNum: v })} setDen={v => updRule(i, { offsetDen: v })} />
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-white/50">{t('convert.stamp_rotate', 'Rotate')}</span>
+                <DraftNum value={r.rotate} testid={`rotate-${i}`} min={-360} max={360} step={1} set={v => updRule(i, { rotate: v })} />
+                <span className="text-white/40">°</span>
+                <span className="text-white/30 text-xs">{t('convert.stamp_rotate_hint', '(90 = perpendicular to main slider, 0 = along tangent)')}</span>
+              </div>
             </div>
           </div>
         );

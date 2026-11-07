@@ -128,9 +128,11 @@ console.log('== C: CDP 弹窗/Timing 表格/undo/渲染');
       out.inlineGreen = Number.isNaN(s.beatmap.timingPoints[1].beatLength);
 
       s.toggleGreenLineSelected(1000); s.emit();
-      const batch = await q('[data-tp-batch-input="sv"]');
+      (await q('[data-tp-batch-open]')).click(); // v522: 先打开独立批量修改窗口
+      const batch = await q('[data-dialog="batch-green"] [data-conv="batch-sv"]');
       out.batchExists = true;
       setInput(batch, 'NaN');
+      (await q('[data-tp-batch-dlg="ok"]')).click();
       await sleep(80);
       out.batchGreen = Number.isNaN(s.beatmap.timingPoints[1].beatLength);
       (await q('[data-tp-row="1"] [data-tp-editing]')).dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));

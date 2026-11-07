@@ -28,6 +28,8 @@ export const zhCN: Record<string, string> = {
   'timing.green_line': '绿线',
   'timing.green_selected': '已选 {n} 条绿线',
   'timing.red_selected': '已选 {n} 条红线',
+  'timing.batch_edit': '批量修改',
+  'timing.batch_title': '批量修改{type} ({n} 条)',
   'timing.sample': '音效集',
   'timing.sample_set': '音效集',
   'timing.sample_index': '序号',

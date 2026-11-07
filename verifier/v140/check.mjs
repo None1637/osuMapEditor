@@ -41,7 +41,7 @@ section('store.ts: 指纹基准与重算');
   assert(/emit\(\) \{ this\.version\+\+; this\.dataVersion\+\+; this\.refreshDirty\(\);/.test(src), 'refreshDirty 挂 emit() 漏斗 (undo/redo/拖拽提交均经过)');
   // load/save 更新基准
   const li = src.indexOf('load(bm: Beatmap');
-  assert(/this\.savedFingerprint = this\.fingerprint\(\); \/\/ v140: 载入内容成为干净基准/.test(src.slice(li, li + 800)), 'load: 载入内容成为干净基准');
+  assert(/this\.savedFingerprint = initialDirty \? null : this\.fingerprint\(\);/.test(src.slice(li, li + 800)), 'load: 普通载入建立干净基准, v521 新建首次保存前置空');
   const si = src.indexOf('async save()');
   assert(/this\.savedFingerprint = this\.fingerprint\(\); \/\/ v140: 保存内容成为新的干净基准/.test(src.slice(si, si + 800)), 'save: 保存内容成为新基准');
   // pushUndo 不再盲置脏

@@ -5937,3 +5937,25 @@
   ResizeObserver 重新适配显示与命中坐标。
 - 验证: v520 CDP 覆盖按钮文案、右缘加宽、下缘加高、角手柄双向缩放及缩放后继续编辑; v519/v486/v488/v489
   相关回归通过, `npm run build` 通过。
+
+## v521 — 参考 lazer 新建谱面
+- 参考 `osu.Game/Screens/Edit/Editor.cs` 与 `BeatmapManager.CreateNew`: 文件菜单/Ctrl+N 创建空谱面并进入
+  Song Setup, 不强制先选音频。空 metadata/物件、PreviewTime=-1、全难度 5, 另补 60 BPM 4/4 默认红线便于作图。
+- 新建前复用未保存保护; `store.load(initialDirty)` 使新谱面首次保存前始终提示, 确认废弃后的重入同样进入
+  Song Setup。Electron 保存到独立 `New Beatmap-<timestamp>/New Beatmap.osu`, 无服务器目录时沿用下载兜底。
+- 验证: v521 纯函数 11 项 + CDP (旧谱面保护、空谱面默认值、独立来源、首次保存 stub 清脏) 全绿;
+  v77/v120 等文件菜单与未保存相关回归适配后复跑, `npm run build` 通过。
+
+## v522 — Timing 多选批量修改弹窗
+- 红/绿线多选栏改为「批量修改」按钮 + 独立 DraggableDialog, 不再在页面上铺开内联字段。
+- 开窗冻结选区, 绿线支持 SV/音效集/序号/音量/kiai, 红线支持 BPM/拍号/音效集/序号/音量/kiai/省略小节线;
+  应用一次 undo 写入全部选中线, 取消不改值, BPM/SV 保留 NaN。
+- 验证: v522 CDP 覆盖绿线应用/取消、红线 BPM/拍号/音效应用及一次 undo; v157/v372/v375/v517 相关回归,
+  `npm run build` 通过。
+
+## v523 — 子滑条长拖动选区与单规则折叠
+- 根因: 连续编辑时旧父组件回显晚于下一帧, 单值 `lastEmittedRef` 把它误判为外部捕获替换, 清空选区/undo 并
+  终止拖拽。改为 WeakSet 记录全部本编辑器模板引用, 任意帧回显均不重置, 捕获的新对象仍正常重置。
+- 每条规则可按 uid 折叠, 标题保留优先级/捕获/删除; 配置区仅 hidden 不卸载, 保留模板选区和编辑状态。
+- 验证: v523 CDP 连续 40 次 mousemove 后锚点选区仍保留, undo/redo 正常; 折叠隐藏但画布未卸载, 展开后可继续
+  编辑。v519/v520/v486/v488/v489 相关回归, `npm run build` 通过。

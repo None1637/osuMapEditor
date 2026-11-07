@@ -60,7 +60,7 @@ section('store.ts / App.tsx / serverFs.ts: 接线');
   const store = readSrc('src/osu/store.ts');
   assert(/void reportMenuState\(bm, source\)/.test(store), 'store.load 后上报菜单状态');
   const app = readSrc('src/App.tsx');
-  assert(/ed\.onMenuCommand\(async \(cmd\)/.test(app) && /handleMenuCommand\(cmd\)/.test(app) && /setShowLibrary\(false\)/.test(app), 'App 订阅菜单命令 (open 后关曲库)');
+  assert(/ed\.onMenuCommand\(async \(cmd\)/.test(app) && /handleMenuCommand\(cmd, \(\) => setTab\('setup'\)\)/.test(app) && /setShowLibrary\(false\)/.test(app), 'App 订阅菜单命令 (v521 Song Setup 回调; open 后关曲库)');
   const serverFs = readSrc('src/osu/serverFs.ts');
   assert(/serverRel: rel,/.test(serverFs), 'serverDir 携带 serverRel');
   const bridge = readSrc('src/osu/electronBridge.ts');

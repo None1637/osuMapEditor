@@ -54,7 +54,8 @@ export function AnchorStampTemplateCanvas({ uid, testid, template, base, dialogW
   const viewRef = useRef<View | null>(null);
   const fitRef = useRef(true);
   const historyRef = useRef<{ undo: AnchorStampTemplateEditState[]; redo: AnchorStampTemplateEditState[] }>({ undo: [], redo: [] });
-  const lastEmittedRef = useRef<AnchorStampTemplate>(template);
+  // v523: 记录全部本编辑器发出的模板, 旧回显晚于下一帧到达也不会误清拖拽/选区
+  const emittedTemplatesRef = useRef(new WeakSet<AnchorStampTemplate>([template]));
   const onChangeRef = useRef(onChange);
   const onResizeRef = useRef(onResize);
   onChangeRef.current = onChange;
@@ -63,17 +64,17 @@ export function AnchorStampTemplateCanvas({ uid, testid, template, base, dialogW
   const update = (next: AnchorStampTemplateEditState) => {
     // v519: 几何同步给父窗口, 关闭/Apply 永远拿到末次编辑; 选区变化不重算盖章
     if (next.template !== draftRef.current.template) {
-      lastEmittedRef.current = next.template;
+      emittedTemplatesRef.current.add(next.template);
       onChangeRef.current(next.template);
     }
     draftRef.current = next;
     setDraft(next);
   };
 
-  // 捕获/外部替换才重置本地会话; 自己 onChange 回显的同一引用不重置拖拽与选区
+  // 捕获/外部替换才重置本地会话; 本编辑器任意一帧的回显都不重置 (v523 WeakSet)
   useEffect(() => {
-    if (template === lastEmittedRef.current) return;
-    lastEmittedRef.current = template;
+    if (emittedTemplatesRef.current.has(template)) return;
+    emittedTemplatesRef.current.add(template);
     const next = stampEditState(template);
     draftRef.current = next;
     setDraft(next);

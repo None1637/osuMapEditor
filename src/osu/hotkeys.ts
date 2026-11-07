@@ -43,6 +43,7 @@ export const HOTKEY_ACTIONS: HotkeyAction[] = [
   // 播放/文件
   { id: 'play-pause', label: '播放/暂停', en: 'Play / Pause', category: '播放/文件', defaults: ['Space'] },
   { id: 'test-play', label: '测试游玩', en: 'Test Play', category: '播放/文件', defaults: ['F5'] }, // v287
+  { id: 'new', label: '新建谱面', en: 'New Beatmap', category: '播放/文件', defaults: ['Ctrl+N'], menuId: 'new' }, // v521
   { id: 'save', label: '保存谱面', en: 'Save Beatmap', category: '播放/文件', defaults: ['Ctrl+S'], menuId: 'save' },
   // 编辑
   { id: 'undo', label: '撤销', en: 'Undo', category: '编辑', defaults: ['Ctrl+Z'], menuId: 'edit-undo' },

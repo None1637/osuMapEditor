@@ -139,6 +139,8 @@ export const zhCN: Record<string, string> = {
   // v519: 窗口内子滑条编辑器
   'convert.stamp_curve': '曲线',
   'convert.stamp_editor_hint': 'Alt 选择 / Ctrl 加点或转红 / 右键删除',
+  'convert.stamp_collapse': '折叠',
+  'convert.stamp_expand': '展开',
   // v488: 模板旋转角 (默认 90° = 垂直于主滑条)
   'convert.stamp_rotate': '旋转',
   'convert.stamp_rotate_hint': '(90 = 垂直于主滑条, 0 = 沿切线)',

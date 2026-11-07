@@ -600,7 +600,7 @@ class EditorStore {
     }
   }
 
-  load(bm: Beatmap, audioUrl: string | null, backgroundUrl: string | null = null, samples?: Map<string, File>, source: MapSource | null = null, audioKey: string | null = null) {
+  load(bm: Beatmap, audioUrl: string | null, backgroundUrl: string | null = null, samples?: Map<string, File>, source: MapSource | null = null, audioKey: string | null = null, initialDirty = false) {
     this.resetWheelGesture(); // v514: 换谱后不得补发上一张谱的滚轮余量
     invalidatePath(); // v378: 换谱几何缓存全部失效 — pathCache 按物件 id 缓存, 新谱物件 id 与旧谱滑条
     //   重合时 hitTest/渲染沿用旧几何 (点不中/画错形状); restore() 已有同款清理, load 漏了
@@ -609,8 +609,8 @@ class EditorStore {
     this.lastSave = null;
     this.saveMessage = null;
     this.pendingAction = null; // v120: 新谱面已载入, 丢弃未执行的提示动作
-    this.setDirty(false); // v120: 载入即干净状态
-    this.savedFingerprint = this.fingerprint(); // v140: 载入内容成为干净基准 (脏标记按内容指纹对比)
+    this.setDirty(initialDirty); // v120/v521: 普通载入干净; 新建谱面首次保存前必须提示
+    this.savedFingerprint = initialDirty ? null : this.fingerprint(); // v521: 新建在首次保存前不建立干净基准
     this.selected.clear();
     this.gridSpacing = null; // v373: 载入/刷新后间距跟随新谱面 GridSize, 清除手动覆盖
     this.manualCurveType.clear(); // v394: 换谱清空「手动改过曲线类型」记录 (仅本次编辑, 不存档)

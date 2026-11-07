@@ -328,6 +328,7 @@ export default function App() {
       switch (id) {
         case 'play-pause': e.preventDefault(); store.togglePlay(); return;
         case 'test-play': e.preventDefault(); setTestPlay(true); return; // v287: F5 测试游玩 (lazer EditorPlayer)
+        case 'new': e.preventDefault(); void handleMenuCommand({ type: 'new' }, () => setTab('setup')); return; // v521
         case 'save': e.preventDefault(); store.save(); return; // Electron 下原生菜单 accelerator 先行, 浏览器走这里
         case 'open-rotate': e.preventDefault(); store.openTransformDialog('rotate'); return;
         case 'open-scale': e.preventDefault(); store.openTransformDialog('scale'); return;
@@ -437,7 +438,7 @@ export default function App() {
       if (cmd.type === 'reload-map') { void reloadMapRef.current(); return; } // v480: Ctrl+R 菜单命令 → 谱面刷新 (含未保存警告)
       if (cmd.type === 'check-update') { void manualCheckUpdate(); return; } // v493: 关于菜单「检查更新」
       if (!store.transformDialog && dispatchAnchorStampMenuCommand(cmd.type)) return; // v519: 变换窗口优先, 其余几何命令路由到活动模板
-      await handleMenuCommand(cmd);
+      await handleMenuCommand(cmd, () => setTab('setup')); // v521: 新建及未保存确认重入都进入 Song Setup
       if (cmd.type === 'open') setShowLibrary(false);
     });
   }, []);
