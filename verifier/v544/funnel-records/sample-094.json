@@ -1,0 +1,19 @@
+{
+  "id": "sample-094",
+  "directoryName": "568215 Various Artists - ChronoJigga Season 2",
+  "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\568215 Various Artists - ChronoJigga Season 2",
+  "status": "ok",
+  "referenceBpm": 240,
+  "referenceVariable": false,
+  "predictedBpm": 239.9,
+  "predictedVariable": false,
+  "variableLines": [],
+  "trueVariableMs": 0,
+  "flaggedWindowCount": 29,
+  "flaggedWindowsOnVariable": 0,
+  "rawCandidateCount": 0,
+  "rawCandidatesOnVariable": 0,
+  "finalEvidenceCount": 0,
+  "finalEvidenceOnVariable": 0,
+  "candidates": []
+}

@@ -1,0 +1,20 @@
+{
+  "cohort": 47,
+  "withOtherVariableMap": 1,
+  "withEvidenceMatchedMap": 0,
+  "singleDifficulty": 11,
+  "matched": [],
+  "otherVariable": [
+    {
+      "id": "sample-041",
+      "directoryName": "191429 C-Show - UNOwen wa kanojo nanoka (TO-HOlic mix)",
+      "maps": [
+        {
+          "name": "C-Show - U.N.Owen wa kanojo nanoka (TO-HOlic mix) (Rugure) [Rugure TYPE].osu",
+          "dominantBpm": 219.9999999999998,
+          "redLineCount": 3
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "id": "sample-026",
+  "directoryName": "116310 Chata - enn ~fuchi~",
+  "beatmapFile": "Chata - enn ~fuchi~ (Smoothie) [Abyss].osu",
+  "metadata": {
+    "Title": "enn ~fuchi~",
+    "TitleUnicode": "enn～淵～",
+    "Artist": "Chata",
+    "ArtistUnicode": "茶太",
+    "Creator": "Smoothie",
+    "Version": "Abyss",
+    "Source": "Touhou",
+    "Tags": "Toyosatomimi no Miko Starry Sky of Small Desires 小さな欲望の星空 shuriken NSY Sally Sadomasochism サドマゾヒズム  サリー",
+    "BeatmapID": "300203",
+    "BeatmapSetID": "116310",
+    "Mode": "0"
+  },
+  "audioDurationMs": 310491.4285714286,
+  "redLines": [
+    {
+      "time": 37918,
+      "beatLength": 243.90243902439,
+      "bpm": 246.00000000000026,
+      "durationMs": 1585
+    },
+    {
+      "time": 39503,
+      "beatLength": 243.90243902439,
+      "bpm": 246.00000000000026,
+      "durationMs": 187820
+    },
+    {
+      "time": 227323,
+      "beatLength": 243.90243902439,
+      "bpm": 246.00000000000026,
+      "durationMs": 15602
+    },
+    {
+      "time": 242925,
+      "beatLength": 243.90243902439,
+      "bpm": 246.00000000000026,
+      "durationMs": 487
+    },
+    {
+      "time": 243412,
+      "beatLength": 243.90243902439,
+      "bpm": 246.00000000000026,
+      "durationMs": 67079.42857142858
+    }
+  ],
+  "referenceBpm": 246.00000000000026,
+  "referenceVariable": false,
+  "referenceRedLineCount": 5,
+  "referenceCoverageMs": 272573.4285714286,
+  "status": "ok",
+  "prediction": {
+    "bpm": 123.05,
+    "offsetMs": 784,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 277,
+    "rawBpm": 246.1,
+    "rawSegmentCount": 174
+  },
+  "evaluationMs": 2716
+}

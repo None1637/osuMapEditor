@@ -1,0 +1,300 @@
+{
+  "id": "sample-003",
+  "directoryName": "606995 False Noise - Skyshards",
+  "beatmapFile": "False Noise - Skyshards (Shiirn) [Shroud].osu",
+  "metadata": {
+    "Title": "Skyshards",
+    "TitleUnicode": "Skyshards",
+    "Artist": "False Noise",
+    "ArtistUnicode": "False Noise",
+    "Creator": "Shiirn",
+    "Version": "Shroud",
+    "Source": "",
+    "Tags": "Hyperlight EP Mir dnb ambient cinematic dnb drum and bass electronic experimental garage neuro Boulder nanobuilder",
+    "BeatmapID": "1282209",
+    "BeatmapSetID": "606995",
+    "Mode": "0"
+  },
+  "audioDurationMs": 332146.9387755102,
+  "redLines": [
+    {
+      "time": 0,
+      "beatLength": 348.837209302326,
+      "bpm": 171.99999999999977,
+      "durationMs": 16744
+    },
+    {
+      "time": 16744,
+      "beatLength": 348.837209302326,
+      "bpm": 171.99999999999977,
+      "durationMs": 5581
+    },
+    {
+      "time": 22325,
+      "beatLength": 348.837209302326,
+      "bpm": 171.99999999999977,
+      "durationMs": 5581
+    },
+    {
+      "time": 27906,
+      "beatLength": 348.837209302326,
+      "bpm": 171.99999999999977,
+      "durationMs": 5581
+    },
+    {
+      "time": 33487,
+      "beatLength": 348.837209302326,
+      "bpm": 171.99999999999977,
+      "durationMs": 5581
+    },
+    {
+      "time": 39068,
+      "beatLength": 348.837209302326,
+      "bpm": 171.99999999999977,
+      "durationMs": 5581
+    },
+    {
+      "time": 44649,
+      "beatLength": 348.837209302326,
+      "bpm": 171.99999999999977,
+      "durationMs": 22676
+    },
+    {
+      "time": 67325,
+      "beatLength": 377.358490566038,
+      "bpm": 158.99999999999991,
+      "durationMs": 377
+    },
+    {
+      "time": 67702,
+      "beatLength": 400,
+      "bpm": 150,
+      "durationMs": 400
+    },
+    {
+      "time": 68102,
+      "beatLength": 402.684563758389,
+      "bpm": 149.00000000000009,
+      "durationMs": 402
+    },
+    {
+      "time": 68504,
+      "beatLength": 434.782608695652,
+      "bpm": 138.00000000000006,
+      "durationMs": 434
+    },
+    {
+      "time": 68938,
+      "beatLength": 461.538461538462,
+      "bpm": 129.99999999999986,
+      "durationMs": 461
+    },
+    {
+      "time": 69399,
+      "beatLength": 466.926070038911,
+      "bpm": 128.49999999999986,
+      "durationMs": 466
+    },
+    {
+      "time": 69865,
+      "beatLength": 582.52427184466,
+      "bpm": 103.00000000000003,
+      "durationMs": 582
+    },
+    {
+      "time": 70447,
+      "beatLength": 641.711229946524,
+      "bpm": 93.50000000000001,
+      "durationMs": 641
+    },
+    {
+      "time": 71088,
+      "beatLength": 659.340659340659,
+      "bpm": 91.00000000000004,
+      "durationMs": 659
+    },
+    {
+      "time": 71747,
+      "beatLength": 895.522388059701,
+      "bpm": 67.00000000000003,
+      "durationMs": 895
+    },
+    {
+      "time": 72642,
+      "beatLength": 1016.94915254237,
+      "bpm": 59.00000000000016,
+      "durationMs": 508
+    },
+    {
+      "time": 73150,
+      "beatLength": 1071.42857142857,
+      "bpm": 56.00000000000008,
+      "durationMs": 535
+    },
+    {
+      "time": 73685,
+      "beatLength": 1363.63636363636,
+      "bpm": 44.000000000000114,
+      "durationMs": 681
+    },
+    {
+      "time": 74366,
+      "beatLength": 1818.18181818181,
+      "bpm": 33.00000000000015,
+      "durationMs": 909
+    },
+    {
+      "time": 75275,
+      "beatLength": 2866.01385240029,
+      "bpm": 20.934999999999974,
+      "durationMs": 2865
+    },
+    {
+      "time": 78140,
+      "beatLength": 348.837209302326,
+      "bpm": 171.99999999999977,
+      "durationMs": 122790
+    },
+    {
+      "time": 200930,
+      "beatLength": 348.837209302326,
+      "bpm": 171.99999999999977,
+      "durationMs": 5581
+    },
+    {
+      "time": 206511,
+      "beatLength": 348.837209302326,
+      "bpm": 171.99999999999977,
+      "durationMs": 5581
+    },
+    {
+      "time": 212092,
+      "beatLength": 348.837209302326,
+      "bpm": 171.99999999999977,
+      "durationMs": 5581
+    },
+    {
+      "time": 217673,
+      "beatLength": 348.837209302326,
+      "bpm": 171.99999999999977,
+      "durationMs": 5581
+    },
+    {
+      "time": 223254,
+      "beatLength": 348.837209302326,
+      "bpm": 171.99999999999977,
+      "durationMs": 351
+    },
+    {
+      "time": 223605,
+      "beatLength": 377.358490566038,
+      "bpm": 158.99999999999991,
+      "durationMs": 377
+    },
+    {
+      "time": 223982,
+      "beatLength": 400,
+      "bpm": 150,
+      "durationMs": 400
+    },
+    {
+      "time": 224382,
+      "beatLength": 402.684563758389,
+      "bpm": 149.00000000000009,
+      "durationMs": 402
+    },
+    {
+      "time": 224784,
+      "beatLength": 434.782608695652,
+      "bpm": 138.00000000000006,
+      "durationMs": 434
+    },
+    {
+      "time": 225218,
+      "beatLength": 461.538461538462,
+      "bpm": 129.99999999999986,
+      "durationMs": 461
+    },
+    {
+      "time": 225679,
+      "beatLength": 466.926070038911,
+      "bpm": 128.49999999999986,
+      "durationMs": 466
+    },
+    {
+      "time": 226145,
+      "beatLength": 582.52427184466,
+      "bpm": 103.00000000000003,
+      "durationMs": 582
+    },
+    {
+      "time": 226727,
+      "beatLength": 641.711229946524,
+      "bpm": 93.50000000000001,
+      "durationMs": 641
+    },
+    {
+      "time": 227368,
+      "beatLength": 659.340659340659,
+      "bpm": 91.00000000000004,
+      "durationMs": 659
+    },
+    {
+      "time": 228027,
+      "beatLength": 895.522388059701,
+      "bpm": 67.00000000000003,
+      "durationMs": 895
+    },
+    {
+      "time": 228922,
+      "beatLength": 1016.94915254237,
+      "bpm": 59.00000000000016,
+      "durationMs": 508
+    },
+    {
+      "time": 229430,
+      "beatLength": 1071.42857142857,
+      "bpm": 56.00000000000008,
+      "durationMs": 535
+    },
+    {
+      "time": 229965,
+      "beatLength": 1363.63636363636,
+      "bpm": 44.000000000000114,
+      "durationMs": 681
+    },
+    {
+      "time": 230646,
+      "beatLength": 1818.18181818182,
+      "bpm": 32.999999999999964,
+      "durationMs": 909
+    },
+    {
+      "time": 231555,
+      "beatLength": 2866.01385240029,
+      "bpm": 20.934999999999974,
+      "durationMs": 2865
+    },
+    {
+      "time": 234420,
+      "beatLength": 348.837209302326,
+      "bpm": 171.99999999999977,
+      "durationMs": 97726.93877551018
+    }
+  ],
+  "referenceBpm": 171.99999999999977,
+  "referenceVariable": true,
+  "referenceRedLineCount": 44,
+  "referenceCoverageMs": 310516.9387755102,
+  "status": "ok",
+  "prediction": {
+    "bpm": 172,
+    "offsetMs": 381,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 301,
+    "rawBpm": 172,
+    "rawSegmentCount": 137
+  },
+  "evaluationMs": 3326
+}

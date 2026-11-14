@@ -1,0 +1,81 @@
+{
+  "id": "sample-067",
+  "directoryName": "732851 LeaF - Lyrith",
+  "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\732851 LeaF - Lyrith",
+  "status": "ok",
+  "referenceBpm": 176.9999999999998,
+  "referenceVariable": true,
+  "predictedBpm": 177.05,
+  "predictedVariable": false,
+  "variableLines": [
+    {
+      "time": 130249,
+      "beatLength": 169.491525423729,
+      "bpm": 353.9999999999996,
+      "durationMs": 8135
+    }
+  ],
+  "trueVariableMs": 8135,
+  "flaggedWindowCount": 14,
+  "flaggedWindowsOnVariable": 1,
+  "rawCandidateCount": 2,
+  "rawCandidatesOnVariable": 0,
+  "finalEvidenceCount": 0,
+  "finalEvidenceOnVariable": 0,
+  "candidates": [
+    {
+      "startMs": 18971,
+      "endMs": 24967,
+      "bpm": 101.333,
+      "points": 3,
+      "maxSupport": 0.18667745152626228,
+      "localGridCoverage": 0.0898876404494382,
+      "rejection": "weak_short",
+      "independentMainScore": 0.45272823095012593,
+      "independentLocalScore": 0.10168418124645608,
+      "variableOverlapMs": 0,
+      "overlapsVariable": false,
+      "tripletVotes": [
+        {
+          "timeMs": 21968.979591836734,
+          "bpm": 101.333,
+          "localGridCoverage": 0.08139534883720931,
+          "tripletGridCoverage": 0.6046511627906976,
+          "tripletGridHalfCoverage": 0.3372093023255814,
+          "tripletGridDoubleCoverage": 0.6744186046511628
+        }
+      ]
+    },
+    {
+      "startMs": 120813,
+      "endMs": 126810,
+      "bpm": 70.794,
+      "points": 3,
+      "maxSupport": 0.06448680197910421,
+      "localGridCoverage": 0.06451612903225806,
+      "rejection": "weak_short",
+      "independentMainScore": 0.24789570398540128,
+      "independentLocalScore": 0.2781069194877231,
+      "variableOverlapMs": 0,
+      "overlapsVariable": false,
+      "tripletVotes": [
+        {
+          "timeMs": 122813.24263038549,
+          "bpm": 70.794,
+          "localGridCoverage": 0.06451612903225806,
+          "tripletGridCoverage": 0.5806451612903226,
+          "tripletGridHalfCoverage": 0.34408602150537637,
+          "tripletGridDoubleCoverage": 0.6666666666666666
+        },
+        {
+          "timeMs": 123811.7006802721,
+          "bpm": 70.794,
+          "localGridCoverage": 0.054945054945054944,
+          "tripletGridCoverage": 0.6153846153846154,
+          "tripletGridHalfCoverage": 0.34065934065934067,
+          "tripletGridDoubleCoverage": 0.6923076923076923
+        }
+      ]
+    }
+  ]
+}

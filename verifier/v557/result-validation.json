@@ -1,0 +1,17 @@
+{
+  "version": "v557-independent-result-recheck-v1",
+  "passed": true,
+  "comparisonRows": 90,
+  "recomputedMethods": [
+    "full",
+    "high"
+  ],
+  "populationWeight": 3468.0,
+  "checks": [
+    "90 IDs and annotations match frozen selection",
+    "candidate presence, residual-minus-actual errors, within-5ms and all-object correctness",
+    "overall, per-sample, per-stratum and per-sample-per-stratum weighted metrics",
+    "80% target flags recomputed from all-object correct rate"
+  ],
+  "failures": []
+}

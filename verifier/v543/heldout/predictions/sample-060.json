@@ -1,0 +1,248 @@
+{
+  "id": "sample-060",
+  "directoryName": "9137 SHK - Death Moon",
+  "beatmapFile": "SHK - Death Moon (Dr_dy) [SHD].osu",
+  "metadata": {
+    "Title": "Death Moon",
+    "Artist": "SHK",
+    "Creator": "Dr_dy",
+    "Version": "SHD",
+    "Source": "O2jam",
+    "Tags": "tsukamaete",
+    "Mode": "0"
+  },
+  "audioDurationMs": 165877.55102040817,
+  "redLines": [
+    {
+      "time": 85,
+      "beatLength": 375,
+      "bpm": 160,
+      "durationMs": 6000
+    },
+    {
+      "time": 6085,
+      "beatLength": 300,
+      "bpm": 200,
+      "durationMs": 1500
+    },
+    {
+      "time": 7585,
+      "beatLength": 375,
+      "bpm": 160,
+      "durationMs": 1500
+    },
+    {
+      "time": 9085,
+      "beatLength": 250,
+      "bpm": 240,
+      "durationMs": 1500
+    },
+    {
+      "time": 10585,
+      "beatLength": 375,
+      "bpm": 160,
+      "durationMs": 4515
+    },
+    {
+      "time": 15100,
+      "beatLength": 750,
+      "bpm": 80,
+      "durationMs": 750
+    },
+    {
+      "time": 15850,
+      "beatLength": 375,
+      "bpm": 160,
+      "durationMs": 35235
+    },
+    {
+      "time": 51085,
+      "beatLength": 375,
+      "bpm": 160,
+      "durationMs": 2250
+    },
+    {
+      "time": 53335,
+      "beatLength": 379.746835443038,
+      "bpm": 158,
+      "durationMs": 189
+    },
+    {
+      "time": 53524,
+      "beatLength": 384.615384615385,
+      "bpm": 155.99999999999986,
+      "durationMs": 192
+    },
+    {
+      "time": 53716,
+      "beatLength": 389.61038961039,
+      "bpm": 153.99999999999986,
+      "durationMs": 194
+    },
+    {
+      "time": 53910,
+      "beatLength": 394.736842105263,
+      "bpm": 152.00000000000006,
+      "durationMs": 197
+    },
+    {
+      "time": 54107,
+      "beatLength": 400,
+      "bpm": 150,
+      "durationMs": 200
+    },
+    {
+      "time": 54307,
+      "beatLength": 405.405405405405,
+      "bpm": 148.00000000000014,
+      "durationMs": 202
+    },
+    {
+      "time": 54509,
+      "beatLength": 410.958904109589,
+      "bpm": 146,
+      "durationMs": 205
+    },
+    {
+      "time": 54714,
+      "beatLength": 416.666666666667,
+      "bpm": 143.9999999999999,
+      "durationMs": 208
+    },
+    {
+      "time": 54922,
+      "beatLength": 422.535211267606,
+      "bpm": 141.9999999999999,
+      "durationMs": 211
+    },
+    {
+      "time": 55133,
+      "beatLength": 428.571428571429,
+      "bpm": 139.99999999999986,
+      "durationMs": 214
+    },
+    {
+      "time": 55347,
+      "beatLength": 434.782608695652,
+      "bpm": 138.00000000000006,
+      "durationMs": 217
+    },
+    {
+      "time": 55564,
+      "beatLength": 441.176470588235,
+      "bpm": 136.00000000000009,
+      "durationMs": 220
+    },
+    {
+      "time": 55784,
+      "beatLength": 447.761194029851,
+      "bpm": 133.99999999999991,
+      "durationMs": 223
+    },
+    {
+      "time": 56007,
+      "beatLength": 454.545454545455,
+      "bpm": 131.99999999999986,
+      "durationMs": 227
+    },
+    {
+      "time": 56234,
+      "beatLength": 461.538461538462,
+      "bpm": 129.99999999999986,
+      "durationMs": 230
+    },
+    {
+      "time": 56464,
+      "beatLength": 468.75,
+      "bpm": 128,
+      "durationMs": 234
+    },
+    {
+      "time": 56698,
+      "beatLength": 952.380952380952,
+      "bpm": 63.00000000000003,
+      "durationMs": 238
+    },
+    {
+      "time": 56936,
+      "beatLength": 967.741935483871,
+      "bpm": 62,
+      "durationMs": 241
+    },
+    {
+      "time": 57177,
+      "beatLength": 983.606557377049,
+      "bpm": 61.000000000000014,
+      "durationMs": 253
+    },
+    {
+      "time": 57430,
+      "beatLength": 1000,
+      "bpm": 60,
+      "durationMs": 1753
+    },
+    {
+      "time": 59183,
+      "beatLength": 3000,
+      "bpm": 20,
+      "durationMs": 750
+    },
+    {
+      "time": 59933,
+      "beatLength": 375,
+      "bpm": 160,
+      "durationMs": 731
+    },
+    {
+      "time": 60664,
+      "beatLength": 375,
+      "bpm": 160,
+      "durationMs": 39375
+    },
+    {
+      "time": 100039,
+      "beatLength": 500,
+      "bpm": 120,
+      "durationMs": 375
+    },
+    {
+      "time": 100414,
+      "beatLength": 375,
+      "bpm": 160,
+      "durationMs": 375
+    },
+    {
+      "time": 100789,
+      "beatLength": 300,
+      "bpm": 200,
+      "durationMs": 375
+    },
+    {
+      "time": 101164,
+      "beatLength": 750,
+      "bpm": 80,
+      "durationMs": 23250
+    },
+    {
+      "time": 124414,
+      "beatLength": 375,
+      "bpm": 160,
+      "durationMs": 41463.551020408166
+    }
+  ],
+  "referenceBpm": 160,
+  "referenceVariable": true,
+  "referenceRedLineCount": 36,
+  "referenceCoverageMs": 131444.55102040817,
+  "status": "ok",
+  "prediction": {
+    "bpm": 159.55,
+    "offsetMs": 435,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 69,
+    "rawBpm": 319.1,
+    "rawSegmentCount": 158
+  },
+  "evaluationMs": 1650
+}

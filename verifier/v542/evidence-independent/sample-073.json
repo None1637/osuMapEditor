@@ -1,0 +1,52 @@
+{
+  "id": "sample-073",
+  "directoryName": "Mutsuhiko Izumi - Snow Goose (13)",
+  "beatmapFile": "Mutsuhiko Izumi - Snow Goose (^) [13].osu",
+  "referenceBpm": 200,
+  "predictedBpm": 200,
+  "frozenBpm": 200,
+  "deterministicEvidence": true,
+  "evidence": [
+    {
+      "startMs": 90860,
+      "endMs": 96856,
+      "bpm": 66.683,
+      "points": 3,
+      "maxSupport": 0.16114402562379837,
+      "index": 0,
+      "ratioToPredictedMain": 0.333415,
+      "ratioToAnnotatedMain": 0.333415,
+      "boundary": "end",
+      "localBpmMin": 66.683,
+      "localBpmMax": 66.683,
+      "medianSupport": 0.1514418926090002,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 30,
+          "first": -0.004121335647890636,
+          "second": -0.004318750655947403,
+          "combined": -0.00418648260054937
+        },
+        "annotatedMain": {
+          "lag": 30,
+          "first": -0.004121335647890636,
+          "second": -0.004318750655947403,
+          "combined": -0.00418648260054937
+        },
+        "evidenceBpm": {
+          "lag": 89.97795540092676,
+          "first": 0.09341493144861963,
+          "second": null,
+          "combined": 0.09341493144861963
+        }
+      },
+      "objectCount": 84,
+      "objectGrid": {
+        "predictedMainHalf": 0.5714285714285714,
+        "annotatedMainHalf": 0.5714285714285714,
+        "evidenceHalf": 0.25
+      }
+    }
+  ],
+  "analysisMs": 972
+}

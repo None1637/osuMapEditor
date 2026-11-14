@@ -1,0 +1,50 @@
+{
+  "id": "sample-062",
+  "directoryName": "293475 Renard vs Kitsune^2 - The Castle",
+  "beatmapFile": "Renard vs Kitsune^2 - The Castle (Nivrad00) [Fortress].osu",
+  "metadata": {
+    "Title": "The Castle",
+    "TitleUnicode": "The Castle",
+    "Artist": "Renard vs Kitsune^2",
+    "ArtistUnicode": "Renard vs Kitsune²",
+    "Creator": "Nivrad00",
+    "Version": "Fortress",
+    "Source": "",
+    "Tags": "lapfox trax",
+    "BeatmapID": "962352",
+    "BeatmapSetID": "293475",
+    "Mode": "3"
+  },
+  "audioDurationMs": 118898.0498866213,
+  "redLines": [
+    {
+      "time": 52,
+      "beatLength": 300,
+      "bpm": 200,
+      "durationMs": 118846.0498866213
+    }
+  ],
+  "referenceBpm": 200,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 118846.0498866213,
+  "status": "ok",
+  "prediction": {
+    "bpm": 200,
+    "offsetMs": 379,
+    "variable": true,
+    "evidence": [
+      {
+        "startMs": 53917,
+        "endMs": 59913,
+        "bpm": 73.045,
+        "points": 3,
+        "maxSupport": 0.22889364510774612
+      }
+    ],
+    "localPointCount": 114,
+    "rawBpm": 400,
+    "rawSegmentCount": 39
+  },
+  "evaluationMs": 1086
+}

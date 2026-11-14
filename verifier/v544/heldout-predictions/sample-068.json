@@ -1,0 +1,78 @@
+{
+  "id": "sample-068",
+  "directoryName": "682351 Aqours - Yuki wa Doko ni Kimi no Mune ni!",
+  "beatmapFile": "Aqours - Yuki wa Doko ni Kimi no Mune ni! (arcwinolivirus) [7K Expert].osu",
+  "metadata": {
+    "Title": "Yuki wa Doko ni? Kimi no Mune ni!",
+    "TitleUnicode": "勇気はどこに?君の胸に!",
+    "Artist": "Aqours",
+    "ArtistUnicode": "Aqours",
+    "Creator": "arcwinolivirus",
+    "Version": "7K Expert",
+    "Source": "ラブライブ！サンシャイン!!",
+    "Tags": "Love Live! Sunshine!! 2 school idol project Where Can You Find Courage? Inside Your Heart!",
+    "BeatmapID": "1612208",
+    "BeatmapSetID": "682351",
+    "Mode": "3"
+  },
+  "audioDurationMs": 101276.73469387756,
+  "redLines": [
+    {
+      "time": 354,
+      "beatLength": 359.281437125748,
+      "bpm": 167.00000000000023,
+      "durationMs": 92514
+    },
+    {
+      "time": 92868,
+      "beatLength": 405.405405405405,
+      "bpm": 148.00000000000014,
+      "durationMs": 202
+    },
+    {
+      "time": 93070,
+      "beatLength": 437.956204379562,
+      "bpm": 137.00000000000003,
+      "durationMs": 218
+    },
+    {
+      "time": 93288,
+      "beatLength": 594.059405940594,
+      "bpm": 101,
+      "durationMs": 297
+    },
+    {
+      "time": 93585,
+      "beatLength": 833.333333333333,
+      "bpm": 72.00000000000003,
+      "durationMs": 416
+    },
+    {
+      "time": 94001,
+      "beatLength": 422.535211267606,
+      "bpm": 141.9999999999999,
+      "durationMs": 845
+    },
+    {
+      "time": 94846,
+      "beatLength": 359.281437125748,
+      "bpm": 167.00000000000023,
+      "durationMs": 6430.734693877559
+    }
+  ],
+  "referenceBpm": 167.00000000000023,
+  "referenceVariable": true,
+  "referenceRedLineCount": 7,
+  "referenceCoverageMs": 98944.73469387756,
+  "status": "ok",
+  "prediction": {
+    "bpm": 167,
+    "offsetMs": 378,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 93,
+    "rawBpm": 334,
+    "rawSegmentCount": 42
+  },
+  "evaluationMs": 918
+}

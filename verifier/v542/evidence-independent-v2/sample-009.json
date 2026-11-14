@@ -1,0 +1,52 @@
+{
+  "id": "sample-009",
+  "directoryName": "623665 Hommarju - HYENA",
+  "beatmapFile": "Hommarju - HYENA (rustbell) [].osu",
+  "referenceBpm": 178.0000000000001,
+  "predictedBpm": 178,
+  "frozenBpm": 178,
+  "deterministicEvidence": true,
+  "evidence": [
+    {
+      "startMs": 77880,
+      "endMs": 83876,
+      "bpm": 101.832,
+      "points": 3,
+      "maxSupport": 0.06886276827065459,
+      "index": 0,
+      "ratioToPredictedMain": 0.5720898876404494,
+      "ratioToAnnotatedMain": 0.572089887640449,
+      "boundary": "interior",
+      "localBpmMin": 101.832,
+      "localBpmMax": 101.832,
+      "medianSupport": 0.05247486363604247,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 33.70786516853933,
+          "first": 0.23267148556993542,
+          "second": 0.2386956613625834,
+          "combined": 0.23465946358150927
+        },
+        "annotatedMain": {
+          "lag": 33.7078651685393,
+          "first": 0.23267148556993555,
+          "second": 0.23869566136258036,
+          "combined": 0.23465946358150835
+        },
+        "evidenceBpm": {
+          "lag": 58.92057506481264,
+          "first": 0.2032690497145524,
+          "second": 0.25721477014220395,
+          "combined": 0.2210711374556774
+        }
+      },
+      "objectCount": 32,
+      "objectGrid": {
+        "predictedMainHalf": 0.625,
+        "annotatedMainHalf": 0.625,
+        "evidenceHalf": 0.1875
+      }
+    }
+  ],
+  "analysisMs": 1190
+}

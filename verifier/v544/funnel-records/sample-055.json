@@ -1,0 +1,19 @@
+{
+  "id": "sample-055",
+  "directoryName": "1357570 MAKOOTO - Tanukichi no Bouken",
+  "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\1357570 MAKOOTO - Tanukichi no Bouken",
+  "status": "ok",
+  "referenceBpm": 131.99999999999986,
+  "referenceVariable": false,
+  "predictedBpm": 132,
+  "predictedVariable": false,
+  "variableLines": [],
+  "trueVariableMs": 0,
+  "flaggedWindowCount": 1,
+  "flaggedWindowsOnVariable": 0,
+  "rawCandidateCount": 0,
+  "rawCandidatesOnVariable": 0,
+  "finalEvidenceCount": 0,
+  "finalEvidenceOnVariable": 0,
+  "candidates": []
+}

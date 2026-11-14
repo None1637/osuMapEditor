@@ -1,0 +1,52 @@
+{
+  "id": "sample-098",
+  "directoryName": "14853 COOL&CREATE - Saishoukichiku Imouto Flandre S",
+  "beatmapFile": "COOL&CREATE - Saishoukichiku Imouto Flandre S (dksslqj) [Easy].osu",
+  "referenceBpm": 200,
+  "predictedBpm": 200,
+  "frozenBpm": 200,
+  "deterministicEvidence": true,
+  "evidence": [
+    {
+      "startMs": 36943,
+      "endMs": 42940,
+      "bpm": 66.469,
+      "points": 3,
+      "maxSupport": 0.1601701392705922,
+      "index": 0,
+      "ratioToPredictedMain": 0.33234499999999995,
+      "ratioToAnnotatedMain": 0.33234499999999995,
+      "boundary": "interior",
+      "localBpmMin": 66.256,
+      "localBpmMax": 72.788,
+      "medianSupport": 0.1601701392705922,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 30,
+          "first": 0.30158640060336067,
+          "second": -0.012860279041929745,
+          "combined": 0.19781899632041483
+        },
+        "annotatedMain": {
+          "lag": 30,
+          "first": 0.30158640060336067,
+          "second": -0.012860279041929745,
+          "combined": 0.19781899632041483
+        },
+        "evidenceBpm": {
+          "lag": 90.2676435631648,
+          "first": -0.016867900788430496,
+          "second": null,
+          "combined": -0.016867900788430496
+        }
+      },
+      "objectCount": 6,
+      "objectGrid": {
+        "predictedMainHalf": 1,
+        "annotatedMainHalf": 1,
+        "evidenceHalf": 0.5
+      }
+    }
+  ],
+  "analysisMs": 1824
+}

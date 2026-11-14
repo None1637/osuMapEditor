@@ -1,0 +1,42 @@
+{
+  "id": "sample-066",
+  "directoryName": "730303 ONE OK ROCK - 2020",
+  "beatmapFile": "ONE OK ROCK - 2020 (A r M i N) [Waku's Advanced].osu",
+  "metadata": {
+    "Title": "20/20",
+    "TitleUnicode": "20/20",
+    "Artist": "ONE OK ROCK",
+    "ArtistUnicode": "ONE OK ROCK",
+    "Creator": "A r M i N",
+    "Version": "Waku's Advanced",
+    "Source": "",
+    "Tags": "Fueled by Ramen OOR Ambitions Short A-Sketch Japanese ver. Komore schoolboy waku JenHideo _dt3 turtle armin a_r_m_i_n bite you death byd",
+    "BeatmapID": "1541294",
+    "BeatmapSetID": "730303",
+    "Mode": "0"
+  },
+  "audioDurationMs": 64482.72108843537,
+  "redLines": [
+    {
+      "time": 333,
+      "beatLength": 363.636363636364,
+      "bpm": 164.99999999999983,
+      "durationMs": 64149.72108843537
+    }
+  ],
+  "referenceBpm": 164.99999999999983,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 64149.72108843537,
+  "status": "ok",
+  "prediction": {
+    "bpm": 164.95,
+    "offsetMs": 344,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 61,
+    "rawBpm": 329.9,
+    "rawSegmentCount": 39
+  },
+  "evaluationMs": 623
+}

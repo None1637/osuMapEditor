@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Pause, Play, X } from 'lucide-react'; // v181: ▶/⏸/✕ → lucide (v221: 删 ⏮/⏭; v390: 删 ⏹ 回到开头)
+import { AudioWaveform, Layers, Pause, Play, X, ZoomIn, ZoomOut } from 'lucide-react'; // v181; v537: 时间轴可配置图标
 import { store, useEditor, usePlaybackFrame } from '@/osu/store';
 import { timingAt, sliderVelocityAt, snapAcrossRedLine, stableTimestamp, type TimingPoint, type Beatmap, type HitObject } from '@/osu/parser'; // v322: stableTimestamp (F27 跳转时间)
 import { computeCombos, comboColor, invalidatePath, mergedWithPreview, objectEndAt } from '@/osu/renderer';
@@ -24,6 +24,7 @@ import {
   bpmPillText, svPoints, svPillText, samplePill, pillLayout,
   PILL_RED, PILL_LIME, PILL_PINK, PILL_PINK_ALT, PILL_TEXT,
 } from '@/osu/timelinePills';
+import { UiControl, UiIcon, UiText } from '@/components/uiLayout/UiControl'; // v524: 时间轴控件布局覆盖
 import { useT } from '@/i18n';
 
 // v390: fmt 删除 — 底栏时间显示改用 stableTimestamp (mm:ss:fff, lazer 布局)
@@ -1051,6 +1052,7 @@ export function TopTimeline() {
 
   return (
     <div className="relative">
+      <UiControl id="timeline.top.canvas">
       <canvas ref={ref} className="w-full h-[92px] cursor-pointer"
         onMouseDown={(e) => {
           if (e.button !== 0) return; // 右键交给 onContextMenu (删除物件), 不能走选中/拖拽预备 (会置 canvasDragging 挡住删除)
@@ -1326,33 +1328,38 @@ export function TopTimeline() {
             store.wheelSeek(e.deltaY, e.deltaMode);
           }
         }} />
+      </UiControl>
       {/* v127: z-10 保证按钮浮在时间轴 canvas 最上层 — 波形/频谱切到「上层」时也不被遮挡;
           波形显示时加三个钮: 波形图/频谱图 + 背景/上层 + v135 关闭波形/频谱 */}
       <div className="absolute right-1 top-1 flex gap-1 z-10">
         {store.wavePanelOpen && (
           <>
-            <button data-wave="mode" className="px-1.5 text-xs rounded bg-emerald-500/40 text-white/85 hover:bg-emerald-500/60" title={t('timeline.wave_mode_title', 'Toggle waveform/spectrogram (shown on the timeline)')}
+            <UiControl id="timeline.top.wave-mode"><button data-wave="mode" className="px-1.5 text-xs rounded bg-emerald-500/40 text-white/85 hover:bg-emerald-500/60" title={t('timeline.wave_mode_title', 'Toggle waveform/spectrogram (shown on the timeline)')}
               onClick={() => store.setWaveMode(store.waveMode === 'wave' ? 'spectro' : 'wave')}>
-              {store.waveMode === 'wave' ? t('timeline.wave_mode_wave', 'Waveform') : t('timeline.wave_mode_spectro', 'Spectrogram')}
-            </button>
-            <button data-wave="layer" className="px-1.5 text-xs rounded bg-emerald-500/40 text-white/85 hover:bg-emerald-500/60" title={t('timeline.wave_layer_title', 'Toggle waveform/spectrogram layer: timeline background / above timeline')}
+              <UiIcon id="timeline.top.wave-mode"><AudioWaveform className="inline-block w-3 h-3 mr-0.5" /></UiIcon><UiText id="timeline.top.wave-mode" textKey={store.waveMode === 'wave' ? 'timeline.wave_mode_wave' : 'timeline.wave_mode_spectro'}>{store.waveMode === 'wave' ? 'Waveform' : 'Spectrogram'}</UiText>
+            </button></UiControl>
+            <UiControl id="timeline.top.wave-layer"><button data-wave="layer" className="px-1.5 text-xs rounded bg-emerald-500/40 text-white/85 hover:bg-emerald-500/60" title={t('timeline.wave_layer_title', 'Toggle waveform/spectrogram layer: timeline background / above timeline')}
               onClick={() => store.setWaveOnTop(!store.waveOnTop)}>
-              {store.waveOnTop ? t('timeline.wave_layer_top', 'On Top') : t('timeline.wave_layer_background', 'Background')}
-            </button>
+              <UiIcon id="timeline.top.wave-layer"><Layers className="inline-block w-3 h-3 mr-0.5" /></UiIcon><UiText id="timeline.top.wave-layer" textKey={store.waveOnTop ? 'timeline.wave_layer_top' : 'timeline.wave_layer_background'}>{store.waveOnTop ? 'On Top' : 'Background'}</UiText>
+            </button></UiControl>
             {/* v135: 关闭波形/频谱 (同左侧栏「波形」开关, setWavePanelOpen 持久化记忆) */}
-            <button data-wave="close" className="px-1.5 text-xs rounded bg-emerald-500/40 text-white/85 hover:bg-red-500/60 flex items-center" title={t('timeline.wave_close_title', 'Close waveform/spectrogram (re-enable via the Waveform toggle in the left sidebar)')}
-              onClick={() => store.setWavePanelOpen(false)}><X className="w-3.5 h-3.5" /></button>
+            <UiControl id="timeline.top.wave-close"><button data-wave="close" className="px-1.5 text-xs rounded bg-emerald-500/40 text-white/85 hover:bg-red-500/60 flex items-center" title={t('timeline.wave_close_title', 'Close waveform/spectrogram (re-enable via the Waveform toggle in the left sidebar)')}
+              onClick={() => store.setWavePanelOpen(false)}><UiIcon id="timeline.top.wave-close"><X className="w-3.5 h-3.5" /></UiIcon></button></UiControl>
           </>
         )}
         {/* v63: 当前时间插入红/绿线 (默认值克隆生效点 — lazer ControlPointList.addNew) */}
-        <button data-tp-add="red" className="px-1.5 text-xs rounded bg-red-500/40 text-white/85 hover:bg-red-500/60" title={t('timeline.add_red_title', 'Insert a Timing Point at the current time (clones the active point defaults)')}
-          onClick={() => { const bm = store.beatmap; if (bm) store.openTimingPointDialog('add', -1, defaultNewPoint(bm.timingPoints, Math.round(store.currentTime), true)); }}>{t('timeline.add_red', '+Red')}</button>
-        <button data-tp-add="green" className="px-1.5 text-xs rounded bg-green-500/40 text-white/85 hover:bg-green-500/60" title={t('timeline.add_green_title', 'Insert an Inherited Timing Point at the current time (clones the active point defaults)')}
-          onClick={() => { const bm = store.beatmap; if (bm) store.openTimingPointDialog('add', -1, defaultNewPoint(bm.timingPoints, Math.round(store.currentTime), false)); }}>{t('timeline.add_green', '+Green')}</button>
-        <button className="px-1.5 text-xs rounded bg-black/50 text-white/70 hover:text-white" title={t('timeline.zoom_in_title', 'Zoom In (wheel binding: see Hotkey Settings)')}
-          onClick={() => adjustTimelineZoom(2)}>+</button>
-        <button className="px-1.5 text-xs rounded bg-black/50 text-white/70 hover:text-white" title={t('timeline.zoom_out_title', 'Zoom Out (wheel binding: see Hotkey Settings)')}
-          onClick={() => adjustTimelineZoom(-2)}>−</button>
+        <UiControl id="timeline.top.add-red">
+          <button data-tp-add="red" className="px-1.5 text-xs rounded bg-red-500/40 text-white/85 hover:bg-red-500/60" title={t('timeline.add_red_title', 'Insert a Timing Point at the current time (clones the active point defaults)')}
+            onClick={() => { const bm = store.beatmap; if (bm) store.openTimingPointDialog('add', -1, defaultNewPoint(bm.timingPoints, Math.round(store.currentTime), true)); }}><UiText id="timeline.top.add-red" textKey="timeline.add_red">+Red</UiText></button>
+        </UiControl>
+        <UiControl id="timeline.top.add-green">
+          <button data-tp-add="green" className="px-1.5 text-xs rounded bg-green-500/40 text-white/85 hover:bg-green-500/60" title={t('timeline.add_green_title', 'Insert an Inherited Timing Point at the current time (clones the active point defaults)')}
+            onClick={() => { const bm = store.beatmap; if (bm) store.openTimingPointDialog('add', -1, defaultNewPoint(bm.timingPoints, Math.round(store.currentTime), false)); }}><UiText id="timeline.top.add-green" textKey="timeline.add_green">+Green</UiText></button>
+        </UiControl>
+        <UiControl id="timeline.top.zoom-in"><button className="px-1.5 text-xs rounded bg-black/50 text-white/70 hover:text-white" title={t('timeline.zoom_in_title', 'Zoom In (wheel binding: see Hotkey Settings)')}
+          onClick={() => adjustTimelineZoom(2)}><UiIcon id="timeline.top.zoom-in"><ZoomIn className="w-3.5 h-3.5" /></UiIcon></button></UiControl>
+        <UiControl id="timeline.top.zoom-out"><button className="px-1.5 text-xs rounded bg-black/50 text-white/70 hover:text-white" title={t('timeline.zoom_out_title', 'Zoom Out (wheel binding: see Hotkey Settings)')}
+          onClick={() => adjustTimelineZoom(-2)}><UiIcon id="timeline.top.zoom-out"><ZoomOut className="w-3.5 h-3.5" /></UiIcon></button></UiControl>
       </div>
     </div>
   );
@@ -1554,6 +1561,7 @@ export function BottomTimeline({ onTestPlay }: { onTestPlay: () => void }) { // 
   const bpmNow = bmNow ? Math.round(60000 / timingAt(bmNow.timingPoints, store.currentTime).red.beatLength) : null;
 
   return (
+    <UiControl id="timeline.bottom.panel">
     <div className="flex items-stretch gap-2 h-20 px-2 py-1.5" style={{ background: 'rgba(21,21,32,0.1)' }}>{/* v129: 背景半透明; v271: 0.4→0.25; v272: →0.1 (仍遮挡物件); v284: 固定 (开关移除) */}
       {/* v155: 左侧当前时间 + 进度百分比 (stable 底部时间轴样式; 原右侧时间显示移到此处);
           v390: lazer 底栏布局 — 大号时间 (stableTimestamp mm:ss:fff), 下方紫色进度% + 黄色当前 BPM */}
@@ -1561,11 +1569,13 @@ export function BottomTimeline({ onTestPlay }: { onTestPlay: () => void }) { // 
         {/* v322 (F27): 点击时间 → stable Jump to time 输入框 (Enter 跳转 / Esc·失焦关闭; 打开即全选, 可直接 Ctrl+C 复制 "mm:ss:ms");
             v335: 支持纯 ms 数字; 粘贴复制的物件文本 (lazer/stable 两种格式) → 跳转起始时间并选中对应物件 */}
         {jump === null ? (
-          <span className="text-white/85 text-xl font-bold leading-6 cursor-pointer hover:text-cyan-300" data-jump-open
-            title={t('timeline.jump_title', 'Click to enter a time to jump to (mm:ss:ms or plain milliseconds); you can also paste copied object text to jump to its start time and select the objects')}
-            onClick={() => setJump(stableTimestamp(store.currentTime))}>{stableTimestamp(store.currentTime)}</span>
+          <UiControl id="timeline.bottom.jump-time">
+            <span className="text-white/85 text-xl font-bold leading-6 cursor-pointer hover:text-cyan-300" data-jump-open
+              title={t('timeline.jump_title', 'Click to enter a time to jump to (mm:ss:ms or plain milliseconds); you can also paste copied object text to jump to its start time and select the objects')}
+              onClick={() => setJump(stableTimestamp(store.currentTime))}>{stableTimestamp(store.currentTime)}</span>
+          </UiControl>
         ) : (
-          <input autoFocus data-jump-input value={jump}
+          <UiControl id="timeline.bottom.jump-input"><input autoFocus data-jump-input value={jump}
             className="w-24 -ml-1 bg-black/60 border border-cyan-400/50 rounded px-1 text-cyan-200 font-mono text-xs outline-none"
             onChange={e => setJump(e.target.value)}
             onFocus={e => e.target.select()}
@@ -1580,53 +1590,62 @@ export function BottomTimeline({ onTestPlay }: { onTestPlay: () => void }) { // 
               e.stopPropagation(); // 输入框内按键不触发全局快捷键
               if (e.key === 'Enter') { if (!submitJumpObjects(jump)) { const t = parseJumpTime(jump); if (t !== null) store.seek(t); } setJump(null); }
               else if (e.key === 'Escape') setJump(null);
-            }} />
+            }} /></UiControl>
         )}
         <div className="flex items-center justify-between w-full text-[11px]">{/* v390-3: BPM 右缘对齐上方时间右缘 (% 居左, BPM 居右) */}
           <span className="text-purple-400">{store.songLength() > 0 ? Math.round(store.currentTime / store.songLength() * 100) : 0}%</span>{/* v390-2: 整数百分比 (对齐 lazer 截图) */}
           {bpmNow !== null && <span className="text-yellow-400 font-bold" data-bottom-bpm>{bpmNow} BPM</span>}{/* v390: 当前时间 BPM */}
         </div>
       </div>
-      <canvas ref={ref} className="flex-1 cursor-pointer rounded border border-white/10"
+      <UiControl id="timeline.bottom.canvas"><canvas ref={ref} className="flex-1 cursor-pointer rounded border border-white/10"
         onMouseDown={(e) => { if (!store.canvasDragging) seekFromEvent(e); }} // 画布拖拽经过时不 seek
         onMouseMove={(e) => !store.canvasDragging && e.buttons === 1 && seekFromEvent(e)}
         onWheel={(e) => {
           // v193: 滚轮走 store.wheelSeek (与游玩区/上时间轴同一入口; 原为固定 len/40 与细分无关, v179 起网格步进)
           store.wheelSeek(e.deltaY, e.deltaMode);
-        }} />
+        }} /></UiControl>
       <div className="flex items-stretch gap-2 shrink-0">
         {/* v390: lazer 底栏布局 — 圆形播放钮在倍速左侧; 「回到开头」按钮删除 (v1338 原 Square 钮);
             v256 低调配色意图保留 (非亮色填充) */}
-        <button onClick={() => store.togglePlay()} className="self-center w-9 h-9 rounded-full border-2 border-white/70 hover:border-white hover:bg-white/10 flex items-center justify-center text-white" title={t('timeline.play_title', 'Space')}>
-          {store.playing ? <Pause className="w-4 h-4" fill="currentColor" /> : <Play className="w-4 h-4 ml-0.5" fill="currentColor" />}
-        </button>
+        <UiControl id="timeline.bottom.play">
+          <button onClick={() => store.togglePlay()} className="self-center w-9 h-9 rounded-full border-2 border-white/70 hover:border-white hover:bg-white/10 flex items-center justify-center text-white" title={t('timeline.play_title', 'Space')}>
+            {store.playing
+              ? <UiIcon id="timeline.bottom.play" state="active"><Pause className="w-4 h-4" fill="currentColor" /></UiIcon>
+              : <UiIcon id="timeline.bottom.play"><Play className="w-4 h-4 ml-0.5" fill="currentColor" /></UiIcon>}
+          </button>
+        </UiControl>
         {/* 倍速 (编辑器右侧栏, 25/50/75/100%, 激活加粗)
             v385: 编辑器倍速固定变速不变调 (signalsmith-stretch 保时音高拉伸,
             对齐 lazer 编辑器 PlaybackControl Tempo 语义); v382 的 sinc 变调引擎
             保留给测试游玩 DT/HT (Frequency 语义, 无编辑器 UI 入口) */}
         {/* v390-2: 倍速控件对齐 lazer 截图 — 无边框纯文本页签 (激活白色加粗, 其余半透);
             v390-3: 标签「播放速度」左缘与下方 25% 页签左缘对齐 (items-start) */}
-        <div className="flex flex-col items-start justify-center gap-1 px-2" title={t('timeline.speed_title', 'Playback speed (tempo-preserving stretch, lazer-editor-like)')}>
-          <span className="text-[10px] text-white/45 leading-3">{t('timeline.speed_label', 'Speed')}</span>
+        <UiControl id="timeline.bottom.speed"><div className="flex flex-col items-start justify-center gap-1 px-2" title={t('timeline.speed_title', 'Playback speed (tempo-preserving stretch, lazer-editor-like)')}>
+          <span className="text-[10px] text-white/45 leading-3"><UiText id="timeline.bottom.speed" textKey="timeline.speed_label">Speed</UiText></span>
           <div className="flex items-baseline gap-3">
             {[0.25, 0.5, 0.75, 1].map(v => (
-              <button key={v} data-speed-input={v} onClick={() => store.setRate(v)}
-                className={`text-[12px] ${store.playbackRate === v
-                  ? 'font-bold text-white'
-                  : 'text-white/45 hover:text-white/85'}`}>
-                {v * 100}%
-              </button>
+              <UiControl key={v} id={`timeline.bottom.speed.${v * 100}`}>
+                <button data-speed-input={v} onClick={() => store.setRate(v)}
+                  className={`text-[12px] ${store.playbackRate === v
+                    ? 'font-bold text-white'
+                    : 'text-white/45 hover:text-white/85'}`}>
+                  {v * 100}%
+                </button>
+              </UiControl>
             ))}
           </div>
-        </div>
+        </div></UiControl>
         {/* v390: 测试游玩按钮挪到右下角 (lazer 黄色全高按钮; 原在页签栏, F5 快捷键不变) */}
-        <button onClick={onTestPlay} data-testplay-btn
-          className="self-stretch px-6 flex items-center bg-yellow-400 hover:bg-yellow-300 text-black text-base font-bold rounded-sm"
-          title={t('app.test_play_title', 'Test play (F5): play the beatmap from 3s before the current time, Esc returns to the editor')}>
-          {t('app.test_play', 'Test Play')}
-        </button>
+        <UiControl id="timeline.bottom.test-play">
+          <button onClick={onTestPlay} data-testplay-btn
+            className="self-stretch px-6 flex items-center bg-yellow-400 hover:bg-yellow-300 text-black text-base font-bold rounded-sm"
+            title={t('app.test_play_title', 'Test play (F5): play the beatmap from 3s before the current time, Esc returns to the editor')}>
+            <UiText id="timeline.bottom.test-play" textKey="app.test_play">Test Play</UiText>
+          </button>
+        </UiControl>
       </div>
     </div>
+    </UiControl>
   );
 }
 
@@ -1689,7 +1708,7 @@ export function SelectionInfoPanel() {
     }
   }
   return (
-    <div className="w-40 shrink-0 border-l border-white/10 flex flex-col items-end justify-center px-2 font-mono text-[11px] leading-5 text-white/85 select-none whitespace-nowrap" style={{ background: 'rgba(12,12,17,0.15)' }}>{/* v129: 背景半透明; v284: 固定 (开关移除) */}
+    <UiControl id="timeline.selection-info"><div className="w-40 shrink-0 border-l border-white/10 flex flex-col items-end justify-center px-2 font-mono text-[11px] leading-5 text-white/85 select-none whitespace-nowrap" style={{ background: 'rgba(12,12,17,0.15)' }}>{/* v129: 背景半透明; v284: 固定 (开关移除) */}
       {dragPt ? (
         <>
           {/* v415: 拖拽中的锚点 — 实时坐标 (hover 锚点同款两行) */}
@@ -1727,6 +1746,6 @@ export function SelectionInfoPanel() {
       ) : (
         <div className="text-white/30">{t('timeline.no_selection', 'No Object Selected')}</div>
       )}
-    </div>
+    </div></UiControl>
   );
 }

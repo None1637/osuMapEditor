@@ -1,0 +1,51 @@
+{
+  "id": "sample-012",
+  "directoryName": "1822924 Unknown Artist - Yatsume Ana (33 mins)",
+  "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\1822924 Unknown Artist - Yatsume Ana (33 mins)",
+  "status": "ok",
+  "referenceBpm": 129.99999999999986,
+  "referenceVariable": false,
+  "predictedBpm": 130,
+  "predictedVariable": false,
+  "variableLines": [],
+  "trueVariableMs": 0,
+  "flaggedWindowCount": 35,
+  "flaggedWindowsOnVariable": 0,
+  "rawCandidateCount": 1,
+  "rawCandidatesOnVariable": 0,
+  "finalEvidenceCount": 0,
+  "finalEvidenceOnVariable": 0,
+  "candidates": [
+    {
+      "startMs": 522193,
+      "endMs": 528190,
+      "bpm": 74.093,
+      "points": 3,
+      "maxSupport": 0.1221514802740654,
+      "localGridCoverage": 0.05825242718446602,
+      "rejection": "weak_short",
+      "independentMainScore": 0.37759891826171316,
+      "independentLocalScore": 0.01083538237404792,
+      "variableOverlapMs": 0,
+      "overlapsVariable": false,
+      "tripletVotes": [
+        {
+          "timeMs": 524193.3786848073,
+          "bpm": 74.093,
+          "localGridCoverage": 0.05154639175257732,
+          "tripletGridCoverage": 0.5051546391752577,
+          "tripletGridHalfCoverage": 0.25773195876288657,
+          "tripletGridDoubleCoverage": 0.6701030927835051
+        },
+        {
+          "timeMs": 525191.8367346938,
+          "bpm": 74.093,
+          "localGridCoverage": 0.0707070707070707,
+          "tripletGridCoverage": 0.494949494949495,
+          "tripletGridHalfCoverage": 0.2727272727272727,
+          "tripletGridDoubleCoverage": 0.6464646464646465
+        }
+      ]
+    }
+  ]
+}

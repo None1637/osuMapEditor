@@ -14,7 +14,8 @@ import { RotateCcw, RotateCw } from 'lucide-react';
 import { store, useEditor, type TransformOrigin } from '@/osu/store';
 import { useT } from '@/i18n';
 import { rotateObjects, scaleObjects, axisScaleFactors, angleForDirection, directionForAngle, type RotateDir } from '@/osu/transform';
-import { DraggableDialog, DraftNum, loadParams, useSaveParamsOnClose } from './DraggableDialog';
+import { DialogButton, DraggableDialog, DraftNum, loadParams, useSaveParamsOnClose } from './DraggableDialog';
+import { UiAutoControl, UiAutoIcon, UiAutoText } from './uiLayout/UiControl'; // v535
 
 /** v405: stable 式分组框 (Direction / Origin / Apply to) */
 function Group({ label, children }: { label: string; children: ReactNode }) {
@@ -142,9 +143,9 @@ export function TransformDialog({ mode }: { mode: 'rotate' | 'scale' | 'symmetry
     <Group label={t('transform.origin', 'Origin')}>
       {([['playfield', t('transform.center', 'Playfield Centre')], ['selection', t('transform.selection', 'Selection Centre')], ['custom', t('transform.custom', 'Custom')]] as const).map(([m, label]) => (
         <label key={m} className="flex items-center gap-1 text-white/70 flex-wrap">
-          <input type="radio" name="tfdlg-origin" checked={originMode === m} data-tf={`origin-${m}`}
-            onChange={() => store.setOriginMode(m)} />
-          {label}
+          <UiAutoControl localId={`origin-${m}`}><input type="radio" name="tfdlg-origin" checked={originMode === m} data-tf={`origin-${m}`}
+            onChange={() => store.setOriginMode(m)} /></UiAutoControl>
+          <UiAutoText localId={`origin-${m}`}>{label}</UiAutoText>
           {m === 'custom' && originMode === 'custom' && (
             <span className="flex items-center gap-1">
               <DraftNum value={store.customOrigin.x} set={v => store.setCustomOrigin({ x: v, y: store.customOrigin.y })} testid="custom-x" />
@@ -174,8 +175,8 @@ export function TransformDialog({ mode }: { mode: 'rotate' | 'scale' | 'symmetry
           <div>
             <div className="text-white/50 mb-1">{t('transform.angle_prompt', 'Enter an angle to rotate by:')}</div>
             <div className="flex items-center gap-2">
-              <input type="range" min={-180} max={180} step={1} value={Math.max(-180, Math.min(180, angle))} data-tf="angle-slider"
-                onChange={e => changeAngle(parseFloat(e.target.value))} className="flex-1 accent-sky-500" />
+              <UiAutoControl localId="angle-slider"><input type="range" min={-180} max={180} step={1} value={Math.max(-180, Math.min(180, angle))} data-tf="angle-slider"
+                onChange={e => changeAngle(parseFloat(e.target.value))} className="flex-1 accent-sky-500" /></UiAutoControl>
               <DraftNum value={angle} set={changeAngle} testid="angle" />
               <span className="text-white/40">°</span>
             </div>
@@ -184,29 +185,27 @@ export function TransformDialog({ mode }: { mode: 'rotate' | 'scale' | 'symmetry
             <Group label={t('transform.direction', 'Direction')}>
               {([['cw', t('transform.cw', 'Clockwise')], ['ccw', t('transform.ccw', 'Anti-Clockwise')]] as const).map(([d, label]) => (
                 <label key={d} className="flex items-center gap-1 text-white/70">
-                  <input type="radio" name="tfdlg-dir" checked={dir === d} data-tf={`dir-${d}`}
-                    onChange={() => changeDir(d)} />
-                  {label}
+                  <UiAutoControl localId={`dir-${d}`}><input type="radio" name="tfdlg-dir" checked={dir === d} data-tf={`dir-${d}`}
+                    onChange={() => changeDir(d)} /></UiAutoControl>
+                  <UiAutoText localId={`dir-${d}`}>{label}</UiAutoText>
                 </label>
               ))}
             </Group>
             {originGroup}
           </div>
           <div className="flex items-center gap-1 flex-wrap">
-            <button onClick={() => { nodeMode ? commitNode((p, c) => rotatePt(p, c, angle)) : commit((objs, c) => rotateObjects(objs, c, angle)); store.closeTransformDialog(); }} title={t('transform.apply_rotate_title', 'Rotate by the entered angle (positive = clockwise, negative = counter-clockwise)')} data-tf="apply-rotate"
-              className="px-1.5 py-1 rounded bg-white/10 hover:bg-white/20 border border-white/15 text-[11px]">
-              {t('transform.apply_rotate', 'Apply Rotation')}
-            </button>
+            <DialogButton uiId="apply" textKey="transform.apply_rotate" onClick={() => { nodeMode ? commitNode((p, c) => rotatePt(p, c, angle)) : commit((objs, c) => rotateObjects(objs, c, angle)); store.closeTransformDialog(); }} title={t('transform.apply_rotate_title', 'Rotate by the entered angle (positive = clockwise, negative = counter-clockwise)')} data-tf="apply-rotate"
+              className="px-1.5 py-1 rounded bg-white/10 hover:bg-white/20 border border-white/15 text-[11px]">Apply Rotation</DialogButton>
             {/* v463: 「应用旋转」点击后自动关窗 (soulten: 第一個點擊後自動關閉選轉浮窗); 逆/顺时针旋转一次保持不关窗可连续应用 */}
             {/* v405: 改名「逆/顺时针旋转一次」— 原按钮只写「逆时针/顺时针」, 用户认不出含义 */}
-            <button onClick={() => nodeMode ? commitNode((p, c) => rotatePt(p, c, -Math.abs(angle))) : commit((objs, c) => rotateObjects(objs, c, -Math.abs(angle)))} title={t('transform.ccw_title', 'Rotate counter-clockwise once by the entered angle')}
+            <UiAutoControl localId="rotate-ccw" kind="button" defaultTextKey="transform.ccw_once" defaultIcon="lucide:RotateCcw"><button onClick={() => nodeMode ? commitNode((p, c) => rotatePt(p, c, -Math.abs(angle))) : commit((objs, c) => rotateObjects(objs, c, -Math.abs(angle)))} title={t('transform.ccw_title', 'Rotate counter-clockwise once by the entered angle')}
               className="px-1.5 py-1 rounded bg-white/10 hover:bg-white/20 border border-white/15 text-[11px]">
-              <RotateCcw className="inline-block w-3.5 h-3.5 mr-0.5 -mt-0.5" />{t('transform.ccw_once', 'Rotate once counter-clockwise')}
-            </button>
-            <button onClick={() => nodeMode ? commitNode((p, c) => rotatePt(p, c, Math.abs(angle))) : commit((objs, c) => rotateObjects(objs, c, Math.abs(angle)))} title={t('transform.cw_title', 'Rotate clockwise once by the entered angle')}
+              <UiAutoIcon localId="rotate-ccw"><RotateCcw className="inline-block w-3.5 h-3.5 mr-0.5 -mt-0.5" /></UiAutoIcon><UiAutoText localId="rotate-ccw" textKey="transform.ccw_once">Rotate once counter-clockwise</UiAutoText>
+            </button></UiAutoControl>
+            <UiAutoControl localId="rotate-cw" kind="button" defaultTextKey="transform.cw_once" defaultIcon="lucide:RotateCw"><button onClick={() => nodeMode ? commitNode((p, c) => rotatePt(p, c, Math.abs(angle))) : commit((objs, c) => rotateObjects(objs, c, Math.abs(angle)))} title={t('transform.cw_title', 'Rotate clockwise once by the entered angle')}
               className="px-1.5 py-1 rounded bg-white/10 hover:bg-white/20 border border-white/15 text-[11px]">
-              <RotateCw className="inline-block w-3.5 h-3.5 mr-0.5 -mt-0.5" />{t('transform.cw_once', 'Rotate once clockwise')}
-            </button>
+              <UiAutoIcon localId="rotate-cw"><RotateCw className="inline-block w-3.5 h-3.5 mr-0.5 -mt-0.5" /></UiAutoIcon><UiAutoText localId="rotate-cw" textKey="transform.cw_once">Rotate once clockwise</UiAutoText>
+            </button></UiAutoControl>
           </div>
         </>
       )}
@@ -216,8 +215,8 @@ export function TransformDialog({ mode }: { mode: 'rotate' | 'scale' | 'symmetry
           <div>
             <div className="text-white/50 mb-1">{t('transform.scale_prompt', "Scale the selected objects' spacing by:")}</div>
             <div className="flex items-center gap-2">
-              <input type="range" min={0.1} max={2} step={0.005} value={Math.max(0.1, Math.min(2, factor))} data-tf="factor-slider"
-                onChange={e => changeFactor(parseFloat(e.target.value))} className="flex-1 accent-sky-500" />
+              <UiAutoControl localId="factor-slider"><input type="range" min={0.1} max={2} step={0.005} value={Math.max(0.1, Math.min(2, factor))} data-tf="factor-slider"
+                onChange={e => changeFactor(parseFloat(e.target.value))} className="flex-1 accent-sky-500" /></UiAutoControl>
               <DraftNum value={factor} set={changeFactor} testid="factor" min={0.01} step={0.005} digits={3} /> {/* v367: 步进 0.05→0.005 (精细度×10), 显示 3 位小数 */}
               <span className="text-white/40">×</span>
             </div>
@@ -227,37 +226,33 @@ export function TransformDialog({ mode }: { mode: 'rotate' | 'scale' | 'symmetry
             {/* v405: stable 的 Apply to X-axis/Y-axis — 未勾选轴按倍率 1 计算; y 倍率框与 x:y 固定保留 (v282/v307) */}
             <Group label={t('transform.apply_to', 'Apply to')}>
               <label className="flex items-center gap-1 text-white/70">
-                <input type="checkbox" checked={axisX} data-tf="axis-x"
-                  onChange={e => { previewOn.current = true; setScaleParams(p => ({ ...p, axisX: e.target.checked })); }} />
-                {t('transform.axis_x', 'X-axis')}
+                <UiAutoControl localId="axis-x"><input type="checkbox" checked={axisX} data-tf="axis-x"
+                  onChange={e => { previewOn.current = true; setScaleParams(p => ({ ...p, axisX: e.target.checked })); }} /></UiAutoControl>
+                <UiAutoText localId="axis-x" textKey="transform.axis_x">X-axis</UiAutoText>
               </label>
               <label className="flex items-center gap-1 text-white/70">
-                <input type="checkbox" checked={axisY} data-tf="axis-y"
-                  onChange={e => { previewOn.current = true; setScaleParams(p => ({ ...p, axisY: e.target.checked })); }} />
-                {t('transform.axis_y', 'Y-axis')}
+                <UiAutoControl localId="axis-y"><input type="checkbox" checked={axisY} data-tf="axis-y"
+                  onChange={e => { previewOn.current = true; setScaleParams(p => ({ ...p, axisY: e.target.checked })); }} /></UiAutoControl>
+                <UiAutoText localId="axis-y" textKey="transform.axis_y">Y-axis</UiAutoText>
               </label>
               <div className="flex items-center gap-1">
                 <span className="text-white/40">y</span>
                 <DraftNum value={factorY} set={changeFactorY} testid="factor-y" min={0.01} step={0.005} digits={3} /> {/* v367: 同上 */}
               </div>
               <label className="flex items-center gap-1 text-white/70" title={t('transform.lock_ratio_title', 'Lock x:y ratio — changing one axis scales the other at the current ratio')}>
-                <input type="checkbox" checked={lockRatio} data-tf="lock-ratio"
-                  onChange={e => setScaleParams(p => ({ ...p, lockRatio: e.target.checked }))} />
-                {t('transform.lock_ratio', 'Lock x:y')}
+                <UiAutoControl localId="lock-ratio"><input type="checkbox" checked={lockRatio} data-tf="lock-ratio"
+                  onChange={e => setScaleParams(p => ({ ...p, lockRatio: e.target.checked }))} /></UiAutoControl>
+                <UiAutoText localId="lock-ratio" textKey="transform.lock_ratio">Lock x:y</UiAutoText>
               </label>
             </Group>
           </div>
           <div className="flex items-center gap-1 flex-wrap">
             {/* v475: 缩放同 v463 旋转双按钮语义 — 「应用倍率」应用后自动关窗 (soulten: 應用倍率(會關閉)
                 跟應用倍率但不關閉); 「应用倍率但不关闭」保持开窗可连续应用, 每次应用一次撤销 */}
-            <button onClick={() => { nodeMode ? commitNode((p, c) => scalePt(p, c, sx, sy)) : commit((objs, c) => scaleObjects(objs, c, sx, sy)); store.closeTransformDialog(); }} title={t('transform.apply_scale_title', 'Scale by the entered factor (uncheck an axis to leave it unscaled; slider length scales too)')} data-tf="apply-scale"
-              className="px-1.5 py-1 rounded bg-white/10 hover:bg-white/20 border border-white/15 text-[11px]">
-              {t('transform.apply_scale', 'Apply Scale')}
-            </button>
-            <button onClick={() => nodeMode ? commitNode((p, c) => scalePt(p, c, sx, sy)) : commit((objs, c) => scaleObjects(objs, c, sx, sy))} title={t('transform.apply_scale_stay_title', 'Scale by the entered factor; the window stays open for repeated applies')} data-tf="apply-scale-stay"
-              className="px-1.5 py-1 rounded bg-white/10 hover:bg-white/20 border border-white/15 text-[11px]">
-              {t('transform.apply_scale_stay', 'Apply Scale (keep open)')}
-            </button>
+            <DialogButton uiId="apply" textKey="transform.apply_scale" onClick={() => { nodeMode ? commitNode((p, c) => scalePt(p, c, sx, sy)) : commit((objs, c) => scaleObjects(objs, c, sx, sy)); store.closeTransformDialog(); }} title={t('transform.apply_scale_title', 'Scale by the entered factor (uncheck an axis to leave it unscaled; slider length scales too)')} data-tf="apply-scale"
+              className="px-1.5 py-1 rounded bg-white/10 hover:bg-white/20 border border-white/15 text-[11px]">Apply Scale</DialogButton>
+            <DialogButton uiId="apply-stay" textKey="transform.apply_scale_stay" onClick={() => nodeMode ? commitNode((p, c) => scalePt(p, c, sx, sy)) : commit((objs, c) => scaleObjects(objs, c, sx, sy))} title={t('transform.apply_scale_stay_title', 'Scale by the entered factor; the window stays open for repeated applies')} data-tf="apply-scale-stay"
+              className="px-1.5 py-1 rounded bg-white/10 hover:bg-white/20 border border-white/15 text-[11px]">Apply Scale (keep open)</DialogButton>
           </div>
         </>
       )}
@@ -267,9 +262,9 @@ export function TransformDialog({ mode }: { mode: 'rotate' | 'scale' | 'symmetry
             <span className="text-white/50">{t('transform.sym_axis', 'Symmetry Axis')}</span>
             {([['selection', t('transform.selection', 'Selection Centre')], ['center', t('transform.center', 'Playfield Centre')], ['custom', t('transform.custom', 'Custom')]] as const).map(([m, label]) => (
               <label key={m} className="flex items-center gap-0.5 text-white/70">
-                <input type="radio" name="tfdlg-sym" checked={store.symAxisMode === m} data-sym={`axis-${m}`}
-                  onChange={() => store.setSymAxisMode(m)} />
-                {label}
+                <UiAutoControl localId={`axis-${m}`}><input type="radio" name="tfdlg-sym" checked={store.symAxisMode === m} data-sym={`axis-${m}`}
+                  onChange={() => store.setSymAxisMode(m)} /></UiAutoControl>
+                <UiAutoText localId={`axis-${m}`}>{label}</UiAutoText>
               </label>
             ))}
           </div>
@@ -278,9 +273,9 @@ export function TransformDialog({ mode }: { mode: 'rotate' | 'scale' | 'symmetry
               <span className="text-white/50">{t('transform.sym_direction', 'Direction')}</span>
               {([['v', t('transform.dir_vertical', 'Vertical line (mirror left-right)')], ['h', t('transform.dir_horizontal', 'Horizontal line (mirror up-down)')]] as const).map(([d, label]) => (
                 <label key={d} className="flex items-center gap-0.5 text-white/70">
-                  <input type="radio" name="tfdlg-symdir" checked={store.symAxisDir === d} data-sym={`dir-${d}`}
-                    onChange={() => store.setSymAxisDir(d)} />
-                  {label}
+                  <UiAutoControl localId={`dir-${d}`}><input type="radio" name="tfdlg-symdir" checked={store.symAxisDir === d} data-sym={`dir-${d}`}
+                    onChange={() => store.setSymAxisDir(d)} /></UiAutoControl>
+                  <UiAutoText localId={`dir-${d}`}>{label}</UiAutoText>
                 </label>
               ))}
             </div>
@@ -300,10 +295,8 @@ export function TransformDialog({ mode }: { mode: 'rotate' | 'scale' | 'symmetry
             </div>
           )}
           <div>
-            <button onClick={() => store.reflectSelected()} title={t('transform.apply_symmetry_title', 'Mirror the selection across the symmetry axis')}
-              className="px-2 py-1 rounded bg-white/10 hover:bg-white/20 border border-white/15 text-[11px]">
-              {t('transform.apply_symmetry', 'Apply Symmetry')}
-            </button>
+            <DialogButton uiId="apply" textKey="transform.apply_symmetry" onClick={() => store.reflectSelected()} title={t('transform.apply_symmetry_title', 'Mirror the selection across the symmetry axis')}
+              className="px-2 py-1 rounded bg-white/10 hover:bg-white/20 border border-white/15 text-[11px]">Apply Symmetry</DialogButton>
           </div>
         </>
       )}

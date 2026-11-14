@@ -1,0 +1,51 @@
+{
+  "id": "sample-050",
+  "directoryName": "1787128 Chiro, Kotono, Hiyorin - My Dream Kingdom!",
+  "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\1787128 Chiro, Kotono, Hiyorin - My Dream Kingdom!",
+  "status": "ok",
+  "referenceBpm": 120,
+  "referenceVariable": false,
+  "predictedBpm": 239.9,
+  "predictedVariable": false,
+  "variableLines": [],
+  "trueVariableMs": 0,
+  "flaggedWindowCount": 47,
+  "flaggedWindowsOnVariable": 0,
+  "rawCandidateCount": 1,
+  "rawCandidatesOnVariable": 0,
+  "finalEvidenceCount": 0,
+  "finalEvidenceOnVariable": 0,
+  "candidates": [
+    {
+      "startMs": 60906,
+      "endMs": 67901,
+      "bpm": 60.093,
+      "points": 4,
+      "maxSupport": 0.13083329006555236,
+      "localGridCoverage": 0.08,
+      "rejection": "insufficient_margin",
+      "independentMainScore": 0.175842229018895,
+      "independentLocalScore": 0.0519566668650147,
+      "variableOverlapMs": 0,
+      "overlapsVariable": false,
+      "tripletVotes": [
+        {
+          "timeMs": 63904.21768707483,
+          "bpm": 60.093,
+          "localGridCoverage": 0.0851063829787234,
+          "tripletGridCoverage": 0.6170212765957447,
+          "tripletGridHalfCoverage": 0.574468085106383,
+          "tripletGridDoubleCoverage": 0.6808510638297872
+        },
+        {
+          "timeMs": 64902.67573696145,
+          "bpm": 60.093,
+          "localGridCoverage": 0.0784313725490196,
+          "tripletGridCoverage": 0.5882352941176471,
+          "tripletGridHalfCoverage": 0.6274509803921569,
+          "tripletGridDoubleCoverage": 0.7647058823529411
+        }
+      ]
+    }
+  ]
+}

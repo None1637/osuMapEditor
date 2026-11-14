@@ -1,0 +1,19 @@
+{
+  "id": "sample-060",
+  "directoryName": "130556 Jeff Williams - This Will Be the Day (feat Casey Lee Williams)",
+  "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\130556 Jeff Williams - This Will Be the Day (feat Casey Lee Williams)",
+  "status": "ok",
+  "referenceBpm": 189.99999999999974,
+  "referenceVariable": false,
+  "predictedBpm": 190,
+  "predictedVariable": false,
+  "variableLines": [],
+  "trueVariableMs": 0,
+  "flaggedWindowCount": 11,
+  "flaggedWindowsOnVariable": 0,
+  "rawCandidateCount": 0,
+  "rawCandidatesOnVariable": 0,
+  "finalEvidenceCount": 0,
+  "finalEvidenceOnVariable": 0,
+  "candidates": []
+}

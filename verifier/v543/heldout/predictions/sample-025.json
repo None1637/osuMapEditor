@@ -1,0 +1,42 @@
+{
+  "id": "sample-025",
+  "directoryName": "1341998 THE ORAL CIGARETTES - MIRROR (Cut Ver)",
+  "beatmapFile": "THE ORAL CIGARETTES - MIRROR (Cut Ver.) (LuxSayaka) [Yui's Hard].osu",
+  "metadata": {
+    "Title": "MIRROR (Cut Ver.)",
+    "TitleUnicode": "MIRROR (Cut Ver.)",
+    "Artist": "THE ORAL CIGARETTES",
+    "ArtistUnicode": "THE ORAL CIGARETTES",
+    "Creator": "LuxSayaka",
+    "Version": "Yui's Hard",
+    "Source": "",
+    "Tags": "Ridho 2307 _VianK_ Star_Leaf -Shima Rin- LLENN- Onii_ue Yuiazu- Riki-Sama Xyzeria-sama Sayaka Kanon Matsubara Japanese Rock J-Rock JRock A-Sketch Takuya Yamanaka 山中 拓也 short version",
+    "BeatmapID": "2779874",
+    "BeatmapSetID": "1341998",
+    "Mode": "3"
+  },
+  "audioDurationMs": 104086.62131519274,
+  "redLines": [
+    {
+      "time": 388,
+      "beatLength": 297.029702970297,
+      "bpm": 202,
+      "durationMs": 103698.62131519274
+    }
+  ],
+  "referenceBpm": 202,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 103698.62131519274,
+  "status": "ok",
+  "prediction": {
+    "bpm": 202.1,
+    "offsetMs": 438,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 96,
+    "rawBpm": 202.1,
+    "rawSegmentCount": 48
+  },
+  "evaluationMs": 1009
+}

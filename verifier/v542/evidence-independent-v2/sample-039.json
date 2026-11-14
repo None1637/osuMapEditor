@@ -1,0 +1,52 @@
+{
+  "id": "sample-039",
+  "directoryName": "770246 Rabbit House - Final Overtake",
+  "beatmapFile": "Rabbit House - Final Overtake (bbu) [Normal].osu",
+  "referenceBpm": 195.99999999999991,
+  "predictedBpm": 196,
+  "frozenBpm": 196,
+  "deterministicEvidence": true,
+  "evidence": [
+    {
+      "startMs": 53917,
+      "endMs": 60912,
+      "bpm": 112.347,
+      "points": 4,
+      "maxSupport": 0.13745332962501305,
+      "index": 0,
+      "ratioToPredictedMain": 0.5731989795918367,
+      "ratioToAnnotatedMain": 0.573198979591837,
+      "boundary": "interior",
+      "localBpmMin": 112.347,
+      "localBpmMax": 112.347,
+      "medianSupport": 0.09329815591592676,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 30.61224489795918,
+          "first": 0.2682893645645902,
+          "second": 0.14180632990014813,
+          "combined": 0.22654996312532433
+        },
+        "annotatedMain": {
+          "lag": 30.612244897959197,
+          "first": 0.2682893645645891,
+          "second": 0.1418063299001467,
+          "combined": 0.2265499631253231
+        },
+        "evidenceBpm": {
+          "lag": 53.40596544634036,
+          "first": 0.1879161188072869,
+          "second": 0.17059754797701776,
+          "combined": 0.18220099043329807
+        }
+      },
+      "objectCount": 18,
+      "objectGrid": {
+        "predictedMainHalf": 1,
+        "annotatedMainHalf": 1,
+        "evidenceHalf": 0.2222222222222222
+      }
+    }
+  ],
+  "analysisMs": 1613
+}

@@ -1,0 +1,34 @@
+{
+  "id": "sample-012",
+  "directoryName": "196171 xxdbxx - Taekwonburi",
+  "beatmapFile": "xxdbxx - Taekwonburi (nowsmart) [7K NM].osu",
+  "metadata": {
+    "Title": "Taekwonburi",
+    "TitleUnicode": "태권부리",
+    "Artist": "xxdbxx",
+    "ArtistUnicode": "xxdbxx",
+    "Creator": "nowsmart",
+    "Version": "7K NM",
+    "Source": "DJMax Portable 2",
+    "Tags": "Marirose Happy Core Eco DMP2 Pentavision Trilogy Clazziquai Edition duck quack",
+    "BeatmapID": "465224",
+    "BeatmapSetID": "196171",
+    "Mode": "3"
+  },
+  "audioDurationMs": null,
+  "redLines": [
+    {
+      "time": 206,
+      "beatLength": 370.37037037037,
+      "bpm": 162.00000000000017,
+      "durationMs": 1481.48148148148
+    }
+  ],
+  "referenceBpm": 162.00000000000017,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 1481.48148148148,
+  "status": "decode_unavailable",
+  "prediction": null,
+  "evaluationMs": 0
+}

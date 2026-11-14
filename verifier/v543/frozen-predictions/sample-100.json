@@ -1,0 +1,80 @@
+{
+  "id": "sample-100",
+  "directoryName": "9394 dj TAKA - Absolute",
+  "beatmapFile": "dj TAKA - Absolute (osu_CN_yaya) [CC's Normal].osu",
+  "metadata": {
+    "Title": "Absolute",
+    "Artist": "dj TAKA",
+    "Creator": "osu_CN_yaya",
+    "Version": "CC's Normal",
+    "Source": "",
+    "Tags": "ccbp iidx",
+    "Mode": "0"
+  },
+  "audioDurationMs": 124133.8775510204,
+  "redLines": [
+    {
+      "time": 304,
+      "beatLength": 416.666666666667,
+      "bpm": 143.9999999999999,
+      "durationMs": 110833
+    },
+    {
+      "time": 111137,
+      "beatLength": 451.127819548872,
+      "bpm": 133.00000000000006,
+      "durationMs": 451
+    },
+    {
+      "time": 111588,
+      "beatLength": 500,
+      "bpm": 120,
+      "durationMs": 500
+    },
+    {
+      "time": 112088,
+      "beatLength": 535.714285714286,
+      "bpm": 111.99999999999994,
+      "durationMs": 535
+    },
+    {
+      "time": 112623,
+      "beatLength": 674.157303370787,
+      "bpm": 88.99999999999994,
+      "durationMs": 674
+    },
+    {
+      "time": 113297,
+      "beatLength": 705.882352941176,
+      "bpm": 85.00000000000006,
+      "durationMs": 705
+    },
+    {
+      "time": 114002,
+      "beatLength": 1000,
+      "bpm": 60,
+      "durationMs": 1000
+    },
+    {
+      "time": 115002,
+      "beatLength": 750,
+      "bpm": 80,
+      "durationMs": 9131.8775510204
+    }
+  ],
+  "referenceBpm": 143.9999999999999,
+  "referenceVariable": true,
+  "referenceRedLineCount": 8,
+  "referenceCoverageMs": 110833,
+  "status": "ok",
+  "prediction": {
+    "bpm": 144,
+    "offsetMs": 531,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 115,
+    "rawBpm": 288,
+    "rawSegmentCount": 18
+  },
+  "evaluationMs": 1164
+}

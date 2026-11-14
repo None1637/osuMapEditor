@@ -3,6 +3,7 @@
 //   标题三语并列 (translate 强制各语言渲染同一 key, 不依赖当前语言); 默认语言为英文 (见 i18n detect)
 import { useEffect, useState } from 'react';
 import { LANGS, isLangUnset, onLangChange, setLang, translate, type Lang } from '@/i18n';
+import { UiControl, UiText } from './uiLayout/UiControl'; // v536
 
 const TITLE_KEY = 'app.lang_first_title';
 const TITLE_EN = 'Choose your language';
@@ -15,7 +16,7 @@ export function LangFirstRun() {
   const pick = (id: Lang) => { setLang(id); setShow(false); };
   return (
     <div data-lang-first-run data-dialog="lang-first-run" className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70"> {/* v431: data-dialog */}
-      <div className="bg-[#1b1b24] border border-white/15 rounded-lg px-8 py-6 flex flex-col items-center gap-5 shadow-xl">
+      <UiControl id="lang-first-run.panel"><div className="bg-[#1b1b24] border border-white/15 rounded-lg px-8 py-6 flex flex-col items-center gap-5 shadow-xl">
         <div className="text-sm text-slate-200 text-center leading-relaxed">
           <div>{translate('zh-CN', TITLE_KEY, TITLE_EN)}</div>
           <div>{translate('zh-TW', TITLE_KEY, TITLE_EN)}</div>
@@ -23,13 +24,13 @@ export function LangFirstRun() {
         </div>
         <div className="flex gap-3">
           {LANGS.map(l => (
-            <button key={l.id} data-lang-pick={l.id} onClick={() => pick(l.id)}
+            <UiControl key={l.id} id={`lang-first-run.${l.id}`}><button data-lang-pick={l.id} onClick={() => pick(l.id)}
               className="px-4 py-2 rounded bg-white/10 hover:bg-white/25 border border-white/15 text-sm transition-colors cursor-pointer">
-              {l.name}
-            </button>
+              <UiText id={`lang-first-run.${l.id}`}>{l.name}</UiText>
+            </button></UiControl>
           ))}
         </div>
-      </div>
+      </div></UiControl>
     </div>
   );
 }

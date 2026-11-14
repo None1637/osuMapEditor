@@ -28,6 +28,8 @@ export interface BpmDetectResult {
   segments: BpmSegment[];
   /** v499: 分析中间产物 (onset 包络) — 变速证据复核用; 随结果结构化克隆 */
   analysis?: { env: Float32Array; hopMs: number };
+  /** legacyResidual: 原采样率物件残差，仅供 offset 精修；缺峰物件不出现在列表中 */
+  legacyResiduals?: { timeMs: number; residualMs: number }[];
 }
 
 export interface BpmDetectOptions {

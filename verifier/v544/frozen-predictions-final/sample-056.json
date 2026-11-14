@@ -1,0 +1,42 @@
+{
+  "id": "sample-056",
+  "directoryName": "952619 Stonebank - The Pressure",
+  "beatmapFile": "Stonebank - The Pressure (Voxa) [Horizon].osu",
+  "metadata": {
+    "Title": "The Pressure",
+    "TitleUnicode": "The Pressure",
+    "Artist": "Stonebank",
+    "ArtistUnicode": "Stonebank",
+    "Creator": "Voxa",
+    "Version": "Horizon",
+    "Source": "",
+    "Tags": "sunset tech dubstep english monstercat release hard dance hardcore bass upbeat happy core rave 022 contact mcs341 electronic",
+    "BeatmapID": "1989125",
+    "BeatmapSetID": "952619",
+    "Mode": "3"
+  },
+  "audioDurationMs": 85185.30612244898,
+  "redLines": [
+    {
+      "time": 136,
+      "beatLength": 352.941176470588,
+      "bpm": 170.0000000000001,
+      "durationMs": 85049.30612244898
+    }
+  ],
+  "referenceBpm": 170.0000000000001,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 85049.30612244898,
+  "status": "ok",
+  "prediction": {
+    "bpm": 170,
+    "offsetMs": 516,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 82,
+    "rawBpm": 170,
+    "rawSegmentCount": 4
+  },
+  "evaluationMs": 758
+}

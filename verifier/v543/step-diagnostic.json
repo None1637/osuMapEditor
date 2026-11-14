@@ -1,0 +1,327 @@
+{
+  "main": 128,
+  "final": [
+    {
+      "startMs": 22964,
+      "endMs": 38946,
+      "bpm": 172.266,
+      "points": 13,
+      "maxSupport": 0.7568065448179137,
+      "localGridCoverage": 0.5217391304347826,
+      "independentMainScore": -0.08554926182685735,
+      "independentLocalScore": 0.8227227317181295
+    }
+  ],
+  "candidates": [
+    {
+      "startMs": 22964,
+      "endMs": 38946,
+      "bpm": 172.266,
+      "points": 13,
+      "maxSupport": 0.7568065448179137,
+      "localGridCoverage": 0.5217391304347826
+    }
+  ],
+  "independent": [
+    {
+      "startMs": 22964,
+      "endMs": 38946,
+      "bpm": 172.266,
+      "points": 13,
+      "maxSupport": 0.7568065448179137,
+      "localGridCoverage": 1,
+      "independentMainScore": -0.08554926182685735,
+      "independentLocalScore": 0.8227227317181295
+    }
+  ],
+  "local": [
+    {
+      "timeMs": 1999.8185941043084,
+      "bpm": 127.604,
+      "support": 0.6480306041412387,
+      "supportRatio": 1,
+      "localGridCoverage": 0.5,
+      "tripletGridCoverage": 1
+    },
+    {
+      "timeMs": 2998.2766439909296,
+      "bpm": 127.604,
+      "support": 0.6523839314274601,
+      "supportRatio": 1,
+      "localGridCoverage": 0.5294117647058824,
+      "tripletGridCoverage": 1
+    },
+    {
+      "timeMs": 3996.734693877551,
+      "bpm": 127.604,
+      "support": 0.6526626959184586,
+      "supportRatio": 1,
+      "localGridCoverage": 0.5294117647058824,
+      "tripletGridCoverage": 1
+    },
+    {
+      "timeMs": 4995.1927437641725,
+      "bpm": 127.604,
+      "support": 0.6208968520780603,
+      "supportRatio": 1,
+      "localGridCoverage": 0.5294117647058824,
+      "tripletGridCoverage": 1
+    },
+    {
+      "timeMs": 5993.650793650793,
+      "bpm": 127.604,
+      "support": 0.6437516550057097,
+      "supportRatio": 1,
+      "localGridCoverage": 0.5294117647058824,
+      "tripletGridCoverage": 1
+    },
+    {
+      "timeMs": 6992.108843537415,
+      "bpm": 127.604,
+      "support": 0.6060406760039988,
+      "supportRatio": 1,
+      "localGridCoverage": 0.5294117647058824,
+      "tripletGridCoverage": 1
+    },
+    {
+      "timeMs": 7990.566893424037,
+      "bpm": 127.604,
+      "support": 0.6437516550057097,
+      "supportRatio": 1,
+      "localGridCoverage": 0.5294117647058824,
+      "tripletGridCoverage": 1
+    },
+    {
+      "timeMs": 8989.024943310658,
+      "bpm": 127.604,
+      "support": 0.48046786328549546,
+      "supportRatio": 1,
+      "localGridCoverage": 0.47058823529411764,
+      "tripletGridCoverage": 1
+    },
+    {
+      "timeMs": 9987.482993197278,
+      "bpm": 127.604,
+      "support": 0.6527810122019427,
+      "supportRatio": 1,
+      "localGridCoverage": 0.5294117647058824,
+      "tripletGridCoverage": 1
+    },
+    {
+      "timeMs": 10985.9410430839,
+      "bpm": 127.604,
+      "support": 0.6494827209152946,
+      "supportRatio": 1,
+      "localGridCoverage": 0.5294117647058824,
+      "tripletGridCoverage": 1
+    },
+    {
+      "timeMs": 11984.399092970521,
+      "bpm": 127.604,
+      "support": 0.6527810122019427,
+      "supportRatio": 1,
+      "localGridCoverage": 0.5294117647058824,
+      "tripletGridCoverage": 1
+    },
+    {
+      "timeMs": 12982.857142857143,
+      "bpm": 127.604,
+      "support": 0.557187237829018,
+      "supportRatio": 1,
+      "localGridCoverage": 0.5294117647058824,
+      "tripletGridCoverage": 1
+    },
+    {
+      "timeMs": 13981.315192743765,
+      "bpm": 127.604,
+      "support": 0.6028396613465304,
+      "supportRatio": 1,
+      "localGridCoverage": 0.5294117647058824,
+      "tripletGridCoverage": 1
+    },
+    {
+      "timeMs": 14979.773242630385,
+      "bpm": 127.604,
+      "support": 0.6110412335329224,
+      "supportRatio": 1,
+      "localGridCoverage": 0.5294117647058824,
+      "tripletGridCoverage": 1
+    },
+    {
+      "timeMs": 15978.231292517006,
+      "bpm": 127.604,
+      "support": 0.6037830262089817,
+      "supportRatio": 1,
+      "localGridCoverage": 0.5294117647058824,
+      "tripletGridCoverage": 1
+    },
+    {
+      "timeMs": 16976.689342403628,
+      "bpm": 127.604,
+      "support": 0.49617297650283193,
+      "supportRatio": 1,
+      "localGridCoverage": 0.5294117647058824,
+      "tripletGridCoverage": 1
+    },
+    {
+      "timeMs": 17975.147392290248,
+      "bpm": 127.604,
+      "support": 0.6539961152394447,
+      "supportRatio": 1,
+      "localGridCoverage": 0.47058823529411764,
+      "tripletGridCoverage": 1
+    },
+    {
+      "timeMs": 18973.60544217687,
+      "bpm": 127.604,
+      "support": 0.6545932773509553,
+      "supportRatio": 1,
+      "localGridCoverage": 0.5294117647058824,
+      "tripletGridCoverage": 1
+    },
+    {
+      "timeMs": 19972.06349206349,
+      "bpm": 127.604,
+      "support": 0.6539957939485606,
+      "supportRatio": 1,
+      "localGridCoverage": 0.5294117647058824,
+      "tripletGridCoverage": 1
+    },
+    {
+      "timeMs": 20970.521541950115,
+      "bpm": 127.604,
+      "support": 0.6346140033992992,
+      "supportRatio": 1,
+      "localGridCoverage": 0.5,
+      "tripletGridCoverage": 1
+    },
+    {
+      "timeMs": 21968.979591836734,
+      "bpm": 127.604,
+      "support": 0.40577989785167334,
+      "supportRatio": 1,
+      "localGridCoverage": 0.3888888888888889,
+      "tripletGridCoverage": 0.8888888888888888
+    },
+    {
+      "timeMs": 22967.437641723354,
+      "bpm": 127.604,
+      "support": 0.4085402874123732,
+      "supportRatio": 1,
+      "localGridCoverage": 0.25,
+      "tripletGridCoverage": 0.7
+    },
+    {
+      "timeMs": 23965.895691609978,
+      "bpm": 86.493,
+      "support": 0.33676741815145855,
+      "supportRatio": 1.319293606456961,
+      "localGridCoverage": 0.2727272727272727,
+      "tripletGridCoverage": 0.5454545454545454
+    },
+    {
+      "timeMs": 24964.353741496598,
+      "bpm": 172.266,
+      "support": 0.6498578606292056,
+      "supportRatio": 2.8518681329035824,
+      "localGridCoverage": 0.5217391304347826,
+      "tripletGridCoverage": 0.4782608695652174
+    },
+    {
+      "timeMs": 25962.81179138322,
+      "bpm": 172.266,
+      "support": 0.642276348113042,
+      "supportRatio": 3.7356366738188234,
+      "localGridCoverage": 0.5217391304347826,
+      "tripletGridCoverage": 0.43478260869565216
+    },
+    {
+      "timeMs": 26961.26984126984,
+      "bpm": 172.266,
+      "support": 0.6620308241760352,
+      "supportRatio": 3.069012634307907,
+      "localGridCoverage": 0.5217391304347826,
+      "tripletGridCoverage": 0.43478260869565216
+    },
+    {
+      "timeMs": 27959.72789115646,
+      "bpm": 172.266,
+      "support": 0.7013527989196436,
+      "supportRatio": 2.991879347480268,
+      "localGridCoverage": 0.5217391304347826,
+      "tripletGridCoverage": 0.4782608695652174
+    },
+    {
+      "timeMs": 28958.185941043084,
+      "bpm": 172.266,
+      "support": 0.6484569968934827,
+      "supportRatio": 2.580550771871536,
+      "localGridCoverage": 0.5217391304347826,
+      "tripletGridCoverage": 0.4782608695652174
+    },
+    {
+      "timeMs": 29956.643990929704,
+      "bpm": 172.266,
+      "support": 0.7135759408486961,
+      "supportRatio": 3.2855773163253517,
+      "localGridCoverage": 0.5217391304347826,
+      "tripletGridCoverage": 0.43478260869565216
+    },
+    {
+      "timeMs": 30955.102040816328,
+      "bpm": 172.266,
+      "support": 0.7568065448179137,
+      "supportRatio": 3.4156204758087165,
+      "localGridCoverage": 0.5217391304347826,
+      "tripletGridCoverage": 0.43478260869565216
+    },
+    {
+      "timeMs": 31953.560090702947,
+      "bpm": 172.266,
+      "support": 0.6486878131341164,
+      "supportRatio": 2.75473967587689,
+      "localGridCoverage": 0.5217391304347826,
+      "tripletGridCoverage": 0.4782608695652174
+    },
+    {
+      "timeMs": 32952.01814058957,
+      "bpm": 172.266,
+      "support": 0.666731989675832,
+      "supportRatio": 2.829686463251642,
+      "localGridCoverage": 0.5217391304347826,
+      "tripletGridCoverage": 0.4782608695652174
+    },
+    {
+      "timeMs": 33950.47619047619,
+      "bpm": 172.266,
+      "support": 0.5112256552309452,
+      "supportRatio": 2.729937443904229,
+      "localGridCoverage": 0.43478260869565216,
+      "tripletGridCoverage": 0.43478260869565216
+    },
+    {
+      "timeMs": 34948.93424036281,
+      "bpm": 172.266,
+      "support": 0.6884381418848287,
+      "supportRatio": 2.7453241291156045,
+      "localGridCoverage": 0.5217391304347826,
+      "tripletGridCoverage": 0.43478260869565216
+    },
+    {
+      "timeMs": 35947.39229024943,
+      "bpm": 172.266,
+      "support": 0.6341181371148753,
+      "supportRatio": 2.566992024337582,
+      "localGridCoverage": 0.5217391304347826,
+      "tripletGridCoverage": 0.4782608695652174
+    },
+    {
+      "timeMs": 36945.85034013605,
+      "bpm": 172.266,
+      "support": 0.6442474936743554,
+      "supportRatio": 2.6875818168576013,
+      "localGridCoverage": 0.5217391304347826,
+      "tripletGridCoverage": 0.43478260869565216
+    }
+  ]
+}

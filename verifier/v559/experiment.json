@@ -1,0 +1,62 @@
+{
+  "version": "v559-basic-pitch-e2-v1",
+  "status": "frozen_before_candidate_evaluation",
+  "datasetRole": "development_diagnostic_only_v557_is_no_longer_independent",
+  "sampleIds": ["sample-044", "sample-032", "sample-002"],
+  "selectionSource": "../v557/selection.json",
+  "annotationSource": "../v557/annotations-sample-*.csv",
+  "phaseAndDelaySource": "../v548/per-sample/sample-*.json",
+  "baselineSource": "../v558/candidates.json",
+  "model": {
+    "name": "Spotify Basic Pitch ICASSP 2022 nmp.onnx",
+    "sourceRepository": "https://github.com/spotify/basic-pitch",
+    "sourceCommit": "fa5997af0a8210982619003269994a1be25eddf3",
+    "sha256": "2c3c1d144bfa61ad236e92e169c13535c880469a12a047d4e73451f2c059a0ec",
+    "bytes": 230444,
+    "runtime": "onnxruntime 1.23.2 CPUExecutionProvider",
+    "fineTuning": false
+  },
+  "audio": {
+    "decoder": "Electron Web Audio decodeAudioData from original frozen audio",
+    "offlineSampleRate": 22050,
+    "channels": 1,
+    "normalization": "none",
+    "inputSamplesPerWindow": 43844,
+    "fftHopSamples": 256,
+    "overlappingFrames": 30,
+    "windowHopSamples": 36164,
+    "retainedFramesPerWindow": 142
+  },
+  "officialParityGate": {
+    "fixture": "tests/resources/vocadito_10.wav at frozen source commit",
+    "resampling": "soundfile float32, mono mean, soxr 0.5.0.post1 HQ to 22050 Hz",
+    "absoluteTolerance": 0.0001,
+    "relativeTolerance": 0,
+    "requiredForAllTensors": ["note", "onset", "contour"]
+  },
+  "timeMapping": {
+    "rule": "unwrapped frame i = i*256/22050 seconds",
+    "derivation": "15-frame front pad and 15-frame trim at each window edge; retained frame zero is original sample zero and each window advances 142 frames",
+    "parabolicInterpolationAllowed": true,
+    "legacySpectralFluxBiasApplied": false,
+    "officialModelFramesToTimeWindowCorrectionApplied": false
+  },
+  "methods": {
+    "full": "Frozen v558 adjacent-frame spectral-flux candidate residuals",
+    "neuralMax": "Maximum of 88 onset activations per frame; strict local maximum; activation >=0.5; parabolic subframe interpolation",
+    "neuralPitch": "scipy.signal.argrelmax independently along each of 88 onset tracks; activation >=0.5; deduplicate frame times; no interpolation"
+  },
+  "mainMethods": ["full", "neuralMax", "neuralPitch"],
+  "candidateMatching": "Nearest neural peak within +/-10 ms around reference + frozen globalDelay + frozen actual cross-fit top2/DP phase; full residual copied from v558",
+  "metrics": ["candidatePrecision", "candidateCoverage", "clearOnsetRecall", "clearAndApproximateOnsetRecall", "allObjectCorrectRate", "noClearCandidateOutputRate"],
+  "toleranceMs": 5,
+  "targetAllObjectCorrectRate": 0.8,
+  "knownDevelopmentLabelUpperBound": 0.5277411484238136,
+  "hypotheses": {
+    "H1": "At least one neural onset representation improves clear+approximate recall over full without reducing precision",
+    "H2": "A neural onset representation can reduce no_clear candidate output rate without losing more clear+approximate recall",
+    "H3": "Direct retained-frame coordinates and official tensor parity can be validated independently before real-song candidates are revealed"
+  },
+  "testPolicy": "No threshold, timing offset, phase, or feature retuning after real-song metrics are revealed; any change requires a new version and independent confirmation set",
+  "productionCodeChanged": false
+}

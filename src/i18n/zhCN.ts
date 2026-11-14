@@ -16,6 +16,7 @@ import { zhCN as pattern } from './dicts/zh-CN/pattern';
 import { zhCN as timeline } from './dicts/zh-CN/timeline';
 import { zhCN as panels } from './dicts/zh-CN/panels';
 import { zhCN as backend } from './dicts/zh-CN/backend';
+import { zhCN as uiLayout } from './dicts/zh-CN/uiLayout';
 
 export const ZH_CN: Record<string, string> = Object.assign(
   {},
@@ -34,4 +35,5 @@ export const ZH_CN: Record<string, string> = Object.assign(
   timeline,
   panels,
   backend,
+  uiLayout,
 );

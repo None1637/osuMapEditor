@@ -1,0 +1,42 @@
+{
+  "id": "sample-006",
+  "directoryName": "886126 Brandy - Cross Time",
+  "beatmapFile": "Brandy - Cross Time (ababab0306) [HD].osu",
+  "metadata": {
+    "Title": "Cross Time",
+    "TitleUnicode": "Cross Time",
+    "Artist": "Brandy",
+    "ArtistUnicode": "Brandy",
+    "Creator": "ababab0306",
+    "Version": "HD",
+    "Source": "PUMP IT UP – 2017 PRIME 2",
+    "Tags": "O2JAM (C)Andamiro EuNyack NANACO★SYNDROME EZ2AC : NT XROSS Collaboration HIGH5 TAPSONIC WORLD CHAMPION SMIN Techno Rock ECON",
+    "BeatmapID": "1852446",
+    "BeatmapSetID": "886126",
+    "Mode": "3"
+  },
+  "audioDurationMs": 126288.07256235828,
+  "redLines": [
+    {
+      "time": 982.40571070547,
+      "beatLength": 375,
+      "bpm": 160,
+      "durationMs": 125305.66685165282
+    }
+  ],
+  "referenceBpm": 160,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 125305.66685165282,
+  "status": "ok",
+  "prediction": {
+    "bpm": 160,
+    "offsetMs": 257,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 123,
+    "rawBpm": 320,
+    "rawSegmentCount": 55
+  },
+  "evaluationMs": 1215
+}

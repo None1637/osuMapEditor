@@ -1,0 +1,17 @@
+{
+  "version": "v570-window-failure-independent-recheck-v1",
+  "passed": true,
+  "comparisonRows": 29,
+  "completeMutuallyExclusivePartitionVerified": true,
+  "independentNearestPeakRule": "Brute-force nearest among all frozen official peaks within actual +/-20 ms",
+  "hypotheses": {
+    "H1": false,
+    "H2": true,
+    "H3": true
+  },
+  "e10IncorrectWeightTwoSongs": 532.0,
+  "noOfficialPeakIncorrectShare": 0.9857142857142857,
+  "outsideWindowRecoverableIncorrectWeight": 0,
+  "outsideWindowOnlyRateUpperBound": 0.7087396325395572,
+  "failures": []
+}

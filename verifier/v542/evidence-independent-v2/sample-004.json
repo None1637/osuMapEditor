@@ -1,0 +1,132 @@
+{
+  "id": "sample-004",
+  "directoryName": "1256680 Mori Calliope - Excuse My Rudeness, But Could You Please RIP",
+  "beatmapFile": "Mori Calliope - Excuse My Rudeness, But Could You Please RIP (arcwinolivirus) [Normal Beats].osu",
+  "referenceBpm": 124.00000000000013,
+  "predictedBpm": 124,
+  "frozenBpm": 124,
+  "deterministicEvidence": true,
+  "evidence": [
+    {
+      "startMs": 0,
+      "endMs": 5997,
+      "bpm": 76,
+      "points": 3,
+      "maxSupport": 0.2626392508423541,
+      "index": 0,
+      "ratioToPredictedMain": 0.6129032258064516,
+      "ratioToAnnotatedMain": 0.612903225806451,
+      "boundary": "start",
+      "localBpmMin": 76,
+      "localBpmMax": 82.688,
+      "medianSupport": 0.2626392508423541,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 48.38709677419355,
+          "first": 0.02412468608122847,
+          "second": 0.16510775992819654,
+          "combined": 0.07064910045072795
+        },
+        "annotatedMain": {
+          "lag": 48.387096774193495,
+          "first": 0.024124686081227597,
+          "second": 0.16510775992820667,
+          "combined": 0.0706491004507307
+        },
+        "evidenceBpm": {
+          "lag": 78.94736842105263,
+          "first": -0.007589826375943979,
+          "second": null,
+          "combined": -0.007589826375943979
+        }
+      },
+      "objectCount": 11,
+      "objectGrid": {
+        "predictedMainHalf": 1,
+        "annotatedMainHalf": 1,
+        "evidenceHalf": 0.2727272727272727
+      }
+    },
+    {
+      "startMs": 25960,
+      "endMs": 31957,
+      "bpm": 71.037,
+      "points": 3,
+      "maxSupport": 0.14796211282414184,
+      "index": 1,
+      "ratioToPredictedMain": 0.5728790322580646,
+      "ratioToAnnotatedMain": 0.572879032258064,
+      "boundary": "interior",
+      "localBpmMin": 71.037,
+      "localBpmMax": 71.037,
+      "medianSupport": 0.08609678084776241,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 48.38709677419355,
+          "first": 0.37208696691724363,
+          "second": 0.3043782274509921,
+          "combined": 0.34974308289338063
+        },
+        "annotatedMain": {
+          "lag": 48.387096774193495,
+          "first": 0.3720869669172413,
+          "second": 0.30437822745098586,
+          "combined": 0.349743082893377
+        },
+        "evidenceBpm": {
+          "lag": 84.46302631023269,
+          "first": -0.028670359906292152,
+          "second": null,
+          "combined": -0.02867035990629215
+        }
+      },
+      "objectCount": 37,
+      "objectGrid": {
+        "predictedMainHalf": 1,
+        "annotatedMainHalf": 1,
+        "evidenceHalf": 0.1891891891891892
+      }
+    },
+    {
+      "startMs": 41935,
+      "endMs": 48930,
+      "bpm": 70.794,
+      "points": 4,
+      "maxSupport": 0.12665525696493843,
+      "index": 2,
+      "ratioToPredictedMain": 0.5709193548387097,
+      "ratioToAnnotatedMain": 0.570919354838709,
+      "boundary": "interior",
+      "localBpmMin": 70.794,
+      "localBpmMax": 71.037,
+      "medianSupport": 0.11497593941714829,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 48.38709677419355,
+          "first": 0.23176169508339084,
+          "second": 0.2247396684267842,
+          "combined": 0.22944442628671066
+        },
+        "annotatedMain": {
+          "lag": 48.387096774193495,
+          "first": 0.2317616950833875,
+          "second": 0.22473966842678678,
+          "combined": 0.22944442628670927
+        },
+        "evidenceBpm": {
+          "lag": 84.75294516484448,
+          "first": -0.07602624136189402,
+          "second": 0.2855489807488991,
+          "combined": 0.043293581934667716
+        }
+      },
+      "objectCount": 37,
+      "objectGrid": {
+        "predictedMainHalf": 1,
+        "annotatedMainHalf": 1,
+        "evidenceHalf": 0.1891891891891892
+      }
+    }
+  ],
+  "analysisMs": 1985
+}

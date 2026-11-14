@@ -1,0 +1,74 @@
+{
+  "id": "sample-013",
+  "directoryName": "749327 MY FIRST STORY - Shissou FLAME",
+  "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\749327 MY FIRST STORY - Shissou FLAME",
+  "status": "ok",
+  "referenceBpm": 209.99999999999977,
+  "referenceVariable": false,
+  "predictedBpm": 210,
+  "predictedVariable": false,
+  "variableLines": [],
+  "trueVariableMs": 0,
+  "flaggedWindowCount": 84,
+  "flaggedWindowsOnVariable": 0,
+  "rawCandidateCount": 2,
+  "rawCandidatesOnVariable": 0,
+  "finalEvidenceCount": 0,
+  "finalEvidenceOnVariable": 0,
+  "candidates": [
+    {
+      "startMs": 53917,
+      "endMs": 59913,
+      "bpm": 84.032,
+      "points": 3,
+      "maxSupport": 0.1107335140415874,
+      "localGridCoverage": 0.06289308176100629,
+      "rejection": "weak_short",
+      "independentMainScore": 0.2177381835767031,
+      "independentLocalScore": 0.11298997614373352,
+      "variableOverlapMs": 0,
+      "overlapsVariable": false,
+      "tripletVotes": [
+        {
+          "timeMs": 56915.011337868484,
+          "bpm": 84.032,
+          "localGridCoverage": 0.05806451612903226,
+          "tripletGridCoverage": 0.5806451612903226,
+          "tripletGridHalfCoverage": 0.36774193548387096,
+          "tripletGridDoubleCoverage": 0.5741935483870968
+        }
+      ]
+    },
+    {
+      "startMs": 143778,
+      "endMs": 149775,
+      "bpm": 69.837,
+      "points": 3,
+      "maxSupport": 0.13131245157849394,
+      "localGridCoverage": 0.05319148936170213,
+      "rejection": "triplet",
+      "independentMainScore": 0.08793212647743454,
+      "independentLocalScore": 0.10751470051168568,
+      "variableOverlapMs": 0,
+      "overlapsVariable": false,
+      "tripletVotes": [
+        {
+          "timeMs": 146776.2358276644,
+          "bpm": 69.837,
+          "localGridCoverage": 0.04736842105263158,
+          "tripletGridCoverage": 0.5473684210526316,
+          "tripletGridHalfCoverage": 0.3473684210526316,
+          "tripletGridDoubleCoverage": 0.5631578947368421
+        },
+        {
+          "timeMs": 147774.693877551,
+          "bpm": 70.074,
+          "localGridCoverage": 0.05319148936170213,
+          "tripletGridCoverage": 0.526595744680851,
+          "tripletGridHalfCoverage": 0.34574468085106386,
+          "tripletGridDoubleCoverage": 0.5531914893617021
+        }
+      ]
+    }
+  ]
+}

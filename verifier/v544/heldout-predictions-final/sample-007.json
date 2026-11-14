@@ -1,0 +1,33 @@
+{
+  "id": "sample-007",
+  "directoryName": "469434 Yunomi - Oedo Controller(feat. TORIENA)[Batsu Remix]",
+  "beatmapFile": "Yunomi - Oedo Controller(feat. TORIENA)[Batsu Remix] (Left) [Beom's Expert].osu",
+  "metadata": {
+    "Title": "Oedo Controller(feat. TORIENA)",
+    "Mode": "0"
+  },
+  "audioDurationMs": 122566.53061224491,
+  "redLines": [
+    {
+      "time": 1074,
+      "beatLength": 454.545454545455,
+      "bpm": 131.99999999999986,
+      "durationMs": 121492.53061224491
+    }
+  ],
+  "referenceBpm": 131.99999999999986,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 121492.53061224491,
+  "status": "ok",
+  "prediction": {
+    "bpm": 132,
+    "offsetMs": 645,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 119,
+    "rawBpm": 264,
+    "rawSegmentCount": 23
+  },
+  "evaluationMs": 1042
+}

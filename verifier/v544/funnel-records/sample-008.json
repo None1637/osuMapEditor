@@ -1,0 +1,59 @@
+{
+  "id": "sample-008",
+  "directoryName": "333015 Nakae Mitsuki Shimotsuki Haruka - collage",
+  "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\333015 Nakae Mitsuki Shimotsuki Haruka - collage",
+  "status": "ok",
+  "referenceBpm": 178.0000000000001,
+  "referenceVariable": false,
+  "predictedBpm": 178,
+  "predictedVariable": false,
+  "variableLines": [],
+  "trueVariableMs": 0,
+  "flaggedWindowCount": 23,
+  "flaggedWindowsOnVariable": 0,
+  "rawCandidateCount": 1,
+  "rawCandidatesOnVariable": 0,
+  "finalEvidenceCount": 0,
+  "finalEvidenceOnVariable": 0,
+  "candidates": [
+    {
+      "startMs": 17972,
+      "endMs": 23969,
+      "bpm": 79.203,
+      "points": 3,
+      "maxSupport": 0.19898931180945348,
+      "localGridCoverage": 0.06593406593406594,
+      "rejection": "weak_short",
+      "independentMainScore": 0.18051095177551826,
+      "independentLocalScore": -0.011433463724367859,
+      "variableOverlapMs": 0,
+      "overlapsVariable": false,
+      "tripletVotes": [
+        {
+          "timeMs": 19972.06349206349,
+          "bpm": 78.961,
+          "localGridCoverage": 0.05084745762711865,
+          "tripletGridCoverage": 0.5254237288135594,
+          "tripletGridHalfCoverage": 0.2994350282485876,
+          "tripletGridDoubleCoverage": 0.5706214689265536
+        },
+        {
+          "timeMs": 20970.521541950115,
+          "bpm": 79.203,
+          "localGridCoverage": 0.06593406593406594,
+          "tripletGridCoverage": 0.6703296703296703,
+          "tripletGridHalfCoverage": 0.3956043956043956,
+          "tripletGridDoubleCoverage": 0.6043956043956044
+        },
+        {
+          "timeMs": 21968.979591836734,
+          "bpm": 79.203,
+          "localGridCoverage": 0.06593406593406594,
+          "tripletGridCoverage": 0.6483516483516484,
+          "tripletGridHalfCoverage": 0.3626373626373626,
+          "tripletGridDoubleCoverage": 0.6043956043956044
+        }
+      ]
+    }
+  ]
+}

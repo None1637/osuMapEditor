@@ -1,0 +1,59 @@
+{
+  "id": "sample-039",
+  "directoryName": "770246 Rabbit House - Final Overtake",
+  "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\770246 Rabbit House - Final Overtake",
+  "status": "ok",
+  "referenceBpm": 195.99999999999991,
+  "referenceVariable": false,
+  "predictedBpm": 196,
+  "predictedVariable": false,
+  "variableLines": [],
+  "trueVariableMs": 0,
+  "flaggedWindowCount": 59,
+  "flaggedWindowsOnVariable": 0,
+  "rawCandidateCount": 1,
+  "rawCandidatesOnVariable": 0,
+  "finalEvidenceCount": 0,
+  "finalEvidenceOnVariable": 0,
+  "candidates": [
+    {
+      "startMs": 53917,
+      "endMs": 60912,
+      "bpm": 112.347,
+      "points": 4,
+      "maxSupport": 0.13745332962501305,
+      "localGridCoverage": 0.09022556390977443,
+      "rejection": "insufficient_margin",
+      "independentMainScore": 0.22654996312532433,
+      "independentLocalScore": 0.18220099043329807,
+      "variableOverlapMs": 0,
+      "overlapsVariable": false,
+      "tripletVotes": [
+        {
+          "timeMs": 56915.011337868484,
+          "bpm": 112.347,
+          "localGridCoverage": 0.08396946564885496,
+          "tripletGridCoverage": 0.6030534351145038,
+          "tripletGridHalfCoverage": 0.3816793893129771,
+          "tripletGridDoubleCoverage": 0.6870229007633588
+        },
+        {
+          "timeMs": 57913.4693877551,
+          "bpm": 112.347,
+          "localGridCoverage": 0.07913669064748201,
+          "tripletGridCoverage": 0.60431654676259,
+          "tripletGridHalfCoverage": 0.35251798561151076,
+          "tripletGridDoubleCoverage": 0.6834532374100719
+        },
+        {
+          "timeMs": 58911.92743764172,
+          "bpm": 112.347,
+          "localGridCoverage": 0.09701492537313433,
+          "tripletGridCoverage": 0.5597014925373134,
+          "tripletGridHalfCoverage": 0.3582089552238806,
+          "tripletGridDoubleCoverage": 0.6865671641791045
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "version": "v571-full-peak-oracle-shift-null-v1",
+  "status": "frozen_post_hoc_validation_of_oracle_not_candidate_algorithm",
+  "purpose": "Test whether dense full peaks trivially provide within-5-ms candidates at wrong times; this audits the diagnostic, not the system score",
+  "shiftsMs": [-50.0, 50.0],
+  "searchRadiusMs": 5.0,
+  "population": "Same 29 audible objects and E10-incorrect subset as the frozen main diagnostic",
+  "comparison": "Weighted fraction with any full peak within 5 ms of actual+shift; compare with actual-centered correct-peak availability",
+  "selectionPolicy": "Nearest full peak to shifted center; ties by smaller absolute distance then smaller peak time",
+  "productionCodeChanged": false,
+  "confirmationSetPolicy": "Do not read confirmation audio, candidates or labels"
+}

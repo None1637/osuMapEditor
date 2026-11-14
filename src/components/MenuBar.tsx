@@ -6,6 +6,8 @@
 // v478: 字号 15px → 17px (soulten: 英文菜單字有點小; v225 √zoom 缓缩下 1080p 视觉仅 13px, 英文比 CJK 显小)
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { getElectronAPI, type ElectronMenuNode } from '@/osu/electronBridge';
+import { UiControl, UiText } from './uiLayout/UiControl'; // v526: 菜单布局/文本适配
+import { registerUiControls } from '@/osu/uiLayout';
 
 const DRAG = { WebkitAppRegion: 'drag' } as CSSProperties;
 const NO_DRAG = { WebkitAppRegion: 'no-drag' } as CSSProperties;
@@ -19,10 +21,21 @@ export function MenuBar({ overlay }: { overlay: boolean }) {
   useEffect(() => {
     const api = getElectronAPI();
     if (!api) return;
-    let alive = true;
+    const alive = true;
     api.getMenuDefinition().then(d => { if (alive && d) setDef(d); }); // 首次 buildMenu 早于页面加载, 主动拉取
     return api.onMenuDefinition(d => setDef(d)); // 此后每次 buildMenu (菜单状态变化) 推送
   }, []);
+  useEffect(() => {
+    if (!def) return;
+    const defs: { id: string; kind: 'menu' }[] = [];
+    const walk = (items: ElectronMenuNode[]) => {
+      for (const it of items) {
+        if (it.uiId) defs.push({ id: it.uiId, kind: 'menu' });
+        if (it.submenu) walk(it.submenu);
+      }
+    };
+    walk(def); registerUiControls(defs);
+  }, [def]);
   // 点击外部 / Esc 关闭下拉
   useEffect(() => {
     if (open === null) return;
@@ -43,30 +56,34 @@ export function MenuBar({ overlay }: { overlay: boolean }) {
         const dis = it.enabled === false;
         if (it.submenu) {
           return (
-            <div key={i} className="relative group">
-              <div className={`flex items-center px-3 py-1 text-[17px] whitespace-nowrap ${dis ? 'text-white/30' : 'text-white/85 group-hover:bg-white/10'}`}>
-                <span className="flex-1">{it.label}</span>
-                <span className="ml-4 text-white/40">▸</span>
-              </div>
-              {!dis && (
-                <div className="hidden group-hover:block absolute left-full top-0 bg-[#1b1b24] border border-white/15 rounded shadow-xl z-50">
-                  {renderItems(it.submenu)}
+            <UiControl key={i} id={it.uiId!}>
+              <div className="relative group">
+                <div className={`flex items-center px-3 py-1 text-[17px] whitespace-nowrap ${dis ? 'text-white/30' : 'text-white/85 group-hover:bg-white/10'}`}>
+                  <span className="flex-1"><UiText id={it.uiId!} textKey="">{it.label ?? ''}</UiText></span>
+                  <span className="ml-4 text-white/40">▸</span>
                 </div>
-              )}
-            </div>
+                {!dis && (
+                  <div className="hidden group-hover:block absolute left-full top-0 bg-[#1b1b24] border border-white/15 rounded shadow-xl z-50">
+                    {renderItems(it.submenu)}
+                  </div>
+                )}
+              </div>
+            </UiControl>
           );
         }
         return (
-          <button key={i} disabled={dis} data-menu-item={it.id}
-            onClick={() => { if (it.id) { api.menuItemClick(it.id); setOpen(null); } }}
-            className={`w-full flex items-center px-3 py-1 text-[17px] text-left whitespace-nowrap ${dis ? 'text-white/30' : 'text-white/85 hover:bg-white/10'}`}>
-            <span className="w-4 shrink-0 flex items-center justify-center">
-              {/* 勾选态用 CSS 图形 (v181: src 内不用符号字符); radio=实心圆点 / checkbox=对勾色块 */}
-              {it.checked && <span className={`inline-block w-2 h-2 ${it.type === 'radio' ? 'rounded-full' : 'rounded-sm'} bg-cyan-300`} />}
-            </span>
-            <span className="flex-1">{it.label}</span>
-            <span className="ml-6 text-white/40 text-[13px]">{fmtAccel(it.accelerator)}</span> {/* v321 (F23): 11→13px */}
-          </button>
+          <UiControl key={i} id={it.uiId!}>
+            <button disabled={dis} data-menu-item={it.id}
+              onClick={() => { if (it.id) { api.menuItemClick(it.id); setOpen(null); } }}
+              className={`w-full flex items-center px-3 py-1 text-[17px] text-left whitespace-nowrap ${dis ? 'text-white/30' : 'text-white/85 hover:bg-white/10'}`}>
+              <span className="w-4 shrink-0 flex items-center justify-center">
+                {/* 勾选态用 CSS 图形 (v181: src 内不用符号字符); radio=实心圆点 / checkbox=对勾色块 */}
+                {it.checked && <span className={`inline-block w-2 h-2 ${it.type === 'radio' ? 'rounded-full' : 'rounded-sm'} bg-cyan-300`} />}
+              </span>
+              <span className="flex-1"><UiText id={it.uiId!} textKey="">{it.label ?? ''}</UiText></span>
+              <span className="ml-6 text-white/40 text-[13px]">{fmtAccel(it.accelerator)}</span> {/* v321 (F23): 11→13px */}
+            </button>
+          </UiControl>
         );
       })}
     </div>
@@ -80,13 +97,15 @@ export function MenuBar({ overlay }: { overlay: boolean }) {
         : { background: 'rgba(16,16,22,0.85)' }}>{/* v281: 非隐藏模式有原生标题栏, 本行纯菜单条 */}
       {def.map((top, i) => (
         <div key={i} className="relative flex items-stretch">
-          <button data-menu-top={top.label}
-            onClick={() => setOpen(open === i ? null : i)}
-            onMouseEnter={() => { if (open !== null && open !== i) setOpen(i); }} // 已打开时 hover 切换 (原生菜单行为)
-            className={`px-2.5 ${open === i ? 'bg-white/15' : 'hover:bg-white/10'}`}
-            style={NO_DRAG}>
-            {top.label}
-          </button>
+          <UiControl id={top.uiId!}>
+            <button data-menu-top={top.label}
+              onClick={() => setOpen(open === i ? null : i)}
+              onMouseEnter={() => { if (open !== null && open !== i) setOpen(i); }} // 已打开时 hover 切换 (原生菜单行为)
+              className={`px-2.5 ${open === i ? 'bg-white/15' : 'hover:bg-white/10'}`}
+              style={NO_DRAG}>
+              <UiText id={top.uiId!} textKey="">{top.label ?? ''}</UiText>
+            </button>
+          </UiControl>
           {open === i && top.submenu && (
             <div className="absolute left-0 top-full bg-[#1b1b24] border border-white/15 rounded shadow-xl z-50" style={NO_DRAG}>
               {renderItems(top.submenu)}

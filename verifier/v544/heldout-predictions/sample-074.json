@@ -1,0 +1,42 @@
+{
+  "id": "sample-074",
+  "directoryName": "1440860 Ata - I'm Not Crazy",
+  "beatmapFile": "Ata - I'm Not Crazy (Uchigatana) [Loss of sanity].osu",
+  "metadata": {
+    "Title": "I'm Not Crazy",
+    "TitleUnicode": "I'm Not Crazy",
+    "Artist": "Ata",
+    "ArtistUnicode": "Ata",
+    "Creator": "Uchigatana",
+    "Version": "Loss of sanity",
+    "Source": "",
+    "Tags": "Ata Psytrance Hitech Euphoria LSD Trippy",
+    "BeatmapID": "2964361",
+    "BeatmapSetID": "1440860",
+    "Mode": "0"
+  },
+  "audioDurationMs": 452115.73696145124,
+  "redLines": [
+    {
+      "time": 1076,
+      "beatLength": 333.333333333334,
+      "bpm": 179.99999999999963,
+      "durationMs": 451039.73696145124
+    }
+  ],
+  "referenceBpm": 179.99999999999963,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 451039.73696145124,
+  "status": "ok",
+  "prediction": {
+    "bpm": 180,
+    "offsetMs": 440,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 434,
+    "rawBpm": 360,
+    "rawSegmentCount": 88
+  },
+  "evaluationMs": 4288
+}

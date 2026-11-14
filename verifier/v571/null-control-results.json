@@ -1,0 +1,54 @@
+{
+  "version": "v571-full-peak-oracle-shift-null-v1",
+  "configuration": {
+    "version": "v571-full-peak-oracle-shift-null-v1",
+    "status": "frozen_post_hoc_validation_of_oracle_not_candidate_algorithm",
+    "purpose": "Test whether dense full peaks trivially provide within-5-ms candidates at wrong times; this audits the diagnostic, not the system score",
+    "shiftsMs": [
+      -50.0,
+      50.0
+    ],
+    "searchRadiusMs": 5.0,
+    "population": "Same 29 audible objects and E10-incorrect subset as the frozen main diagnostic",
+    "comparison": "Weighted fraction with any full peak within 5 ms of actual+shift; compare with actual-centered correct-peak availability",
+    "selectionPolicy": "Nearest full peak to shifted center; ties by smaller absolute distance then smaller peak time",
+    "productionCodeChanged": false,
+    "confirmationSetPolicy": "Do not read confirmation audio, candidates or labels"
+  },
+  "perShift": {
+    "-50.0": {
+      "count": 29,
+      "weight": 1717.8,
+      "peakWithin5Weight": 1361.5,
+      "peakWithin5Rate": 0.7925835370823147,
+      "e10IncorrectWeight": 532.0,
+      "e10IncorrectPeakWithin5Weight": 468.8,
+      "e10IncorrectPeakWithin5Rate": 0.881203007518797
+    },
+    "50.0": {
+      "count": 29,
+      "weight": 1717.8,
+      "peakWithin5Weight": 1132.3,
+      "peakWithin5Rate": 0.6591570613575504,
+      "e10IncorrectWeight": 532.0,
+      "e10IncorrectPeakWithin5Weight": 494.6,
+      "e10IncorrectPeakWithin5Rate": 0.9296992481203008
+    }
+  },
+  "combinedShifts": {
+    "count": 58,
+    "weight": 3435.6,
+    "peakWithin5Weight": 2493.8,
+    "peakWithin5Rate": 0.7258702992199325,
+    "e10IncorrectWeight": 1064.0,
+    "e10IncorrectPeakWithin5Weight": 963.4,
+    "e10IncorrectPeakWithin5Rate": 0.9054511278195488
+  },
+  "actualCenterReference": {
+    "allCorrectPeakWeight": 1680.3999999999999,
+    "allCorrectPeakRate": 0.9782279660030271,
+    "e10IncorrectCorrectPeakWeight": 494.6,
+    "e10IncorrectCorrectPeakRate": 0.9296992481203008
+  },
+  "interpretation": "High shifted-center coverage means the actual-centered oracle has substantial trivial selection freedom and is not evidence of deployable selectability"
+}

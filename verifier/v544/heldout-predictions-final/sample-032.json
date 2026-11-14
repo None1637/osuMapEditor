@@ -1,0 +1,42 @@
+{
+  "id": "sample-032",
+  "directoryName": "1068163 Celldweller - Lost In Time",
+  "beatmapFile": "Celldweller - Lost In Time (fieryrage) [Time Freeze].osu",
+  "metadata": {
+    "Title": "Lost In Time",
+    "TitleUnicode": "Lost In Time",
+    "Artist": "Celldweller",
+    "ArtistUnicode": "Celldweller",
+    "Creator": "fieryrage",
+    "Version": "Time Freeze",
+    "Source": "osu!",
+    "Tags": "fa featured artist mappers mappers' guild klayton end of an empire english electronic metal rock alternative",
+    "BeatmapID": "2236260",
+    "BeatmapSetID": "1068163",
+    "Mode": "0"
+  },
+  "audioDurationMs": 443743.12925170065,
+  "redLines": [
+    {
+      "time": 303,
+      "beatLength": 571.428571428571,
+      "bpm": 105.00000000000009,
+      "durationMs": 443440.12925170065
+    }
+  ],
+  "referenceBpm": 105.00000000000009,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 443440.12925170065,
+  "status": "ok",
+  "prediction": {
+    "bpm": 210,
+    "offsetMs": 615,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 214,
+    "rawBpm": 420,
+    "rawSegmentCount": 382
+  },
+  "evaluationMs": 3685
+}

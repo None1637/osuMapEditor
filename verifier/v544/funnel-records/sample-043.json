@@ -1,0 +1,51 @@
+{
+  "id": "sample-043",
+  "directoryName": "157896 Meg & Dia - Monster (DotEXE Remix)",
+  "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\157896 Meg & Dia - Monster (DotEXE Remix)",
+  "status": "ok",
+  "referenceBpm": 139.99999999999986,
+  "referenceVariable": false,
+  "predictedBpm": 62.4,
+  "predictedVariable": true,
+  "variableLines": [],
+  "trueVariableMs": 0,
+  "flaggedWindowCount": 15,
+  "flaggedWindowsOnVariable": 0,
+  "rawCandidateCount": 1,
+  "rawCandidatesOnVariable": 0,
+  "finalEvidenceCount": 1,
+  "finalEvidenceOnVariable": 0,
+  "candidates": [
+    {
+      "startMs": 22964,
+      "endMs": 28961,
+      "bpm": 70.074,
+      "points": 3,
+      "maxSupport": 0.35249206914459685,
+      "localGridCoverage": 0.23809523809523808,
+      "rejection": "accepted",
+      "independentMainScore": -0.01555861282443141,
+      "independentLocalScore": 0.4494798729273466,
+      "variableOverlapMs": 0,
+      "overlapsVariable": false,
+      "tripletVotes": [
+        {
+          "timeMs": 24964.353741496598,
+          "bpm": 70.074,
+          "localGridCoverage": 0.15625,
+          "tripletGridCoverage": 0.4375,
+          "tripletGridHalfCoverage": 0.3125,
+          "tripletGridDoubleCoverage": 0.5
+        },
+        {
+          "timeMs": 25962.81179138322,
+          "bpm": 70.074,
+          "localGridCoverage": 0.23809523809523808,
+          "tripletGridCoverage": 0.38095238095238093,
+          "tripletGridHalfCoverage": 0.38095238095238093,
+          "tripletGridDoubleCoverage": 0.47619047619047616
+        }
+      ]
+    }
+  ]
+}

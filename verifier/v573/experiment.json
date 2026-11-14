@@ -1,0 +1,56 @@
+{
+  "version": "v573-e13-independent-song-crossfit-confirmation-v1",
+  "status": "frozen_before_confirmation_inference_and_labels",
+  "datasetRole": "reserved_song_level_confirmation_with_within_song_opposite_fold_calibration_not_fully_label_free_deployment",
+  "sampleIds": ["sample-017", "sample-047", "sample-054", "sample-067", "sample-077", "sample-099"],
+  "confirmationSelectionSource": "../v559/confirmation-selection.json",
+  "isolationAudit": "Original frozen v541 PCM, beatmaps and old BPM predictions already exist for these songs; they were not used in v559-v572 development inference, candidate evaluation or annotation. Do not claim the audio was never decoded",
+  "oldTargetPipeline": {
+    "source": "Exact v548 multiband/top2/DP pipeline and v557 full/high candidate selection logic",
+    "windowSamples": 256,
+    "hopSamples": 11,
+    "globalDelay": "stable hits excluding first/last 1000 ms; delay -60..60 step 0.25 ms",
+    "phase": "top2 aggregate, dynamic programming, actual cross-fit odd/even phases; old target = hit time + globalDelay + opposite-fold phase",
+    "fullPeaks": "production onsetEnvelope, normalization threshold 0.02, 5 ms suppression radius, parabolic interpolation and 3*WIN/4 bias"
+  },
+  "objectSelection": {
+    "perSong": 30,
+    "total": 180,
+    "strata": ["both-within5", "only-high-within5", "neither-within5"],
+    "rule": "Exact v557: up to 10 per stratum, rare strata first, deficits assigned one at a time to largest remaining pool; hash order sha256(v557:sample-id:hit-time); at least 200 ms spacing",
+    "weights": "stratum population / actually selected objects in that stratum",
+    "selectionUsesE13": false
+  },
+  "annotation": {
+    "statusBeforePreparation": "all labels blank",
+    "method": "Provisional visual blind labels on original-time waveform and clip-normalized spectral envelope; no algorithm onset, corrected target or phase shown",
+    "audioClip": "reference -500 ms to +500 ms, original channels and time axis",
+    "plot": "1 s context plus +/-80 ms waveform/envelope with 5 ms minor ticks",
+    "confidenceValues": ["clear", "approximate", "no_clear_onset"],
+    "actualOnsetMs": "Integer original-audio milliseconds for clear/approximate; null for no_clear_onset",
+    "noClearPolicy": "Do not force an onset when no clear independent onset exists"
+  },
+  "methods": {
+    "e5Calibrated": "Nearest full peak to old target +/-10 ms, then subtract opposite-fold correction",
+    "e13CorrectedTargetRematch": "Exact frozen v572: correctedCenter=oldTarget-oppositeFoldCorrection; nearest full peak within correctedCenter +/-10 ms; selected peak is absolute candidate with no second correction"
+  },
+  "crossfitCalibration": {
+    "foldRule": "Unique hit-object index parity: even index -> odd fold, odd index -> even fold",
+    "fitPopulation": "Selected clear/approximate objects with an existing old-target full candidate and finite absolute error from the opposite fold of the same song",
+    "estimator": "Unweighted median signed candidateAbsoluteMs-actualOnsetMs",
+    "minimumPairs": 3,
+    "fallbackCorrectionMs": 0.0,
+    "currentObjectExcluded": true
+  },
+  "primaryMetric": "Population-weighted clear+approximate +/-5 ms correct rate over all six songs; missing candidates incorrect",
+  "secondaryMetrics": ["per-song and per-selection-group correct rate", "candidatePrecision", "candidateCoverage", "clearOnsetRecall", "allObjectCorrectRate", "noClearCandidateOutputRate", "E5-to-E13 fixed/broken/netFixedWeight"],
+  "toleranceMs": 5,
+  "targetAudibleCorrectRate": 0.8,
+  "hypotheses": {
+    "H1": "Frozen E13 achieves at least 80% population-weighted clear+approximate +/-5 ms correct rate on the six reserved songs",
+    "H2": "E13 has positive net fixed weight versus E5 and does not increase no-clear candidate output rate",
+    "H3": "Selection, labels, opposite-fold calibration, candidates and all metrics can be independently reconstructed without changing any E13 parameter"
+  },
+  "resultPolicy": "Report success or failure literally; no parameter, sample, label or threshold changes after seeing confirmation metrics. Per-song results are descriptive; the 80% threshold applies to the overall primary metric",
+  "productionCodeChanged": false
+}

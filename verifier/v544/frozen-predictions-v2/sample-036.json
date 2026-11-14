@@ -1,0 +1,42 @@
+{
+  "id": "sample-036",
+  "directoryName": "194921 Amane - Space Time (Amane Hardcore Remix)",
+  "beatmapFile": "Amane - Space Time (Amane Hardcore Remix) (Lieselotte) [Spy's 4K Extra].osu",
+  "metadata": {
+    "Title": "Space Time (Amane Hardcore Remix)",
+    "TitleUnicode": "Space Time (Amane Hardcore Remix)",
+    "Artist": "Amane",
+    "ArtistUnicode": "Amane",
+    "Creator": "Lieselotte",
+    "Version": "Spy's 4K Extra",
+    "Source": "",
+    "Tags": "Spy 天音",
+    "BeatmapID": "464291",
+    "BeatmapSetID": "194921",
+    "Mode": "3"
+  },
+  "audioDurationMs": 374232.0181405896,
+  "redLines": [
+    {
+      "time": 35,
+      "beatLength": 342.857142857143,
+      "bpm": 174.99999999999991,
+      "durationMs": 374197.0181405896
+    }
+  ],
+  "referenceBpm": 174.99999999999991,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 374197.0181405896,
+  "status": "ok",
+  "prediction": {
+    "bpm": 175,
+    "offsetMs": 410,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 370,
+    "rawBpm": 350,
+    "rawSegmentCount": 108
+  },
+  "evaluationMs": 3728
+}

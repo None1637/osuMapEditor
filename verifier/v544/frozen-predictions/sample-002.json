@@ -1,0 +1,222 @@
+{
+  "id": "sample-002",
+  "directoryName": "2242341 TRUE - Blast!",
+  "beatmapFile": "TRUE - Blast! (Aurorance) [Hinae's Insane!].osu",
+  "metadata": {
+    "Title": "Blast!",
+    "TitleUnicode": "Blast!",
+    "Artist": "TRUE",
+    "ArtistUnicode": "TRUE",
+    "Creator": "Aurorance",
+    "Version": "Hinae's Insane!",
+    "Source": "劇場版 響け！ユーフォニアム～誓いのフィナーレ～",
+    "Tags": "Sound! Euphonium: The Movie Our Promise: A Brand New Day gekijoban hibike! chikai no finale japanese jpop j-pop pop orchestral kyoani third movie hinae kafaka yamya",
+    "BeatmapID": "4767533",
+    "BeatmapSetID": "2242341",
+    "Mode": "0"
+  },
+  "audioDurationMs": 272519.00226757367,
+  "redLines": [
+    {
+      "time": 10608,
+      "beatLength": 335.195530726257,
+      "bpm": 179,
+      "durationMs": 1341
+    },
+    {
+      "time": 11949,
+      "beatLength": 335.195530726257,
+      "bpm": 179,
+      "durationMs": 9381
+    },
+    {
+      "time": 21330,
+      "beatLength": 335.195530726257,
+      "bpm": 179,
+      "durationMs": 10060
+    },
+    {
+      "time": 31390,
+      "beatLength": 335.195530726257,
+      "bpm": 179,
+      "durationMs": 335
+    },
+    {
+      "time": 31725,
+      "beatLength": 342.857142857143,
+      "bpm": 174.99999999999991,
+      "durationMs": 340
+    },
+    {
+      "time": 32065,
+      "beatLength": 335.195530726257,
+      "bpm": 179,
+      "durationMs": 46931
+    },
+    {
+      "time": 78996,
+      "beatLength": 340.909090909091,
+      "bpm": 175.99999999999994,
+      "durationMs": 568
+    },
+    {
+      "time": 79564,
+      "beatLength": 307.692307692308,
+      "bpm": 194.9999999999998,
+      "durationMs": 102
+    },
+    {
+      "time": 79666,
+      "beatLength": 340.909090909091,
+      "bpm": 175.99999999999994,
+      "durationMs": 568
+    },
+    {
+      "time": 80234,
+      "beatLength": 307.692307692308,
+      "bpm": 194.9999999999998,
+      "durationMs": 102
+    },
+    {
+      "time": 80336,
+      "beatLength": 335.195530726257,
+      "bpm": 179,
+      "durationMs": 63016
+    },
+    {
+      "time": 143352,
+      "beatLength": 340.909090909091,
+      "bpm": 175.99999999999994,
+      "durationMs": 671
+    },
+    {
+      "time": 144023,
+      "beatLength": 340.909090909091,
+      "bpm": 175.99999999999994,
+      "durationMs": 670
+    },
+    {
+      "time": 144693,
+      "beatLength": 335.195530726257,
+      "bpm": 179,
+      "durationMs": 72402
+    },
+    {
+      "time": 217095,
+      "beatLength": 324.324324324324,
+      "bpm": 185.0000000000002,
+      "durationMs": 324
+    },
+    {
+      "time": 217419,
+      "beatLength": 335.195530726257,
+      "bpm": 179,
+      "durationMs": 1005
+    },
+    {
+      "time": 218424,
+      "beatLength": 335.195530726257,
+      "bpm": 179,
+      "durationMs": 9386
+    },
+    {
+      "time": 227810,
+      "beatLength": 342.857142857143,
+      "bpm": 174.99999999999991,
+      "durationMs": 343
+    },
+    {
+      "time": 228153,
+      "beatLength": 334.261838440111,
+      "bpm": 179.50000000000023,
+      "durationMs": 1002
+    },
+    {
+      "time": 229155,
+      "beatLength": 334.261838440111,
+      "bpm": 179.50000000000023,
+      "durationMs": 1839
+    },
+    {
+      "time": 230994,
+      "beatLength": 352.941176470588,
+      "bpm": 170.0000000000001,
+      "durationMs": 351
+    },
+    {
+      "time": 231345,
+      "beatLength": 335.195530726257,
+      "bpm": 179,
+      "durationMs": 502
+    },
+    {
+      "time": 231847,
+      "beatLength": 335.195530726257,
+      "bpm": 179,
+      "durationMs": 6701
+    },
+    {
+      "time": 238548,
+      "beatLength": 346.820809248555,
+      "bpm": 172.99999999999994,
+      "durationMs": 347
+    },
+    {
+      "time": 238895,
+      "beatLength": 335.195530726257,
+      "bpm": 179,
+      "durationMs": 1005
+    },
+    {
+      "time": 239900,
+      "beatLength": 335.195530726257,
+      "bpm": 179,
+      "durationMs": 13911
+    },
+    {
+      "time": 253811,
+      "beatLength": 329.67032967033,
+      "bpm": 181.99999999999983,
+      "durationMs": 329
+    },
+    {
+      "time": 254140,
+      "beatLength": 320.855614973262,
+      "bpm": 187.00000000000003,
+      "durationMs": 481
+    },
+    {
+      "time": 254621,
+      "beatLength": 377.358490566038,
+      "bpm": 158.99999999999991,
+      "durationMs": 189
+    },
+    {
+      "time": 254810,
+      "beatLength": 335.195530726257,
+      "bpm": 179,
+      "durationMs": 1005
+    },
+    {
+      "time": 255815,
+      "beatLength": 335.195530726257,
+      "bpm": 179,
+      "durationMs": 16704.00226757367
+    }
+  ],
+  "referenceBpm": 179,
+  "referenceVariable": true,
+  "referenceRedLineCount": 31,
+  "referenceCoverageMs": 253685.00226757367,
+  "status": "ok",
+  "prediction": {
+    "bpm": 178.55,
+    "offsetMs": 2328,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 258,
+    "rawBpm": 357.1,
+    "rawSegmentCount": 322
+  },
+  "evaluationMs": 2728
+}

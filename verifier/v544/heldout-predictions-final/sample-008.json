@@ -1,0 +1,42 @@
+{
+  "id": "sample-008",
+  "directoryName": "194899 t+pazolite - Pumpin' Junkies",
+  "beatmapFile": "t+pazolite - Pumpin' Junkies (inverness) [londri nya diambil entar ya pak saya mau IBADAH].osu",
+  "metadata": {
+    "Title": "Pumpin' Junkies",
+    "TitleUnicode": "Pumpin' Junkies",
+    "Artist": "t+pazolite",
+    "ArtistUnicode": "t+pazolite",
+    "Creator": "inverness",
+    "Version": "londri nya diambil entar ya pak saya mau IBADAH",
+    "Source": "",
+    "Tags": "",
+    "BeatmapID": "470113",
+    "BeatmapSetID": "194899",
+    "Mode": "0"
+  },
+  "audioDurationMs": 269453.3333333333,
+  "redLines": [
+    {
+      "time": 983,
+      "beatLength": 315.789473684211,
+      "bpm": 189.99999999999974,
+      "durationMs": 268470.3333333333
+    }
+  ],
+  "referenceBpm": 189.99999999999974,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 268470.3333333333,
+  "status": "ok",
+  "prediction": {
+    "bpm": 190,
+    "offsetMs": 223,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 257,
+    "rawBpm": 380,
+    "rawSegmentCount": 72
+  },
+  "evaluationMs": 2269
+}

@@ -1,0 +1,59 @@
+{
+  "id": "sample-041",
+  "directoryName": "Kagamine Rin - Antichlorobenzene",
+  "beatmapFile": "Kagamine Rin - Antichlorobenzene (None1637) [Antimatter].osu",
+  "metadata": {
+    "Title": "Antichlorobenzene",
+    "TitleUnicode": "アンチクロロベンゼン",
+    "Artist": "Kagamine Rin",
+    "ArtistUnicode": "オワタP feat. 鏡音リン",
+    "Creator": "None1637",
+    "Version": "Antimatter",
+    "Source": "",
+    "Tags": "",
+    "BeatmapID": "1497751",
+    "BeatmapSetID": "708431",
+    "Mode": "0"
+  },
+  "audioDurationMs": 198912.01814058956,
+  "redLines": [
+    {
+      "time": 1173,
+      "beatLength": 666.666666666667,
+      "bpm": 89.99999999999996,
+      "durationMs": 20879
+    },
+    {
+      "time": 22052,
+      "beatLength": 454.545454545455,
+      "bpm": 131.99999999999986,
+      "durationMs": 176860.01814058956
+    }
+  ],
+  "referenceBpm": 131.99999999999986,
+  "referenceVariable": true,
+  "referenceRedLineCount": 2,
+  "referenceCoverageMs": 176860.01814058956,
+  "status": "ok",
+  "prediction": {
+    "bpm": 66,
+    "offsetMs": 1175,
+    "variable": true,
+    "evidence": [
+      {
+        "startMs": 7987,
+        "endMs": 14983,
+        "bpm": 89.878,
+        "points": 4,
+        "maxSupport": 0.19986366977749212,
+        "localGridCoverage": 0.3,
+        "independentMainScore": 0.01864144685359711,
+        "independentLocalScore": 0.2694037124077788
+      }
+    ],
+    "localPointCount": 194,
+    "rawBpm": 66,
+    "rawSegmentCount": 36
+  },
+  "evaluationMs": 1955
+}

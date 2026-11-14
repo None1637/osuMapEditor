@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { X } from 'lucide-react'; // v181: ✕ → lucide
+import { ArrowRight, X } from 'lucide-react'; // v181: ✕ → lucide; v531: 跳转箭头可配置
 import { store, useEditor, usePlaybackFrame } from '@/osu/store';
 import type { TimingPoint } from '@/osu/parser';
 import { defaultNewPoint, setEffectBit, EFFECT_KIAI, EFFECT_OMIT_BARLINE, formatMsTime, parseMsTime, activeGreenAt, scrollTargetIndex, sampleSetCode, fmtTpPrec, fmtBpm, fmtSv } from '@/osu/timingEdit';
 import { hotkeyLabel } from '@/osu/hotkeys'; // v321 (F21): 快捷键提示随改键同步
 import { TimingBatchDialog } from './TimingBatchDialog'; // v522: 多选批量修改弹窗
 import { useT } from '@/i18n';
+import { UiControl, UiIcon, UiText } from './uiLayout/UiControl'; // v531
 
 /** v372: 高精度数值输入 (BPM/SV) — 聚焦期间保留用户原文 ( controlled 值重算会吞掉输入中的 "." ),
  *  失焦后回到规范显示 (最多 13 位有效小数, stable 同精度); 输入过程中每次合法值即时提交 */
@@ -14,7 +15,7 @@ function PreciseInput({ value, onCommit, className, dataAttr, dataValue, autoFoc
 }) {
   const [raw, setRaw] = useState<string | null>(null);
   return (
-    <input type={allowNaN ? 'text' : 'number'} step="any" className={className} autoFocus={autoFocus}
+    <UiControl id={`timing.row-${dataValue}`}><input type={allowNaN ? 'text' : 'number'} step="any" className={className} autoFocus={autoFocus}
       {...(dataAttr ? { [dataAttr]: dataValue ?? true } : {})}
       value={raw ?? fmtTpPrec(value)}
       onFocus={() => setRaw(fmtTpPrec(value))}
@@ -25,7 +26,7 @@ function PreciseInput({ value, onCommit, className, dataAttr, dataValue, autoFoc
         const v = parseFloat(text);
         if (isFinite(v)) onCommit(v);
       }}
-      onBlur={() => setRaw(null)} />
+      onBlur={() => setRaw(null)} /></UiControl>
   );
 }
 
@@ -139,7 +140,7 @@ export function TimingPanel({ full = false }: { full?: boolean }) {
   const td = 'px-2 py-1 text-center whitespace-nowrap overflow-hidden'; // v374-2: table-fixed 下溢出裁剪, 不撑列宽
 
   return (
-    <div className={`bg-[#16161d] text-sm text-white/80 ${full
+    <UiControl id="timing.panel"><div className={`bg-[#16161d] text-sm text-white/80 ${full
       ? 'w-fit max-w-[96%] mx-auto my-2 border border-white/15 rounded-lg shadow-xl overflow-hidden flex-1 min-h-0 flex flex-col' // v359: 垂直满版 (撑满页签高度, 表格区内滚)
       : 'border-t border-white/10'}`}>
       {!full && <div className="px-3 py-1.5 font-bold text-white/90">{t('timing.panel_title', 'Timing Settings (BPM / SV / Difficulty)')}</div>}
@@ -149,24 +150,24 @@ export function TimingPanel({ full = false }: { full?: boolean }) {
           {(['cs', 'ar', 'od', 'hp'] as const).map(k => (
             <label key={k} className="flex items-center gap-1">
               <span className="uppercase text-white/60">{k}</span>
-              <input type="number" step="0.1" min="0" max="10" value={bm.difficulty[k]}
+              <UiControl id={`timing.difficulty.${k}`}><input type="number" step="0.1" min="0" max="10" value={bm.difficulty[k]}
                 onChange={e => updateDiff(k, parseFloat(e.target.value) || 0)}
-                className={`w-14 ${inp}`} />
+                className={`w-14 ${inp}`} /></UiControl>
             </label>
           ))}
-          <button onClick={() => addTimingPoint(true)} className="px-2 py-0.5 rounded bg-red-500/30 hover:bg-red-500/50 border border-red-400/40">{t('timing.add_red', '+ Timing Point (BPM)')}</button>
-          <button onClick={() => store.openBpmDetect()} data-testid="bpm-detect-open" className="px-2 py-0.5 rounded bg-sky-500/30 hover:bg-sky-500/50 border border-sky-400/40">{t('timing.detect_bpm', 'Detect BPM')}</button>
-          <button onClick={() => addTimingPoint(false)} className="px-2 py-0.5 rounded bg-green-500/30 hover:bg-green-500/50 border border-green-400/40">{t('timing.add_green', '+ Inherited Timing Point (SV)')}</button>
+          <UiControl id="timing.add-red"><button onClick={() => addTimingPoint(true)} className="px-2 py-0.5 rounded bg-red-500/30 hover:bg-red-500/50 border border-red-400/40"><UiText id="timing.add-red" textKey="timing.add_red">+ Timing Point (BPM)</UiText></button></UiControl>
+          <UiControl id="timing.detect-bpm"><button onClick={() => store.openBpmDetect()} data-testid="bpm-detect-open" className="px-2 py-0.5 rounded bg-sky-500/30 hover:bg-sky-500/50 border border-sky-400/40"><UiText id="timing.detect-bpm" textKey="timing.detect_bpm">Detect BPM</UiText></button></UiControl>
+          <UiControl id="timing.add-green"><button onClick={() => addTimingPoint(false)} className="px-2 py-0.5 rounded bg-green-500/30 hover:bg-green-500/50 border border-green-400/40"><UiText id="timing.add-green" textKey="timing.add_green">+ Inherited Timing Point (SV)</UiText></button></UiControl>
         </div>
       </div>
       {/* v157: All/红线/绿线 页签 (仅 full 窗口) */}
       {full && (
         <div data-tp-tabs className="flex justify-center gap-1 px-3 pb-1">
-          {([['all', t('timing.tab_all', 'All')], ['red', t('timing.red_line', 'Timing Point')], ['green', t('timing.green_line', 'Inherited Timing Point')]] as const).map(([k, label]) => (
-            <button key={k} data-tp-tab={k} onClick={() => setFilter(k)}
+          {([['all', 'timing.tab_all', 'All'], ['red', 'timing.red_line', 'Timing Point'], ['green', 'timing.green_line', 'Inherited Timing Point']] as const).map(([k, textKey, label]) => (
+            <UiControl key={k} id={`timing.tab-${k}`}><button data-tp-tab={k} onClick={() => setFilter(k)}
               className={`px-3 py-0.5 rounded-t border border-b-0 border-white/15 ${filter === k ? 'bg-white/15 text-white' : 'bg-black/30 text-white/50 hover:text-white/80'}`}>
-              {label}
-            </button>
+              <UiText id={`timing.tab-${k}`} textKey={textKey}>{label}</UiText>
+            </button></UiControl>
           ))}
         </div>
       )}
@@ -174,22 +175,22 @@ export function TimingPanel({ full = false }: { full?: boolean }) {
       {full && selGreens.length > 0 && (
         <div data-tp-batch className="flex flex-wrap items-center justify-center gap-2 px-3 py-1.5 border-y border-emerald-400/30 bg-emerald-500/10">
           <span className="text-emerald-300">{t('timing.green_selected', '{n} inherited lines selected', { n: selGreens.length })}</span>
-          <button data-tp-batch-open onClick={() => setBatchDialog('green')}
+          <UiControl id="timing.batch-green"><button data-tp-batch-open onClick={() => setBatchDialog('green')}
             className="px-2 py-0.5 rounded bg-emerald-500/30 hover:bg-emerald-500/50 border border-emerald-400/40">
-            {t('timing.batch_edit', 'Batch Edit')}</button>
-          <button data-tp-batch-delete onClick={() => store.deleteGreenLinesAt(selGreens.map(g => g.time))}
-            className="px-2 py-0.5 rounded bg-red-500/30 hover:bg-red-500/50 border border-red-400/40">{t('timing.delete_selected', 'Delete Selected')}</button>
+            <UiText id="timing.batch-green" textKey="timing.batch_edit">Batch Edit</UiText></button></UiControl>
+          <UiControl id="timing.batch-green-delete"><button data-tp-batch-delete onClick={() => store.deleteGreenLinesAt(selGreens.map(g => g.time))}
+            className="px-2 py-0.5 rounded bg-red-500/30 hover:bg-red-500/50 border border-red-400/40"><UiText id="timing.batch-green-delete" textKey="timing.delete_selected">Delete Selected</UiText></button></UiControl>
         </div>
       )}
       {/* v522: 红线多选批量修改弹窗 */}
       {full && selReds.length > 0 && (
         <div data-tp-batch-red className="flex flex-wrap items-center justify-center gap-2 px-3 py-1.5 border-y border-red-400/30 bg-red-500/10">
           <span className="text-red-300">{t('timing.red_selected', '{n} timing points selected', { n: selReds.length })}</span>
-          <button data-tp-batch-red-open onClick={() => setBatchDialog('red')}
+          <UiControl id="timing.batch-red"><button data-tp-batch-red-open onClick={() => setBatchDialog('red')}
             className="px-2 py-0.5 rounded bg-red-500/30 hover:bg-red-500/50 border border-red-400/40">
-            {t('timing.batch_edit', 'Batch Edit')}</button>
-          <button data-tp-batch-red-delete onClick={() => store.deleteTimingPointsAt(selReds.map(g => g.time))}
-            className="px-2 py-0.5 rounded bg-red-500/30 hover:bg-red-500/50 border border-red-400/40">{t('timing.delete_selected', 'Delete Selected')}</button>
+            <UiText id="timing.batch-red" textKey="timing.batch_edit">Batch Edit</UiText></button></UiControl>
+          <UiControl id="timing.batch-red-delete"><button data-tp-batch-red-delete onClick={() => store.deleteTimingPointsAt(selReds.map(g => g.time))}
+            className="px-2 py-0.5 rounded bg-red-500/30 hover:bg-red-500/50 border border-red-400/40"><UiText id="timing.batch-red-delete" textKey="timing.delete_selected">Delete Selected</UiText></button></UiControl>
         </div>
       )}
       {batchDialog && <TimingBatchDialog kind={batchDialog}
@@ -238,8 +239,8 @@ export function TimingPanel({ full = false }: { full?: boolean }) {
                   className={`border-t border-white/5 transition-colors hover:bg-white/10 cursor-pointer${isHover ? ' bg-sky-500/25 hover:bg-sky-500/30' : ''}${isActive ? ' bg-emerald-500/20 hover:bg-emerald-500/25' : ''}${isSel ? ' bg-emerald-500/10' : ''}`}>
                   <td className={td}>
                     {!tp.uninherited && (
-                      <input type="checkbox" checked={isSel} data-tp-select="green"
-                        onChange={() => store.toggleGreenLineSelected(tp.time)} />
+                      <UiControl id="timing.row-select"><input type="checkbox" checked={isSel} data-tp-select="green"
+                        onChange={() => store.toggleGreenLineSelected(tp.time)} /></UiControl>
                     )}
                   </td>
                   {/* v372: 红/绿小点区分线型 (stable F6 样式), 不再用文字 */}
@@ -252,12 +253,12 @@ export function TimingPanel({ full = false }: { full?: boolean }) {
                   <EditCell className={td} dataDisplay="time"
                     display={<span className="tabular-nums" data-tp-fmt>{formatMsTime(tp.time)}</span>}
                     edit={() => (<>
-                      <input type="number" autoFocus defaultValue={Math.round(tp.time)} data-tp-input="time" title="ms"
+                      <UiControl id="timing.row-time"><input type="number" autoFocus defaultValue={Math.round(tp.time)} data-tp-input="time" title="ms"
                         onChange={e => updateTp(i, { time: parseFloat(e.target.value) || 0 })}
-                        className={`w-20 ${inp}`} />
-                      <input type="text" defaultValue={formatMsTime(tp.time)} data-tp-input="timeFmt" title="h:mm:ss.mmm"
+                        className={`w-20 ${inp}`} /></UiControl>
+                      <UiControl id="timing.row-time-format"><input type="text" defaultValue={formatMsTime(tp.time)} data-tp-input="timeFmt" title="h:mm:ss.mmm"
                         onChange={e => { const ms = parseMsTime(e.target.value); if (ms !== null) updateTp(i, { time: ms }); }}
-                        className={`w-28 ${inp} tabular-nums`} />
+                        className={`w-28 ${inp} tabular-nums`} /></UiControl>
                     </>)} />
                   {/* v374: BPM/SV — 平时文本 (对齐一致), 点击出高精度输入框 */}
                   <EditCell className={td} dataDisplay={tp.uninherited ? 'bpm' : 'sv'}
@@ -281,8 +282,8 @@ export function TimingPanel({ full = false }: { full?: boolean }) {
                       display={<span className="tabular-nums">{tp.meter}/4</span>}
                       edit={() => (
                         <span className="inline-flex items-center gap-0.5">
-                          <input type="number" min="1" max="8" autoFocus defaultValue={tp.meter} onChange={e => updateTp(i, { meter: parseInt(e.target.value) || 4 })}
-                            className={`w-10 ${inp}`} data-tp-input="meter" />
+                          <UiControl id="timing.row-meter"><input type="number" min="1" max="8" autoFocus defaultValue={tp.meter} onChange={e => updateTp(i, { meter: parseInt(e.target.value) || 4 })}
+                            className={`w-10 ${inp}`} data-tp-input="meter" /></UiControl>
                           <span className="text-white/40">/4</span>
                         </span>
                       )} />
@@ -291,23 +292,23 @@ export function TimingPanel({ full = false }: { full?: boolean }) {
                   <EditCell className={td} dataDisplay="sample"
                     display={<span className="text-white/70 tabular-nums" data-tp-sample-code>{sampleSetCode(tp.sampleSet, tp.sampleIndex)}</span>}
                     edit={() => (<>
-                      <select value={tp.sampleSet} autoFocus data-tp-input="sampleSet"
+                      <UiControl id="timing.row-sample-set"><select value={tp.sampleSet} autoFocus data-tp-input="sampleSet"
                         onChange={e => updateTp(i, { sampleSet: parseInt(e.target.value) })}
                         className="bg-black/40 border border-white/15 rounded px-1 py-0.5 text-white">
                         <option value={1}>Normal</option>
                         <option value={2}>Soft</option>
                         <option value={3}>Drum</option>
-                      </select>
-                      <input type="number" min="0" max="99" defaultValue={tp.sampleIndex} data-tp-input="sampleIndex"
+                      </select></UiControl>
+                      <UiControl id="timing.row-sample-index"><input type="number" min="0" max="99" defaultValue={tp.sampleIndex} data-tp-input="sampleIndex"
                         onChange={e => updateTp(i, { sampleIndex: parseInt(e.target.value) || 0 })}
-                        className={`w-10 ${inp}`} />
+                        className={`w-10 ${inp}`} /></UiControl>
                     </>)} />
                   {/* v372: 音量显示为 n%; v374: 点击才出输入框 */}
                   <EditCell className={td} dataDisplay="volume"
                     display={<span className="tabular-nums">{tp.volume}%</span>}
                     edit={() => (<>
-                      <input type="number" min="0" max="100" autoFocus defaultValue={tp.volume} onChange={e => updateTp(i, { volume: parseInt(e.target.value) || 0 })}
-                        className={`w-12 ${inp}`} data-tp-input="volume" />
+                      <UiControl id="timing.row-volume"><input type="number" min="0" max="100" autoFocus defaultValue={tp.volume} onChange={e => updateTp(i, { volume: parseInt(e.target.value) || 0 })}
+                        className={`w-12 ${inp}`} data-tp-input="volume" /></UiControl>
                       <span className="ml-0.5 text-white/40">%</span>
                     </>)} />
                   {/* v374: 效果 — 平时文本 (kiai / Omit Bar Line), 点击才出 checkbox */}
@@ -317,25 +318,25 @@ export function TimingPanel({ full = false }: { full?: boolean }) {
                     </span>}
                     edit={() => (<>
                       <label className="flex items-center gap-1" title="kiai (effects bit0)">
-                        <input type="checkbox" autoFocus checked={(tp.effects & EFFECT_KIAI) !== 0} data-tp-input="kiai"
-                          onChange={e => updateTp(i, { effects: setEffectBit(tp.effects, EFFECT_KIAI, e.target.checked) })} />
-                        kiai
+                        <UiControl id="timing.row-kiai"><input type="checkbox" autoFocus checked={(tp.effects & EFFECT_KIAI) !== 0} data-tp-input="kiai"
+                          onChange={e => updateTp(i, { effects: setEffectBit(tp.effects, EFFECT_KIAI, e.target.checked) })} /></UiControl>
+                        <UiText id="timing.row-kiai" textKey="">kiai</UiText>
                       </label>
                       {tp.uninherited && (
                         <label className="flex items-center gap-1" title={t('timing.omit_barline_title', 'Omit first bar line (effects bit3, lazer OmitFirstBarLine)')}>
-                          <input type="checkbox" checked={(tp.effects & EFFECT_OMIT_BARLINE) !== 0} data-tp-input="omitBar"
-                            onChange={e => updateTp(i, { effects: setEffectBit(tp.effects, EFFECT_OMIT_BARLINE, e.target.checked) })} />
-                          {t('timing.omit_barline', 'Omit Bar Line')}
+                          <UiControl id="timing.row-omit-bar"><input type="checkbox" checked={(tp.effects & EFFECT_OMIT_BARLINE) !== 0} data-tp-input="omitBar"
+                            onChange={e => updateTp(i, { effects: setEffectBit(tp.effects, EFFECT_OMIT_BARLINE, e.target.checked) })} /></UiControl>
+                          <UiText id="timing.row-omit-bar" textKey="timing.omit_barline">Omit Bar Line</UiText>
                         </label>
                       )}
                     </>)} />
                   <td className={td}>
                     {/* v359: 按钮放大并排 (soulten/None1637: 这两个按钮太小了; 转到时间轴与删除横向分开) */}
                     <span className="inline-flex items-center gap-1.5">
-                      <button onClick={() => store.seek(tp.time)} title={t('timing.seek_title', 'Jump to this point on the timeline')}
-                        className="px-2 py-1 rounded text-base leading-none text-sky-400 hover:text-sky-300 hover:bg-white/10">→</button>
-                      <button onClick={() => removeTp(i)} title={t('timing.delete_title', 'Delete this point')}
-                        className="px-2 py-1 rounded text-red-400 hover:text-red-300 hover:bg-white/10 flex items-center"><X className="w-4 h-4" /></button>
+                      <UiControl id="timing.row-seek"><button onClick={() => store.seek(tp.time)} title={t('timing.seek_title', 'Jump to this point on the timeline')}
+                        className="px-2 py-1 rounded text-base leading-none text-sky-400 hover:text-sky-300 hover:bg-white/10"><UiIcon id="timing.row-seek"><ArrowRight className="w-4 h-4" /></UiIcon></button></UiControl>
+                      <UiControl id="timing.row-delete"><button onClick={() => removeTp(i)} title={t('timing.delete_title', 'Delete this point')}
+                        className="px-2 py-1 rounded text-red-400 hover:text-red-300 hover:bg-white/10 flex items-center"><UiIcon id="timing.row-delete"><X className="w-4 h-4" /></UiIcon></button></UiControl>
                     </span>
                   </td>
                 </tr>
@@ -344,7 +345,7 @@ export function TimingPanel({ full = false }: { full?: boolean }) {
           </tbody>
         </table>
       </div>
-    </div>
+    </div></UiControl>
   );
 }
 

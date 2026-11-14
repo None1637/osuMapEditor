@@ -1,0 +1,59 @@
+{
+  "id": "sample-046",
+  "directoryName": "407447 Amane - Space Time (Amane Hardcore Remix)",
+  "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\407447 Amane - Space Time (Amane Hardcore Remix)",
+  "status": "ok",
+  "referenceBpm": 174.99999999999991,
+  "referenceVariable": false,
+  "predictedBpm": 175,
+  "predictedVariable": false,
+  "variableLines": [],
+  "trueVariableMs": 0,
+  "flaggedWindowCount": 26,
+  "flaggedWindowsOnVariable": 0,
+  "rawCandidateCount": 1,
+  "rawCandidatesOnVariable": 0,
+  "finalEvidenceCount": 0,
+  "finalEvidenceOnVariable": 0,
+  "candidates": [
+    {
+      "startMs": 244622,
+      "endMs": 250619,
+      "bpm": 77.714,
+      "points": 3,
+      "maxSupport": 0.10850477547085381,
+      "localGridCoverage": 0.05917159763313609,
+      "rejection": "weak_short",
+      "independentMainScore": 0.4148560663078321,
+      "independentLocalScore": 0.04304237175061103,
+      "variableOverlapMs": 0,
+      "overlapsVariable": false,
+      "tripletVotes": [
+        {
+          "timeMs": 246622.04081632654,
+          "bpm": 77.714,
+          "localGridCoverage": 0.05917159763313609,
+          "tripletGridCoverage": 0.5384615384615384,
+          "tripletGridHalfCoverage": 0.28994082840236685,
+          "tripletGridDoubleCoverage": 0.5562130177514792
+        },
+        {
+          "timeMs": 247620.49886621314,
+          "bpm": 77.714,
+          "localGridCoverage": 0.059880239520958084,
+          "tripletGridCoverage": 0.5508982035928144,
+          "tripletGridHalfCoverage": 0.2994011976047904,
+          "tripletGridDoubleCoverage": 0.5568862275449101
+        },
+        {
+          "timeMs": 248618.95691609976,
+          "bpm": 78.007,
+          "localGridCoverage": 0.05555555555555555,
+          "tripletGridCoverage": 0.5432098765432098,
+          "tripletGridHalfCoverage": 0.2962962962962963,
+          "tripletGridDoubleCoverage": 0.5740740740740741
+        }
+      ]
+    }
+  ]
+}

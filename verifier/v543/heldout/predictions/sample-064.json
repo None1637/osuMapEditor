@@ -1,0 +1,42 @@
+{
+  "id": "sample-064",
+  "directoryName": "IOSYS - 宵暗PARTY",
+  "beatmapFile": "IOSYS - ShouanPARTY (None1637) [Lunatic].osu",
+  "metadata": {
+    "Title": "ShouanPARTY",
+    "TitleUnicode": "宵暗PARTY",
+    "Artist": "IOSYS",
+    "ArtistUnicode": "IOSYS",
+    "Creator": "None1637",
+    "Version": "Lunatic",
+    "Source": "東方Project",
+    "Tags": "Touhou t+pazolite",
+    "BeatmapID": "1548835",
+    "BeatmapSetID": "733959",
+    "Mode": "0"
+  },
+  "audioDurationMs": 270237.8231292517,
+  "redLines": [
+    {
+      "time": 476,
+      "beatLength": 352.941176470588,
+      "bpm": 170.0000000000001,
+      "durationMs": 269761.8231292517
+    }
+  ],
+  "referenceBpm": 170.0000000000001,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 269761.8231292517,
+  "status": "ok",
+  "prediction": {
+    "bpm": 170,
+    "offsetMs": 1036,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 253,
+    "rawBpm": 340,
+    "rawSegmentCount": 129
+  },
+  "evaluationMs": 2698
+}

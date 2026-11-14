@@ -1,0 +1,38 @@
+{
+  "id": "sample-002",
+  "directoryName": "19787 REDALiCE - Rapture",
+  "beatmapFile": "REDALiCE - Rapture (KanbeKotori) [Alazy].osu",
+  "metadata": {
+    "Title": "Rapture",
+    "Artist": "REDALiCE",
+    "Creator": "KanbeKotori",
+    "Version": "Alazy",
+    "Source": "RED",
+    "Tags": "hinanawi tenshi wonderful heaven touhou Alace AngelHoney aho impossiblexu",
+    "Mode": "0"
+  },
+  "audioDurationMs": 253962.44897959183,
+  "redLines": [
+    {
+      "time": 1400,
+      "beatLength": 352.941176470588,
+      "bpm": 170.0000000000001,
+      "durationMs": 252562.44897959183
+    }
+  ],
+  "referenceBpm": 170.0000000000001,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 252562.44897959183,
+  "status": "ok",
+  "prediction": {
+    "bpm": 170,
+    "offsetMs": 543,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 249,
+    "rawBpm": 340,
+    "rawSegmentCount": 45
+  },
+  "evaluationMs": 2359
+}

@@ -1,0 +1,19 @@
+{
+  "id": "sample-097",
+  "directoryName": "RoughSketch Uno さきぴょ - Nyan-Nyan-Nyan!",
+  "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\RoughSketch Uno さきぴょ - Nyan-Nyan-Nyan!",
+  "status": "ok",
+  "referenceBpm": 174.99999999999991,
+  "referenceVariable": false,
+  "predictedBpm": 175,
+  "predictedVariable": false,
+  "variableLines": [],
+  "trueVariableMs": 0,
+  "flaggedWindowCount": 7,
+  "flaggedWindowsOnVariable": 0,
+  "rawCandidateCount": 0,
+  "rawCandidatesOnVariable": 0,
+  "finalEvidenceCount": 0,
+  "finalEvidenceOnVariable": 0,
+  "candidates": []
+}

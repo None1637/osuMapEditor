@@ -1,0 +1,19 @@
+{
+  "id": "sample-099",
+  "directoryName": "30569 Cream puff - Mermaid girl",
+  "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\30569 Cream puff - Mermaid girl",
+  "status": "ok",
+  "referenceBpm": 139.99999999999986,
+  "referenceVariable": false,
+  "predictedBpm": 140,
+  "predictedVariable": false,
+  "variableLines": [],
+  "trueVariableMs": 0,
+  "flaggedWindowCount": 7,
+  "flaggedWindowsOnVariable": 0,
+  "rawCandidateCount": 0,
+  "rawCandidatesOnVariable": 0,
+  "finalEvidenceCount": 0,
+  "finalEvidenceOnVariable": 0,
+  "candidates": []
+}

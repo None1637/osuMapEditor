@@ -1,0 +1,42 @@
+{
+  "id": "sample-021",
+  "directoryName": "1182067 Moe Shop - Audiovisual",
+  "beatmapFile": "Moe Shop - Audiovisual (Paturages) [720p].osu",
+  "metadata": {
+    "Title": "Audiovisual",
+    "TitleUnicode": "Audiovisual",
+    "Artist": "Moe Shop",
+    "ArtistUnicode": "Moe Shop",
+    "Creator": "Paturages",
+    "Version": "720p",
+    "Source": "DANCERUSH STARDOM",
+    "Tags": "SV gimmick osu!mania 4K World Cup 2020 MWC 4K 2020 MWC20 semifinals swing electronic instrumental",
+    "BeatmapID": "2495032",
+    "BeatmapSetID": "1182067",
+    "Mode": "3"
+  },
+  "audioDurationMs": 110218.68480725624,
+  "redLines": [
+    {
+      "time": 1991.18320674751,
+      "beatLength": 468.75,
+      "bpm": 128,
+      "durationMs": 108227.50160050874
+    }
+  ],
+  "referenceBpm": 128,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 108227.50160050874,
+  "status": "ok",
+  "prediction": {
+    "bpm": 128,
+    "offsetMs": 614,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 107,
+    "rawBpm": 128,
+    "rawSegmentCount": 17
+  },
+  "evaluationMs": 876
+}

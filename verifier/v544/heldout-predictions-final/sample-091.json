@@ -1,0 +1,48 @@
+{
+  "id": "sample-091",
+  "directoryName": "2100235 Wooden_LBD Records - Luminiferous",
+  "beatmapFile": "WoodenLBD Records - Luminiferous (PEALEERD_TAK) [Girrrakaa's Insane].osu",
+  "metadata": {
+    "Title": "Luminiferous",
+    "TitleUnicode": "Luminiferous",
+    "Artist": "Wooden/LBD Records",
+    "ArtistUnicode": "Wooden/LBD Records",
+    "Creator": "PEALEERD_TAK",
+    "Version": "Girrrakaa's Insane",
+    "Source": "",
+    "Tags": "",
+    "BeatmapID": "4412190",
+    "BeatmapSetID": "2100235",
+    "Mode": "0"
+  },
+  "audioDurationMs": 154218.77551020408,
+  "redLines": [
+    {
+      "time": 7503,
+      "beatLength": 468.75,
+      "bpm": 128,
+      "durationMs": 7500
+    },
+    {
+      "time": 15003,
+      "beatLength": 468.75,
+      "bpm": 128,
+      "durationMs": 139215.77551020408
+    }
+  ],
+  "referenceBpm": 128,
+  "referenceVariable": false,
+  "referenceRedLineCount": 2,
+  "referenceCoverageMs": 146715.77551020408,
+  "status": "ok",
+  "prediction": {
+    "bpm": 128,
+    "offsetMs": 475,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 87,
+    "rawBpm": 256,
+    "rawSegmentCount": 33
+  },
+  "evaluationMs": 1237
+}

@@ -1,0 +1,38 @@
+{
+  "id": "sample-098",
+  "directoryName": "14853 COOL&CREATE - Saishoukichiku Imouto Flandre S",
+  "beatmapFile": "COOL&CREATE - Saishoukichiku Imouto Flandre S (dksslqj) [Easy].osu",
+  "metadata": {
+    "Title": "Saishoukichiku Imouto Flandre S",
+    "Artist": "COOL&CREATE",
+    "Creator": "dksslqj",
+    "Version": "Easy",
+    "Source": "Touhou",
+    "Tags": "Embodiment of Scarlet Devil U.N.Owen was her Remix",
+    "Mode": "0"
+  },
+  "audioDurationMs": 206132.2448979592,
+  "redLines": [
+    {
+      "time": 576,
+      "beatLength": 300,
+      "bpm": 200,
+      "durationMs": 205556.2448979592
+    }
+  ],
+  "referenceBpm": 200,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 205556.2448979592,
+  "status": "ok",
+  "prediction": {
+    "bpm": 200,
+    "offsetMs": 760,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 192,
+    "rawBpm": 400,
+    "rawSegmentCount": 80
+  },
+  "evaluationMs": 2198
+}

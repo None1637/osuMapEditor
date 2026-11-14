@@ -1,0 +1,172 @@
+{
+  "id": "sample-070",
+  "directoryName": "1558408 Mori Calliope - Excuse My Rudeness, But Could You Please RIP (Nhato Remix)",
+  "beatmapFile": "Mori Calliope - Excuse My Rudeness, But Could You Please RIP (Nhato Remix) (AutotelicBrown) [Easy].osu",
+  "referenceBpm": 129.99999987,
+  "predictedBpm": 130,
+  "frozenBpm": 130,
+  "deterministicEvidence": true,
+  "evidence": [
+    {
+      "startMs": 998,
+      "endMs": 7994,
+      "bpm": 74.359,
+      "points": 4,
+      "maxSupport": 0.2435762943722918,
+      "index": 0,
+      "ratioToPredictedMain": 0.5719923076923077,
+      "ratioToAnnotatedMain": 0.5719923082642999,
+      "boundary": "start",
+      "localBpmMin": 74.093,
+      "localBpmMax": 74.628,
+      "medianSupport": 0.18227660762759293,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 46.15384615384615,
+          "first": 0.1708691918972407,
+          "second": 0.0859935709420496,
+          "combined": 0.14286023698202766
+        },
+        "annotatedMain": {
+          "lag": 46.1538462,
+          "first": 0.170869197223029,
+          "second": 0.08599358971071126,
+          "combined": 0.14286024674396416
+        },
+        "evidenceBpm": {
+          "lag": 80.68962734840437,
+          "first": -0.010168179762539318,
+          "second": 0.13651707533110666,
+          "combined": 0.038237954418363855
+        }
+      },
+      "objectCount": 18,
+      "objectGrid": {
+        "predictedMainHalf": 1,
+        "annotatedMainHalf": 1,
+        "evidenceHalf": 0.2222222222222222
+      }
+    },
+    {
+      "startMs": 16974,
+      "endMs": 22971,
+      "bpm": 74.359,
+      "points": 3,
+      "maxSupport": 0.15900513965065663,
+      "index": 1,
+      "ratioToPredictedMain": 0.5719923076923077,
+      "ratioToAnnotatedMain": 0.5719923082642999,
+      "boundary": "interior",
+      "localBpmMin": 74.359,
+      "localBpmMax": 74.359,
+      "medianSupport": 0.12082955116480171,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 46.15384615384615,
+          "first": null,
+          "second": null,
+          "combined": null
+        },
+        "annotatedMain": {
+          "lag": 46.1538462,
+          "first": null,
+          "second": null,
+          "combined": null
+        },
+        "evidenceBpm": {
+          "lag": 80.68962734840437,
+          "first": null,
+          "second": null,
+          "combined": null
+        }
+      },
+      "objectCount": 17,
+      "objectGrid": {
+        "predictedMainHalf": 1,
+        "annotatedMainHalf": 1,
+        "evidenceHalf": 0.23529411764705882
+      }
+    },
+    {
+      "startMs": 87864,
+      "endMs": 93861,
+      "bpm": 74.093,
+      "points": 3,
+      "maxSupport": 0.15341603845300236,
+      "index": 2,
+      "ratioToPredictedMain": 0.5699461538461539,
+      "ratioToAnnotatedMain": 0.5699461544161,
+      "boundary": "interior",
+      "localBpmMin": 74.093,
+      "localBpmMax": 74.146,
+      "medianSupport": 0.13401446667239486,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 46.15384615384615,
+          "first": -0.0022703214971779894,
+          "second": -0.004293731466170373,
+          "combined": -0.0029380467869454764
+        },
+        "annotatedMain": {
+          "lag": 46.1538462,
+          "first": -0.0022703215955329446,
+          "second": -0.0042937316589678025,
+          "combined": -0.0029380469164664476
+        },
+        "evidenceBpm": {
+          "lag": 80.97930978634959,
+          "first": -0.0030580479363641216,
+          "second": null,
+          "combined": -0.0030580479363641216
+        }
+      },
+      "objectCount": 12,
+      "objectGrid": {
+        "predictedMainHalf": 1,
+        "annotatedMainHalf": 1,
+        "evidenceHalf": 0.25
+      }
+    },
+    {
+      "startMs": 103839,
+      "endMs": 109836,
+      "bpm": 61.159,
+      "points": 3,
+      "maxSupport": 0.23814371741327228,
+      "index": 3,
+      "ratioToPredictedMain": 0.47045384615384617,
+      "ratioToAnnotatedMain": 0.47045384662429995,
+      "boundary": "interior",
+      "localBpmMin": 61.159,
+      "localBpmMax": 61.159,
+      "medianSupport": 0.23148756613110852,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 46.15384615384615,
+          "first": null,
+          "second": null,
+          "combined": null
+        },
+        "annotatedMain": {
+          "lag": 46.1538462,
+          "first": null,
+          "second": null,
+          "combined": null
+        },
+        "evidenceBpm": {
+          "lag": 98.10493958370805,
+          "first": null,
+          "second": null,
+          "combined": null
+        }
+      },
+      "objectCount": 16,
+      "objectGrid": {
+        "predictedMainHalf": 0.625,
+        "annotatedMainHalf": 0.625,
+        "evidenceHalf": 0.125
+      }
+    }
+  ],
+  "analysisMs": 1741
+}

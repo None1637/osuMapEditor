@@ -1,0 +1,42 @@
+{
+  "id": "sample-024",
+  "directoryName": "205022 Ryu_ - Sakura Mirage",
+  "beatmapFile": "Ryu - Sakura Mirage (Priti) [ADVANCED].osu",
+  "metadata": {
+    "Title": "Sakura Mirage",
+    "TitleUnicode": "Sakura Mirage",
+    "Artist": "Ryu*",
+    "ArtistUnicode": "Ryu☆",
+    "Creator": "Priti",
+    "Version": "ADVANCED",
+    "Source": "SOUND VOLTEX II -infinite infection-",
+    "Tags": "REFLEC BEAT groovin'!! SDVX POLICY BREAK Sakura Series Leader Lizzy Quiz-Chan",
+    "BeatmapID": "557360",
+    "BeatmapSetID": "205022",
+    "Mode": "0"
+  },
+  "audioDurationMs": 106318.36734693877,
+  "redLines": [
+    {
+      "time": 1816,
+      "beatLength": 320.855614973262,
+      "bpm": 187.00000000000003,
+      "durationMs": 104502.36734693877
+    }
+  ],
+  "referenceBpm": 187.00000000000003,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 104502.36734693877,
+  "status": "ok",
+  "prediction": {
+    "bpm": 187,
+    "offsetMs": 724,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 103,
+    "rawBpm": 374,
+    "rawSegmentCount": 37
+  },
+  "evaluationMs": 979
+}

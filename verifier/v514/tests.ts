@@ -23,7 +23,7 @@ console.log('== 40+40: 连续事件不立即动，静默后补一步');
   store.wheelSeek(40, 0); store.wheelSeek(40, 0);
   assert(store.currentTime === 5000, '不足 120px 时不立即 seek');
   await sleep(130);
-  assert(store.currentTime === 5125, `90ms 后补 +1 网格 (实际 ${store.currentTime})`);
+  assert(store.currentTime === 5125, `v577: 16ms 后补 +1 网格 (实际 ${store.currentTime})`);
 }
 
 console.log('== 40+40+40 / 160: 已出刻度的手势不多补');

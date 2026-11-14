@@ -1,0 +1,19 @@
+{
+  "id": "sample-023",
+  "directoryName": "11841 Yellow Zebra - Hyouketsu Musume",
+  "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\11841 Yellow Zebra - Hyouketsu Musume",
+  "status": "ok",
+  "referenceBpm": 150,
+  "referenceVariable": false,
+  "predictedBpm": 150,
+  "predictedVariable": false,
+  "variableLines": [],
+  "trueVariableMs": 0,
+  "flaggedWindowCount": 22,
+  "flaggedWindowsOnVariable": 0,
+  "rawCandidateCount": 0,
+  "rawCandidatesOnVariable": 0,
+  "finalEvidenceCount": 0,
+  "finalEvidenceOnVariable": 0,
+  "candidates": []
+}

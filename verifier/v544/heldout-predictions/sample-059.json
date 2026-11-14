@@ -1,0 +1,48 @@
+{
+  "id": "sample-059",
+  "directoryName": "2056719 Noctem - Dichotomy of Malignancy",
+  "beatmapFile": "Noctem - Dichotomy of Malignancy (Mahan) [Torment].osu",
+  "metadata": {
+    "Title": "Dichotomy of Malignancy",
+    "TitleUnicode": "Dichotomy of Malignancy",
+    "Artist": "Noctem",
+    "ArtistUnicode": "Noctem",
+    "Creator": "Mahan",
+    "Version": "Torment",
+    "Source": "",
+    "Tags": "",
+    "BeatmapID": "4297884",
+    "BeatmapSetID": "2056719",
+    "Mode": "0"
+  },
+  "audioDurationMs": 282216.0544217687,
+  "redLines": [
+    {
+      "time": 525,
+      "beatLength": 300,
+      "bpm": 200,
+      "durationMs": 249600
+    },
+    {
+      "time": 250125,
+      "beatLength": 450.011250281257,
+      "bpm": 133.33,
+      "durationMs": 32091.0544217687
+    }
+  ],
+  "referenceBpm": 200,
+  "referenceVariable": true,
+  "referenceRedLineCount": 2,
+  "referenceCoverageMs": 249600,
+  "status": "ok",
+  "prediction": {
+    "bpm": 198.95,
+    "offsetMs": 659,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 273,
+    "rawBpm": 397.9,
+    "rawSegmentCount": 400
+  },
+  "evaluationMs": 2715
+}

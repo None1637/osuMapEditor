@@ -1,0 +1,36 @@
+{
+  "version": "v558-superflux-e1-v1",
+  "status": "frozen_before_candidate_evaluation",
+  "hypothesis": "Longer spectral-difference spacing and logarithmic-frequency trajectory suppression can reduce false peaks without sacrificing real-onset recall or coverage.",
+  "selectionSource": "../v557/selection.json",
+  "annotationSource": "../v557/annotations-sample-*.csv",
+  "phaseAndDelaySource": "../v548/per-sample/sample-*.json",
+  "sampleIds": ["sample-044", "sample-032", "sample-002"],
+  "windowSamples": 256,
+  "hopSamples": 11,
+  "differenceFrameRule": "floor((WIN/2 - firstIndex(hann>0.5))/HOP), minimum 1",
+  "expectedDifferenceFrames": 5,
+  "expectedDifferenceMsAt11025Hz": 4.988662131519274,
+  "mainMethods": {
+    "full": "Frozen production adjacent-frame full-band spectral flux; top2/DP actual cross-fit phase",
+    "lag5": "Same linear-frequency log magnitude and full-band positive flux as full, but compare five frames apart",
+    "superflux": "24 bands/octave triangular logarithmic-frequency filterbank, log10(1+filtered magnitude), previous-frame maximum over three adjacent bands, five-frame difference"
+  },
+  "globalOnlyControls": ["fullGlobal", "lag5Global", "superfluxGlobal"],
+  "normalization": "Frozen v557: subtract 0.7 times trailing 1000 ms mean, rectify at zero, divide by song maximum",
+  "peakPicking": "Frozen v557: normalized threshold 0.02, 5 ms suppression radius, parabolic interpolation, bias 3*WIN/4/sampleRate",
+  "candidateMatching": "Nearest peak within +/-10 ms around reference + frozen globalDelay + frozen actual cross-fit top2/DP phase; global controls use phase zero",
+  "filterbank": {
+    "bandsPerOctave": 24,
+    "minimumHz": 27.5,
+    "maximumHz": "min(16000, sampleRate/2)",
+    "normalization": "none",
+    "maximumFilterBins": 3
+  },
+  "metrics": ["candidatePrecision", "candidateCoverage", "clearOnsetRecall", "clearAndApproximateOnsetRecall", "allObjectCorrectRate", "noClearCandidateOutputRate"],
+  "toleranceMs": 5,
+  "targetAllObjectCorrectRate": 0.8,
+  "weightRule": "Frozen v557 stratum population / actually sampled objects",
+  "testPolicy": "Do not retune parameters on these results. Any changed configuration requires a new version and a later independent confirmation set.",
+  "productionCodeChanged": false
+}

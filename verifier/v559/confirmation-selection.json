@@ -1,0 +1,96 @@
+{
+  "version": "v559-future-independent-confirmation-selection-v1",
+  "status": "reserved_not_decoded_by_v559_not_evaluated_not_labeled",
+  "selectionUsesOnlyBeatmapLabels": true,
+  "excludedDevelopmentAndEvaluationSamples": [
+    "sample-001",
+    "sample-002",
+    "sample-003",
+    "sample-011",
+    "sample-013",
+    "sample-025",
+    "sample-026",
+    "sample-027",
+    "sample-032",
+    "sample-034",
+    "sample-040",
+    "sample-042",
+    "sample-044",
+    "sample-051",
+    "sample-058",
+    "sample-064",
+    "sample-065",
+    "sample-072",
+    "sample-088",
+    "sample-091",
+    "sample-095",
+    "sample-100"
+  ],
+  "rule": "From the original frozen 100-song sample, exclude 001/058 and all v548 songs; select two constant, two dense-variable and two other-variable songs by hash",
+  "hashNamespace": "sha256(v559-confirmation:sample-id), lexicographic",
+  "denseDefinition": "positive-duration uninherited redline with durationMs <=1200",
+  "intendedObjectsPerSong": 30,
+  "intendedTotalObjects": 180,
+  "samples": [
+    {
+      "id": "sample-017",
+      "referenceVariable": true,
+      "denseRedLineCount": 1,
+      "redLineCount": 7,
+      "referenceBpm": 194.9999999999998,
+      "directoryName": "1510535 65daysofstatic - Retreat! Retreat! (Cut Ver)",
+      "beatmapFile": "Stars Hollow - as you were before. (Cut Ver.) (quantumvortex) [Extreme].osu",
+      "selectionGroup": "variable-other-hash"
+    },
+    {
+      "id": "sample-047",
+      "referenceVariable": false,
+      "denseRedLineCount": 1,
+      "redLineCount": 2,
+      "referenceBpm": 240,
+      "directoryName": "260551 t+pazolite - Rumble Kung-fu Showdown",
+      "beatmapFile": "t+pazolite - Rumble Kung-fu Showdown (L o L i) [Rumble+pazolite].osu",
+      "selectionGroup": "constant-hash"
+    },
+    {
+      "id": "sample-054",
+      "referenceVariable": true,
+      "denseRedLineCount": 13,
+      "redLineCount": 39,
+      "referenceBpm": 253.99999999999986,
+      "directoryName": "osu!droid Daninintei 7th Dan Courses",
+      "beatmapFile": "V.A. - osu!droid Daninintei Courses (Nero Yuki & Kawashiro) [7th dan].osu",
+      "selectionGroup": "variable-dense-hash"
+    },
+    {
+      "id": "sample-067",
+      "referenceVariable": true,
+      "denseRedLineCount": 0,
+      "redLineCount": 3,
+      "referenceBpm": 176.9999999999998,
+      "directoryName": "732851 LeaF - Lyrith",
+      "beatmapFile": "LeaF - Lyrith (aquarus91) [Maximum].osu",
+      "selectionGroup": "variable-other-hash"
+    },
+    {
+      "id": "sample-077",
+      "referenceVariable": true,
+      "denseRedLineCount": 57,
+      "redLineCount": 98,
+      "referenceBpm": 155.99999999999986,
+      "directoryName": "967321 Tokyo Jihen - Sounan",
+      "beatmapFile": "Tokyo Jihen - Sounan (Uberzolik) [Normal].osu",
+      "selectionGroup": "variable-dense-hash"
+    },
+    {
+      "id": "sample-099",
+      "referenceVariable": false,
+      "denseRedLineCount": 0,
+      "redLineCount": 1,
+      "referenceBpm": 139.99999999999986,
+      "directoryName": "30569 Cream puff - Mermaid girl",
+      "beatmapFile": "Cream puff - Mermaid girl (tsuka) [Hyper].osu",
+      "selectionGroup": "constant-hash"
+    }
+  ]
+}

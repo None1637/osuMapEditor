@@ -1,0 +1,59 @@
+{
+  "id": "sample-053",
+  "directoryName": "25671 NieN - Leave me Alone",
+  "beatmapFile": "NieN - Leave me Alone (MoonFragrance) [ykcarrot's Hard].osu",
+  "metadata": {
+    "Title": "Leave me Alone",
+    "Artist": "NieN",
+    "Creator": "MoonFragrance",
+    "Version": "ykcarrot's Hard",
+    "Source": "DJMAX",
+    "Tags": "Portable Jaywave Jay Z_B ykcarrot",
+    "Mode": "0"
+  },
+  "audioDurationMs": 121730.61224489796,
+  "redLines": [
+    {
+      "time": 110,
+      "beatLength": 254.237288135593,
+      "bpm": 236.00000000000023,
+      "durationMs": 87966
+    },
+    {
+      "time": 88076,
+      "beatLength": 254.237288135593,
+      "bpm": 236.00000000000023,
+      "durationMs": 33654.61224489796
+    }
+  ],
+  "referenceBpm": 236.00000000000023,
+  "referenceVariable": false,
+  "referenceRedLineCount": 2,
+  "referenceCoverageMs": 121620.61224489796,
+  "status": "ok",
+  "prediction": {
+    "bpm": 236,
+    "offsetMs": 140,
+    "variable": true,
+    "evidence": [
+      {
+        "startMs": 15975,
+        "endMs": 21972,
+        "bpm": 67.555,
+        "points": 3,
+        "maxSupport": 0.2893084887700161
+      },
+      {
+        "startMs": 27957,
+        "endMs": 34952,
+        "bpm": 67.555,
+        "points": 4,
+        "maxSupport": 0.28766301682926787
+      }
+    ],
+    "localPointCount": 116,
+    "rawBpm": 236,
+    "rawSegmentCount": 28
+  },
+  "evaluationMs": 1104
+}

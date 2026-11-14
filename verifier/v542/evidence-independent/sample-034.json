@@ -1,0 +1,92 @@
+{
+  "id": "sample-034",
+  "directoryName": "1336953 Various Artists - Julaaaan's Triangle Jump Training",
+  "beatmapFile": "Various Artists - Julaaaan's Triangle Jump Training (Julaaaan) [Eyes Half Closed].osu",
+  "referenceBpm": 135.00000000000014,
+  "predictedBpm": 135,
+  "frozenBpm": 135,
+  "deterministicEvidence": true,
+  "evidence": [
+    {
+      "startMs": 30952,
+      "endMs": 39944,
+      "bpm": 202.665,
+      "points": 6,
+      "maxSupport": 0.16314421993580566,
+      "index": 0,
+      "ratioToPredictedMain": 1.5012222222222222,
+      "ratioToAnnotatedMain": 1.5012222222222207,
+      "boundary": "interior",
+      "localBpmMin": 202.665,
+      "localBpmMax": 202.665,
+      "medianSupport": 0.146684556053235,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 44.44444444444444,
+          "first": -0.003196246081425878,
+          "second": -0.002654922007325375,
+          "combined": -0.003017609136972712
+        },
+        "annotatedMain": {
+          "lag": 44.4444444444444,
+          "first": -0.003196246081425848,
+          "second": -0.002654922007325595,
+          "combined": -0.003017609136972765
+        },
+        "evidenceBpm": {
+          "lag": 29.605506624232106,
+          "first": -0.003096247243304115,
+          "second": -0.0028271500031578473,
+          "combined": -0.003007445154055847
+        }
+      },
+      "objectCount": 49,
+      "objectGrid": {
+        "predictedMainHalf": 0.42857142857142855,
+        "annotatedMainHalf": 0.42857142857142855,
+        "evidenceHalf": 0.9591836734693877
+      }
+    },
+    {
+      "startMs": 42934,
+      "endMs": 53923,
+      "bpm": 202.665,
+      "points": 8,
+      "maxSupport": 0.18478588888926945,
+      "index": 1,
+      "ratioToPredictedMain": 1.5012222222222222,
+      "ratioToAnnotatedMain": 1.5012222222222207,
+      "boundary": "end",
+      "localBpmMin": 202.665,
+      "localBpmMax": 202.665,
+      "medianSupport": 0.14243607009174647,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 44.44444444444444,
+          "first": -0.0023879968649778384,
+          "second": -0.0019947003036560177,
+          "combined": -0.002258208999741638
+        },
+        "annotatedMain": {
+          "lag": 44.4444444444444,
+          "first": -0.0023879968649778175,
+          "second": -0.0019947003036561756,
+          "combined": -0.002258208999741676
+        },
+        "evidenceBpm": {
+          "lag": 29.605506624232106,
+          "first": -0.002322441507905279,
+          "second": -0.0021249483738167763,
+          "combined": -0.0022572687736560734
+        }
+      },
+      "objectCount": 56,
+      "objectGrid": {
+        "predictedMainHalf": 0.42857142857142855,
+        "annotatedMainHalf": 0.42857142857142855,
+        "evidenceHalf": 0.9821428571428571
+      }
+    }
+  ],
+  "analysisMs": 542
+}

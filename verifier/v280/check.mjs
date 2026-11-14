@@ -22,7 +22,7 @@ let failures = 0;
 function assert(cond, msg) { if (!cond) { failures++; console.error('  FAIL:', msg); } else console.log('  ok:', msg); }
 
 const main = fs.readFileSync(path.join(root, 'electron/main.cjs'), 'utf8');
-assert(/function serializeMenuItems\(items\)/.test(main), '菜单模板序列化函数');
+assert(/function serializeMenuItems\(items, prefix = "menu"\)/.test(main), '菜单模板序列化函数 (v526: 带结构路径 uiId)');
 assert(/menuActions\.set\(id/.test(main), '叶子项 id → 执行表');
 assert(!/role === "reload"/.test(main) && /type: "reload-map"/.test(main) && /role === "toggleDevTools"/.test(main) && /role === "quit"/.test(main), 'role 等价实现 (devtools/quit); v480: reload 改发 reload-map 菜单命令 (整页重载无未保存警告, 移除)');
 assert(/ipcMain\.handle\("get-menu-definition"/.test(main), 'get-menu-definition 首拉 handle');

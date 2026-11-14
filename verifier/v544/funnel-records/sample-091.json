@@ -1,0 +1,26 @@
+{
+  "id": "sample-091",
+  "directoryName": "761046 Dave Rodgers - Deja Vu",
+  "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\761046 Dave Rodgers - Deja Vu",
+  "status": "ok",
+  "referenceBpm": 153.99999999999986,
+  "referenceVariable": true,
+  "predictedBpm": 154,
+  "predictedVariable": false,
+  "variableLines": [
+    {
+      "time": 91947,
+      "beatLength": 4000,
+      "bpm": 15,
+      "durationMs": 779
+    }
+  ],
+  "trueVariableMs": 779,
+  "flaggedWindowCount": 28,
+  "flaggedWindowsOnVariable": 0,
+  "rawCandidateCount": 0,
+  "rawCandidatesOnVariable": 0,
+  "finalEvidenceCount": 0,
+  "finalEvidenceOnVariable": 0,
+  "candidates": []
+}

@@ -1,0 +1,42 @@
+{
+  "id": "sample-009",
+  "directoryName": "623665 Hommarju - HYENA",
+  "beatmapFile": "Hommarju - HYENA (rustbell) [].osu",
+  "metadata": {
+    "Title": "HYENA",
+    "TitleUnicode": "HYENA",
+    "Artist": "Hommarju",
+    "ArtistUnicode": "Hommarju",
+    "Creator": "rustbell",
+    "Version": "<><><><><><><><><>",
+    "Source": "",
+    "Tags": "beatmania IIDX 21 SPADA DanceDanceRevolution (2013) jubeat saucer pop'n music Sunny Park REFLEC BEAT colette -All Seasons- SOUND VOLTEX II -infinite infection- / ミライダガッキ FutureTomTom Ver.2 Callionet fanzhen0019",
+    "BeatmapID": "1314568",
+    "BeatmapSetID": "623665",
+    "Mode": "0"
+  },
+  "audioDurationMs": 118987.75510204083,
+  "redLines": [
+    {
+      "time": 530,
+      "beatLength": 337.078651685393,
+      "bpm": 178.0000000000001,
+      "durationMs": 118457.75510204083
+    }
+  ],
+  "referenceBpm": 178.0000000000001,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 118457.75510204083,
+  "status": "ok",
+  "prediction": {
+    "bpm": 178,
+    "offsetMs": 895,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 106,
+    "rawBpm": 356,
+    "rawSegmentCount": 83
+  },
+  "evaluationMs": 1090
+}

@@ -1,0 +1,343 @@
+{
+  "id": "sample-054",
+  "directoryName": "osu!droid Daninintei 7th Dan Courses",
+  "beatmapFile": "V.A. - osu!droid Daninintei Courses (Nero Yuki & Kawashiro) [7th dan].osu",
+  "metadata": {
+    "Title": "osu!droid Daninintei Courses",
+    "TitleUnicode": "osu!droid Daninintei Courses",
+    "Artist": "V.A.",
+    "ArtistUnicode": "V.A.",
+    "Creator": "Nero Yuki & Kawashiro",
+    "Version": "7th dan",
+    "Source": "",
+    "Tags": "",
+    "BeatmapID": "0",
+    "BeatmapSetID": "-1",
+    "Mode": "0"
+  },
+  "audioDurationMs": 476708.5714285714,
+  "redLines": [
+    {
+      "time": 64,
+      "beatLength": 666.666666666667,
+      "bpm": 89.99999999999996,
+      "durationMs": 13333
+    },
+    {
+      "time": 13397,
+      "beatLength": 600,
+      "bpm": 100,
+      "durationMs": 2400
+    },
+    {
+      "time": 15797,
+      "beatLength": 576.923076923077,
+      "bpm": 103.99999999999999,
+      "durationMs": 2307
+    },
+    {
+      "time": 18104,
+      "beatLength": 555.555555555556,
+      "bpm": 107.99999999999991,
+      "durationMs": 2222
+    },
+    {
+      "time": 20326,
+      "beatLength": 535.714285714286,
+      "bpm": 111.99999999999994,
+      "durationMs": 1071
+    },
+    {
+      "time": 21397,
+      "beatLength": 333.333333333333,
+      "bpm": 180.0000000000002,
+      "durationMs": 1999
+    },
+    {
+      "time": 23396,
+      "beatLength": 333.333333333333,
+      "bpm": 180.0000000000002,
+      "durationMs": 2665
+    },
+    {
+      "time": 26061,
+      "beatLength": 333.333333333333,
+      "bpm": 180.0000000000002,
+      "durationMs": 86666
+    },
+    {
+      "time": 112727,
+      "beatLength": 461.538461538462,
+      "bpm": 129.99999999999986,
+      "durationMs": 9232
+    },
+    {
+      "time": 121959,
+      "beatLength": 428.571428571429,
+      "bpm": 139.99999999999986,
+      "durationMs": 1714
+    },
+    {
+      "time": 123673,
+      "beatLength": 400,
+      "bpm": 150,
+      "durationMs": 1600
+    },
+    {
+      "time": 125273,
+      "beatLength": 375,
+      "bpm": 160,
+      "durationMs": 1500
+    },
+    {
+      "time": 126773,
+      "beatLength": 352.941176470588,
+      "bpm": 170.0000000000001,
+      "durationMs": 1411
+    },
+    {
+      "time": 128184,
+      "beatLength": 333.333333333333,
+      "bpm": 180.0000000000002,
+      "durationMs": 1333
+    },
+    {
+      "time": 129517,
+      "beatLength": 315.789473684211,
+      "bpm": 189.99999999999974,
+      "durationMs": 1263
+    },
+    {
+      "time": 130780,
+      "beatLength": 300,
+      "bpm": 200,
+      "durationMs": 6000
+    },
+    {
+      "time": 136780,
+      "beatLength": 600,
+      "bpm": 100,
+      "durationMs": 12272
+    },
+    {
+      "time": 149052,
+      "beatLength": 500,
+      "bpm": 120,
+      "durationMs": 72000
+    },
+    {
+      "time": 221052,
+      "beatLength": 461.538461538462,
+      "bpm": 129.99999999999986,
+      "durationMs": 1846
+    },
+    {
+      "time": 222898,
+      "beatLength": 428.571428571429,
+      "bpm": 139.99999999999986,
+      "durationMs": 1714
+    },
+    {
+      "time": 224612,
+      "beatLength": 375,
+      "bpm": 160,
+      "durationMs": 1500
+    },
+    {
+      "time": 226112,
+      "beatLength": 333.333333333333,
+      "bpm": 180.0000000000002,
+      "durationMs": 1333
+    },
+    {
+      "time": 227445,
+      "beatLength": 300,
+      "bpm": 200,
+      "durationMs": 1200
+    },
+    {
+      "time": 228645,
+      "beatLength": 272.727272727273,
+      "bpm": 219.9999999999998,
+      "durationMs": 1090
+    },
+    {
+      "time": 229735,
+      "beatLength": 250,
+      "bpm": 240,
+      "durationMs": 1000
+    },
+    {
+      "time": 230735,
+      "beatLength": 214.285714285714,
+      "bpm": 280.0000000000004,
+      "durationMs": 857
+    },
+    {
+      "time": 231592,
+      "beatLength": 200,
+      "bpm": 300,
+      "durationMs": 800
+    },
+    {
+      "time": 232392,
+      "beatLength": 187.5,
+      "bpm": 320,
+      "durationMs": 750
+    },
+    {
+      "time": 233142,
+      "beatLength": 176.470588235294,
+      "bpm": 340.0000000000002,
+      "durationMs": 705
+    },
+    {
+      "time": 233847,
+      "beatLength": 166.666666666667,
+      "bpm": 359.99999999999926,
+      "durationMs": 666
+    },
+    {
+      "time": 234513,
+      "beatLength": 157.894736842105,
+      "bpm": 380.0000000000006,
+      "durationMs": 631
+    },
+    {
+      "time": 235144,
+      "beatLength": 153.846153846154,
+      "bpm": 389.9999999999996,
+      "durationMs": 615
+    },
+    {
+      "time": 235759,
+      "beatLength": 150,
+      "bpm": 400,
+      "durationMs": 1200
+    },
+    {
+      "time": 236959,
+      "beatLength": 300,
+      "bpm": 200,
+      "durationMs": 20400
+    },
+    {
+      "time": 257359,
+      "beatLength": 315.789473684211,
+      "bpm": 189.99999999999974,
+      "durationMs": 1263
+    },
+    {
+      "time": 258622,
+      "beatLength": 352.941176470588,
+      "bpm": 170.0000000000001,
+      "durationMs": 1446
+    },
+    {
+      "time": 260068,
+      "beatLength": 428.571428571429,
+      "bpm": 139.99999999999986,
+      "durationMs": 857
+    },
+    {
+      "time": 260925,
+      "beatLength": 500,
+      "bpm": 120,
+      "durationMs": 6660
+    },
+    {
+      "time": 267585,
+      "beatLength": 236.220472440945,
+      "bpm": 253.99999999999986,
+      "durationMs": 209123.57142857142
+    }
+  ],
+  "referenceBpm": 253.99999999999986,
+  "referenceVariable": true,
+  "referenceRedLineCount": 39,
+  "referenceCoverageMs": 209123.57142857142,
+  "status": "ok",
+  "prediction": {
+    "bpm": 240,
+    "offsetMs": 255,
+    "variable": true,
+    "evidence": [
+      {
+        "startMs": 0,
+        "endMs": 6995,
+        "bpm": 89.878,
+        "points": 4,
+        "maxSupport": 0.16446851773449622,
+        "localGridCoverage": 0.2222222222222222,
+        "tripletLike": false,
+        "independentMainScore": -0.022805743443882982,
+        "independentMainBpm": 240,
+        "independentLocalScore": 0.2766705055583689
+      },
+      {
+        "startMs": 6989,
+        "endMs": 12986,
+        "bpm": 89.878,
+        "points": 3,
+        "maxSupport": 0.15268845794101557,
+        "localGridCoverage": 0.1346153846153846,
+        "tripletLike": false,
+        "independentMainScore": -0.04560290594516924,
+        "independentMainBpm": 240,
+        "independentLocalScore": 0.44452878904186843
+      },
+      {
+        "startMs": 23963,
+        "endMs": 34952,
+        "bpm": 178.206,
+        "points": 8,
+        "maxSupport": 0.15372162853850269,
+        "localGridCoverage": 0.11194029850746269,
+        "tripletLike": true,
+        "independentMainScore": 0.23566180669463097,
+        "independentMainBpm": 120,
+        "independentLocalScore": 0.3391911883251068
+      },
+      {
+        "startMs": 32949,
+        "endMs": 41941,
+        "bpm": 178.822,
+        "points": 6,
+        "maxSupport": 0.11477985133825531,
+        "localGridCoverage": 0.1125,
+        "tripletLike": true,
+        "independentMainScore": 0.2479070132898168,
+        "independentMainBpm": 120,
+        "independentLocalScore": 0.40440879380182004
+      },
+      {
+        "startMs": 278570,
+        "endMs": 287562,
+        "bpm": 63.411,
+        "points": 6,
+        "maxSupport": 0.27985871197672335,
+        "localGridCoverage": 0.0967741935483871,
+        "tripletLike": false,
+        "independentMainScore": 0.17789964122085392,
+        "independentMainBpm": 240,
+        "independentLocalScore": 0.5278685176903981
+      },
+      {
+        "startMs": 316511,
+        "endMs": 323506,
+        "bpm": 72.279,
+        "points": 4,
+        "maxSupport": 0.11179780336109958,
+        "localGridCoverage": 0.053763440860215055,
+        "tripletLike": false,
+        "independentMainScore": 0.05508718463333193,
+        "independentMainBpm": 240,
+        "independentLocalScore": 0.20439299019906987
+      }
+    ],
+    "localPointCount": 462,
+    "rawBpm": 240,
+    "rawSegmentCount": 285
+  },
+  "evaluationMs": 4834
+}

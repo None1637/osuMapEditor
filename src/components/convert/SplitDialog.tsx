@@ -1,7 +1,7 @@
 // F2 参数窗口: 滑条等时间拆分 (实时预览 + 参数持久化, 照 StreamDialog 模式)
 import { useEffect, useMemo, useState } from 'react';
 import { store, useEditor } from '@/osu/store';
-import { DraggableDialog, DraftNum, loadParams, saveParams, useSaveParamsOnClose } from '../DraggableDialog';
+import { DialogButton, DraggableDialog, DraftNum, loadParams, saveParams, useSaveParamsOnClose } from '../DraggableDialog';
 import { computeSplit, DEFAULT_SPLIT_PARAMS, type SplitParams } from '@/osu/convert/split';
 import { useT } from '@/i18n';
 
@@ -60,13 +60,11 @@ export function SplitDialog() {
         ? <div className="text-red-300" data-conv="error">{error}</div>
         : <div className="text-white/40">{t('convert.split_summary', 'Will create {n} slider segments (preview shown on Playfield)', { n: result.objects.length })}</div>}
       <div className="flex gap-2 pt-1">
-        <button data-conv="apply"
+        <DialogButton uiId="apply" textKey="convert.apply" data-conv="apply"
           onClick={() => { if (!slider) return; saveParams('split', params); store.applyConversion([slider.id], result.objects); }}
           disabled={!slider || !result.objects.length}
-          className="px-3 py-1 rounded bg-pink-500 hover:bg-pink-400 disabled:opacity-40 text-white font-bold">
-          {t('convert.apply', 'Apply')}
-        </button>
-        <button onClick={() => store.closeConversion()} className="px-3 py-1 rounded bg-white/10 hover:bg-white/20">{t('convert.cancel', 'Cancel')}</button>
+          className="px-3 py-1 rounded bg-pink-500 hover:bg-pink-400 disabled:opacity-40 text-white font-bold">Apply</DialogButton>
+        <DialogButton uiId="cancel" textKey="convert.cancel" onClick={() => store.closeConversion()} className="px-3 py-1 rounded bg-white/10 hover:bg-white/20">Cancel</DialogButton>
       </div>
     </DraggableDialog>
   );

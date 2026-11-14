@@ -1,0 +1,92 @@
+{
+  "id": "sample-049",
+  "directoryName": "190529 Junk - Aihana (Love+ Edit)",
+  "beatmapFile": "Junk - Aihana (Love+ Edit) (richardfeder) [Another].osu",
+  "referenceBpm": 139.99999999999986,
+  "predictedBpm": 140,
+  "frozenBpm": 140,
+  "deterministicEvidence": true,
+  "evidence": [
+    {
+      "startMs": 83870,
+      "endMs": 89867,
+      "bpm": 80.124,
+      "points": 3,
+      "maxSupport": 0.09461025829194393,
+      "index": 0,
+      "ratioToPredictedMain": 0.5723142857142857,
+      "ratioToAnnotatedMain": 0.5723142857142862,
+      "boundary": "interior",
+      "localBpmMin": 80.124,
+      "localBpmMax": 80.124,
+      "medianSupport": 0.08618649395384922,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 42.857142857142854,
+          "first": 0.4337733405344033,
+          "second": 0.341589024259744,
+          "combined": 0.4033525161637658
+        },
+        "annotatedMain": {
+          "lag": 42.857142857142904,
+          "first": 0.4337733405344003,
+          "second": 0.34158902425974574,
+          "combined": 0.40335251616376433
+        },
+        "evidenceBpm": {
+          "lag": 74.8839299086416,
+          "first": 0.3379196451168594,
+          "second": null,
+          "combined": 0.3379196451168594
+        }
+      },
+      "objectCount": 37,
+      "objectGrid": {
+        "predictedMainHalf": 0.7027027027027027,
+        "annotatedMainHalf": 0.7027027027027027,
+        "evidenceHalf": 0.24324324324324326
+      }
+    },
+    {
+      "startMs": 87864,
+      "endMs": 94860,
+      "bpm": 80.124,
+      "points": 4,
+      "maxSupport": 0.10000577347529539,
+      "index": 1,
+      "ratioToPredictedMain": 0.5723142857142857,
+      "ratioToAnnotatedMain": 0.5723142857142862,
+      "boundary": "interior",
+      "localBpmMin": 79.814,
+      "localBpmMax": 80.124,
+      "medianSupport": 0.09570416048792066,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 42.857142857142854,
+          "first": 0.5846186353853497,
+          "second": 0.5859622998812632,
+          "combined": 0.5850620446690012
+        },
+        "annotatedMain": {
+          "lag": 42.857142857142904,
+          "first": 0.5846186353853505,
+          "second": 0.5859622998812802,
+          "combined": 0.5850620446690074
+        },
+        "evidenceBpm": {
+          "lag": 74.8839299086416,
+          "first": 0.49046561208991596,
+          "second": 0.2918340549269951,
+          "combined": 0.42491719822615215
+        }
+      },
+      "objectCount": 50,
+      "objectGrid": {
+        "predictedMainHalf": 0.7,
+        "annotatedMainHalf": 0.7,
+        "evidenceHalf": 0.2
+      }
+    }
+  ],
+  "analysisMs": 1303
+}

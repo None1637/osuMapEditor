@@ -1,0 +1,52 @@
+{
+  "id": "sample-082",
+  "directoryName": "beatmap-637195271310242821-Oomori Seiko - JUSTadICE (TV Size)",
+  "beatmapFile": "Oomori Seiko - JUSTadICE (TV Size) (None1637) [Ki Ki Ki CS4].osu",
+  "referenceBpm": 185.0000000000002,
+  "predictedBpm": 185,
+  "frozenBpm": 185,
+  "deterministicEvidence": true,
+  "evidence": [
+    {
+      "startMs": 12980,
+      "endMs": 18977,
+      "bpm": 82.358,
+      "points": 3,
+      "maxSupport": 0.2115756212621533,
+      "index": 0,
+      "ratioToPredictedMain": 0.4451783783783784,
+      "ratioToAnnotatedMain": 0.4451783783783779,
+      "boundary": "interior",
+      "localBpmMin": 82.358,
+      "localBpmMax": 82.358,
+      "medianSupport": 0.18725682032277602,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 32.432432432432435,
+          "first": null,
+          "second": null,
+          "combined": null
+        },
+        "annotatedMain": {
+          "lag": 32.4324324324324,
+          "first": null,
+          "second": null,
+          "combined": null
+        },
+        "evidenceBpm": {
+          "lag": 72.85266762184608,
+          "first": null,
+          "second": null,
+          "combined": null
+        }
+      },
+      "objectCount": 22,
+      "objectGrid": {
+        "predictedMainHalf": 1,
+        "annotatedMainHalf": 1,
+        "evidenceHalf": 0.18181818181818182
+      }
+    }
+  ],
+  "analysisMs": 810
+}

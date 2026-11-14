@@ -1,0 +1,160 @@
+{
+  "id": "sample-070",
+  "directoryName": "1558408 Mori Calliope - Excuse My Rudeness, But Could You Please RIP (Nhato Remix)",
+  "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\1558408 Mori Calliope - Excuse My Rudeness, But Could You Please RIP (Nhato Remix)",
+  "status": "ok",
+  "referenceBpm": 129.99999987,
+  "referenceVariable": false,
+  "predictedBpm": 130,
+  "predictedVariable": false,
+  "variableLines": [],
+  "trueVariableMs": 0,
+  "flaggedWindowCount": 35,
+  "flaggedWindowsOnVariable": 0,
+  "rawCandidateCount": 4,
+  "rawCandidatesOnVariable": 0,
+  "finalEvidenceCount": 0,
+  "finalEvidenceOnVariable": 0,
+  "candidates": [
+    {
+      "startMs": 998,
+      "endMs": 7994,
+      "bpm": 74.359,
+      "points": 4,
+      "maxSupport": 0.2435762943722918,
+      "localGridCoverage": 0.09803921568627451,
+      "rejection": "insufficient_margin",
+      "independentMainScore": 0.22887302506000512,
+      "independentLocalScore": 0.01845680265090243,
+      "variableOverlapMs": 0,
+      "overlapsVariable": false,
+      "tripletVotes": [
+        {
+          "timeMs": 2998.2766439909296,
+          "bpm": 74.093,
+          "localGridCoverage": 0.0967741935483871,
+          "tripletGridCoverage": 0.6774193548387096,
+          "tripletGridHalfCoverage": 0.3548387096774194,
+          "tripletGridDoubleCoverage": 0.7096774193548387
+        },
+        {
+          "timeMs": 3996.734693877551,
+          "bpm": 74.093,
+          "localGridCoverage": 0.10526315789473684,
+          "tripletGridCoverage": 0.631578947368421,
+          "tripletGridHalfCoverage": 0.3157894736842105,
+          "tripletGridDoubleCoverage": 0.6578947368421053
+        },
+        {
+          "timeMs": 4995.1927437641725,
+          "bpm": 74.628,
+          "localGridCoverage": 0.09803921568627451,
+          "tripletGridCoverage": 0.6078431372549019,
+          "tripletGridHalfCoverage": 0.3333333333333333,
+          "tripletGridDoubleCoverage": 0.6274509803921569
+        },
+        {
+          "timeMs": 5993.650793650793,
+          "bpm": 74.359,
+          "localGridCoverage": 0.07352941176470588,
+          "tripletGridCoverage": 0.5735294117647058,
+          "tripletGridHalfCoverage": 0.3235294117647059,
+          "tripletGridDoubleCoverage": 0.5882352941176471
+        }
+      ]
+    },
+    {
+      "startMs": 16974,
+      "endMs": 22971,
+      "bpm": 74.359,
+      "points": 3,
+      "maxSupport": 0.15900513965065663,
+      "localGridCoverage": 0.08433734939759036,
+      "rejection": "weak_short",
+      "independentMainScore": 0.2103059394844864,
+      "independentLocalScore": 0.21378894064191836,
+      "variableOverlapMs": 0,
+      "overlapsVariable": false,
+      "tripletVotes": [
+        {
+          "timeMs": 19972.06349206349,
+          "bpm": 74.359,
+          "localGridCoverage": 0.07692307692307693,
+          "tripletGridCoverage": 0.44871794871794873,
+          "tripletGridHalfCoverage": 0.2564102564102564,
+          "tripletGridDoubleCoverage": 0.6666666666666666
+        },
+        {
+          "timeMs": 20970.521541950115,
+          "bpm": 74.359,
+          "localGridCoverage": 0.08433734939759036,
+          "tripletGridCoverage": 0.4578313253012048,
+          "tripletGridHalfCoverage": 0.25301204819277107,
+          "tripletGridDoubleCoverage": 0.6746987951807228
+        }
+      ]
+    },
+    {
+      "startMs": 87864,
+      "endMs": 93861,
+      "bpm": 74.093,
+      "points": 3,
+      "maxSupport": 0.15341603845300236,
+      "localGridCoverage": 0.07058823529411765,
+      "rejection": "weak_short",
+      "independentMainScore": 0.15986548831595557,
+      "independentLocalScore": 0.10098650945370095,
+      "variableOverlapMs": 0,
+      "overlapsVariable": false,
+      "tripletVotes": [
+        {
+          "timeMs": 89864.12698412698,
+          "bpm": 74.093,
+          "localGridCoverage": 0.07407407407407407,
+          "tripletGridCoverage": 0.5061728395061729,
+          "tripletGridHalfCoverage": 0.2716049382716049,
+          "tripletGridDoubleCoverage": 0.6296296296296297
+        },
+        {
+          "timeMs": 90862.58503401361,
+          "bpm": 74.146,
+          "localGridCoverage": 0.07058823529411765,
+          "tripletGridCoverage": 0.4823529411764706,
+          "tripletGridHalfCoverage": 0.27058823529411763,
+          "tripletGridDoubleCoverage": 0.6235294117647059
+        }
+      ]
+    },
+    {
+      "startMs": 103839,
+      "endMs": 109836,
+      "bpm": 61.159,
+      "points": 3,
+      "maxSupport": 0.23814371741327228,
+      "localGridCoverage": 0.06,
+      "rejection": "weak_short",
+      "independentMainScore": 0.1686375732942489,
+      "independentLocalScore": -0.13455736121371617,
+      "variableOverlapMs": 0,
+      "overlapsVariable": false,
+      "tripletVotes": [
+        {
+          "timeMs": 105839.45578231293,
+          "bpm": 61.159,
+          "localGridCoverage": 0.04716981132075472,
+          "tripletGridCoverage": 0.4811320754716981,
+          "tripletGridHalfCoverage": 0.27358490566037735,
+          "tripletGridDoubleCoverage": 0.6226415094339622
+        },
+        {
+          "timeMs": 106837.91383219954,
+          "bpm": 61.159,
+          "localGridCoverage": 0.06,
+          "tripletGridCoverage": 0.48,
+          "tripletGridHalfCoverage": 0.28,
+          "tripletGridDoubleCoverage": 0.68
+        }
+      ]
+    }
+  ]
+}

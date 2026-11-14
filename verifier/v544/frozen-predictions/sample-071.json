@@ -1,0 +1,42 @@
+{
+  "id": "sample-071",
+  "directoryName": "860236 Ice vs Morimori Atushi - REUNION - Duo Blade Against -",
+  "beatmapFile": "Ice vs Morimori Atushi - REUNION - Duo Blade Against - (Astronic) [REAr9.5].osu",
+  "metadata": {
+    "Title": "REUNION - Duo Blade Against -",
+    "TitleUnicode": "REUNION - Duo Blade Against -",
+    "Artist": "Ice vs Morimori Atushi",
+    "ArtistUnicode": "Ice vs モリモリあつし",
+    "Creator": "Astronic",
+    "Version": "Re:Ar9.5",
+    "Source": "Deemo",
+    "Tags": "Ice vs Morimori Atushi REUNION - Duo Blade Against - Deemo",
+    "BeatmapID": "1825091",
+    "BeatmapSetID": "860236",
+    "Mode": "0"
+  },
+  "audioDurationMs": 137090.61224489796,
+  "redLines": [
+    {
+      "time": 1265,
+      "beatLength": 297.029702970297,
+      "bpm": 202,
+      "durationMs": 135825.61224489796
+    }
+  ],
+  "referenceBpm": 202,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 135825.61224489796,
+  "status": "ok",
+  "prediction": {
+    "bpm": 202,
+    "offsetMs": 397,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 132,
+    "rawBpm": 404,
+    "rawSegmentCount": 124
+  },
+  "evaluationMs": 1351
+}

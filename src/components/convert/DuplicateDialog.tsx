@@ -3,7 +3,8 @@
 // v68: 可选同时复制物件范围内绿线 (滑条 = 整条 duration); 向量≠0 时画布绘制箭头, 拖箭头头改向量
 import { useEffect, useMemo, useState } from 'react';
 import { store, useEditor } from '@/osu/store';
-import { DraggableDialog, DraftNum, loadParams, saveParams, useSaveParamsOnClose } from '../DraggableDialog';
+import { DialogButton, DraggableDialog, DraftNum, loadParams, saveParams, useSaveParamsOnClose } from '../DraggableDialog';
+import { UiAutoControl, UiAutoText } from '../uiLayout/UiControl'; // v533
 import { computeDuplicate, computeDuplicateTiming, computeDuplicateScaleTiming, DEFAULT_DUPLICATE_PARAMS, type DuplicateParams } from '@/osu/duplicate';
 import { sliderTailPoint } from '@/osu/objectSnap';
 import { useT } from '@/i18n';
@@ -94,11 +95,11 @@ export function DuplicateDialog() {
               <DraftNum value={a} testid="intervalNum" min={1} max={99}
                 set={v => upd({ intervalBeats: Math.round(v) / b })} />
               <span className="text-white/40">× 1 /</span>
-              <select value={String(b)} data-conv="intervalBeats"
+              <UiAutoControl localId="interval-beats"><select value={String(b)} data-conv="intervalBeats"
                 onChange={e => upd({ intervalBeats: a / parseInt(e.target.value) })}
                 className="bg-black/40 border border-white/15 rounded px-1 py-0.5 text-white">
                 {BEAT_DENOMS.map(d => <option key={d} value={d}>{d}</option>)}
-              </select>
+              </select></UiAutoControl>
               <span className="text-white/40">{t('convert.dup_beat_unit', 'beats')}</span>
             </span>
             <span className="text-white/40">{t('convert.dup_interval_hint', 'Each copy relative to the previous')}</span>
@@ -117,9 +118,9 @@ export function DuplicateDialog() {
       </Row>
       <Row label={t('convert.dup_copy_green', 'Copy Inherited Timing Points')}>
         <label className="flex items-center gap-1">
-          <input type="checkbox" checked={params.copyGreenLines} data-conv="copyGreenLines"
-            onChange={e => upd({ copyGreenLines: e.target.checked })} />
-          {t('convert.dup_copy_green_lines', 'Also copy Inherited Timing Points within object range')}
+          <UiAutoControl localId="copy-green-lines"><input type="checkbox" checked={params.copyGreenLines} data-conv="copyGreenLines"
+            onChange={e => upd({ copyGreenLines: e.target.checked })} /></UiAutoControl>
+          <UiAutoText localId="copy-green-lines" textKey="convert.dup_copy_green_lines">Also copy Inherited Timing Points within object range</UiAutoText>
           {timing.length > 0 && <span className="text-white/40">{t('convert.will_generate_count', '({n} will be generated)', { n: timing.length })}</span>}
         </label>
       </Row>
@@ -131,18 +132,18 @@ export function DuplicateDialog() {
       </Row>
       <Row label={t('convert.dup_green_scale', 'Scale with Inherited Timing Points')}>
         <label className="flex items-center gap-1">
-          <input type="checkbox" checked={params.scaleSlidersGreenLines} data-conv="scaleSlidersGreenLines"
-            onChange={e => upd({ scaleSlidersGreenLines: e.target.checked })} />
-          {t('convert.dup_add_scale_lines', 'Add Inherited Timing Points to scale sliders')}
+          <UiAutoControl localId="scale-sliders-green-lines"><input type="checkbox" checked={params.scaleSlidersGreenLines} data-conv="scaleSlidersGreenLines"
+            onChange={e => upd({ scaleSlidersGreenLines: e.target.checked })} /></UiAutoControl>
+          <UiAutoText localId="scale-sliders-green-lines" textKey="convert.dup_add_scale_lines">Add Inherited Timing Points to scale sliders</UiAutoText>
           {scaleTiming.length > 0 && <span className="text-white/40">{t('convert.will_generate_count', '({n} will be generated)', { n: scaleTiming.length })}</span>}
         </label>
       </Row>
       <Row label={t('convert.dup_anchor', 'Rotation anchor')}>
         {([['selection', t('convert.origin_selection', 'Selection center')], ['playfield', t('convert.origin_playfield', 'Playfield center')], ['custom', t('convert.custom', 'Custom')]] as const).map(([m, label]) => (
           <label key={m} className="flex items-center gap-0.5">
-            <input type="radio" name="dup-origin" checked={originMode === m} data-conv={`origin-${m}`}
-              onChange={() => store.setDupOriginMode(m)} />
-            {label}
+            <UiAutoControl localId={`origin-${m}`}><input type="radio" name="dup-origin" checked={originMode === m} data-conv={`origin-${m}`}
+              onChange={() => store.setDupOriginMode(m)} /></UiAutoControl>
+            <UiAutoText localId={`origin-${m}`}>{label}</UiAutoText>
           </label>
         ))}
       </Row>
@@ -156,17 +157,17 @@ export function DuplicateDialog() {
       {/* v437: 镜像重复 — 第 2/4/6… 份绕锚点轴向镜像 (几何含滑条形状; 平移向量不受影响) */}
       <Row label={t('convert.dup_mirror', 'Mirror repeat')}>
         <label className="flex items-center gap-1">
-          <input type="checkbox" checked={params.mirrorRepeat} data-conv="mirrorRepeat"
-            onChange={e => upd({ mirrorRepeat: e.target.checked })} />
-          {t('convert.dup_mirror_hint', 'Even copies mirrored around anchor axis')}
+          <UiAutoControl localId="mirror-repeat"><input type="checkbox" checked={params.mirrorRepeat} data-conv="mirrorRepeat"
+            onChange={e => upd({ mirrorRepeat: e.target.checked })} /></UiAutoControl>
+          <UiAutoText localId="mirror-repeat" textKey="convert.dup_mirror_hint">Even copies mirrored around anchor axis</UiAutoText>
         </label>
         {params.mirrorRepeat && (
-          <select value={params.mirrorAxis} data-conv="mirrorAxis"
+          <UiAutoControl localId="mirror-axis"><select value={params.mirrorAxis} data-conv="mirrorAxis"
             onChange={e => upd({ mirrorAxis: e.target.value as 'vertical' | 'horizontal' })}
             className="bg-black/40 border border-white/15 rounded px-1 py-0.5 text-white">
             <option value="vertical">{t('convert.dup_mirror_v', 'Vertical axis (flip left-right)')}</option>
             <option value="horizontal">{t('convert.dup_mirror_h', 'Horizontal axis (flip up-down)')}</option>
-          </select>
+          </select></UiAutoControl>
         )}
       </Row>
       <div className="text-white/40">
@@ -174,13 +175,11 @@ export function DuplicateDialog() {
       </div>
       {noAnchor && <div className="text-red-300">{t('convert.dup_spinner_no_anchor', 'No selection anchor when only Spinners are selected (Spinner position is fixed)')}</div>}
       <div className="flex gap-2 pt-1">
-        <button data-conv="apply"
+        <DialogButton uiId="apply" textKey="convert.apply" data-conv="apply"
           onClick={() => { saveParams('duplicate', params); store.applyConversion([], result, allTiming); }}
           disabled={!result.length}
-          className="px-3 py-1 rounded bg-pink-500 hover:bg-pink-400 disabled:opacity-40 text-white font-bold">
-          {t('convert.apply', 'Apply')}
-        </button>
-        <button onClick={() => store.closeConversion()} className="px-3 py-1 rounded bg-white/10 hover:bg-white/20">{t('convert.cancel', 'Cancel')}</button>
+          className="px-3 py-1 rounded bg-pink-500 hover:bg-pink-400 disabled:opacity-40 text-white font-bold">Apply</DialogButton>
+        <DialogButton uiId="cancel" textKey="convert.cancel" onClick={() => store.closeConversion()} className="px-3 py-1 rounded bg-white/10 hover:bg-white/20">Cancel</DialogButton>
       </div>
     </DraggableDialog>
   );

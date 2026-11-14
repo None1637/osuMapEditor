@@ -1,0 +1,52 @@
+{
+  "id": "sample-016",
+  "directoryName": "333823 My Chemical Romance - You Know What They Do To Guys Like Us In Prison",
+  "beatmapFile": "My Chemical Romance - You Know What They Do To Guys Like Us In Prison (pishifat) [Insane].osu",
+  "referenceBpm": 186.00000000000017,
+  "predictedBpm": 186,
+  "frozenBpm": 186,
+  "deterministicEvidence": true,
+  "evidence": [
+    {
+      "startMs": 0,
+      "endMs": 6995,
+      "bpm": 63.45,
+      "points": 4,
+      "maxSupport": 0.26517608580887253,
+      "index": 0,
+      "ratioToPredictedMain": 0.3411290322580645,
+      "ratioToAnnotatedMain": 0.34112903225806424,
+      "boundary": "start",
+      "localBpmMin": 63.411,
+      "localBpmMax": 63.45,
+      "medianSupport": 0.26517608580887253,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 32.25806451612903,
+          "first": 0.26044038481564347,
+          "second": 0.21906603062908614,
+          "combined": 0.24678684793407957
+        },
+        "annotatedMain": {
+          "lag": 32.258064516129004,
+          "first": 0.26044038481563897,
+          "second": 0.2190660306290846,
+          "combined": 0.24678684793407604
+        },
+        "evidenceBpm": {
+          "lag": 94.5626477541371,
+          "first": 0.07462454602048627,
+          "second": null,
+          "combined": 0.07462454602048627
+        }
+      },
+      "objectCount": 0,
+      "objectGrid": {
+        "predictedMainHalf": null,
+        "annotatedMainHalf": null,
+        "evidenceHalf": null
+      }
+    }
+  ],
+  "analysisMs": 1545
+}

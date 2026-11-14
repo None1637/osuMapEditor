@@ -1,0 +1,42 @@
+{
+  "id": "sample-080",
+  "directoryName": "359426 rest or stay - kageokuri feat. MuryokuP",
+  "beatmapFile": "rest or stay - kageokuri feat. MuryokuP (NekoLumi) [Hard].osu",
+  "metadata": {
+    "Title": "kageokuri feat. MuryokuP",
+    "TitleUnicode": "kageokuri feat. 無力P",
+    "Artist": "rest or stay?",
+    "ArtistUnicode": "rest or stay?",
+    "Creator": "NekoLumi",
+    "Version": "Hard",
+    "Source": "",
+    "Tags": "Megpoid Gumi Powerless Sounds Vocaloid",
+    "BeatmapID": "790260",
+    "BeatmapSetID": "359426",
+    "Mode": "0"
+  },
+  "audioDurationMs": 249000,
+  "redLines": [
+    {
+      "time": 455,
+      "beatLength": 333.333333333333,
+      "bpm": 180.0000000000002,
+      "durationMs": 248545
+    }
+  ],
+  "referenceBpm": 180.0000000000002,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 248545,
+  "status": "ok",
+  "prediction": {
+    "bpm": 180,
+    "offsetMs": 493,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 219,
+    "rawBpm": 360,
+    "rawSegmentCount": 162
+  },
+  "evaluationMs": 2234
+}

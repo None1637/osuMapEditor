@@ -1,0 +1,19 @@
+{
+  "id": "sample-026",
+  "directoryName": "847400 CHS - Interlude - teatime",
+  "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\847400 CHS - Interlude - teatime",
+  "status": "ok",
+  "referenceBpm": 100,
+  "referenceVariable": false,
+  "predictedBpm": 200,
+  "predictedVariable": false,
+  "variableLines": [],
+  "trueVariableMs": 0,
+  "flaggedWindowCount": 19,
+  "flaggedWindowsOnVariable": 0,
+  "rawCandidateCount": 0,
+  "rawCandidatesOnVariable": 0,
+  "finalEvidenceCount": 0,
+  "finalEvidenceOnVariable": 0,
+  "candidates": []
+}

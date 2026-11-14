@@ -1,0 +1,131 @@
+{
+  "version": "v544-frozen-dev",
+  "sampleCount": 100,
+  "algorithmFrozen": true,
+  "statusCounts": {
+    "ok": 98,
+    "decode_unavailable": 2
+  },
+  "categoryCounts": {
+    "variable_false_negative": 12,
+    "bpm_and_classification_error": 5,
+    "correct": 67,
+    "bpm_error": 4,
+    "octave_error": 10,
+    "decode_unavailable": 2
+  },
+  "confusion": {
+    "constant": {
+      "constant": 78,
+      "variable": 1,
+      "unavailable": 2
+    },
+    "variable": {
+      "constant": 16,
+      "variable": 3,
+      "unavailable": 0
+    },
+    "invalid_reference": {
+      "constant": 0,
+      "variable": 0,
+      "unavailable": 0
+    }
+  },
+  "allSamples": {
+    "strictMainBpm": {
+      "numerator": 79,
+      "denominator": 100,
+      "percent": 79
+    },
+    "variableClassification": {
+      "numerator": 81,
+      "denominator": 100,
+      "percent": 81
+    },
+    "bothCorrect": {
+      "numerator": 67,
+      "denominator": 100,
+      "percent": 67
+    }
+  },
+  "byReferenceClass": {
+    "constant": {
+      "total": 81,
+      "strictMainBpm": {
+        "numerator": 66,
+        "denominator": 81,
+        "percent": 81.5
+      },
+      "classification": {
+        "numerator": 78,
+        "denominator": 81,
+        "percent": 96.3
+      },
+      "both": {
+        "numerator": 66,
+        "denominator": 81,
+        "percent": 81.5
+      }
+    },
+    "variable": {
+      "total": 19,
+      "strictMainBpm": {
+        "numerator": 13,
+        "denominator": 19,
+        "percent": 68.4
+      },
+      "classification": {
+        "numerator": 3,
+        "denominator": 19,
+        "percent": 15.8
+      },
+      "both": {
+        "numerator": 1,
+        "denominator": 19,
+        "percent": 5.3
+      }
+    }
+  },
+  "complete": true,
+  "v543": {
+    "allSamples": {
+      "strictMainBpm": {
+        "numerator": 79,
+        "denominator": 100,
+        "percent": 79
+      },
+      "octaveOnlyAmongAll": {
+        "numerator": 11,
+        "denominator": 100,
+        "percent": 11
+      },
+      "variableClassification": {
+        "numerator": 81,
+        "denominator": 100,
+        "percent": 81
+      },
+      "bothCorrect": {
+        "numerator": 67,
+        "denominator": 100,
+        "percent": 67
+      }
+    },
+    "confusion": {
+      "constant": {
+        "constant": 78,
+        "variable": 1,
+        "unavailable": 2
+      },
+      "variable": {
+        "constant": 16,
+        "variable": 3,
+        "unavailable": 0
+      },
+      "invalid_reference": {
+        "constant": 0,
+        "variable": 0,
+        "unavailable": 0
+      }
+    }
+  }
+}

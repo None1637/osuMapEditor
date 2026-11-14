@@ -1,0 +1,92 @@
+{
+  "id": "sample-065",
+  "directoryName": "770829 Roselia - Guren no Yumiya",
+  "beatmapFile": "Roselia - Guren no Yumiya (- Aries -) [Expert].osu",
+  "referenceBpm": 181.00000000000017,
+  "predictedBpm": 181,
+  "frozenBpm": 181,
+  "deterministicEvidence": true,
+  "evidence": [
+    {
+      "startMs": 41935,
+      "endMs": 47932,
+      "bpm": 72.279,
+      "points": 3,
+      "maxSupport": 0.1563536970500732,
+      "index": 0,
+      "ratioToPredictedMain": 0.39933149171270715,
+      "ratioToAnnotatedMain": 0.39933149171270677,
+      "boundary": "interior",
+      "localBpmMin": 72.279,
+      "localBpmMax": 72.279,
+      "medianSupport": 0.15084423671073538,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 33.149171270718234,
+          "first": 0.3776046946539572,
+          "second": 0.37669216952527257,
+          "combined": 0.3773035613614913
+        },
+        "annotatedMain": {
+          "lag": 33.1491712707182,
+          "first": 0.3776046946539521,
+          "second": 0.3766921695252634,
+          "combined": 0.3773035613614848
+        },
+        "evidenceBpm": {
+          "lag": 83.01166313867098,
+          "first": 0.24341858758295928,
+          "second": null,
+          "combined": 0.24341858758295928
+        }
+      },
+      "objectCount": 85,
+      "objectGrid": {
+        "predictedMainHalf": 0.8941176470588236,
+        "annotatedMainHalf": 0.8941176470588236,
+        "evidenceHalf": 0.24705882352941178
+      }
+    },
+    {
+      "startMs": 84869,
+      "endMs": 90866,
+      "bpm": 60.444,
+      "points": 3,
+      "maxSupport": 0.24808253722209608,
+      "index": 1,
+      "ratioToPredictedMain": 0.3339447513812155,
+      "ratioToAnnotatedMain": 0.33394475138121515,
+      "boundary": "end",
+      "localBpmMin": 60.444,
+      "localBpmMax": 60.444,
+      "medianSupport": 0.09616720973357301,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 33.149171270718234,
+          "first": 0.23869038648817278,
+          "second": 0.2852277171927966,
+          "combined": 0.25404770562069867
+        },
+        "annotatedMain": {
+          "lag": 33.1491712707182,
+          "first": 0.23869038648816915,
+          "second": 0.2852277171927942,
+          "combined": 0.25404770562069545
+        },
+        "evidenceBpm": {
+          "lag": 99.26543577526306,
+          "first": 0.2251827738778644,
+          "second": null,
+          "combined": 0.2251827738778644
+        }
+      },
+      "objectCount": 58,
+      "objectGrid": {
+        "predictedMainHalf": 0.7931034482758621,
+        "annotatedMainHalf": 0.7931034482758621,
+        "evidenceHalf": 0.3620689655172414
+      }
+    }
+  ],
+  "analysisMs": 889
+}

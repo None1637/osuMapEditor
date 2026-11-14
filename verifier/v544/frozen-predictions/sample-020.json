@@ -1,0 +1,38 @@
+{
+  "id": "sample-020",
+  "directoryName": "42242 senya - Tsuki ni Murakumo Hana ni Kaze (Short Ver)",
+  "beatmapFile": "senya - Tsuki ni Murakumo Hana ni Kaze (Short Ver.) (eikkaleyd) [Easy].osu",
+  "metadata": {
+    "Title": "Tsuki ni Murakumo Hana ni Kaze (Short Ver.)",
+    "Artist": "senya",
+    "Creator": "eikkaleyd",
+    "Version": "Easy",
+    "Source": "Touhou",
+    "Tags": "gensoukyo kochiya sanae komeiji koishi last remote chireiten manpaku jinja zun yuuhei satellite memories phantasm OSUtoto tutuhaha suraimu_su_ sherrie__fay",
+    "Mode": "0"
+  },
+  "audioDurationMs": 101015.51020408164,
+  "redLines": [
+    {
+      "time": 55,
+      "beatLength": 375,
+      "bpm": 160,
+      "durationMs": 100960.51020408164
+    }
+  ],
+  "referenceBpm": 160,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 100960.51020408164,
+  "status": "ok",
+  "prediction": {
+    "bpm": 160,
+    "offsetMs": 650,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 95,
+    "rawBpm": 320,
+    "rawSegmentCount": 39
+  },
+  "evaluationMs": 952
+}

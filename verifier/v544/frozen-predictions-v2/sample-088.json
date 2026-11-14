@@ -1,0 +1,42 @@
+{
+  "id": "sample-088",
+  "directoryName": "1159269 Zekk - SUMMER",
+  "beatmapFile": "Zekk - SUMMER (Shima Rin) [Ichigo].osu",
+  "metadata": {
+    "Title": "SUMMER",
+    "TitleUnicode": "SUMMER",
+    "Artist": "Zekk",
+    "ArtistUnicode": "Zekk",
+    "Creator": "Shima Rin",
+    "Version": "Ichigo",
+    "Source": "osu!",
+    "Tags": "MEGAREX Trinity Force FUGENE FÜGENE 03 Future Bass M3 Spring 春 2019 MRX-037 MRX-041 Tofu1222 FAMoss Featured Artists FA Mappers' Guild MG Electronic Instrumental",
+    "BeatmapID": "2419040",
+    "BeatmapSetID": "1159269",
+    "Mode": "3"
+  },
+  "audioDurationMs": 226508.84353741497,
+  "redLines": [
+    {
+      "time": 1551,
+      "beatLength": 342.857142857143,
+      "bpm": 174.99999999999991,
+      "durationMs": 224957.84353741497
+    }
+  ],
+  "referenceBpm": 174.99999999999991,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 224957.84353741497,
+  "status": "ok",
+  "prediction": {
+    "bpm": 175,
+    "offsetMs": 214,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 222,
+    "rawBpm": 350,
+    "rawSegmentCount": 77
+  },
+  "evaluationMs": 2257
+}

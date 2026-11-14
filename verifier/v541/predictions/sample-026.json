@@ -1,0 +1,42 @@
+{
+  "id": "sample-026",
+  "directoryName": "847400 CHS - Interlude - teatime",
+  "beatmapFile": "C.H.S - Interlude - teatime (wyrio) [BinFhone's Hard].osu",
+  "metadata": {
+    "Title": "Interlude - teatime",
+    "TitleUnicode": "Interlude - teatime",
+    "Artist": "C.H.S",
+    "ArtistUnicode": "C.H.S",
+    "Creator": "wyrio",
+    "Version": "BinFhone's Hard",
+    "Source": "東方紅魔郷　～ the Embodiment of Scarlet Devil.",
+    "Tags": "上海紅茶館 Chinese Tea Shanghai Teahouse Hong Meiling  リズナ  c.h.s tpz t+pazolite 東 方 project",
+    "BeatmapID": "2005225",
+    "BeatmapSetID": "847400",
+    "Mode": "0"
+  },
+  "audioDurationMs": 63216.32653061224,
+  "redLines": [
+    {
+      "time": 2416,
+      "beatLength": 600,
+      "bpm": 100,
+      "durationMs": 60800.32653061224
+    }
+  ],
+  "referenceBpm": 100,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 60800.32653061224,
+  "status": "ok",
+  "prediction": {
+    "bpm": 200,
+    "offsetMs": 346,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 52,
+    "rawBpm": 200,
+    "rawSegmentCount": 14
+  },
+  "evaluationMs": 560
+}

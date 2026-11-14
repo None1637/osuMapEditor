@@ -1,0 +1,19 @@
+{
+  "id": "sample-051",
+  "directoryName": "773330 Nanamori-chu  Goraku-bu - Happy Time wa Owaranai (1)",
+  "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\773330 Nanamori-chu  Goraku-bu - Happy Time wa Owaranai (1)",
+  "status": "ok",
+  "referenceBpm": 189.99999999999974,
+  "referenceVariable": false,
+  "predictedBpm": 190,
+  "predictedVariable": false,
+  "variableLines": [],
+  "trueVariableMs": 0,
+  "flaggedWindowCount": 4,
+  "flaggedWindowsOnVariable": 0,
+  "rawCandidateCount": 0,
+  "rawCandidatesOnVariable": 0,
+  "finalEvidenceCount": 0,
+  "finalEvidenceOnVariable": 0,
+  "candidates": []
+}

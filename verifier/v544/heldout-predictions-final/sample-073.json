@@ -1,0 +1,42 @@
+{
+  "id": "sample-073",
+  "directoryName": "687129 Noah - Celestial stinger",
+  "beatmapFile": "Noah - Celestial stinger (Kroytz) [mithew's MAXIMUM].osu",
+  "metadata": {
+    "Title": "Celestial stinger",
+    "TitleUnicode": "Celestial stinger",
+    "Artist": "Noah",
+    "ArtistUnicode": "Noah",
+    "Creator": "Kroytz",
+    "Version": "mithew's MAXIMUM",
+    "Source": "SOUND VOLTEX III GRAVITY WARS",
+    "Tags": "Konami Bemani SDVX 5th KAC Original Song Contest Ortlinde=NBLG=Valkyria Kyuukai yaleufeu appleeaterx Suzuki_1112 1112deng PoNo Ponoyoshi mithew",
+    "BeatmapID": "1454087",
+    "BeatmapSetID": "687129",
+    "Mode": "0"
+  },
+  "audioDurationMs": 119694.14965986394,
+  "redLines": [
+    {
+      "time": 572,
+      "beatLength": 231.660231660232,
+      "bpm": 258.9999999999996,
+      "durationMs": 119122.14965986394
+    }
+  ],
+  "referenceBpm": 258.9999999999996,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 119122.14965986394,
+  "status": "ok",
+  "prediction": {
+    "bpm": 129.5,
+    "offsetMs": 603,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 113,
+    "rawBpm": 259,
+    "rawSegmentCount": 54
+  },
+  "evaluationMs": 1050
+}

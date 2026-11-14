@@ -20,6 +20,7 @@ import {
 } from '@/osu/convert/anchorStampTemplateEdit';
 import { activateAnchorStampEditor, releaseAnchorStampEditor } from '@/osu/convert/anchorStampEditScope';
 import { useT } from '@/i18n';
+import { UiAutoControl } from '../uiLayout/UiControl'; // v533
 
 interface View { scale: number; cx: number; cy: number; width: number; height: number; dpr: number }
 interface DragBase { before: AnchorStampTemplateEditState; changed: boolean }
@@ -407,7 +408,7 @@ export function AnchorStampTemplateCanvas({ uid, testid, template, base, dialogW
 
   return (
     <div ref={rootRef} data-anchor-stamp-editor={uid} data-conv={testid} onPointerDown={claim} className="relative space-y-1">
-      <canvas ref={canvasRef} data-conv={`${testid}-canvas`} tabIndex={0} style={{ height }}
+      <UiAutoControl localId={`rule.${uid}.template.canvas`} kind="canvas"><canvas ref={canvasRef} data-conv={`${testid}-canvas`} tabIndex={0} style={{ height }}
         className="block w-full rounded border border-white/15 cursor-crosshair outline-none focus:border-cyan-300/60"
         onMouseDown={onMouseDown}
         onFocus={claim}
@@ -416,7 +417,7 @@ export function AnchorStampTemplateCanvas({ uid, testid, template, base, dialogW
           if (!viewRef.current) return;
           const hit = nearestStampNode(draftRef.current.template.points, toPoint(e), viewRef.current.scale);
           if (hit >= 0) perform(s => contextStampPoint(s, hit));
-        }} />
+        }} /></UiAutoControl>
       {/* v520: 右/下/角拖动编辑区, 浮窗尺寸由父组件同步 */}
       <div data-conv={`${testid}-resize-x`} onMouseDown={e => startResize(e, true, false)}
         className="absolute -right-1 top-0 w-2 cursor-ew-resize" style={{ height }} />
@@ -427,11 +428,11 @@ export function AnchorStampTemplateCanvas({ uid, testid, template, base, dialogW
         style={{ top: height - 4 }} />
       <div className="flex items-center gap-2">
         <span className="text-white/40 text-xs">{t('convert.stamp_curve', 'Curve')}</span>
-        <select data-conv={`${testid}-curve`} value={draft.template.curveType}
+        <UiAutoControl localId={`rule.${uid}.template.curve`}><select data-conv={`${testid}-curve`} value={draft.template.curveType}
           onChange={e => perform(s => setStampCurveType(s, e.target.value))}
           className="bg-black/40 border border-white/15 rounded px-1 py-0.5 text-white text-xs">
           {['L', 'P', 'B', 'C', 'B4'].map(v => <option key={v} value={v}>{v}</option>)}
-        </select>
+        </select></UiAutoControl>
         <span className="text-white/35 text-xs">{t('convert.stamp_editor_hint', 'Alt select / Ctrl add or red anchor / Right-click delete')}</span>
       </div>
     </div>

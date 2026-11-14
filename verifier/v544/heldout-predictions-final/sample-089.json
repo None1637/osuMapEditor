@@ -1,0 +1,54 @@
+{
+  "id": "sample-089",
+  "directoryName": "329149 t+pazolite - Buzy Lake (An Remix)",
+  "beatmapFile": "t+pazolite - Buzy Lake (An Remix) (Musty) [Extra].osu",
+  "metadata": {
+    "Title": "Buzy Lake (An Remix)",
+    "TitleUnicode": "Buzy Lake (An Remix)",
+    "Artist": "t+pazolite",
+    "ArtistUnicode": "t+pazolite",
+    "Creator": "Musty",
+    "Version": "Extra",
+    "Source": "",
+    "Tags": "C.H.S rizna",
+    "BeatmapID": "729743",
+    "BeatmapSetID": "329149",
+    "Mode": "0"
+  },
+  "audioDurationMs": 270880,
+  "redLines": [
+    {
+      "time": -10,
+      "beatLength": 300,
+      "bpm": 200,
+      "durationMs": 145190
+    },
+    {
+      "time": 145190,
+      "beatLength": 4000,
+      "bpm": 15,
+      "durationMs": 1500
+    },
+    {
+      "time": 146690,
+      "beatLength": 300,
+      "bpm": 200,
+      "durationMs": 124190
+    }
+  ],
+  "referenceBpm": 200,
+  "referenceVariable": true,
+  "referenceRedLineCount": 3,
+  "referenceCoverageMs": 269380,
+  "status": "ok",
+  "prediction": {
+    "bpm": 200,
+    "offsetMs": 309,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 264,
+    "rawBpm": 400,
+    "rawSegmentCount": 168
+  },
+  "evaluationMs": 2277
+}

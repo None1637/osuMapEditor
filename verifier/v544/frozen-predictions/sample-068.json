@@ -1,0 +1,42 @@
+{
+  "id": "sample-068",
+  "directoryName": "655912 TrySail - Adrenaline!!! -TV Size-",
+  "beatmapFile": "TrySail - Adrenaline!!! -TV Size- (LuxAzure) [Yeah!!!].osu",
+  "metadata": {
+    "Title": "Adrenaline!!! -TV Size-",
+    "TitleUnicode": "Adrenaline!!! -TV Size-",
+    "Artist": "TrySail",
+    "ArtistUnicode": "TrySail",
+    "Creator": "LuxAzure",
+    "Version": "Yeah!!!",
+    "Source": "エロマンガ先生",
+    "Tags": "Eromanga-sensei ED Ending Theme JPop Long Note Release Inverse",
+    "BeatmapID": "1390006",
+    "BeatmapSetID": "655912",
+    "Mode": "3"
+  },
+  "audioDurationMs": 89744.76190476191,
+  "redLines": [
+    {
+      "time": 755,
+      "beatLength": 447.761194029851,
+      "bpm": 133.99999999999991,
+      "durationMs": 88989.76190476191
+    }
+  ],
+  "referenceBpm": 133.99999999999991,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 88989.76190476191,
+  "status": "ok",
+  "prediction": {
+    "bpm": 134,
+    "offsetMs": 552,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 85,
+    "rawBpm": 268,
+    "rawSegmentCount": 47
+  },
+  "evaluationMs": 857
+}

@@ -1,0 +1,52 @@
+{
+  "id": "sample-020",
+  "directoryName": "42242 senya - Tsuki ni Murakumo Hana ni Kaze (Short Ver)",
+  "beatmapFile": "senya - Tsuki ni Murakumo Hana ni Kaze (Short Ver.) (eikkaleyd) [Easy].osu",
+  "referenceBpm": 160,
+  "predictedBpm": 160,
+  "frozenBpm": 160,
+  "deterministicEvidence": true,
+  "evidence": [
+    {
+      "startMs": 88863,
+      "endMs": 94860,
+      "bpm": 91.468,
+      "points": 3,
+      "maxSupport": 0.1982909025172564,
+      "index": 0,
+      "ratioToPredictedMain": 0.571675,
+      "ratioToAnnotatedMain": 0.571675,
+      "boundary": "end",
+      "localBpmMin": 91.468,
+      "localBpmMax": 91.468,
+      "medianSupport": 0.13749467401985394,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 37.5,
+          "first": 0.23975095247012718,
+          "second": 0.19545385600004334,
+          "combined": 0.22513291063499952
+        },
+        "annotatedMain": {
+          "lag": 37.5,
+          "first": 0.23975095247012718,
+          "second": 0.19545385600004334,
+          "combined": 0.22513291063499952
+        },
+        "evidenceBpm": {
+          "lag": 65.5967114182009,
+          "first": -0.04621551699304727,
+          "second": 0.23180796166550194,
+          "combined": 0.04553223096427397
+        }
+      },
+      "objectCount": 6,
+      "objectGrid": {
+        "predictedMainHalf": 1,
+        "annotatedMainHalf": 1,
+        "evidenceHalf": 0.3333333333333333
+      }
+    }
+  ],
+  "analysisMs": 899
+}

@@ -1,0 +1,114 @@
+{
+  "id": "sample-084",
+  "directoryName": "2451953 omekyu - omekyu accordion",
+  "beatmapFile": "omekyu - omekyu accordion (Hayakou) [Hayakou's Julaaaan].osu",
+  "metadata": {
+    "Title": "omekyu accordion",
+    "TitleUnicode": "omekyu accordion",
+    "Artist": "omekyu",
+    "ArtistUnicode": "omekyu",
+    "Creator": "Hayakou",
+    "Version": "Hayakou's Julaaaan",
+    "Source": "",
+    "Tags": "sailor's sailors hornpipe fieryrage julaaaan",
+    "BeatmapID": "5356498",
+    "BeatmapSetID": "2451953",
+    "Mode": "0"
+  },
+  "audioDurationMs": 17450.702947845806,
+  "redLines": [
+    {
+      "time": 385,
+      "beatLength": 246.913580246914,
+      "bpm": 242.9999999999996,
+      "durationMs": 987
+    },
+    {
+      "time": 1372,
+      "beatLength": 254.237288135593,
+      "bpm": 236.00000000000023,
+      "durationMs": 1049
+    },
+    {
+      "time": 2421,
+      "beatLength": 266.666666666667,
+      "bpm": 224.9999999999997,
+      "durationMs": 1066
+    },
+    {
+      "time": 3487,
+      "beatLength": 269.058295964126,
+      "bpm": 222.99999999999966,
+      "durationMs": 1076
+    },
+    {
+      "time": 4563,
+      "beatLength": 254.237288135593,
+      "bpm": 236.00000000000023,
+      "durationMs": 1016
+    },
+    {
+      "time": 5579,
+      "beatLength": 259.74025974026,
+      "bpm": 230.99999999999977,
+      "durationMs": 3116
+    },
+    {
+      "time": 8695,
+      "beatLength": 254.237288135593,
+      "bpm": 236.00000000000023,
+      "durationMs": 2033
+    },
+    {
+      "time": 10728,
+      "beatLength": 259.74025974026,
+      "bpm": 230.99999999999977,
+      "durationMs": 1038
+    },
+    {
+      "time": 11766,
+      "beatLength": 265.486725663717,
+      "bpm": 225.99999999999986,
+      "durationMs": 1061
+    },
+    {
+      "time": 12827,
+      "beatLength": 255.31914893617,
+      "bpm": 235.0000000000002,
+      "durationMs": 2028
+    },
+    {
+      "time": 14855,
+      "beatLength": 246.913580246914,
+      "bpm": 242.9999999999996,
+      "durationMs": 987
+    },
+    {
+      "time": 15842,
+      "beatLength": 257.510729613734,
+      "bpm": 232.99999999999991,
+      "durationMs": 291
+    },
+    {
+      "time": 16133,
+      "beatLength": 258.620689655173,
+      "bpm": 231.99999999999946,
+      "durationMs": 1317.7029478458062
+    }
+  ],
+  "referenceBpm": 230.99999999999977,
+  "referenceVariable": true,
+  "referenceRedLineCount": 13,
+  "referenceCoverageMs": 4154,
+  "status": "ok",
+  "prediction": {
+    "bpm": 115.7,
+    "offsetMs": 2228,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 14,
+    "rawBpm": 115.7,
+    "rawSegmentCount": 7
+  },
+  "evaluationMs": 152
+}

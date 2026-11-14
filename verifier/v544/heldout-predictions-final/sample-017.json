@@ -1,0 +1,42 @@
+{
+  "id": "sample-017",
+  "directoryName": "616378 Masayoshi Minoshima - Bad Apple!! featnomico (Nhato Remix)",
+  "beatmapFile": "Masayoshi Minoshima - Bad Apple!! feat.nomico (Nhato Remix) (Akareh) [Limbo].osu",
+  "metadata": {
+    "Title": "Bad Apple!! feat.nomico (Nhato Remix)",
+    "TitleUnicode": "Bad Apple!! feat.nomico (Nhato Remix)",
+    "Artist": "Masayoshi Minoshima",
+    "ArtistUnicode": "簑島正佳",
+    "Creator": "Akareh",
+    "Version": "Limbo",
+    "Source": "東方幻想郷　～ Lotus Land Story",
+    "Tags": "Touhou Gensoukyou 東方Project Fantastic Home Village of the East Alstroemeria Records EDM 10th Anniversary Antlia- Reitaisai 14 アルストロメリアレコーズ",
+    "BeatmapID": "1299942",
+    "BeatmapSetID": "616378",
+    "Mode": "0"
+  },
+  "audioDurationMs": 372009.79591836734,
+  "redLines": [
+    {
+      "time": 824,
+      "beatLength": 434.782608695652,
+      "bpm": 138.00000000000006,
+      "durationMs": 371185.79591836734
+    }
+  ],
+  "referenceBpm": 138.00000000000006,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 371185.79591836734,
+  "status": "ok",
+  "prediction": {
+    "bpm": 138,
+    "offsetMs": 856,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 365,
+    "rawBpm": 276,
+    "rawSegmentCount": 78
+  },
+  "evaluationMs": 3133
+}

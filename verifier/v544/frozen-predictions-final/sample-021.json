@@ -1,0 +1,42 @@
+{
+  "id": "sample-021",
+  "directoryName": "500905 The Quick Brown Fox - Break",
+  "beatmapFile": "The Quick Brown Fox - Break (beary605) [Smash 0.95x].osu",
+  "metadata": {
+    "Title": "Break",
+    "TitleUnicode": "Break",
+    "Artist": "The Quick Brown Fox",
+    "ArtistUnicode": "The Quick Brown Fox",
+    "Creator": "beary605",
+    "Version": "Smash 0.95x",
+    "Source": "",
+    "Tags": "stamina jack just one of those days limp bizkit break stuff tqbf speedcore halley labs lapfox renard queenston electronic english mwc17 mwc2017",
+    "BeatmapID": "3086683",
+    "BeatmapSetID": "500905",
+    "Mode": "3"
+  },
+  "audioDurationMs": 102118.45804988663,
+  "redLines": [
+    {
+      "time": 948,
+      "beatLength": 242.914947368421,
+      "bpm": 247.0000329333378,
+      "durationMs": 101170.45804988663
+    }
+  ],
+  "referenceBpm": 247.0000329333378,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 101170.45804988663,
+  "status": "ok",
+  "prediction": {
+    "bpm": 123.5,
+    "offsetMs": 732,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 98,
+    "rawBpm": 247,
+    "rawSegmentCount": 42
+  },
+  "evaluationMs": 905
+}

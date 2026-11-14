@@ -1,0 +1,252 @@
+{
+  "id": "sample-089",
+  "directoryName": "722744 Camellia - put' l'da",
+  "beatmapFile": "Camellia - put' l'da (Rose Pacifica) [Frozen].osu",
+  "referenceBpm": 200,
+  "predictedBpm": 200,
+  "frozenBpm": 200,
+  "deterministicEvidence": true,
+  "evidence": [
+    {
+      "startMs": 45929,
+      "endMs": 54921,
+      "bpm": 66.683,
+      "points": 6,
+      "maxSupport": 0.3578463510181851,
+      "index": 0,
+      "ratioToPredictedMain": 0.333415,
+      "ratioToAnnotatedMain": 0.333415,
+      "boundary": "interior",
+      "localBpmMin": 61.523,
+      "localBpmMax": 66.683,
+      "medianSupport": 0.2083671024770302,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 30,
+          "first": -0.002084442613839289,
+          "second": -0.002151827387211631,
+          "combined": -0.002106679589052162
+        },
+        "annotatedMain": {
+          "lag": 30,
+          "first": -0.002084442613839289,
+          "second": -0.002151827387211631,
+          "combined": -0.002106679589052162
+        },
+        "evidenceBpm": {
+          "lag": 89.97795540092676,
+          "first": 0.09594447186385881,
+          "second": -0.0021604292776434913,
+          "combined": 0.06356985448716305
+        }
+      },
+      "objectCount": 29,
+      "objectGrid": {
+        "predictedMainHalf": 0.896551724137931,
+        "annotatedMainHalf": 0.896551724137931,
+        "evidenceHalf": 0.41379310344827586
+      }
+    },
+    {
+      "startMs": 128801,
+      "endMs": 134798,
+      "bpm": 66.683,
+      "points": 3,
+      "maxSupport": 0.16081487213214107,
+      "index": 1,
+      "ratioToPredictedMain": 0.333415,
+      "ratioToAnnotatedMain": 0.333415,
+      "boundary": "interior",
+      "localBpmMin": 61.523,
+      "localBpmMax": 66.683,
+      "medianSupport": 0.16081487213214107,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 30,
+          "first": null,
+          "second": null,
+          "combined": null
+        },
+        "annotatedMain": {
+          "lag": 30,
+          "first": null,
+          "second": null,
+          "combined": null
+        },
+        "evidenceBpm": {
+          "lag": 89.97795540092676,
+          "first": null,
+          "second": null,
+          "combined": null
+        }
+      },
+      "objectCount": 28,
+      "objectGrid": {
+        "predictedMainHalf": 0.7857142857142857,
+        "annotatedMainHalf": 0.7857142857142857,
+        "evidenceHalf": 0.35714285714285715
+      }
+    },
+    {
+      "startMs": 163747,
+      "endMs": 169744,
+      "bpm": 66.683,
+      "points": 3,
+      "maxSupport": 0.19725143605809123,
+      "index": 2,
+      "ratioToPredictedMain": 0.333415,
+      "ratioToAnnotatedMain": 0.333415,
+      "boundary": "interior",
+      "localBpmMin": 66.683,
+      "localBpmMax": 66.683,
+      "medianSupport": 0.19725143605809123,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 30,
+          "first": -0.0017589363739666294,
+          "second": -0.004394522336230211,
+          "combined": -0.0026286797415136114
+        },
+        "annotatedMain": {
+          "lag": 30,
+          "first": -0.0017589363739666294,
+          "second": -0.004394522336230211,
+          "combined": -0.0026286797415136114
+        },
+        "evidenceBpm": {
+          "lag": 89.97795540092676,
+          "first": -0.006814965306054581,
+          "second": null,
+          "combined": -0.00681496530605458
+        }
+      },
+      "objectCount": 26,
+      "objectGrid": {
+        "predictedMainHalf": 0.8846153846153846,
+        "annotatedMainHalf": 0.8846153846153846,
+        "evidenceHalf": 0.34615384615384615
+      }
+    },
+    {
+      "startMs": 166742,
+      "endMs": 172739,
+      "bpm": 114.209,
+      "points": 3,
+      "maxSupport": 0.14868974322901488,
+      "index": 3,
+      "ratioToPredictedMain": 0.571045,
+      "ratioToAnnotatedMain": 0.571045,
+      "boundary": "interior",
+      "localBpmMin": 114.209,
+      "localBpmMax": 114.209,
+      "medianSupport": 0.14661137866042254,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 30,
+          "first": -0.0024068222311141464,
+          "second": 0.05022831848425819,
+          "combined": 0.014962774204958725
+        },
+        "annotatedMain": {
+          "lag": 30,
+          "first": -0.0024068222311141464,
+          "second": 0.05022831848425819,
+          "combined": 0.014962774204958725
+        },
+        "evidenceBpm": {
+          "lag": 52.5352642961588,
+          "first": -0.003548780908565925,
+          "second": -0.002967032912160803,
+          "combined": -0.003356804069752235
+        }
+      },
+      "objectCount": 27,
+      "objectGrid": {
+        "predictedMainHalf": 0.8888888888888888,
+        "annotatedMainHalf": 0.8888888888888888,
+        "evidenceHalf": 0.2222222222222222
+      }
+    },
+    {
+      "startMs": 192702,
+      "endMs": 203691,
+      "bpm": 114.209,
+      "points": 8,
+      "maxSupport": 0.3409288787666914,
+      "index": 4,
+      "ratioToPredictedMain": 0.571045,
+      "ratioToAnnotatedMain": 0.571045,
+      "boundary": "interior",
+      "localBpmMin": 113.582,
+      "localBpmMax": 114.209,
+      "medianSupport": 0.3104593226203615,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 30,
+          "first": -0.001812508104127374,
+          "second": -0.0018607173254377959,
+          "combined": -0.0018284171471598133
+        },
+        "annotatedMain": {
+          "lag": 30,
+          "first": -0.001812508104127374,
+          "second": -0.0018607173254377959,
+          "combined": -0.0018284171471598133
+        },
+        "evidenceBpm": {
+          "lag": 52.5352642961588,
+          "first": -0.0026091827079294887,
+          "second": -0.0020740604558049974,
+          "combined": -0.0024325923647284067
+        }
+      },
+      "objectCount": 46,
+      "objectGrid": {
+        "predictedMainHalf": 0.8043478260869565,
+        "annotatedMainHalf": 0.8043478260869565,
+        "evidenceHalf": 0.1956521739130435
+      }
+    },
+    {
+      "startMs": 231642,
+      "endMs": 237639,
+      "bpm": 89.103,
+      "points": 3,
+      "maxSupport": 0.24537064782154663,
+      "index": 5,
+      "ratioToPredictedMain": 0.445515,
+      "ratioToAnnotatedMain": 0.445515,
+      "boundary": "interior",
+      "localBpmMin": 89.103,
+      "localBpmMax": 89.103,
+      "medianSupport": 0.24537064782154663,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 30,
+          "first": -0.0017589363739666424,
+          "second": -0.0018428496039269622,
+          "combined": -0.001786627739853548
+        },
+        "annotatedMain": {
+          "lag": 30,
+          "first": -0.0017589363739666424,
+          "second": -0.0018428496039269622,
+          "combined": -0.001786627739853548
+        },
+        "evidenceBpm": {
+          "lag": 67.33780007407158,
+          "first": -0.0025072380291109027,
+          "second": -0.002737401417100674,
+          "combined": -0.0025831919471475274
+        }
+      },
+      "objectCount": 40,
+      "objectGrid": {
+        "predictedMainHalf": 0.75,
+        "annotatedMainHalf": 0.75,
+        "evidenceHalf": 0.2
+      }
+    }
+  ],
+  "analysisMs": 2740
+}

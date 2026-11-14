@@ -10,6 +10,7 @@ import {
   type FsDirLike,
 } from '../osu/library';
 import { tNow, useT } from '@/i18n';
+import { UiControl, UiIcon, UiText } from './uiLayout/UiControl'; // v537
 
 /** 皮肤选择面板: 选择/拖拽 osu! 皮肤文件夹 (贴图 + hitsound), 记住选择, 可恢复默认 */
 export function SkinPicker({ onClose }: { onClose: () => void }) {
@@ -125,16 +126,16 @@ export function SkinPicker({ onClose }: { onClose: () => void }) {
 
   return (
     <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center" onClick={onClose} data-dialog="skin-picker"> {/* v431 */}
-      <div className="w-[520px] max-w-[92vw] bg-[#16161d] border border-[#333] rounded-lg flex flex-col overflow-hidden"
+      <UiControl id="skin-picker.panel"><div className="w-[520px] max-w-[92vw] bg-[#16161d] border border-[#333] rounded-lg flex flex-col overflow-hidden"
            onClick={e => e.stopPropagation()}
            onDragOver={e => { e.preventDefault(); e.stopPropagation(); setDropActive(true); }}
            onDragLeave={e => { e.stopPropagation(); setDropActive(false); }}
            onDrop={onDropDir}>
         <div className="flex items-center gap-3 px-4 py-2.5 border-b border-[#2c2c38]">
-          <span className="text-sm font-semibold flex items-center gap-1.5"><Palette className="w-4 h-4" />{t('skin.title', 'Skin')}</span>
+          <UiControl id="skin-picker.title"><span className="text-sm font-semibold flex items-center gap-1.5"><UiIcon id="skin-picker.title"><Palette className="w-4 h-4" /></UiIcon><UiText id="skin-picker.title" textKey="skin.title">Skin</UiText></span></UiControl>
           <span className="text-xs text-slate-500 truncate">{t('skin.current', 'Current: {name}', { name: source === '默认皮肤' ? t('skin.defaultSkinName', 'Default Skin') : source })}</span>
           <div className="flex-1" />
-          <button className="text-xs px-2 py-1 rounded bg-[#2c2c38] hover:bg-[#3c3c4c] flex items-center" onClick={onClose}><X className="w-3.5 h-3.5" /></button>
+          <UiControl id="skin-picker.close"><button className="text-xs px-2 py-1 rounded bg-[#2c2c38] hover:bg-[#3c3c4c] flex items-center" onClick={onClose}><UiIcon id="skin-picker.close"><X className="w-3.5 h-3.5" /></UiIcon></button></UiControl>
         </div>
 
         <div className="p-5 flex flex-col items-center gap-3 relative">
@@ -148,20 +149,20 @@ export function SkinPicker({ onClose }: { onClose: () => void }) {
             <br />{t('skin.desc_line2', 'Textures and hitsounds are both applied; your choice is remembered and restored next time.')}
           </div>
           {permNeeded ? (
-            <button className="px-4 py-2 rounded bg-[#e6437d] hover:bg-[#f0558e] text-sm font-medium disabled:opacity-40"
+            <UiControl id="skin-picker.grant"><button className="px-4 py-2 rounded bg-[#e6437d] hover:bg-[#f0558e] text-sm font-medium disabled:opacity-40"
                     disabled={busy} onClick={grantPerm}>
-              {t('skin.grant_access', 'Grant access to "{name}"', { name: nativeHandle?.name ?? '' })}
-            </button>
+              <UiText id="skin-picker.grant" textKey="skin.grant_access" vars={{ name: nativeHandle?.name ?? '' }}>{'Grant access to "{name}"'}</UiText>
+            </button></UiControl>
           ) : (
             <div className="flex gap-2">
-              <button className="px-4 py-2 rounded bg-[#e6437d] hover:bg-[#f0558e] text-sm font-medium disabled:opacity-40"
+              <UiControl id="skin-picker.choose"><button className="px-4 py-2 rounded bg-[#e6437d] hover:bg-[#f0558e] text-sm font-medium disabled:opacity-40"
                       disabled={busy} onClick={chooseDir}>
-                {busy ? t('skin.loading', 'Loading…') : t('skin.choose_folder', 'Choose Skin Folder…')}
-              </button>
-              <button className="px-4 py-2 rounded bg-[#2c2c38] hover:bg-[#3c3c4c] text-sm disabled:opacity-40"
+                <UiText id="skin-picker.choose" textKey={busy ? 'skin.loading' : 'skin.choose_folder'}>{busy ? 'Loading…' : 'Choose Skin Folder…'}</UiText>
+              </button></UiControl>
+              <UiControl id="skin-picker.reset"><button className="px-4 py-2 rounded bg-[#2c2c38] hover:bg-[#3c3c4c] text-sm disabled:opacity-40"
                       disabled={busy} onClick={resetDefault}>
-                {t('skin.reset_default', 'Restore Default Skin')}
-              </button>
+                <UiText id="skin-picker.reset" textKey="skin.reset_default">Restore Default Skin</UiText>
+              </button></UiControl>
             </div>
           )}
           <div className="text-[11px] text-slate-600 text-center">
@@ -174,7 +175,7 @@ export function SkinPicker({ onClose }: { onClose: () => void }) {
             ? <div className="text-[10px] text-slate-600">{t('skin.log_label', 'Log')}</div>
             : log.map((l, i) => <div key={i} className="text-[10px] text-slate-500 font-mono truncate">{l}</div>)}
         </div>
-      </div>
+      </div></UiControl>
     </div>
   );
 }

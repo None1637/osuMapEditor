@@ -1,0 +1,48 @@
+{
+  "id": "sample-031",
+  "directoryName": "2250663 Yousei Teikoku - Zetsubou plantation",
+  "beatmapFile": "Yousei Teikoku - Zetsubou plantation (Cut Ver.) (kolman) [PikA's Extra].osu",
+  "metadata": {
+    "Title": "Zetsubou plantation (Cut Ver.)",
+    "TitleUnicode": "絶望plantation (Cut Ver.)",
+    "Artist": "Yousei Teikoku",
+    "ArtistUnicode": "妖精帝國",
+    "Creator": "kolman",
+    "Version": "PikA's Extra",
+    "Source": "",
+    "Tags": "kuki1537 plasma reform kujinn -azumi pikaqours not dt farmer not_dt_farmer sstari announcerf kudou chitose mrrrk parad0xa paradoxa daaanni fuxi fuxi66 laurier amats koyorin-sama koyorin sayucat_ sayu shime froskya revialink kxlman single filament japanese rock yui itsuki takaha tachibana fairy empire 終身独裁官ゆい dictator for life hades:the hades: hades the other world jrock j-rock short version",
+    "BeatmapID": "4793476",
+    "BeatmapSetID": "2250663",
+    "Mode": "0"
+  },
+  "audioDurationMs": 110173.78684807257,
+  "redLines": [
+    {
+      "time": 655,
+      "beatLength": 260.869565217391,
+      "bpm": 230.00000000000026,
+      "durationMs": 77217
+    },
+    {
+      "time": 77872,
+      "beatLength": 260.869565217391,
+      "bpm": 230.00000000000026,
+      "durationMs": 32301.786848072574
+    }
+  ],
+  "referenceBpm": 230.00000000000026,
+  "referenceVariable": false,
+  "referenceRedLineCount": 2,
+  "referenceCoverageMs": 109518.78684807257,
+  "status": "ok",
+  "prediction": {
+    "bpm": 230,
+    "offsetMs": 423,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 103,
+    "rawBpm": 230,
+    "rawSegmentCount": 23
+  },
+  "evaluationMs": 1015
+}

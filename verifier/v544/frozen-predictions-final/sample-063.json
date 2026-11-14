@@ -1,0 +1,42 @@
+{
+  "id": "sample-063",
+  "directoryName": "senya - otogibanashi no karakuri ha,",
+  "beatmapFile": "senya - Otogibanashi no karakuri ha, (Xzzj) [Karakuri2].osu",
+  "metadata": {
+    "Title": "Otogibanashi no karakuri ha,",
+    "TitleUnicode": "御伽噺のカラクリは、",
+    "Artist": "senya",
+    "ArtistUnicode": "森永真由美",
+    "Creator": "Xzzj",
+    "Version": "Karakuri2",
+    "Source": "東方永夜抄　～ Imperishable Night.",
+    "Tags": "Touhou 蓬莱山 輝夜 ほうらいさん かぐや Houraisan Kaguya 竹取飛翔　～ Lunatic Princess Taketori Hishou　~ Lunatic Princess Flight of the Bamboo Cutter ~ Lunatic Princess 幽閉サテライト Yuuhei Satellite",
+    "BeatmapID": "0",
+    "BeatmapSetID": "-1",
+    "Mode": "3"
+  },
+  "audioDurationMs": 240000,
+  "redLines": [
+    {
+      "time": 1770,
+      "beatLength": 447.761194029851,
+      "bpm": 133.99999999999991,
+      "durationMs": 238230
+    }
+  ],
+  "referenceBpm": 133.99999999999991,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 238230,
+  "status": "ok",
+  "prediction": {
+    "bpm": 134,
+    "offsetMs": 468,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 235,
+    "rawBpm": 268,
+    "rawSegmentCount": 69
+  },
+  "evaluationMs": 2055
+}

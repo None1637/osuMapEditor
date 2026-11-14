@@ -1,0 +1,25 @@
+{
+  "version": "v568-hierarchical-independent-recheck-v1",
+  "passed": true,
+  "comparisonRows": 90,
+  "candidateAndCorrectionSourcesVerified": true,
+  "csvVerified": true,
+  "groupsVerified": [
+    "overall",
+    "perSample",
+    "perStratum",
+    "perFold"
+  ],
+  "hypotheses": {
+    "H1": false,
+    "H2": false,
+    "H3": true
+  },
+  "targetAchieved": false,
+  "sample044AtLeast80Preserved": true,
+  "noClearRateNotIncreased": false,
+  "audibleCorrectRate": 0.6199407400211295,
+  "deltaFromE5": -0.08479762960084525,
+  "netFixedWeightFromE5": -155.17777777777778,
+  "failures": []
+}

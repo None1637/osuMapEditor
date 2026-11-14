@@ -1,0 +1,514 @@
+{
+  "id": "sample-067",
+  "directoryName": "732851 LeaF - Lyrith",
+  "beatmapFile": "LeaF - Lyrith (aquarus91) [Maximum].osu",
+  "selectionGroup": "variable-other-hash",
+  "referenceVariable": true,
+  "referenceBpm": 176.9999999999998,
+  "denseRedLineCount": 0,
+  "globalDelay": {
+    "delayMs": 18.75,
+    "score": 0.11188030009713039,
+    "zeroDelayScore": 0.029302520187689352,
+    "calibrationHitCount": 791
+  },
+  "fullEnvelopeMaxAbsDifference": 0,
+  "redlines": [
+    {
+      "timeMs": 758,
+      "endMs": 130249,
+      "durationMs": 129491,
+      "bpm": 176.9999999999998
+    },
+    {
+      "timeMs": 130249,
+      "endMs": 138384,
+      "durationMs": 8135,
+      "bpm": 353.9999999999996
+    },
+    {
+      "timeMs": 138384,
+      "endMs": 150334.693877551,
+      "durationMs": 11950.693877551006,
+      "bpm": 176.9999999999998
+    }
+  ],
+  "hitCount": 792,
+  "denseHitCount": 0,
+  "configurations": [
+    {
+      "aggregate": "max",
+      "method": "independent",
+      "actualFullFit": {
+        "all": {
+          "count": 792,
+          "matched": 689,
+          "within5": 549,
+          "within5msAll": 0.6931818181818182,
+          "medianAbsMs": 1.5730013194843195,
+          "p95AbsMs": 8.339340786282264
+        },
+        "stable": {
+          "count": 792,
+          "matched": 689,
+          "within5": 549,
+          "within5msAll": 0.6931818181818182,
+          "medianAbsMs": 1.5730013194843195,
+          "p95AbsMs": 8.339340786282264
+        }
+      },
+      "actualCrossFit": {
+        "all": {
+          "count": 792,
+          "matched": 688,
+          "within5": 537,
+          "within5msAll": 0.678030303030303,
+          "medianAbsMs": 1.5973088824903243,
+          "p95AbsMs": 8.590743686039056
+        },
+        "stable": {
+          "count": 792,
+          "matched": 688,
+          "within5": 537,
+          "within5msAll": 0.678030303030303,
+          "medianAbsMs": 1.5973088824903243,
+          "p95AbsMs": 8.590743686039056
+        }
+      },
+      "nullFullFit": {
+        "all": {
+          "count": 792,
+          "matched": 376,
+          "within5": 200,
+          "within5msAll": 0.25252525252525254,
+          "medianAbsMs": 4.683221615579896,
+          "p95AbsMs": 9.42421282934447
+        },
+        "stable": {
+          "count": 792,
+          "matched": 376,
+          "within5": 200,
+          "within5msAll": 0.25252525252525254,
+          "medianAbsMs": 4.683221615579896,
+          "p95AbsMs": 9.42421282934447
+        }
+      },
+      "nullCrossFit": {
+        "all": {
+          "count": 792,
+          "matched": 388,
+          "within5": 174,
+          "within5msAll": 0.2196969696969697,
+          "medianAbsMs": 5.501457262009808,
+          "p95AbsMs": 9.571888907728134
+        },
+        "stable": {
+          "count": 792,
+          "matched": 388,
+          "within5": 174,
+          "within5msAll": 0.2196969696969697,
+          "medianAbsMs": 5.501457262009808,
+          "p95AbsMs": 9.571888907728134
+        }
+      },
+      "phases": {
+        "actual": {
+          "all": [
+            0,
+            -0.5,
+            8.5
+          ],
+          "even": [
+            -0.5,
+            -1,
+            6.5
+          ],
+          "odd": [
+            0,
+            0.5,
+            7
+          ]
+        },
+        "null": {
+          "all": [
+            -30,
+            17,
+            13.5
+          ],
+          "even": [
+            -29.5,
+            -26.5,
+            11.5
+          ],
+          "odd": [
+            21,
+            17,
+            3
+          ]
+        }
+      },
+      "evenOddMedianAbsDifferenceMs": 0.5,
+      "evenOddWithin5msProportion": 1
+    },
+    {
+      "aggregate": "max",
+      "method": "dp",
+      "actualFullFit": {
+        "all": {
+          "count": 792,
+          "matched": 689,
+          "within5": 549,
+          "within5msAll": 0.6931818181818182,
+          "medianAbsMs": 1.5730013194843195,
+          "p95AbsMs": 8.339340786282264
+        },
+        "stable": {
+          "count": 792,
+          "matched": 689,
+          "within5": 549,
+          "within5msAll": 0.6931818181818182,
+          "medianAbsMs": 1.5730013194843195,
+          "p95AbsMs": 8.339340786282264
+        }
+      },
+      "actualCrossFit": {
+        "all": {
+          "count": 792,
+          "matched": 688,
+          "within5": 537,
+          "within5msAll": 0.678030303030303,
+          "medianAbsMs": 1.5973088824903243,
+          "p95AbsMs": 8.590743686039056
+        },
+        "stable": {
+          "count": 792,
+          "matched": 688,
+          "within5": 537,
+          "within5msAll": 0.678030303030303,
+          "medianAbsMs": 1.5973088824903243,
+          "p95AbsMs": 8.590743686039056
+        }
+      },
+      "nullFullFit": {
+        "all": {
+          "count": 792,
+          "matched": 376,
+          "within5": 200,
+          "within5msAll": 0.25252525252525254,
+          "medianAbsMs": 4.683221615579896,
+          "p95AbsMs": 9.42421282934447
+        },
+        "stable": {
+          "count": 792,
+          "matched": 376,
+          "within5": 200,
+          "within5msAll": 0.25252525252525254,
+          "medianAbsMs": 4.683221615579896,
+          "p95AbsMs": 9.42421282934447
+        }
+      },
+      "nullCrossFit": {
+        "all": {
+          "count": 792,
+          "matched": 388,
+          "within5": 174,
+          "within5msAll": 0.2196969696969697,
+          "medianAbsMs": 5.501457262009808,
+          "p95AbsMs": 9.571888907728134
+        },
+        "stable": {
+          "count": 792,
+          "matched": 388,
+          "within5": 174,
+          "within5msAll": 0.2196969696969697,
+          "medianAbsMs": 5.501457262009808,
+          "p95AbsMs": 9.571888907728134
+        }
+      },
+      "phases": {
+        "actual": {
+          "all": [
+            0,
+            -0.5,
+            8.5
+          ],
+          "even": [
+            -0.5,
+            -1,
+            6.5
+          ],
+          "odd": [
+            0,
+            0.5,
+            7
+          ]
+        },
+        "null": {
+          "all": [
+            -30,
+            17,
+            13.5
+          ],
+          "even": [
+            -29.5,
+            -26.5,
+            11.5
+          ],
+          "odd": [
+            21,
+            17,
+            3
+          ]
+        }
+      },
+      "evenOddMedianAbsDifferenceMs": 0.5,
+      "evenOddWithin5msProportion": 1
+    },
+    {
+      "aggregate": "top2",
+      "method": "independent",
+      "actualFullFit": {
+        "all": {
+          "count": 792,
+          "matched": 689,
+          "within5": 549,
+          "within5msAll": 0.6931818181818182,
+          "medianAbsMs": 1.5167178865376627,
+          "p95AbsMs": 8.339340786282264
+        },
+        "stable": {
+          "count": 792,
+          "matched": 689,
+          "within5": 549,
+          "within5msAll": 0.6931818181818182,
+          "medianAbsMs": 1.5167178865376627,
+          "p95AbsMs": 8.339340786282264
+        }
+      },
+      "actualCrossFit": {
+        "all": {
+          "count": 792,
+          "matched": 689,
+          "within5": 540,
+          "within5msAll": 0.6818181818181818,
+          "medianAbsMs": 1.568215654049709,
+          "p95AbsMs": 8.526706315233605
+        },
+        "stable": {
+          "count": 792,
+          "matched": 689,
+          "within5": 540,
+          "within5msAll": 0.6818181818181818,
+          "medianAbsMs": 1.568215654049709,
+          "p95AbsMs": 8.526706315233605
+        }
+      },
+      "nullFullFit": {
+        "all": {
+          "count": 792,
+          "matched": 377,
+          "within5": 202,
+          "within5msAll": 0.255050505050505,
+          "medianAbsMs": 4.638851299227099,
+          "p95AbsMs": 9.422904815684888
+        },
+        "stable": {
+          "count": 792,
+          "matched": 377,
+          "within5": 202,
+          "within5msAll": 0.255050505050505,
+          "medianAbsMs": 4.638851299227099,
+          "p95AbsMs": 9.422904815684888
+        }
+      },
+      "nullCrossFit": {
+        "all": {
+          "count": 792,
+          "matched": 377,
+          "within5": 189,
+          "within5msAll": 0.23863636363636365,
+          "medianAbsMs": 4.984456034631876,
+          "p95AbsMs": 9.456512119948457
+        },
+        "stable": {
+          "count": 792,
+          "matched": 377,
+          "within5": 189,
+          "within5msAll": 0.23863636363636365,
+          "medianAbsMs": 4.984456034631876,
+          "p95AbsMs": 9.456512119948457
+        }
+      },
+      "phases": {
+        "actual": {
+          "all": [
+            0,
+            1,
+            8.5
+          ],
+          "even": [
+            -0.5,
+            -0.5,
+            8.5
+          ],
+          "odd": [
+            0,
+            0.5,
+            7.5
+          ]
+        },
+        "null": {
+          "all": [
+            -30,
+            17.5,
+            11.5
+          ],
+          "even": [
+            -29.5,
+            -26.5,
+            11.5
+          ],
+          "odd": [
+            25.5,
+            17.5,
+            3
+          ]
+        }
+      },
+      "evenOddMedianAbsDifferenceMs": 1,
+      "evenOddWithin5msProportion": 1
+    },
+    {
+      "aggregate": "top2",
+      "method": "dp",
+      "actualFullFit": {
+        "all": {
+          "count": 792,
+          "matched": 689,
+          "within5": 549,
+          "within5msAll": 0.6931818181818182,
+          "medianAbsMs": 1.5167178865376627,
+          "p95AbsMs": 8.339340786282264
+        },
+        "stable": {
+          "count": 792,
+          "matched": 689,
+          "within5": 549,
+          "within5msAll": 0.6931818181818182,
+          "medianAbsMs": 1.5167178865376627,
+          "p95AbsMs": 8.339340786282264
+        }
+      },
+      "actualCrossFit": {
+        "all": {
+          "count": 792,
+          "matched": 689,
+          "within5": 540,
+          "within5msAll": 0.6818181818181818,
+          "medianAbsMs": 1.568215654049709,
+          "p95AbsMs": 8.526706315233605
+        },
+        "stable": {
+          "count": 792,
+          "matched": 689,
+          "within5": 540,
+          "within5msAll": 0.6818181818181818,
+          "medianAbsMs": 1.568215654049709,
+          "p95AbsMs": 8.526706315233605
+        }
+      },
+      "nullFullFit": {
+        "all": {
+          "count": 792,
+          "matched": 377,
+          "within5": 202,
+          "within5msAll": 0.255050505050505,
+          "medianAbsMs": 4.638851299227099,
+          "p95AbsMs": 9.422904815684888
+        },
+        "stable": {
+          "count": 792,
+          "matched": 377,
+          "within5": 202,
+          "within5msAll": 0.255050505050505,
+          "medianAbsMs": 4.638851299227099,
+          "p95AbsMs": 9.422904815684888
+        }
+      },
+      "nullCrossFit": {
+        "all": {
+          "count": 792,
+          "matched": 377,
+          "within5": 189,
+          "within5msAll": 0.23863636363636365,
+          "medianAbsMs": 4.984456034631876,
+          "p95AbsMs": 9.456512119948457
+        },
+        "stable": {
+          "count": 792,
+          "matched": 377,
+          "within5": 189,
+          "within5msAll": 0.23863636363636365,
+          "medianAbsMs": 4.984456034631876,
+          "p95AbsMs": 9.456512119948457
+        }
+      },
+      "phases": {
+        "actual": {
+          "all": [
+            0,
+            1,
+            8.5
+          ],
+          "even": [
+            -0.5,
+            -0.5,
+            8.5
+          ],
+          "odd": [
+            0,
+            0.5,
+            7.5
+          ]
+        },
+        "null": {
+          "all": [
+            -30,
+            17.5,
+            11.5
+          ],
+          "even": [
+            -29.5,
+            -26.5,
+            11.5
+          ],
+          "odd": [
+            25.5,
+            17.5,
+            3
+          ]
+        }
+      },
+      "evenOddMedianAbsDifferenceMs": 1,
+      "evenOddWithin5msProportion": 1
+    }
+  ],
+  "baselineGlobalOnly": {
+    "all": {
+      "count": 792,
+      "matched": 679,
+      "within5": 531,
+      "within5msAll": 0.6704545454545454,
+      "medianAbsMs": 1.5726331308251247,
+      "p95AbsMs": 8.678065121448892
+    },
+    "stable": {
+      "count": 792,
+      "matched": 679,
+      "within5": 531,
+      "within5msAll": 0.6704545454545454,
+      "medianAbsMs": 1.5726331308251247,
+      "p95AbsMs": 8.678065121448892
+    }
+  }
+}

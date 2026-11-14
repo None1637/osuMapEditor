@@ -1,0 +1,66 @@
+{
+  "id": "sample-040",
+  "directoryName": "29183 ZUN - Night Sakura of Dead Spirits",
+  "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\29183 ZUN - Night Sakura of Dead Spirits",
+  "status": "ok",
+  "referenceBpm": 147.00000000000017,
+  "referenceVariable": true,
+  "predictedBpm": 147,
+  "predictedVariable": false,
+  "variableLines": [
+    {
+      "time": 20,
+      "beatLength": 425.531914893617,
+      "bpm": 141,
+      "durationMs": 11702
+    }
+  ],
+  "trueVariableMs": 11702,
+  "flaggedWindowCount": 28,
+  "flaggedWindowsOnVariable": 8,
+  "rawCandidateCount": 1,
+  "rawCandidatesOnVariable": 0,
+  "finalEvidenceCount": 0,
+  "finalEvidenceOnVariable": 0,
+  "candidates": [
+    {
+      "startMs": 89861,
+      "endMs": 96856,
+      "bpm": 84.032,
+      "points": 4,
+      "maxSupport": 0.20868295703296982,
+      "localGridCoverage": 0.16129032258064516,
+      "rejection": "insufficient_margin",
+      "independentMainScore": 0.28821972285400554,
+      "independentLocalScore": 0.2560097473317987,
+      "variableOverlapMs": 0,
+      "overlapsVariable": false,
+      "tripletVotes": [
+        {
+          "timeMs": 91861.04308390022,
+          "bpm": 84.032,
+          "localGridCoverage": 0.1388888888888889,
+          "tripletGridCoverage": 0.6111111111111112,
+          "tripletGridHalfCoverage": 0.3611111111111111,
+          "tripletGridDoubleCoverage": 0.8333333333333334
+        },
+        {
+          "timeMs": 92859.50113378685,
+          "bpm": 84.032,
+          "localGridCoverage": 0.16129032258064516,
+          "tripletGridCoverage": 0.6774193548387096,
+          "tripletGridHalfCoverage": 0.3870967741935484,
+          "tripletGridDoubleCoverage": 0.8064516129032258
+        },
+        {
+          "timeMs": 93857.95918367346,
+          "bpm": 84.032,
+          "localGridCoverage": 0.15,
+          "tripletGridCoverage": 0.75,
+          "tripletGridHalfCoverage": 0.4,
+          "tripletGridDoubleCoverage": 0.9
+        }
+      ]
+    }
+  ]
+}

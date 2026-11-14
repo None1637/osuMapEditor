@@ -8,6 +8,74 @@ import fs from "node:fs"
 import path from "node:path"
 
 const JSON_TYPE = "application/json; charset=utf-8"
+const TREE_CONCURRENCY = 16
+const READ_BATCH_MAX = 16
+
+/** v575: 一次请求返回曲库全部 .osu manifest; 不递归目录 symlink, 防循环 */
+async function osuTree(rootAbs) {
+  const pending = [rootAbs]
+  const out = []
+  let next = 0
+  const worker = async () => {
+    while (next < pending.length) {
+      const dir = pending[next++]
+      let entries
+      try { entries = await fs.promises.readdir(dir, { withFileTypes: true }) } catch { continue }
+      for (const entry of entries) {
+        const abs = path.join(dir, entry.name)
+        if (entry.isDirectory()) { pending.push(abs); continue }
+        if (!entry.isFile() || !entry.name.toLowerCase().endsWith('.osu')) continue
+        try {
+          const st = await fs.promises.stat(abs)
+          out.push({ rel: path.relative(rootAbs, abs).split(path.sep).join('/'), size: st.size, lastModified: Math.round(st.mtimeMs) })
+        } catch { /* 文件消失/无权限时跳过 */ }
+      }
+    }
+  }
+  await Promise.all(Array.from({ length: TREE_CONCURRENCY }, worker))
+  return out.sort((a, b) => a.rel.localeCompare(b.rel))
+}
+
+/** v576: 按 Songs 顶层目录分页; 首屏不必等整棵曲库递归完成 */
+async function osuTreePage(rootAbs, offset, limit) {
+  const entries = await fs.promises.readdir(rootAbs, { withFileTypes: true })
+  const dirs = entries.filter(e => e.isDirectory()).sort((a, b) => a.name.localeCompare(b.name))
+  const page = dirs.slice(offset, offset + limit)
+  const out = []
+  let next = 0
+  const worker = async () => {
+    while (next < page.length) {
+      const dir = path.join(rootAbs, page[next++].name)
+      let children
+      try { children = await fs.promises.readdir(dir, { withFileTypes: true }) } catch { continue }
+      for (const entry of children) {
+        if (!entry.isFile() || !entry.name.toLowerCase().endsWith('.osu')) continue
+        const abs = path.join(dir, entry.name)
+        try {
+          const st = await fs.promises.stat(abs)
+          out.push({ rel: path.relative(rootAbs, abs).split(path.sep).join('/'), size: st.size, lastModified: Math.round(st.mtimeMs) })
+        } catch { /* 文件消失/无权限时跳过 */ }
+      }
+    }
+  }
+  await Promise.all(Array.from({ length: TREE_CONCURRENCY }, worker))
+  return { files: out.sort((a, b) => a.rel.localeCompare(b.rel)), total: dirs.length, nextOffset: offset + page.length < dirs.length ? offset + page.length : null }
+}
+
+/** v575: 有界批读, 单文件错误只跳过该项 */
+async function readOsuBatch(rootAbs, files) {
+  const out = await Promise.all(files.map(async rel => {
+    const abs = path.resolve(rootAbs, rel)
+    if (abs !== rootAbs && !abs.startsWith(rootAbs + path.sep)) return null
+    try {
+      const st = await fs.promises.stat(abs)
+      if (!st.isFile()) return null
+      const text = await fs.promises.readFile(abs, 'utf8')
+      return { rel, text, size: st.size, lastModified: Math.round(st.mtimeMs) }
+    } catch { return null }
+  }))
+  return out.filter(Boolean)
+}
 
 /**
  * @param {() => { songs: string | null, skin: string | null }} getDirs 返回两个根目录 (null=未配置)
@@ -51,6 +119,24 @@ export function createLocalFsHandler(getDirs) {
       //   v444 audioKey (name:size:lastModified) 在服务器模式由此稳定, 刷新谱面命中解码缓存;
       //   两个挂载点 (electron/main.cjs / vite.config.ts) 负责透传 headers
       return { status: 200, contentType: "application/octet-stream", body: data, headers: { "X-File-Mtime": String(Math.round(mtimeMs)) } }
+    }
+    if (pathname === "/api/local-fs/tree-page") {
+      const parsedOffset = Number.parseInt(searchParams.get("offset") ?? "0", 10)
+      const parsedLimit = Number.parseInt(searchParams.get("limit") ?? "256", 10)
+      const offset = Number.isFinite(parsedOffset) ? Math.max(0, parsedOffset) : 0
+      const limit = Number.isFinite(parsedLimit) ? Math.min(256, Math.max(1, parsedLimit)) : 256
+      return json(200, await osuTreePage(rootAbs, offset, limit))
+    }
+    if (pathname === "/api/local-fs/tree") {
+      return json(200, { files: await osuTree(rootAbs) })
+    }
+    if (pathname === "/api/local-fs/read-batch") {
+      if (method !== "POST") return json(405, { error: "只支持 POST" })
+      let files
+      try { files = JSON.parse((body ?? Buffer.alloc(0)).toString('utf8')).files } catch { return json(400, { error: "非法 JSON" }) }
+      if (!Array.isArray(files) || !files.length || files.length > READ_BATCH_MAX || files.some(f => typeof f !== 'string'))
+        return json(400, { error: `文件批次需为 1..${READ_BATCH_MAX} 个路径` })
+      return json(200, { files: await readOsuBatch(rootAbs, files) })
     }
     // Ctrl+S 保存谱面写回 (POST, body = 文件内容; 沿用上方越界防护, 只允许写根目录内的文件)
     if (pathname === "/api/local-fs/write") {

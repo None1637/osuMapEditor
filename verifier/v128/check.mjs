@@ -1,6 +1,6 @@
 // v128 源码接线断言: 歌曲库会话缓存 — 二次打开免重扫 + 记住上次位置
 // v290: 曲库改扁平难度列表, 缓存结构换为索引条目 (dirs/meta/diffs → LibraryIndexEntry[]),
-// 断言同步更新; 规则不变 — 显式扫描失效 / 扫描中途关闭不写缓存 / 滚动·搜索词·选中记忆。
+// 断言同步更新; v575 起中途关闭也保存进度并在重开后续扫, 其余缓存规则不变。
 // 运行: node verifier/v128/check.mjs
 import fs from 'fs';
 import path from 'path';
@@ -18,7 +18,7 @@ const sl = read('src/components/SongLibrary.tsx');
 assert(/interface LibraryCache \{/.test(sl), 'LibraryCache 结构定义');
 assert(/rootName: string;/.test(sl) && /scrollTop: number;/.test(sl) && /filter: string;/.test(sl) && /selKey: string \| null;/.test(sl) && /entries: LibraryIndexEntry\[\];/.test(sl), '缓存含目录名/滚动/搜索/选中/索引条目');
 assert(/let libraryCache: LibraryCache \| null = null;/.test(sl), '模块级会话缓存单例');
-assert(/libraryCache = null; \/\/ v128: 任何显式扫描/.test(sl), 'startScan 顶部使缓存失效 (重新扫描/换目录/拖拽/授权)');
+assert(/if \(!preserveView\) libraryCache = null; \/\/ v575/.test(sl), '显式扫描使缓存失效; 续扫 preserveView 例外 (v575)');
 
 // 状态初值取缓存 (免重扫 + 位置记忆)
 assert(/useState<LibraryIndexEntry\[\]>\(\(\) => libraryCache\?\.entries \?\? \[\]\)/.test(sl), '索引条目初值取缓存');
@@ -36,16 +36,16 @@ const hitIdx = sl.indexOf("tNow('library.restored_list_from_cache'");
 const scanAfterHit = sl.indexOf('startScan(mem.dir'); // v297: 调用带 native 参数, 前缀匹配
 assert(hitIdx > 0 && scanAfterHit > hitIdx, '缓存命中分支在 startScan 之前 (命中即 return 不扫)');
 
-// 扫描完成才允许写缓存 (中途关闭不写, 防残缺列表)
+// v575: 中途关闭也保存骨架/进度, complete 标记决定重开后是否续扫
 assert(/scanDoneRef\.current = false/.test(sl), '扫描开始 scanDone=false');
 assert(/scanDoneRef\.current = true; \/\/ v128: 扫描完成/.test(sl), '扫描完成 scanDone=true');
-assert(/!s\.rootName \|\| !scanDoneRef\.current/.test(sl), '卸载快照要求扫描完成');
+assert(/if \(!s\.rootName\) return;/.test(sl) && /complete: scanDoneRef\.current/.test(sl), '卸载保存完成标记, 中途进度不丢');
 
 // 滚动恢复 + 背景补取 + 快照字段
 assert(/listRef\.current\.scrollTop = libraryCache\.scrollTop/.test(sl), '挂载后恢复滚动位置');
 assert(/fetchBg\(entry\.dirName\)/.test(sl), '缓存命中补取选中难度背景 (fetchBg)');
 assert(/snapRef\.current = \{ rootName: root\?\.name \?\? null, entries, filter, selKey, scrollTop: view\.top \}/.test(sl), '快照含全部位置字段');
-assert(/libraryCache = \{ rootName: s\.rootName, entries: s\.entries, filter: s\.filter, selKey: s\.selKey, scrollTop: s\.scrollTop \}/.test(sl), '卸载写缓存 (扫描完成后)');
+assert(/libraryCache = \{ rootName: s\.rootName, entries: s\.entries, filter: s\.filter, selKey: s\.selKey, scrollTop: s\.scrollTop, complete: scanDoneRef\.current \}/.test(sl), '卸载写缓存 (含完成标记)');
 
 console.log(failures ? '\nV128_CHECK_FAILED: ' + failures : '\nV128_CHECK_PASSED');
 process.exit(failures ? 1 : 0);

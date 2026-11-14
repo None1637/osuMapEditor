@@ -56,6 +56,8 @@ contextBridge.exposeInMainWorld("osuEditor", {
   reportError: (msg) => ipcRenderer.send("renderer-error", msg),
   // v346: 界面语言上报 (主进程按语言重建菜单标签)
   menuLang: (lang) => ipcRenderer.send("menu-lang", lang),
+  // v526: 菜单布局覆盖 (文本/显示/启用)
+  uiMenuOverrides: (value) => ipcRenderer.send("ui-menu-overrides", value),
   // v493: GitHub Releases 更新检测 (主进程请求 API + 版本比较) / 确认后系统浏览器打开 release 页
   checkUpdate: () => ipcRenderer.invoke("check-update"),
   openExternal: (url) => ipcRenderer.invoke("open-external", url),

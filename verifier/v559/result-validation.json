@@ -1,0 +1,13 @@
+{
+  "version": "v559-independent-result-recheck-v1",
+  "passed": true,
+  "comparisonRows": 90,
+  "recomputedMethods": [
+    "full",
+    "neuralMax",
+    "neuralPitch"
+  ],
+  "populationWeight": 3468.0,
+  "knownDevelopmentLabelUpperBound": 0.5276752531077791,
+  "failures": []
+}

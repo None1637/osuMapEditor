@@ -1,0 +1,42 @@
+{
+  "id": "sample-024",
+  "directoryName": "39797 Mr Saturn - Saturn",
+  "beatmapFile": "Mr. Saturn - Saturn (Saturnalize) [Expert].osu",
+  "metadata": {
+    "Title": "Saturn",
+    "TitleUnicode": "Saturn",
+    "Artist": "Mr. Saturn",
+    "ArtistUnicode": "Mr. Saturn",
+    "Creator": "Saturnalize",
+    "Version": "Expert",
+    "Source": "Dance Dance Revolution SuperNOVA 2",
+    "Tags": "urs4chan ursa Yasora-chan Yasora Pop'n'Music Planet wac Jun Wakita beatmaniaIIDX 15 DJ TROOPERS CS Progressive Tribal GRAND CROSS Series IIDX20 tricoro trival",
+    "BeatmapID": "356182",
+    "BeatmapSetID": "39797",
+    "Mode": "0"
+  },
+  "audioDurationMs": 113110.20408163266,
+  "redLines": [
+    {
+      "time": 151,
+      "beatLength": 387.096774193548,
+      "bpm": 155.00000000000014,
+      "durationMs": 112959.20408163266
+    }
+  ],
+  "referenceBpm": 155.00000000000014,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 112959.20408163266,
+  "status": "ok",
+  "prediction": {
+    "bpm": 155,
+    "offsetMs": 176,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 107,
+    "rawBpm": 310,
+    "rawSegmentCount": 41
+  },
+  "evaluationMs": 940
+}

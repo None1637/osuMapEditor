@@ -1,0 +1,42 @@
+{
+  "id": "sample-096",
+  "directoryName": "450885 Aimer - REI AM",
+  "beatmapFile": "Aimer - REI AM (spboxer3) [REI AM].osu",
+  "metadata": {
+    "Title": "RE:I AM",
+    "TitleUnicode": "RE:I AM",
+    "Artist": "Aimer",
+    "ArtistUnicode": "Aimer",
+    "Creator": "spboxer3",
+    "Version": "RE:I AM",
+    "Source": "機動戦士ガンダムUC",
+    "Tags": "澤野弘之 Sawano Hiroyuki MOBILE SUIT GUNDAM UNICORN yf_bmp kidou senshi",
+    "BeatmapID": "967296",
+    "BeatmapSetID": "450885",
+    "Mode": "0"
+  },
+  "audioDurationMs": 347585.306122449,
+  "redLines": [
+    {
+      "time": 1267,
+      "beatLength": 833.333333333333,
+      "bpm": 72.00000000000003,
+      "durationMs": 346318.306122449
+    }
+  ],
+  "referenceBpm": 72.00000000000003,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 346318.306122449,
+  "status": "ok",
+  "prediction": {
+    "bpm": 143.95,
+    "offsetMs": 574,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 343,
+    "rawBpm": 287.9,
+    "rawSegmentCount": 284
+  },
+  "evaluationMs": 3398
+}

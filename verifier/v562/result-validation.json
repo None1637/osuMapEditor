@@ -1,0 +1,25 @@
+{
+  "version": "v562-absolute-time-independent-recheck-v1",
+  "passed": true,
+  "comparisonRows": 90,
+  "methods": [
+    "e1Full",
+    "e1Lag5",
+    "e1Superflux",
+    "e1FullGlobal",
+    "e1Lag5Global",
+    "e1SuperfluxGlobal",
+    "e2NeuralMax",
+    "e2NeuralPitch",
+    "e3DdcOfficial",
+    "e3DdcParabolic",
+    "e4Fusion"
+  ],
+  "absoluteExamplesVerified": [
+    "sample-044_h24947",
+    "sample-044_h5781",
+    "sample-044_h35281"
+  ],
+  "historicalOverallMetricsReproduced": true,
+  "failures": []
+}

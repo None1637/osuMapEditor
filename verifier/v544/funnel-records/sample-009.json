@@ -1,0 +1,43 @@
+{
+  "id": "sample-009",
+  "directoryName": "623665 Hommarju - HYENA",
+  "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\623665 Hommarju - HYENA",
+  "status": "ok",
+  "referenceBpm": 178.0000000000001,
+  "referenceVariable": false,
+  "predictedBpm": 178,
+  "predictedVariable": false,
+  "variableLines": [],
+  "trueVariableMs": 0,
+  "flaggedWindowCount": 33,
+  "flaggedWindowsOnVariable": 0,
+  "rawCandidateCount": 1,
+  "rawCandidatesOnVariable": 0,
+  "finalEvidenceCount": 0,
+  "finalEvidenceOnVariable": 0,
+  "candidates": [
+    {
+      "startMs": 77880,
+      "endMs": 83876,
+      "bpm": 101.832,
+      "points": 3,
+      "maxSupport": 0.06886276827065459,
+      "localGridCoverage": 0.09345794392523364,
+      "rejection": "weak_short",
+      "independentMainScore": 0.23465946358150927,
+      "independentLocalScore": 0.2210711374556774,
+      "variableOverlapMs": 0,
+      "overlapsVariable": false,
+      "tripletVotes": [
+        {
+          "timeMs": 80878.0045351474,
+          "bpm": 101.832,
+          "localGridCoverage": 0.09345794392523364,
+          "tripletGridCoverage": 0.5794392523364486,
+          "tripletGridHalfCoverage": 0.34579439252336447,
+          "tripletGridDoubleCoverage": 0.6448598130841121
+        }
+      ]
+    }
+  ]
+}

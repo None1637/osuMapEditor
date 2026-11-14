@@ -1,0 +1,670 @@
+{
+  "version": "v574-absolute-onset-baseline-analysis-v1",
+  "status": "frozen_current_pipeline_evaluated_on_18_owner_supplied_maps",
+  "reference": "Owner states that every selected beatmap has more than 90% correct object offsets; this is owner-provided reference metadata, not independently re-annotated by the agent",
+  "primaryMetric": "Micro-weighted fraction of all HitObjects rows whose absolute candidate onset time is within +/-5 ms of the beatmap object start time; missing candidates incorrect",
+  "objectCount": 24416,
+  "targetCorrectRate": 0.8,
+  "targetAchieved": {
+    "legacyResidual": true,
+    "e5Calibrated": true,
+    "e13CorrectedTargetRematch": false
+  },
+  "methods": {
+    "legacyResidual": {
+      "overall": {
+        "count": 24416,
+        "candidateCount": 24243,
+        "missingCount": 173,
+        "correctCount": 21619,
+        "correctRate": 0.8854439711664482,
+        "candidateCoverage": 0.9929144823066841,
+        "medianAbsoluteErrorMs": 1.901975215296261,
+        "p95AbsoluteErrorMs": 6.32038694595685
+      },
+      "perSample": {
+        "case-001": {
+          "count": 1464,
+          "candidateCount": 1462,
+          "missingCount": 2,
+          "correctCount": 1373,
+          "correctRate": 0.9378415300546448,
+          "candidateCoverage": 0.9986338797814208,
+          "medianAbsoluteErrorMs": 1.7095790306157141,
+          "p95AbsoluteErrorMs": 5.236062748734731
+        },
+        "case-002": {
+          "count": 1894,
+          "candidateCount": 1892,
+          "missingCount": 2,
+          "correctCount": 1797,
+          "correctRate": 0.9487856388595565,
+          "candidateCoverage": 0.9989440337909187,
+          "medianAbsoluteErrorMs": 1.2199813907354837,
+          "p95AbsoluteErrorMs": 4.993215223852891
+        },
+        "case-003": {
+          "count": 493,
+          "candidateCount": 493,
+          "missingCount": 0,
+          "correctCount": 406,
+          "correctRate": 0.8235294117647058,
+          "candidateCoverage": 1.0,
+          "medianAbsoluteErrorMs": 2.303366262887721,
+          "p95AbsoluteErrorMs": 7.263699786450887
+        },
+        "case-004": {
+          "count": 850,
+          "candidateCount": 848,
+          "missingCount": 2,
+          "correctCount": 772,
+          "correctRate": 0.908235294117647,
+          "candidateCoverage": 0.9976470588235294,
+          "medianAbsoluteErrorMs": 1.208679649840633,
+          "p95AbsoluteErrorMs": 5.732205338343373
+        },
+        "case-005": {
+          "count": 1100,
+          "candidateCount": 1098,
+          "missingCount": 2,
+          "correctCount": 1030,
+          "correctRate": 0.9363636363636364,
+          "candidateCoverage": 0.9981818181818182,
+          "medianAbsoluteErrorMs": 1.5957474217211711,
+          "p95AbsoluteErrorMs": 5.427831160278755
+        },
+        "case-006": {
+          "count": 997,
+          "candidateCount": 994,
+          "missingCount": 3,
+          "correctCount": 902,
+          "correctRate": 0.9047141424272819,
+          "candidateCoverage": 0.9969909729187563,
+          "medianAbsoluteErrorMs": 1.8389178045435983,
+          "p95AbsoluteErrorMs": 6.214498061449006
+        },
+        "case-007": {
+          "count": 2266,
+          "candidateCount": 2261,
+          "missingCount": 5,
+          "correctCount": 2066,
+          "correctRate": 0.911738746690203,
+          "candidateCoverage": 0.997793468667255,
+          "medianAbsoluteErrorMs": 1.8372108648472931,
+          "p95AbsoluteErrorMs": 5.8614450716850115
+        },
+        "case-008": {
+          "count": 3061,
+          "candidateCount": 3058,
+          "missingCount": 3,
+          "correctCount": 2865,
+          "correctRate": 0.935968637700098,
+          "candidateCoverage": 0.9990199281280627,
+          "medianAbsoluteErrorMs": 1.9070531938323256,
+          "p95AbsoluteErrorMs": 5.239369716659713
+        },
+        "case-009": {
+          "count": 1172,
+          "candidateCount": 1151,
+          "missingCount": 21,
+          "correctCount": 910,
+          "correctRate": 0.7764505119453925,
+          "candidateCoverage": 0.9820819112627986,
+          "medianAbsoluteErrorMs": 2.3460853861370197,
+          "p95AbsoluteErrorMs": 7.911835956205323
+        },
+        "case-010": {
+          "count": 1062,
+          "candidateCount": 1016,
+          "missingCount": 46,
+          "correctCount": 691,
+          "correctRate": 0.6506591337099812,
+          "candidateCoverage": 0.9566854990583804,
+          "medianAbsoluteErrorMs": 3.4705796574617125,
+          "p95AbsoluteErrorMs": 8.34153824621535
+        },
+        "case-011": {
+          "count": 1975,
+          "candidateCount": 1954,
+          "missingCount": 21,
+          "correctCount": 1831,
+          "correctRate": 0.9270886075949367,
+          "candidateCoverage": 0.9893670886075949,
+          "medianAbsoluteErrorMs": 1.6082552215157193,
+          "p95AbsoluteErrorMs": 5.409728550268483
+        },
+        "case-012": {
+          "count": 3030,
+          "candidateCount": 3020,
+          "missingCount": 10,
+          "correctCount": 2732,
+          "correctRate": 0.9016501650165016,
+          "candidateCoverage": 0.9966996699669967,
+          "medianAbsoluteErrorMs": 1.6772726671551936,
+          "p95AbsoluteErrorMs": 6.079526408569651
+        },
+        "case-013": {
+          "count": 1280,
+          "candidateCount": 1277,
+          "missingCount": 3,
+          "correctCount": 1193,
+          "correctRate": 0.93203125,
+          "candidateCoverage": 0.99765625,
+          "medianAbsoluteErrorMs": 1.9707038601627573,
+          "p95AbsoluteErrorMs": 5.491586653169362
+        },
+        "case-014": {
+          "count": 1326,
+          "candidateCount": 1314,
+          "missingCount": 12,
+          "correctCount": 1098,
+          "correctRate": 0.8280542986425339,
+          "candidateCoverage": 0.9909502262443439,
+          "medianAbsoluteErrorMs": 2.3881198339386174,
+          "p95AbsoluteErrorMs": 7.09143881893569
+        },
+        "case-015": {
+          "count": 720,
+          "candidateCount": 718,
+          "missingCount": 2,
+          "correctCount": 671,
+          "correctRate": 0.9319444444444445,
+          "candidateCoverage": 0.9972222222222222,
+          "medianAbsoluteErrorMs": 2.095201658670703,
+          "p95AbsoluteErrorMs": 5.408747283074262
+        },
+        "case-016": {
+          "count": 219,
+          "candidateCount": 217,
+          "missingCount": 2,
+          "correctCount": 188,
+          "correctRate": 0.8584474885844748,
+          "candidateCoverage": 0.9908675799086758,
+          "medianAbsoluteErrorMs": 2.640068560529471,
+          "p95AbsoluteErrorMs": 7.195377093288698
+        },
+        "case-017": {
+          "count": 489,
+          "candidateCount": 477,
+          "missingCount": 12,
+          "correctCount": 371,
+          "correctRate": 0.7586912065439673,
+          "candidateCoverage": 0.9754601226993865,
+          "medianAbsoluteErrorMs": 2.671489702712279,
+          "p95AbsoluteErrorMs": 7.623171098480816
+        },
+        "case-018": {
+          "count": 1018,
+          "candidateCount": 993,
+          "missingCount": 25,
+          "correctCount": 723,
+          "correctRate": 0.7102161100196464,
+          "candidateCoverage": 0.9754420432220039,
+          "medianAbsoluteErrorMs": 3.3945967972977087,
+          "p95AbsoluteErrorMs": 8.07917712274793
+        }
+      },
+      "specialTags": {
+        "user_requested_low_bpm": {
+          "count": 489,
+          "candidateCount": 477,
+          "missingCount": 12,
+          "correctCount": 371,
+          "correctRate": 0.7586912065439673,
+          "candidateCoverage": 0.9754601226993865,
+          "medianAbsoluteErrorMs": 2.671489702712279,
+          "p95AbsoluteErrorMs": 7.623171098480816
+        },
+        "user_requested_extreme_high_and_low_bpm_variable": {
+          "count": 1018,
+          "candidateCount": 993,
+          "missingCount": 25,
+          "correctCount": 723,
+          "correctRate": 0.7102161100196464,
+          "candidateCoverage": 0.9754420432220039,
+          "medianAbsoluteErrorMs": 3.3945967972977087,
+          "p95AbsoluteErrorMs": 8.07917712274793
+        }
+      }
+    },
+    "e5Calibrated": {
+      "overall": {
+        "count": 24416,
+        "candidateCount": 24243,
+        "missingCount": 173,
+        "correctCount": 20716,
+        "correctRate": 0.8484600262123198,
+        "candidateCoverage": 0.9929144823066841,
+        "medianAbsoluteErrorMs": 1.9694870135717792,
+        "p95AbsoluteErrorMs": 9.710615490155744
+      },
+      "perSample": {
+        "case-001": {
+          "count": 1464,
+          "candidateCount": 1462,
+          "missingCount": 2,
+          "correctCount": 1370,
+          "correctRate": 0.9357923497267759,
+          "candidateCoverage": 0.9986338797814208,
+          "medianAbsoluteErrorMs": 1.7431877281633206,
+          "p95AbsoluteErrorMs": 5.1862508744285165
+        },
+        "case-002": {
+          "count": 1894,
+          "candidateCount": 1892,
+          "missingCount": 2,
+          "correctCount": 1821,
+          "correctRate": 0.9614572333685322,
+          "candidateCoverage": 0.9989440337909187,
+          "medianAbsoluteErrorMs": 1.2912912949432211,
+          "p95AbsoluteErrorMs": 4.5701520010421515
+        },
+        "case-003": {
+          "count": 493,
+          "candidateCount": 493,
+          "missingCount": 0,
+          "correctCount": 415,
+          "correctRate": 0.8417849898580122,
+          "candidateCoverage": 1.0,
+          "medianAbsoluteErrorMs": 2.3457601751215407,
+          "p95AbsoluteErrorMs": 7.253417229739713
+        },
+        "case-004": {
+          "count": 850,
+          "candidateCount": 848,
+          "missingCount": 2,
+          "correctCount": 771,
+          "correctRate": 0.9070588235294118,
+          "candidateCoverage": 0.9976470588235294,
+          "medianAbsoluteErrorMs": 1.2106504938783473,
+          "p95AbsoluteErrorMs": 5.761018625221186
+        },
+        "case-005": {
+          "count": 1100,
+          "candidateCount": 1098,
+          "missingCount": 2,
+          "correctCount": 1032,
+          "correctRate": 0.9381818181818182,
+          "candidateCoverage": 0.9981818181818182,
+          "medianAbsoluteErrorMs": 1.64946842522113,
+          "p95AbsoluteErrorMs": 5.223051415360532
+        },
+        "case-006": {
+          "count": 997,
+          "candidateCount": 994,
+          "missingCount": 3,
+          "correctCount": 900,
+          "correctRate": 0.9027081243731193,
+          "candidateCoverage": 0.9969909729187563,
+          "medianAbsoluteErrorMs": 1.8047003599604068,
+          "p95AbsoluteErrorMs": 6.258629778258362
+        },
+        "case-007": {
+          "count": 2266,
+          "candidateCount": 2261,
+          "missingCount": 5,
+          "correctCount": 2065,
+          "correctRate": 0.911297440423654,
+          "candidateCoverage": 0.997793468667255,
+          "medianAbsoluteErrorMs": 1.8384813459124416,
+          "p95AbsoluteErrorMs": 5.8652366999886
+        },
+        "case-008": {
+          "count": 3061,
+          "candidateCount": 3058,
+          "missingCount": 3,
+          "correctCount": 2881,
+          "correctRate": 0.9411956876837635,
+          "candidateCoverage": 0.9990199281280627,
+          "medianAbsoluteErrorMs": 1.9201197656002478,
+          "p95AbsoluteErrorMs": 5.145433360198513
+        },
+        "case-009": {
+          "count": 1172,
+          "candidateCount": 1151,
+          "missingCount": 21,
+          "correctCount": 928,
+          "correctRate": 0.7918088737201365,
+          "candidateCoverage": 0.9820819112627986,
+          "medianAbsoluteErrorMs": 2.3196100816712715,
+          "p95AbsoluteErrorMs": 8.459369613447052
+        },
+        "case-010": {
+          "count": 1062,
+          "candidateCount": 1016,
+          "missingCount": 46,
+          "correctCount": 695,
+          "correctRate": 0.6544256120527306,
+          "candidateCoverage": 0.9566854990583804,
+          "medianAbsoluteErrorMs": 3.48915022755682,
+          "p95AbsoluteErrorMs": 8.489725768320568
+        },
+        "case-011": {
+          "count": 1975,
+          "candidateCount": 1954,
+          "missingCount": 21,
+          "correctCount": 1844,
+          "correctRate": 0.9336708860759494,
+          "candidateCoverage": 0.9893670886075949,
+          "medianAbsoluteErrorMs": 1.674263023174717,
+          "p95AbsoluteErrorMs": 5.109037938000983
+        },
+        "case-012": {
+          "count": 3030,
+          "candidateCount": 3020,
+          "missingCount": 10,
+          "correctCount": 2498,
+          "correctRate": 0.8244224422442245,
+          "candidateCoverage": 0.9966996699669967,
+          "medianAbsoluteErrorMs": 1.8544203902420122,
+          "p95AbsoluteErrorMs": 13.346170759478216
+        },
+        "case-013": {
+          "count": 1280,
+          "candidateCount": 1277,
+          "missingCount": 3,
+          "correctCount": 1200,
+          "correctRate": 0.9375,
+          "candidateCoverage": 0.99765625,
+          "medianAbsoluteErrorMs": 1.973645227291854,
+          "p95AbsoluteErrorMs": 5.374533279816387
+        },
+        "case-014": {
+          "count": 1326,
+          "candidateCount": 1314,
+          "missingCount": 12,
+          "correctCount": 1110,
+          "correctRate": 0.8371040723981901,
+          "candidateCoverage": 0.9909502262443439,
+          "medianAbsoluteErrorMs": 2.5907774675870314,
+          "p95AbsoluteErrorMs": 7.324620970692376
+        },
+        "case-015": {
+          "count": 720,
+          "candidateCount": 718,
+          "missingCount": 2,
+          "correctCount": 677,
+          "correctRate": 0.9402777777777778,
+          "candidateCoverage": 0.9972222222222222,
+          "medianAbsoluteErrorMs": 2.012064044676663,
+          "p95AbsoluteErrorMs": 5.2569562495569695
+        },
+        "case-016": {
+          "count": 219,
+          "candidateCount": 217,
+          "missingCount": 2,
+          "correctCount": 122,
+          "correctRate": 0.5570776255707762,
+          "candidateCoverage": 0.9908675799086758,
+          "medianAbsoluteErrorMs": 4.028636195014769,
+          "p95AbsoluteErrorMs": 19.657213876258172
+        },
+        "case-017": {
+          "count": 489,
+          "candidateCount": 477,
+          "missingCount": 12,
+          "correctCount": 357,
+          "correctRate": 0.7300613496932515,
+          "candidateCoverage": 0.9754601226993865,
+          "medianAbsoluteErrorMs": 2.764220720549929,
+          "p95AbsoluteErrorMs": 7.889244307065382
+        },
+        "case-018": {
+          "count": 1018,
+          "candidateCount": 993,
+          "missingCount": 25,
+          "correctCount": 30,
+          "correctRate": 0.029469548133595286,
+          "candidateCoverage": 0.9754420432220039,
+          "medianAbsoluteErrorMs": 19.79797716122266,
+          "p95AbsoluteErrorMs": 33.59674442191463
+        }
+      },
+      "specialTags": {
+        "user_requested_low_bpm": {
+          "count": 489,
+          "candidateCount": 477,
+          "missingCount": 12,
+          "correctCount": 357,
+          "correctRate": 0.7300613496932515,
+          "candidateCoverage": 0.9754601226993865,
+          "medianAbsoluteErrorMs": 2.764220720549929,
+          "p95AbsoluteErrorMs": 7.889244307065382
+        },
+        "user_requested_extreme_high_and_low_bpm_variable": {
+          "count": 1018,
+          "candidateCount": 993,
+          "missingCount": 25,
+          "correctCount": 30,
+          "correctRate": 0.029469548133595286,
+          "candidateCoverage": 0.9754420432220039,
+          "medianAbsoluteErrorMs": 19.79797716122266,
+          "p95AbsoluteErrorMs": 33.59674442191463
+        }
+      }
+    },
+    "e13CorrectedTargetRematch": {
+      "overall": {
+        "count": 24416,
+        "candidateCount": 23110,
+        "missingCount": 1306,
+        "correctCount": 15660,
+        "correctRate": 0.6413826998689384,
+        "candidateCoverage": 0.9465104849279161,
+        "medianAbsoluteErrorMs": 3.457269066817389,
+        "p95AbsoluteErrorMs": 10.214817055628009
+      },
+      "perSample": {
+        "case-001": {
+          "count": 1464,
+          "candidateCount": 1445,
+          "missingCount": 19,
+          "correctCount": 1125,
+          "correctRate": 0.7684426229508197,
+          "candidateCoverage": 0.9870218579234973,
+          "medianAbsoluteErrorMs": 2.8619378946896177,
+          "p95AbsoluteErrorMs": 7.6211501819314424
+        },
+        "case-002": {
+          "count": 1894,
+          "candidateCount": 1381,
+          "missingCount": 513,
+          "correctCount": 551,
+          "correctRate": 0.29091869060190073,
+          "candidateCoverage": 0.7291446673706441,
+          "medianAbsoluteErrorMs": 6.073000936274184,
+          "p95AbsoluteErrorMs": 9.956020877008996
+        },
+        "case-003": {
+          "count": 493,
+          "candidateCount": 486,
+          "missingCount": 7,
+          "correctCount": 403,
+          "correctRate": 0.8174442190669371,
+          "candidateCoverage": 0.9858012170385395,
+          "medianAbsoluteErrorMs": 2.527340696646206,
+          "p95AbsoluteErrorMs": 7.117895614945155
+        },
+        "case-004": {
+          "count": 850,
+          "candidateCount": 825,
+          "missingCount": 25,
+          "correctCount": 632,
+          "correctRate": 0.7435294117647059,
+          "candidateCoverage": 0.9705882352941176,
+          "medianAbsoluteErrorMs": 2.967331650783308,
+          "p95AbsoluteErrorMs": 7.513359839273377
+        },
+        "case-005": {
+          "count": 1100,
+          "candidateCount": 1082,
+          "missingCount": 18,
+          "correctCount": 802,
+          "correctRate": 0.7290909090909091,
+          "candidateCoverage": 0.9836363636363636,
+          "medianAbsoluteErrorMs": 2.8642837607876572,
+          "p95AbsoluteErrorMs": 7.705822924046518
+        },
+        "case-006": {
+          "count": 997,
+          "candidateCount": 989,
+          "missingCount": 8,
+          "correctCount": 724,
+          "correctRate": 0.7261785356068204,
+          "candidateCoverage": 0.9919759277833501,
+          "medianAbsoluteErrorMs": 3.403958560418687,
+          "p95AbsoluteErrorMs": 7.421172665344783
+        },
+        "case-007": {
+          "count": 2266,
+          "candidateCount": 2207,
+          "missingCount": 59,
+          "correctCount": 1593,
+          "correctRate": 0.7030008826125331,
+          "candidateCoverage": 0.9739629302736099,
+          "medianAbsoluteErrorMs": 3.056282023404492,
+          "p95AbsoluteErrorMs": 8.308695597324547
+        },
+        "case-008": {
+          "count": 3061,
+          "candidateCount": 2905,
+          "missingCount": 156,
+          "correctCount": 2074,
+          "correctRate": 0.6775563541326364,
+          "candidateCoverage": 0.9490362626592617,
+          "medianAbsoluteErrorMs": 3.3308923931617755,
+          "p95AbsoluteErrorMs": 8.252998933312481
+        },
+        "case-009": {
+          "count": 1172,
+          "candidateCount": 1130,
+          "missingCount": 42,
+          "correctCount": 805,
+          "correctRate": 0.6868600682593856,
+          "candidateCoverage": 0.9641638225255973,
+          "medianAbsoluteErrorMs": 3.188756190756976,
+          "p95AbsoluteErrorMs": 8.875097135999022
+        },
+        "case-010": {
+          "count": 1062,
+          "candidateCount": 991,
+          "missingCount": 71,
+          "correctCount": 670,
+          "correctRate": 0.6308851224105462,
+          "candidateCoverage": 0.9331450094161958,
+          "medianAbsoluteErrorMs": 3.408920336238225,
+          "p95AbsoluteErrorMs": 8.537509783065616
+        },
+        "case-011": {
+          "count": 1975,
+          "candidateCount": 1895,
+          "missingCount": 80,
+          "correctCount": 1384,
+          "correctRate": 0.7007594936708861,
+          "candidateCoverage": 0.959493670886076,
+          "medianAbsoluteErrorMs": 3.151927366183372,
+          "p95AbsoluteErrorMs": 7.9553045828623
+        },
+        "case-012": {
+          "count": 3030,
+          "candidateCount": 2789,
+          "missingCount": 241,
+          "correctCount": 1799,
+          "correctRate": 0.5937293729372938,
+          "candidateCoverage": 0.9204620462046205,
+          "medianAbsoluteErrorMs": 3.589796743923216,
+          "p95AbsoluteErrorMs": 11.327280230566243
+        },
+        "case-013": {
+          "count": 1280,
+          "candidateCount": 1267,
+          "missingCount": 13,
+          "correctCount": 938,
+          "correctRate": 0.7328125,
+          "candidateCoverage": 0.98984375,
+          "medianAbsoluteErrorMs": 3.6057488143560477,
+          "p95AbsoluteErrorMs": 7.545091646153015
+        },
+        "case-014": {
+          "count": 1326,
+          "candidateCount": 1300,
+          "missingCount": 26,
+          "correctCount": 1014,
+          "correctRate": 0.7647058823529411,
+          "candidateCoverage": 0.9803921568627451,
+          "medianAbsoluteErrorMs": 2.838844263445935,
+          "p95AbsoluteErrorMs": 7.781825528113949
+        },
+        "case-015": {
+          "count": 720,
+          "candidateCount": 714,
+          "missingCount": 6,
+          "correctCount": 637,
+          "correctRate": 0.8847222222222222,
+          "candidateCoverage": 0.9916666666666667,
+          "medianAbsoluteErrorMs": 3.159517786134529,
+          "p95AbsoluteErrorMs": 6.047100460384536
+        },
+        "case-016": {
+          "count": 219,
+          "candidateCount": 217,
+          "missingCount": 2,
+          "correctCount": 106,
+          "correctRate": 0.4840182648401826,
+          "candidateCoverage": 0.9908675799086758,
+          "medianAbsoluteErrorMs": 5.06817355972089,
+          "p95AbsoluteErrorMs": 20.342228530788265
+        },
+        "case-017": {
+          "count": 489,
+          "candidateCount": 478,
+          "missingCount": 11,
+          "correctCount": 375,
+          "correctRate": 0.7668711656441718,
+          "candidateCoverage": 0.9775051124744376,
+          "medianAbsoluteErrorMs": 2.8533426231952035,
+          "p95AbsoluteErrorMs": 7.582641693338149
+        },
+        "case-018": {
+          "count": 1018,
+          "candidateCount": 1009,
+          "missingCount": 9,
+          "correctCount": 28,
+          "correctRate": 0.0275049115913556,
+          "candidateCoverage": 0.9911591355599214,
+          "medianAbsoluteErrorMs": 19.49375629235874,
+          "p95AbsoluteErrorMs": 32.40046144415827
+        }
+      },
+      "specialTags": {
+        "user_requested_low_bpm": {
+          "count": 489,
+          "candidateCount": 478,
+          "missingCount": 11,
+          "correctCount": 375,
+          "correctRate": 0.7668711656441718,
+          "candidateCoverage": 0.9775051124744376,
+          "medianAbsoluteErrorMs": 2.8533426231952035,
+          "p95AbsoluteErrorMs": 7.582641693338149
+        },
+        "user_requested_extreme_high_and_low_bpm_variable": {
+          "count": 1018,
+          "candidateCount": 1009,
+          "missingCount": 9,
+          "correctCount": 28,
+          "correctRate": 0.0275049115913556,
+          "candidateCoverage": 0.9911591355599214,
+          "medianAbsoluteErrorMs": 19.49375629235874,
+          "p95AbsoluteErrorMs": 32.40046144415827
+        }
+      }
+    }
+  },
+  "legacyBaselineCrosscheck": {
+    "recomputedCorrectCount": 21619,
+    "baselineTsCorrectCount": 21619,
+    "passed": true
+  },
+  "calibrationLimit": "E5/E13 opposite-fold correction uses beatmap reference times from the same song; legacyResidual is the label-free audio-estimated delay/phase baseline",
+  "productionCodeChanged": false
+}

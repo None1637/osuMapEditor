@@ -1,0 +1,42 @@
+{
+  "id": "sample-078",
+  "directoryName": "72474 Various Artist - Long Stream Practice Maps",
+  "beatmapFile": "Various Artist - Long Stream Practice Maps (onlyforyou) [Identity Part 4 BPM140].osu",
+  "metadata": {
+    "Title": "Long Stream Practice Maps",
+    "TitleUnicode": "Long Stream Practice Maps",
+    "Artist": "Various Artist",
+    "ArtistUnicode": "Various Artist",
+    "Creator": "onlyforyou",
+    "Version": "Identity Part 4 BPM140",
+    "Source": "",
+    "Tags": "",
+    "BeatmapID": "207088",
+    "BeatmapSetID": "72474",
+    "Mode": "0"
+  },
+  "audioDurationMs": 116636.73469387756,
+  "redLines": [
+    {
+      "time": 3426.52298607195,
+      "beatLength": 428.571428571429,
+      "bpm": 139.99999999999986,
+      "durationMs": 113210.2117078056
+    }
+  ],
+  "referenceBpm": 139.99999999999986,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 113210.2117078056,
+  "status": "ok",
+  "prediction": {
+    "bpm": 140,
+    "offsetMs": 461,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 105,
+    "rawBpm": 280,
+    "rawSegmentCount": 12
+  },
+  "evaluationMs": 1023
+}

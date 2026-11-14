@@ -1,0 +1,43 @@
+{
+  "id": "sample-093",
+  "directoryName": "29616 NAOKI feat Becky Lucinda - My Only Shining Star (Remix)",
+  "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\29616 NAOKI feat Becky Lucinda - My Only Shining Star (Remix)",
+  "status": "ok",
+  "referenceBpm": 144.99999999999994,
+  "referenceVariable": false,
+  "predictedBpm": 145,
+  "predictedVariable": false,
+  "variableLines": [],
+  "trueVariableMs": 0,
+  "flaggedWindowCount": 9,
+  "flaggedWindowsOnVariable": 0,
+  "rawCandidateCount": 1,
+  "rawCandidatesOnVariable": 0,
+  "finalEvidenceCount": 0,
+  "finalEvidenceOnVariable": 0,
+  "candidates": [
+    {
+      "startMs": 5991,
+      "endMs": 11987,
+      "bpm": 64.6,
+      "points": 3,
+      "maxSupport": 0.7092080406377633,
+      "localGridCoverage": 0.06153846153846154,
+      "rejection": "weak_short",
+      "independentMainScore": 0.5815936443307015,
+      "independentLocalScore": -0.13331521863270784,
+      "variableOverlapMs": 0,
+      "overlapsVariable": false,
+      "tripletVotes": [
+        {
+          "timeMs": 8989.024943310658,
+          "bpm": 64.6,
+          "localGridCoverage": 0.061946902654867256,
+          "tripletGridCoverage": 0.48672566371681414,
+          "tripletGridHalfCoverage": 0.2831858407079646,
+          "tripletGridDoubleCoverage": 0.6548672566371682
+        }
+      ]
+    }
+  ]
+}

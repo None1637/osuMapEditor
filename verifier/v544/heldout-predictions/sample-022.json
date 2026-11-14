@@ -1,0 +1,151 @@
+{
+  "id": "sample-022",
+  "directoryName": "1946953 KikuoHana - Nobore! Susume! Takai Tou (Cut Ver)",
+  "beatmapFile": "KikuoHana - Nobore! Susume! Takai Tou (Cut Ver.) (gwb) [Ascension to Heaven].osu",
+  "metadata": {
+    "Title": "Nobore! Susume! Takai Tou (Cut Ver.)",
+    "TitleUnicode": "のぼれ！すすめ！高い塔 (Cut Ver.)",
+    "Artist": "KikuoHana",
+    "ArtistUnicode": "きくおはな",
+    "Creator": "gwb",
+    "Version": "Ascension to Heaven",
+    "Source": "",
+    "Tags": "",
+    "BeatmapID": "4028364",
+    "BeatmapSetID": "1946953",
+    "Mode": "0"
+  },
+  "audioDurationMs": 77373.06122448981,
+  "redLines": [
+    {
+      "time": 838,
+      "beatLength": 545.454545454546,
+      "bpm": 109.9999999999999,
+      "durationMs": 18000
+    },
+    {
+      "time": 18838,
+      "beatLength": 410.958904109589,
+      "bpm": 146,
+      "durationMs": 205
+    },
+    {
+      "time": 19043,
+      "beatLength": 476.190476190476,
+      "bpm": 126.00000000000006,
+      "durationMs": 238
+    },
+    {
+      "time": 19281,
+      "beatLength": 340.909090909091,
+      "bpm": 175.99999999999994,
+      "durationMs": 170
+    },
+    {
+      "time": 19451,
+      "beatLength": 410.958904109589,
+      "bpm": 146,
+      "durationMs": 205
+    },
+    {
+      "time": 19656,
+      "beatLength": 340.909090909091,
+      "bpm": 175.99999999999994,
+      "durationMs": 170
+    },
+    {
+      "time": 19826,
+      "beatLength": 410.958904109589,
+      "bpm": 146,
+      "durationMs": 205
+    },
+    {
+      "time": 20031,
+      "beatLength": 340.909090909091,
+      "bpm": 175.99999999999994,
+      "durationMs": 170
+    },
+    {
+      "time": 20201,
+      "beatLength": 410.958904109589,
+      "bpm": 146,
+      "durationMs": 205
+    },
+    {
+      "time": 20406,
+      "beatLength": 451.127819548872,
+      "bpm": 133.00000000000006,
+      "durationMs": 227
+    },
+    {
+      "time": 20633,
+      "beatLength": 422.535211267606,
+      "bpm": 141.9999999999999,
+      "durationMs": 216
+    },
+    {
+      "time": 20849,
+      "beatLength": 405.405405405405,
+      "bpm": 148.00000000000014,
+      "durationMs": 202
+    },
+    {
+      "time": 21051,
+      "beatLength": 483.870967741935,
+      "bpm": 124.00000000000013,
+      "durationMs": 241
+    },
+    {
+      "time": 21292,
+      "beatLength": 545.454545454546,
+      "bpm": 109.9999999999999,
+      "durationMs": 272
+    },
+    {
+      "time": 21564,
+      "beatLength": 576.923076923077,
+      "bpm": 103.99999999999999,
+      "durationMs": 5464
+    },
+    {
+      "time": 27028,
+      "beatLength": 422.535211267606,
+      "bpm": 141.9999999999999,
+      "durationMs": 1690
+    },
+    {
+      "time": 28718,
+      "beatLength": 422.535211267606,
+      "bpm": 141.9999999999999,
+      "durationMs": 48655.06122448981
+    }
+  ],
+  "referenceBpm": 141.9999999999999,
+  "referenceVariable": true,
+  "referenceRedLineCount": 17,
+  "referenceCoverageMs": 50561.06122448981,
+  "status": "ok",
+  "prediction": {
+    "bpm": 142,
+    "offsetMs": 846,
+    "variable": true,
+    "evidence": [
+      {
+        "startMs": 0,
+        "endMs": 7994,
+        "bpm": 110.545,
+        "points": 5,
+        "maxSupport": 0.12484257434942497,
+        "localGridCoverage": 0.12698412698412698,
+        "tripletLike": false,
+        "independentMainScore": 0.04120070099098082,
+        "independentMainBpm": 142,
+        "independentLocalScore": 0.25477484835175745
+      }
+    ],
+    "localPointCount": 67,
+    "rawBpm": 284,
+    "rawSegmentCount": 26
+  },
+  "evaluationMs": 695
+}

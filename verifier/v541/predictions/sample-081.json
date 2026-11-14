@@ -1,0 +1,87 @@
+{
+  "id": "sample-081",
+  "directoryName": "506155 Ayalis - Ai o Chikaishi Hime Kazari",
+  "beatmapFile": "Ayalis - Ai o Chikaishi Hime Kazari (handsome) [captin's Extra].osu",
+  "metadata": {
+    "Title": "Ai o Chikaishi Hime Kazari",
+    "TitleUnicode": "愛を誓いしヒメ飾り",
+    "Artist": "Ayalis",
+    "ArtistUnicode": "あやりす",
+    "Creator": "handsome",
+    "Version": "captin's Extra",
+    "Source": "",
+    "Tags": "vocaloid gumi あやりす ayarisu kyshiro captin1 toybot ascendance",
+    "BeatmapID": "1082145",
+    "BeatmapSetID": "506155",
+    "Mode": "0"
+  },
+  "audioDurationMs": 260127.34693877553,
+  "redLines": [
+    {
+      "time": 1232,
+      "beatLength": 285.714285714286,
+      "bpm": 209.99999999999977,
+      "durationMs": 2286
+    },
+    {
+      "time": 3518,
+      "beatLength": 285.714285714286,
+      "bpm": 209.99999999999977,
+      "durationMs": 93714
+    },
+    {
+      "time": 97232,
+      "beatLength": 285.714285714286,
+      "bpm": 209.99999999999977,
+      "durationMs": 75429
+    },
+    {
+      "time": 172661,
+      "beatLength": 285.714285714286,
+      "bpm": 209.99999999999977,
+      "durationMs": 19429
+    },
+    {
+      "time": 192090,
+      "beatLength": 285.714285714286,
+      "bpm": 209.99999999999977,
+      "durationMs": 18857
+    },
+    {
+      "time": 210947,
+      "beatLength": 285.714285714286,
+      "bpm": 209.99999999999977,
+      "durationMs": 49180.34693877553
+    }
+  ],
+  "referenceBpm": 209.99999999999977,
+  "referenceVariable": false,
+  "referenceRedLineCount": 6,
+  "referenceCoverageMs": 258895.34693877553,
+  "status": "ok",
+  "prediction": {
+    "bpm": 209.95,
+    "offsetMs": 509,
+    "variable": true,
+    "evidence": [
+      {
+        "startMs": 33947,
+        "endMs": 39944,
+        "bpm": 60.128,
+        "points": 3,
+        "maxSupport": 0.07874412111962709
+      },
+      {
+        "startMs": 193701,
+        "endMs": 199698,
+        "bpm": 85.069,
+        "points": 3,
+        "maxSupport": 0.08335825403206754
+      }
+    ],
+    "localPointCount": 249,
+    "rawBpm": 419.9,
+    "rawSegmentCount": 307
+  },
+  "evaluationMs": 2377
+}

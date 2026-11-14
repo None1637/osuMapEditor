@@ -1,0 +1,64 @@
+{
+  "id": "sample-092",
+  "directoryName": "Lindwurm",
+  "beatmapFile": "Kuroneko Dungeon - Ryoushi no Umi no Lindwurm (None1637) [Extra Jump].osu",
+  "metadata": {
+    "Title": "Ryoushi no Umi no Lindwurm",
+    "TitleUnicode": "量子の海のリントヴルム",
+    "Artist": "Kuroneko Dungeon",
+    "ArtistUnicode": "黒猫ダンジョン",
+    "Creator": "None1637",
+    "Version": "Extra Jump",
+    "Source": "",
+    "Tags": "",
+    "BeatmapID": "0",
+    "BeatmapSetID": "-1",
+    "Mode": "0"
+  },
+  "audioDurationMs": 113031.83673469388,
+  "redLines": [
+    {
+      "time": 425,
+      "beatLength": 214.285714285714,
+      "bpm": 280.0000000000004,
+      "durationMs": 112606.83673469388
+    }
+  ],
+  "referenceBpm": 280.0000000000004,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 112606.83673469388,
+  "status": "ok",
+  "prediction": {
+    "bpm": 139.95,
+    "offsetMs": 429,
+    "variable": true,
+    "evidence": [
+      {
+        "startMs": 28955,
+        "endMs": 34952,
+        "bpm": 80.124,
+        "points": 3,
+        "maxSupport": 0.1605252618081465
+      },
+      {
+        "startMs": 62903,
+        "endMs": 72893,
+        "bpm": 62.265,
+        "points": 7,
+        "maxSupport": 0.21348271000808924
+      },
+      {
+        "startMs": 85867,
+        "endMs": 91864,
+        "bpm": 80.124,
+        "points": 3,
+        "maxSupport": 0.2763440222892677
+      }
+    ],
+    "localPointCount": 105,
+    "rawBpm": 279.9,
+    "rawSegmentCount": 26
+  },
+  "evaluationMs": 1135
+}

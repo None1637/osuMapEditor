@@ -1,0 +1,42 @@
+{
+  "id": "sample-032",
+  "directoryName": "149527 Ito Kanako - Sky of Twilight",
+  "beatmapFile": "Ito Kanako - Sky of Twilight (Brainpeeler) [Marathon].osu",
+  "metadata": {
+    "Title": "Sky of Twilight",
+    "TitleUnicode": "Sky of Twilight",
+    "Artist": "Ito Kanako",
+    "ArtistUnicode": "いとうかなこ",
+    "Creator": "Brainpeeler",
+    "Version": "Marathon",
+    "Source": "エスカ＆ロジーのアトリエ～黄昏の空の錬金術士～",
+    "Tags": "Atelier Escha Logy vocal album",
+    "BeatmapID": "369470",
+    "BeatmapSetID": "149527",
+    "Mode": "3"
+  },
+  "audioDurationMs": 381441.08843537414,
+  "redLines": [
+    {
+      "time": 415,
+      "beatLength": 555.555555555556,
+      "bpm": 107.99999999999991,
+      "durationMs": 381026.08843537414
+    }
+  ],
+  "referenceBpm": 107.99999999999991,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 381026.08843537414,
+  "status": "ok",
+  "prediction": {
+    "bpm": 216,
+    "offsetMs": 443,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 371,
+    "rawBpm": 216,
+    "rawSegmentCount": 166
+  },
+  "evaluationMs": 3650
+}

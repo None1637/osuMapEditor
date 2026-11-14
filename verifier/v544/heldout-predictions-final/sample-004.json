@@ -1,0 +1,302 @@
+{
+  "id": "sample-004",
+  "directoryName": "510859 Camellia - chrono diver -fragment- (Camellia's crossroads of chrono remix)",
+  "beatmapFile": "Camellia - chrono diver -fragment- (Camellia's crossroads of chrono remix) (Lavender) [Crossroads of peace and SAVAGE!!].osu",
+  "metadata": {
+    "Title": "chrono diver -fragment- (Camellia's \"crossroads of chrono\" remix)",
+    "TitleUnicode": "chrono diver -fragment- (かめりあ's “crossroads of chrono” remix)",
+    "Artist": "Camellia",
+    "ArtistUnicode": "かめりあ",
+    "Creator": "Lavender",
+    "Version": "Crossroads of peace and SAVAGE!!",
+    "Source": "beatmania IIDX 22 PENDUAL",
+    "Tags": "三澤秋 Misawa Aki 猫叉Master Nekomata Master",
+    "Mode": "0"
+  },
+  "audioDurationMs": null,
+  "redLines": [
+    {
+      "time": 7564,
+      "beatLength": 402.684563758389,
+      "bpm": 149.00000000000009,
+      "durationMs": 402
+    },
+    {
+      "time": 7966,
+      "beatLength": 375,
+      "bpm": 160,
+      "durationMs": 375
+    },
+    {
+      "time": 8341,
+      "beatLength": 491.803278688525,
+      "bpm": 121.9999999999999,
+      "durationMs": 491
+    },
+    {
+      "time": 8832,
+      "beatLength": 403.361344537815,
+      "bpm": 148.75000000000006,
+      "durationMs": 1210
+    },
+    {
+      "time": 10042,
+      "beatLength": 372.670807453416,
+      "bpm": 161.00000000000006,
+      "durationMs": 745
+    },
+    {
+      "time": 10787,
+      "beatLength": 392.156862745098,
+      "bpm": 153,
+      "durationMs": 392
+    },
+    {
+      "time": 11179,
+      "beatLength": 416.666666666667,
+      "bpm": 143.9999999999999,
+      "durationMs": 416
+    },
+    {
+      "time": 11595,
+      "beatLength": 508.474576271186,
+      "bpm": 118.00000000000011,
+      "durationMs": 508
+    },
+    {
+      "time": 12103,
+      "beatLength": 409.556313993174,
+      "bpm": 146.50000000000003,
+      "durationMs": 819
+    },
+    {
+      "time": 12922,
+      "beatLength": 390.879478827362,
+      "bpm": 153.49999999999983,
+      "durationMs": 781
+    },
+    {
+      "time": 13703,
+      "beatLength": 397.350993377483,
+      "bpm": 151.00000000000017,
+      "durationMs": 397
+    },
+    {
+      "time": 14100,
+      "beatLength": 418.118466898955,
+      "bpm": 143.49999999999991,
+      "durationMs": 418
+    },
+    {
+      "time": 14518,
+      "beatLength": 444.444444444444,
+      "bpm": 135.00000000000014,
+      "durationMs": 444
+    },
+    {
+      "time": 14962,
+      "beatLength": 415.22491349481,
+      "bpm": 144.4999999999999,
+      "durationMs": 415
+    },
+    {
+      "time": 15377,
+      "beatLength": 376.175548589342,
+      "bpm": 159.4999999999999,
+      "durationMs": 376
+    },
+    {
+      "time": 15753,
+      "beatLength": 394.736842105263,
+      "bpm": 152.00000000000006,
+      "durationMs": 789
+    },
+    {
+      "time": 16542,
+      "beatLength": 453.686200378072,
+      "bpm": 132.24999999999994,
+      "durationMs": 907
+    },
+    {
+      "time": 17449,
+      "beatLength": 418.118466898955,
+      "bpm": 143.49999999999991,
+      "durationMs": 418
+    },
+    {
+      "time": 17867,
+      "beatLength": 437.956204379562,
+      "bpm": 137.00000000000003,
+      "durationMs": 437
+    },
+    {
+      "time": 18304,
+      "beatLength": 475.247524752475,
+      "bpm": 126.25000000000007,
+      "durationMs": 475
+    },
+    {
+      "time": 18779,
+      "beatLength": 384.615384615385,
+      "bpm": 155.99999999999986,
+      "durationMs": 769
+    },
+    {
+      "time": 19548,
+      "beatLength": 375,
+      "bpm": 160,
+      "durationMs": 750
+    },
+    {
+      "time": 20298,
+      "beatLength": 372.670807453416,
+      "bpm": 161.00000000000006,
+      "durationMs": 372
+    },
+    {
+      "time": 20670,
+      "beatLength": 393.44262295082,
+      "bpm": 152.49999999999986,
+      "durationMs": 393
+    },
+    {
+      "time": 21063,
+      "beatLength": 397.350993377483,
+      "bpm": 151.00000000000017,
+      "durationMs": 397
+    },
+    {
+      "time": 21460,
+      "beatLength": 422.535211267606,
+      "bpm": 141.9999999999999,
+      "durationMs": 422
+    },
+    {
+      "time": 21882,
+      "beatLength": 434.782608695652,
+      "bpm": 138.00000000000006,
+      "durationMs": 1304
+    },
+    {
+      "time": 23186,
+      "beatLength": 397.350993377483,
+      "bpm": 151.00000000000017,
+      "durationMs": 397
+    },
+    {
+      "time": 23583,
+      "beatLength": 437.956204379562,
+      "bpm": 137.00000000000003,
+      "durationMs": 437
+    },
+    {
+      "time": 24020,
+      "beatLength": 461.538461538462,
+      "bpm": 129.99999999999986,
+      "durationMs": 461
+    },
+    {
+      "time": 24481,
+      "beatLength": 454.545454545455,
+      "bpm": 131.99999999999986,
+      "durationMs": 454
+    },
+    {
+      "time": 24935,
+      "beatLength": 446.096654275093,
+      "bpm": 134.49999999999997,
+      "durationMs": 446
+    },
+    {
+      "time": 25381,
+      "beatLength": 409.556313993174,
+      "bpm": 146.50000000000003,
+      "durationMs": 819
+    },
+    {
+      "time": 26200,
+      "beatLength": 404.040404040404,
+      "bpm": 148.50000000000003,
+      "durationMs": 404
+    },
+    {
+      "time": 26604,
+      "beatLength": 402.684563758389,
+      "bpm": 149.00000000000009,
+      "durationMs": 805
+    },
+    {
+      "time": 27409,
+      "beatLength": 405.405405405405,
+      "bpm": 148.00000000000014,
+      "durationMs": 405
+    },
+    {
+      "time": 27814,
+      "beatLength": 499.375780274657,
+      "bpm": 120.14999999999992,
+      "durationMs": 499
+    },
+    {
+      "time": 28313,
+      "beatLength": 722.89156626506,
+      "bpm": 83.00000000000003,
+      "durationMs": 722
+    },
+    {
+      "time": 29035,
+      "beatLength": 384.615384615385,
+      "bpm": 155.99999999999986,
+      "durationMs": 1153
+    },
+    {
+      "time": 30188,
+      "beatLength": 501.043841336117,
+      "bpm": 119.74999999999999,
+      "durationMs": 501
+    },
+    {
+      "time": 30689,
+      "beatLength": 444.444444444444,
+      "bpm": 135.00000000000014,
+      "durationMs": 444
+    },
+    {
+      "time": 31133,
+      "beatLength": 466.926070038911,
+      "bpm": 128.49999999999986,
+      "durationMs": 466
+    },
+    {
+      "time": 31599,
+      "beatLength": 474.308300395257,
+      "bpm": 126.49999999999999,
+      "durationMs": 948
+    },
+    {
+      "time": 32547,
+      "beatLength": 827.586206896552,
+      "bpm": 72.49999999999997,
+      "durationMs": 3517
+    },
+    {
+      "time": 36064,
+      "beatLength": 295.566502463054,
+      "bpm": 203.0000000000001,
+      "durationMs": 316
+    },
+    {
+      "time": 36380,
+      "beatLength": 314.13612565445,
+      "bpm": 191.00000000000017,
+      "durationMs": 1256.5445026177986
+    }
+  ],
+  "referenceBpm": 72.49999999999997,
+  "referenceVariable": true,
+  "referenceRedLineCount": 46,
+  "referenceCoverageMs": 3517,
+  "status": "decode_unavailable",
+  "prediction": null,
+  "evaluationMs": 0
+}

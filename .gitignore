@@ -37,3 +37,15 @@ verifier/**/.edge-profile-*/
 
 # 验证器本地临时音频 (真实歌曲解码 PCM, 不入库)
 *.pcm
+verifier/**/*.f32
+verifier/**/*.wav
+verifier/**/*.mp3
+verifier/**/*.ogg
+
+# BPM 研究生成物与第三方运行环境 (脚本/文本结果仍入库)
+verifier/**/decoded/
+verifier/**/clips/
+verifier/**/plots/
+verifier/**/label-sheets/
+verifier/**/vendor/
+verifier/**/.browser-profile/

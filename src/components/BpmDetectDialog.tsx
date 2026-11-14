@@ -4,10 +4,13 @@
 //       ② 恒速(假设歌曲恒速)/变速(假设歌曲变速) 模式 — 变速模式列出全部检出段
 //       (时间+BPM, 可删误检段), 应用写入多条红线。
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { DraggableDialog, DraftNum } from './DraggableDialog';
+import { DialogButton, DraggableDialog, DraftNum } from './DraggableDialog';
+import { UiAutoControl, UiAutoIcon, UiAutoText } from './uiLayout/UiControl'; // v535
+import { X } from 'lucide-react';
 import { store } from '@/osu/store';
 import { useT } from '@/i18n';
 import { extractConstantTempo, type BpmDetectResult, type ConstantTempoResult } from '@/osu/bpmDetect';
+import { refineConstantTempoOffsets } from '@/osu/legacyResidual';
 import { formatMsTime } from '@/osu/timingEdit';
 import { BpmPreview } from './BpmPreview'; // v503: 多层波形/频谱预览
 
@@ -59,6 +62,7 @@ export function BpmDetectDialog({ onClose }: { onClose: () => void }) {
           const shift = range.startMs;
           r.beats = r.beats.map(b => b + shift);
           for (const s of r.segments) s.time += shift;
+          for (const residual of r.legacyResiduals ?? []) residual.timeMs += shift;
           const cr = (r as unknown as { constant?: ConstantTempoResult | null }).constant;
           if (cr) {
             cr.offsetMs += shift;
@@ -79,13 +83,43 @@ export function BpmDetectDialog({ onClose }: { onClose: () => void }) {
     const end = range ? Math.min(buf.length, Math.ceil(range.endMs / 1000 * sr)) : buf.length;
     const channels: Float32Array[] = [];
     for (let i = 0; i < buf.numberOfChannels; i++) channels.push(buf.getChannelData(i).slice(start, end));
-    worker.postMessage({ type: 'detect', channels, sampleRate: sr, length: end - start }, channels.map(c => c.buffer as ArrayBuffer));
+
+    // legacyResidual 使用当前谱面的物件与红线；区间检测统一转成音频切片的局部时间轴。
+    const beatmap = store.beatmap;
+    const hitTimesMs = (beatmap?.hitObjects ?? []).flatMap(object => {
+      if (!range) return object.time >= 0 ? [object.time] : [];
+      return object.time >= range.startMs && object.time < range.endMs ? [object.time - range.startMs] : [];
+    });
+    const absoluteRedlines = (beatmap?.timingPoints ?? [])
+      .filter(point => point.uninherited && point.beatLength > 0)
+      .sort((a, b) => a.time - b.time);
+    let scopedRedlines = absoluteRedlines;
+    if (range) {
+      let activeIndex = -1;
+      for (let i = 0; i < absoluteRedlines.length; i++) {
+        if (absoluteRedlines[i].time <= range.startMs) activeIndex = i;
+        else break;
+      }
+      scopedRedlines = absoluteRedlines.filter((point, index) => index === activeIndex || (point.time > range.startMs && point.time < range.endMs));
+    }
+    const redlines = scopedRedlines.map(point => ({
+      timeMs: range ? Math.max(0, point.time - range.startMs) : point.time,
+      bpm: 60000 / point.beatLength,
+    }));
+    worker.postMessage({
+      type: 'detect', channels, sampleRate: sr, length: end - start,
+      legacyInput: { hitTimesMs, redlines },
+    }, channels.map(c => c.buffer as ArrayBuffer));
     return () => { worker.terminate(); workerRef.current = null; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // v500: 容差变化本地重算恒速结果 (音频分析只跑一次)
-  const constant = useMemo(() => result ? extractConstantTempo(result, 0.1, tolMs) : null, [result, tolMs]);
+  // v500: 容差变化本地重算恒速结果 (音频分析只跑一次)；legacyResidual 只精修时间，不改 BPM。
+  const constant = useMemo(() => {
+    if (!result) return null;
+    const detected = extractConstantTempo(result, 0.1, tolMs);
+    return detected ? refineConstantTempoOffsets(detected, result.legacyResiduals ?? []) : null;
+  }, [result, tolMs]);
   useEffect(() => {
     if (!constant || manualEdit) return;
     setBpm(constant.bpm);
@@ -122,12 +156,12 @@ export function BpmDetectDialog({ onClose }: { onClose: () => void }) {
           <>
             <div className="flex items-center gap-3 flex-wrap">
               <label className="flex items-center gap-1 cursor-pointer">
-                <input type="radio" name="bpm-detect-mode" checked={mode === 'constant'} onChange={() => setMode('constant')} data-testid="bpm-detect-mode-constant" />
-                {t('timing.bpmdetect_mode_constant', 'Constant (assume fixed tempo)')}
+                <UiAutoControl localId="mode-constant"><input type="radio" name="bpm-detect-mode" checked={mode === 'constant'} onChange={() => setMode('constant')} data-testid="bpm-detect-mode-constant" /></UiAutoControl>
+                <UiAutoText localId="mode-constant" textKey="timing.bpmdetect_mode_constant">Constant (assume fixed tempo)</UiAutoText>
               </label>
               <label className="flex items-center gap-1 cursor-pointer">
-                <input type="radio" name="bpm-detect-mode" checked={mode === 'variable'} onChange={() => setMode('variable')} data-testid="bpm-detect-mode-variable" />
-                {t('timing.bpmdetect_mode_variable', 'Variable (assume tempo changes)')}
+                <UiAutoControl localId="mode-variable"><input type="radio" name="bpm-detect-mode" checked={mode === 'variable'} onChange={() => setMode('variable')} data-testid="bpm-detect-mode-variable" /></UiAutoControl>
+                <UiAutoText localId="mode-variable" textKey="timing.bpmdetect_mode_variable">Variable (assume tempo changes)</UiAutoText>
               </label>
               <label className="flex items-center gap-1">{t('timing.bpmdetect_tolerance', 'Tolerance (ms)')}
                 <DraftNum value={tolMs} set={v => { setTolMs(v); setManualEdit(false); }} testid="bpm-detect-tolerance" min={1} max={100} step={1} w="w-16" />
@@ -152,8 +186,8 @@ export function BpmDetectDialog({ onClose }: { onClose: () => void }) {
                     <div key={i} className="flex items-center gap-2 px-2 py-0.5 text-xs odd:bg-white/5">
                       <span className="w-24">{formatMsTime(s.time)}</span>
                       <span className="flex-1">{s.bpm.toFixed(2)} BPM</span>
-                      <button className="text-red-300 hover:text-red-200 px-1" data-seg-del={i}
-                        onClick={() => setDeletedSegs(prev => new Set(prev).add(i))}>×</button>
+                      <UiAutoControl localId={`segment.${s.time}.delete`} kind="button" defaultIcon="lucide:X"><button className="text-red-300 hover:text-red-200 px-1" data-seg-del={i}
+                        onClick={() => setDeletedSegs(prev => new Set(prev).add(i))}><UiAutoIcon localId={`segment.${s.time}.delete`}><X className="w-3.5 h-3.5" /></UiAutoIcon></button></UiAutoControl>
                     </div>
                   ))}
                 </div>
@@ -174,15 +208,13 @@ export function BpmDetectDialog({ onClose }: { onClose: () => void }) {
             )}
             <div className="flex items-center gap-2 text-xs text-white/50">
               <label className="flex items-center gap-1 cursor-pointer">
-                <input type="checkbox" checked={showPreview} onChange={e => setShowPreview(e.target.checked)} />
-                {t('timing.bpmdetect_preview', 'Preview')}
+                <UiAutoControl localId="show-preview"><input type="checkbox" checked={showPreview} onChange={e => setShowPreview(e.target.checked)} /></UiAutoControl>
+                <UiAutoText localId="show-preview" textKey="timing.bpmdetect_preview">Preview</UiAutoText>
               </label>
             </div>
             <div className="flex gap-2 mt-1">
-              <button data-testid="bpm-detect-apply" onClick={apply} disabled={applyDisabled} className="px-3 py-1 rounded bg-pink-500 hover:bg-pink-400 disabled:opacity-40 text-white font-bold">
-                {confirmReplace ? t('timing.bpmdetect_confirm_apply', 'Confirm Replace') : t('timing.bpmdetect_apply', 'Apply')}
-              </button>
-              <button onClick={onClose} className="px-3 py-1 rounded bg-white/10 hover:bg-white/20">{t('timing.bpmdetect_cancel', 'Cancel')}</button>
+              <DialogButton uiId="apply" textKey={confirmReplace ? 'timing.bpmdetect_confirm_apply' : 'timing.bpmdetect_apply'} data-testid="bpm-detect-apply" onClick={apply} disabled={applyDisabled} className="px-3 py-1 rounded bg-pink-500 hover:bg-pink-400 disabled:opacity-40 text-white font-bold">{confirmReplace ? 'Confirm Replace' : 'Apply'}</DialogButton>
+              <DialogButton uiId="cancel" textKey="timing.bpmdetect_cancel" onClick={onClose} className="px-3 py-1 rounded bg-white/10 hover:bg-white/20">Cancel</DialogButton>
             </div>
           </>
         )}

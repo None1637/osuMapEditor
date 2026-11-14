@@ -1,0 +1,19 @@
+{
+  "id": "sample-011",
+  "directoryName": "352570 beatMARIO - Night of Knights",
+  "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\352570 beatMARIO - Night of Knights",
+  "status": "ok",
+  "referenceBpm": 180.0000000000002,
+  "referenceVariable": false,
+  "predictedBpm": 180,
+  "predictedVariable": false,
+  "variableLines": [],
+  "trueVariableMs": 0,
+  "flaggedWindowCount": 0,
+  "flaggedWindowsOnVariable": 0,
+  "rawCandidateCount": 0,
+  "rawCandidatesOnVariable": 0,
+  "finalEvidenceCount": 0,
+  "finalEvidenceOnVariable": 0,
+  "candidates": []
+}

@@ -1,0 +1,38 @@
+{
+  "id": "sample-044",
+  "directoryName": "895790 Maozon - Stasis",
+  "beatmapFile": "Maozon - Stasis (paparwinthai) [Acoustic [WIP]].osu",
+  "metadata": {
+    "Title": "Stasis",
+    "TitleUnicode": "Stasis",
+    "Artist": "Maozon",
+    "ArtistUnicode": "Maozon",
+    "Creator": "paparwinthai",
+    "Version": "Acoustic",
+    "Mode": "0"
+  },
+  "audioDurationMs": 154760.9977324263,
+  "redLines": [
+    {
+      "time": 1448,
+      "beatLength": 333.333333333333,
+      "bpm": 180.0000000000002,
+      "durationMs": 153312.9977324263
+    }
+  ],
+  "referenceBpm": 180.0000000000002,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 153312.9977324263,
+  "status": "ok",
+  "prediction": {
+    "bpm": 180,
+    "offsetMs": 452,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 145,
+    "rawBpm": 360,
+    "rawSegmentCount": 84
+  },
+  "evaluationMs": 1375
+}

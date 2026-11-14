@@ -1,0 +1,42 @@
+{
+  "id": "sample-056",
+  "directoryName": "1734941 LUZE  Emew - Unmeiron",
+  "beatmapFile": "LUZE  Emew. - Unmeiron (Ena) [侕].osu",
+  "metadata": {
+    "Title": "Unmeiron",
+    "TitleUnicode": "Unmeiron",
+    "Artist": "LUZE * Emew.",
+    "ArtistUnicode": "LUZE * Emew.",
+    "Creator": "Ena",
+    "Version": "†",
+    "Source": "BMS",
+    "Tags": "Chordjack, jack, handjack, speedjack, unmeiron, ena, xeroa",
+    "BeatmapID": "3545958",
+    "BeatmapSetID": "1734941",
+    "Mode": "3"
+  },
+  "audioDurationMs": 167297.77777777778,
+  "redLines": [
+    {
+      "time": 0,
+      "beatLength": 352.941176470588,
+      "bpm": 170.0000000000001,
+      "durationMs": 167297.77777777778
+    }
+  ],
+  "referenceBpm": 170.0000000000001,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 167297.77777777778,
+  "status": "ok",
+  "prediction": {
+    "bpm": 170,
+    "offsetMs": 891,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 143,
+    "rawBpm": 170,
+    "rawSegmentCount": 22
+  },
+  "evaluationMs": 1561
+}

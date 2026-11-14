@@ -1,7 +1,8 @@
 // F1 参数窗口: 滑条转连打 (实时预览 + 参数持久化)
 import { useEffect, useMemo, useState } from 'react';
 import { store, useEditor } from '@/osu/store';
-import { DraggableDialog, DraftNum, loadParams, saveParams, useSaveParamsOnClose } from '../DraggableDialog';
+import { DialogButton, DraggableDialog, DraftNum, loadParams, saveParams, useSaveParamsOnClose } from '../DraggableDialog';
+import { UiAutoControl, UiAutoText } from '../uiLayout/UiControl'; // v533
 import { computeStream, DEFAULT_STREAM_PARAMS, migrateStreamParams, type StreamParams } from '@/osu/convert/stream';
 import { useT } from '@/i18n';
 
@@ -50,10 +51,10 @@ export function StreamDialog() {
   return (
     <DraggableDialog title={t('convert.stream_title', 'Slider to Stream ({n} sliders)', { n: sliders.length })} testid="stream" onClose={() => store.closeConversion()}>
       <Row label={t('convert.stream_method', 'Method')}>
-        {([['spacing', t('convert.stream_mode_spacing', 'By spacing')], ['count', t('convert.stream_mode_count', 'By count')]] as const).map(([m, label]) => (
+        {([['spacing', 'convert.stream_mode_spacing', 'By spacing'], ['count', 'convert.stream_mode_count', 'By count']] as const).map(([m, textKey, label]) => (
           <label key={m} className="flex items-center gap-0.5">
-            <input type="radio" name="stream-mode" checked={params.mode === m} data-conv={`mode-${m}`} onChange={() => upd({ mode: m })} />
-            {label}
+            <UiAutoControl localId={`mode-${m}`}><input type="radio" name="stream-mode" checked={params.mode === m} data-conv={`mode-${m}`} onChange={() => upd({ mode: m })} /></UiAutoControl>
+            <UiAutoText localId={`mode-${m}`} textKey={textKey}>{label}</UiAutoText>
           </label>
         ))}
       </Row>
@@ -62,22 +63,22 @@ export function StreamDialog() {
       )}
       {/* v42: 两种模式都有间距 (拍) — 按间距 = 生成间隔; 按数量 = 时间吸附到此节拍网格 */}
       <Row label={t('convert.stream_spacing', 'Spacing (beats)')}>
-        <select value={String(params.spacingBeats)} data-conv="spacing"
+        <UiAutoControl localId="spacing"><select value={String(params.spacingBeats)} data-conv="spacing"
           onChange={e => upd({ spacingBeats: parseFloat(e.target.value) })}
           className="bg-black/40 border border-white/15 rounded px-1 py-0.5 text-white">
           {SPACINGS.map(([v, label]) => <option key={label} value={String(v)}>{label}</option>)}
           {/* 遗留持久化值不在列表时兜底显示, 避免 select 显示错位 */}
           {!SPACINGS.some(([v]) => Math.abs(v - params.spacingBeats) < 1e-9) &&
             <option value={String(params.spacingBeats)}>{params.spacingBeats}</option>}
-        </select>
+        </select></UiAutoControl>
         {params.mode === 'count' && <span className="text-white/40">{t('convert.stream_snap_hint', 'Time snaps to grid')}</span>}
       </Row>
       {/* v398: 自定义连打间距 — 不勾 = 固定间距; 勾选后出 指数底数/倍率/重复次数+镜像重复 三项 */}
       <Row label={t('convert.stream_curve', 'Spacing curve')}>
         <label className="flex items-center gap-1 cursor-pointer select-none">
-          <input type="checkbox" checked={params.customSpacing} data-conv="custom-spacing"
-            onChange={e => upd({ customSpacing: e.target.checked })} />
-          {t('convert.stream_custom_spacing', 'Custom stream spacing')}
+          <UiAutoControl localId="custom-spacing"><input type="checkbox" checked={params.customSpacing} data-conv="custom-spacing"
+            onChange={e => upd({ customSpacing: e.target.checked })} /></UiAutoControl>
+          <UiAutoText localId="custom-spacing" textKey="convert.stream_custom_spacing">Custom stream spacing</UiAutoText>
         </label>
         {!params.customSpacing && <span className="text-white/40">{t('convert.stream_fixed_hint', 'Unchecked = fixed spacing')}</span>}
       </Row>
@@ -98,21 +99,19 @@ export function StreamDialog() {
         <Row label={t('convert.stream_repeats', 'Repeats')}>
           <DraftNum value={params.repeats} set={v => upd({ repeats: Math.max(1, Math.min(16, Math.round(v))) })} testid="repeats" min={1} max={16} />
           <label className="flex items-center gap-1 cursor-pointer select-none">
-            <input type="checkbox" checked={params.mirrorRepeat} data-conv="mirror-repeat"
-              onChange={e => upd({ mirrorRepeat: e.target.checked })} />
-            {t('convert.stream_mirror', 'Mirror repeat')}
+            <UiAutoControl localId="mirror-repeat"><input type="checkbox" checked={params.mirrorRepeat} data-conv="mirror-repeat"
+              onChange={e => upd({ mirrorRepeat: e.target.checked })} /></UiAutoControl>
+            <UiAutoText localId="mirror-repeat" textKey="convert.stream_mirror">Mirror repeat</UiAutoText>
           </label>
         </Row>
       )}
       <div className="text-white/40">{t('convert.stream_summary', 'Will create {n} Hit Circles (preview shown on Playfield)', { n: result.length })}</div>
       <div className="flex gap-2 pt-1">
-        <button data-conv="apply"
+        <DialogButton uiId="apply" textKey="convert.apply" data-conv="apply"
           onClick={() => { saveParams('stream', params); store.applyConversion(sliders.map(s => s.id), result); }}
           disabled={!result.length}
-          className="px-3 py-1 rounded bg-pink-500 hover:bg-pink-400 disabled:opacity-40 text-white font-bold">
-          {t('convert.apply', 'Apply')}
-        </button>
-        <button onClick={() => store.closeConversion()} className="px-3 py-1 rounded bg-white/10 hover:bg-white/20">{t('convert.cancel', 'Cancel')}</button>
+          className="px-3 py-1 rounded bg-pink-500 hover:bg-pink-400 disabled:opacity-40 text-white font-bold">Apply</DialogButton>
+        <DialogButton uiId="cancel" textKey="convert.cancel" onClick={() => store.closeConversion()} className="px-3 py-1 rounded bg-white/10 hover:bg-white/20">Cancel</DialogButton>
       </div>
     </DraggableDialog>
   );

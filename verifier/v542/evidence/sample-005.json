@@ -1,0 +1,92 @@
+{
+  "id": "sample-005",
+  "directoryName": "1193063 BAND-MAID - RINNE",
+  "beatmapFile": "BAND-MAID - RINNE (ShirohaMyMommy) [INSANE].osu",
+  "referenceBpm": 189.99999999999974,
+  "predictedBpm": 190,
+  "frozenBpm": 190,
+  "deterministicEvidence": true,
+  "evidence": [
+    {
+      "startMs": 133793,
+      "endMs": 140789,
+      "bpm": 63.024,
+      "points": 4,
+      "maxSupport": 0.2306443813715454,
+      "index": 0,
+      "ratioToPredictedMain": 0.3317052631578947,
+      "ratioToAnnotatedMain": 0.33170526315789517,
+      "boundary": "interior",
+      "localBpmMin": 63.024,
+      "localBpmMax": 63.217,
+      "medianSupport": 0.1824131991986469,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 31.57894736842105,
+          "first": -0.0020945501118270725,
+          "second": -0.0018260078710748795,
+          "combined": -0.002005931172378849
+        },
+        "annotatedMain": {
+          "lag": 31.578947368421098,
+          "first": -0.0020945501118270426,
+          "second": -0.0018260078710750371,
+          "combined": -0.002005931172378881
+        },
+        "evidenceBpm": {
+          "lag": 95.2018278750952,
+          "first": -0.0019803103278215974,
+          "second": null,
+          "combined": -0.0013268079196404703
+        }
+      },
+      "objectCount": 24,
+      "objectGrid": {
+        "predictedMainHalf": 0.7916666666666666,
+        "annotatedMainHalf": 0.7916666666666666,
+        "evidenceHalf": 0.375
+      }
+    },
+    {
+      "startMs": 144776,
+      "endMs": 151772,
+      "bpm": 63.255,
+      "points": 4,
+      "maxSupport": 0.12384831876085675,
+      "index": 1,
+      "ratioToPredictedMain": 0.33292105263157895,
+      "ratioToAnnotatedMain": 0.3329210526315794,
+      "boundary": "interior",
+      "localBpmMin": 63.217,
+      "localBpmMax": 63.411,
+      "medianSupport": 0.11964298155209295,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 31.57894736842105,
+          "first": null,
+          "second": null,
+          "combined": null
+        },
+        "annotatedMain": {
+          "lag": 31.578947368421098,
+          "first": null,
+          "second": null,
+          "combined": null
+        },
+        "evidenceBpm": {
+          "lag": 94.85416172634574,
+          "first": null,
+          "second": null,
+          "combined": null
+        }
+      },
+      "objectCount": 36,
+      "objectGrid": {
+        "predictedMainHalf": 0.9166666666666666,
+        "annotatedMainHalf": 0.9166666666666666,
+        "evidenceHalf": 0.3055555555555556
+      }
+    }
+  ],
+  "analysisMs": 1989
+}

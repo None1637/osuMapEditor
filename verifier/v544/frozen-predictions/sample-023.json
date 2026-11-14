@@ -1,0 +1,38 @@
+{
+  "id": "sample-023",
+  "directoryName": "11841 Yellow Zebra - Hyouketsu Musume",
+  "beatmapFile": "Yellow Zebra - Hyouketsu Musume (S i R i R u) [Hard].osu",
+  "metadata": {
+    "Title": "Hyouketsu Musume",
+    "Artist": "Yellow Zebra",
+    "Creator": "S i R i R u",
+    "Version": "Hard",
+    "Source": "Touhou Splash",
+    "Tags": "Touhou Cirno",
+    "Mode": "0"
+  },
+  "audioDurationMs": 197564.08163265305,
+  "redLines": [
+    {
+      "time": 2885,
+      "beatLength": 400,
+      "bpm": 150,
+      "durationMs": 194679.08163265305
+    }
+  ],
+  "referenceBpm": 150,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 194679.08163265305,
+  "status": "ok",
+  "prediction": {
+    "bpm": 150,
+    "offsetMs": 505,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 193,
+    "rawBpm": 300,
+    "rawSegmentCount": 116
+  },
+  "evaluationMs": 1875
+}

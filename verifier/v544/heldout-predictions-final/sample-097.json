@@ -1,0 +1,42 @@
+{
+  "id": "sample-097",
+  "directoryName": "beatmap-638877554128372920-audio",
+  "beatmapFile": "EBIMAYO feat. Gao Jin & Xiao Shen Yang - Wo De Hao Xiong Di (MAYO-C Remix) (None1637) [EX].osu",
+  "metadata": {
+    "Title": "Wo De Hao Xiong Di (MAYO-C Remix)",
+    "TitleUnicode": "我的好兄弟（麻油氏再混音）",
+    "Artist": "EBIMAYO feat. Gao Jin & Xiao Shen Yang",
+    "ArtistUnicode": "EBIMAYO feat. 高进 & 小沈阳",
+    "Creator": "None1637",
+    "Version": "EX",
+    "Source": "音波狂潮 II",
+    "Tags": "音波狂潮 II EBIMAYO Remix Gao Jin Xiao Shen Yang GOODBRO 高进 小沈阳 我的好兄弟 打完不卢的是这个",
+    "BeatmapID": "0",
+    "BeatmapSetID": "-1",
+    "Mode": "0"
+  },
+  "audioDurationMs": 251200,
+  "redLines": [
+    {
+      "time": 380,
+      "beatLength": 352.941176470588,
+      "bpm": 170.0000000000001,
+      "durationMs": 250820
+    }
+  ],
+  "referenceBpm": 170.0000000000001,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 250820,
+  "status": "ok",
+  "prediction": {
+    "bpm": 170,
+    "offsetMs": 406,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 173,
+    "rawBpm": 340,
+    "rawSegmentCount": 69
+  },
+  "evaluationMs": 2065
+}

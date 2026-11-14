@@ -1,0 +1,52 @@
+{
+  "id": "sample-006",
+  "directoryName": "886126 Brandy - Cross Time",
+  "beatmapFile": "Brandy - Cross Time (ababab0306) [HD].osu",
+  "referenceBpm": 160,
+  "predictedBpm": 160,
+  "frozenBpm": 160,
+  "deterministicEvidence": true,
+  "evidence": [
+    {
+      "startMs": 69892,
+      "endMs": 75889,
+      "bpm": 72.279,
+      "points": 3,
+      "maxSupport": 0.094805511438092,
+      "index": 0,
+      "ratioToPredictedMain": 0.45174375,
+      "ratioToAnnotatedMain": 0.45174375,
+      "boundary": "interior",
+      "localBpmMin": 67.116,
+      "localBpmMax": 72.279,
+      "medianSupport": 0.094805511438092,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 37.5,
+          "first": 0.05898769235763677,
+          "second": 0.011265917921375728,
+          "combined": 0.043239506793670626
+        },
+        "annotatedMain": {
+          "lag": 37.5,
+          "first": 0.05898769235763677,
+          "second": 0.011265917921375728,
+          "combined": 0.043239506793670626
+        },
+        "evidenceBpm": {
+          "lag": 83.01166313867098,
+          "first": 0.037419975586999006,
+          "second": null,
+          "combined": 0.025071383643289334
+        }
+      },
+      "objectCount": 31,
+      "objectGrid": {
+        "predictedMainHalf": 0.8709677419354839,
+        "annotatedMainHalf": 0.8709677419354839,
+        "evidenceHalf": 0.22580645161290322
+      }
+    }
+  ],
+  "analysisMs": 1178
+}

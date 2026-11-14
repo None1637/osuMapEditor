@@ -1,0 +1,68 @@
+{
+  "samples": 47,
+  "evidence": 93,
+  "deterministic": true,
+  "points": {
+    "3": 68,
+    "4": 20,
+    "6": 2,
+    "7": 1,
+    "8": 2
+  },
+  "minimumThreePointEvidence": 68,
+  "boundary": {
+    "start": 6,
+    "interior": 80,
+    "end": 7
+  },
+  "timeDomain": {
+    "mainAtLeastLocal": 68,
+    "localAboveMain": 25,
+    "nullCombined": 0
+  },
+  "objectGrid": {
+    "strongMainEvidence": 54,
+    "strongLocalEvidence": 2,
+    "strongLocal": [
+      {
+        "id": "sample-034",
+        "index": 0,
+        "bpm": 202.665,
+        "mainBpm": 135.00000000000014,
+        "ratio": 1.5012222222222207
+      },
+      {
+        "id": "sample-034",
+        "index": 1,
+        "bpm": 202.665,
+        "mainBpm": 135.00000000000014,
+        "ratio": 1.5012222222222207
+      }
+    ]
+  },
+  "samplesWithStrongMainGrid": 29,
+  "samplesOnlyMinimumThreePointEvidence": 29,
+  "tripletCandidates": [
+    {
+      "id": "sample-032",
+      "index": 2,
+      "bpm": 162.771,
+      "mainBpm": 107.99999999999991,
+      "ratio": 1.50713888888889
+    },
+    {
+      "id": "sample-034",
+      "index": 0,
+      "bpm": 202.665,
+      "mainBpm": 135.00000000000014,
+      "ratio": 1.5012222222222207
+    },
+    {
+      "id": "sample-034",
+      "index": 1,
+      "bpm": 202.665,
+      "mainBpm": 135.00000000000014,
+      "ratio": 1.5012222222222207
+    }
+  ]
+}

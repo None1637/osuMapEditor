@@ -1,0 +1,42 @@
+{
+  "id": "sample-015",
+  "directoryName": "702775 Mikakuning! - Tomadoi Recipe (TV Size)",
+  "beatmapFile": "Mikakuning! - Tomadoi Recipe (TV Size) (Feerum) [Normal].osu",
+  "metadata": {
+    "Title": "Tomadoi Recipe (TV Size)",
+    "TitleUnicode": "とまどい→レシピ (TV Size)",
+    "Artist": "Mikakuning!",
+    "ArtistUnicode": "みかくにんぐッ！",
+    "Creator": "Feerum",
+    "Version": "Normal",
+    "Source": "未確認で進行形",
+    "Tags": "opening mikakunin de shinkoukei junky terui haruka matsui eriko yoshida yuuri 照井春佳 松井恵理子 吉田有里",
+    "BeatmapID": "1486988",
+    "BeatmapSetID": "702775",
+    "Mode": "3"
+  },
+  "audioDurationMs": 90469.38775510204,
+  "redLines": [
+    {
+      "time": 995,
+      "beatLength": 352.941176470588,
+      "bpm": 170.0000000000001,
+      "durationMs": 89474.38775510204
+    }
+  ],
+  "referenceBpm": 170.0000000000001,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 89474.38775510204,
+  "status": "ok",
+  "prediction": {
+    "bpm": 170,
+    "offsetMs": 446,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 87,
+    "rawBpm": 340,
+    "rawSegmentCount": 58
+  },
+  "evaluationMs": 858
+}

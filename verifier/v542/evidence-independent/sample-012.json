@@ -1,0 +1,52 @@
+{
+  "id": "sample-012",
+  "directoryName": "1822924 Unknown Artist - Yatsume Ana (33 mins)",
+  "beatmapFile": "Unknown Artist - Yatsume Ana (33 mins) (-Shiraishi-) [!].osu",
+  "referenceBpm": 129.99999999999986,
+  "predictedBpm": 130,
+  "frozenBpm": 130,
+  "deterministicEvidence": true,
+  "evidence": [
+    {
+      "startMs": 522193,
+      "endMs": 528190,
+      "bpm": 74.093,
+      "points": 3,
+      "maxSupport": 0.1221514802740654,
+      "index": 0,
+      "ratioToPredictedMain": 0.5699461538461539,
+      "ratioToAnnotatedMain": 0.5699461538461545,
+      "boundary": "interior",
+      "localBpmMin": 74.093,
+      "localBpmMax": 74.093,
+      "medianSupport": 0.1221514802740654,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 46.15384615384615,
+          "first": null,
+          "second": null,
+          "combined": null
+        },
+        "annotatedMain": {
+          "lag": 46.1538461538462,
+          "first": null,
+          "second": null,
+          "combined": null
+        },
+        "evidenceBpm": {
+          "lag": 80.97930978634959,
+          "first": null,
+          "second": null,
+          "combined": null
+        }
+      },
+      "objectCount": 97,
+      "objectGrid": {
+        "predictedMainHalf": 0.5876288659793815,
+        "annotatedMainHalf": 0.5876288659793815,
+        "evidenceHalf": 0.15463917525773196
+      }
+    }
+  ],
+  "analysisMs": 19146
+}

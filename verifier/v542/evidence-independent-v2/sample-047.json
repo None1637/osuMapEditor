@@ -1,0 +1,52 @@
+{
+  "id": "sample-047",
+  "directoryName": "260551 t+pazolite - Rumble Kung-fu Showdown",
+  "beatmapFile": "t+pazolite - Rumble Kung-fu Showdown (L o L i) [Rumble+pazolite].osu",
+  "referenceBpm": 240,
+  "predictedBpm": 240,
+  "frozenBpm": 240,
+  "deterministicEvidence": true,
+  "evidence": [
+    {
+      "startMs": 128801,
+      "endMs": 134798,
+      "bpm": 60.093,
+      "points": 3,
+      "maxSupport": 0.1303373695663276,
+      "index": 0,
+      "ratioToPredictedMain": 0.25038750000000004,
+      "ratioToAnnotatedMain": 0.25038750000000004,
+      "boundary": "interior",
+      "localBpmMin": 60.093,
+      "localBpmMax": 60.093,
+      "medianSupport": 0.10952276443665698,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 25,
+          "first": 0.19605188222795544,
+          "second": 0.3773963379582757,
+          "combined": 0.25589555261896113
+        },
+        "annotatedMain": {
+          "lag": 25,
+          "first": 0.19605188222795544,
+          "second": 0.3773963379582757,
+          "combined": 0.25589555261896113
+        },
+        "evidenceBpm": {
+          "lag": 99.8452398781888,
+          "first": 0.10131080446095919,
+          "second": null,
+          "combined": 0.1013108044609592
+        }
+      },
+      "objectCount": 9,
+      "objectGrid": {
+        "predictedMainHalf": 0.5555555555555556,
+        "annotatedMainHalf": 0.5555555555555556,
+        "evidenceHalf": 0.2222222222222222
+      }
+    }
+  ],
+  "analysisMs": 1688
+}

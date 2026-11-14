@@ -1,0 +1,218 @@
+{
+  "version": "v543-frozen-dev",
+  "sampleCount": 100,
+  "seed": 540,
+  "algorithmFrozen": false,
+  "algorithmHashBasis": "verifier/v543/heldout/manifest.json",
+  "validReference": 100,
+  "evaluatedWithReference": 98,
+  "statusCounts": {
+    "ok": 98,
+    "decode_unavailable": 2
+  },
+  "categoryCounts": {
+    "variable_false_negative": 12,
+    "bpm_and_classification_error": 5,
+    "correct": 67,
+    "bpm_error": 4,
+    "octave_error": 10,
+    "decode_unavailable": 2
+  },
+  "reference": {
+    "constant": 81,
+    "variable": 19,
+    "invalid": 0,
+    "bpmBelow60": 0,
+    "bpmAbove240": 7
+  },
+  "byReferenceClass": {
+    "constant": {
+      "total": 81,
+      "decoded": 79,
+      "strictMainBpm": {
+        "numerator": 66,
+        "denominator": 81,
+        "percent": 81.5
+      },
+      "variableClassification": {
+        "numerator": 78,
+        "denominator": 81,
+        "percent": 96.3
+      },
+      "bothCorrect": {
+        "numerator": 66,
+        "denominator": 81,
+        "percent": 81.5
+      },
+      "decodedStrictMainBpm": {
+        "numerator": 66,
+        "denominator": 79,
+        "percent": 83.5
+      }
+    },
+    "variable": {
+      "total": 19,
+      "decoded": 19,
+      "strictMainBpm": {
+        "numerator": 13,
+        "denominator": 19,
+        "percent": 68.4
+      },
+      "variableClassification": {
+        "numerator": 3,
+        "denominator": 19,
+        "percent": 15.8
+      },
+      "bothCorrect": {
+        "numerator": 1,
+        "denominator": 19,
+        "percent": 5.3
+      },
+      "decodedStrictMainBpm": {
+        "numerator": 13,
+        "denominator": 19,
+        "percent": 68.4
+      }
+    }
+  },
+  "allSamples": {
+    "strictMainBpm": {
+      "numerator": 79,
+      "denominator": 100,
+      "percent": 79
+    },
+    "octaveOnlyAmongAll": {
+      "numerator": 11,
+      "denominator": 100,
+      "percent": 11
+    },
+    "variableClassification": {
+      "numerator": 81,
+      "denominator": 100,
+      "percent": 81
+    },
+    "bothCorrect": {
+      "numerator": 67,
+      "denominator": 100,
+      "percent": 67
+    }
+  },
+  "evaluatedSubset": {
+    "strictMainBpm": {
+      "numerator": 79,
+      "denominator": 98,
+      "percent": 80.6
+    },
+    "variableClassification": {
+      "numerator": 81,
+      "denominator": 98,
+      "percent": 82.7
+    },
+    "bothCorrect": {
+      "numerator": 67,
+      "denominator": 98,
+      "percent": 68.4
+    }
+  },
+  "confusion": {
+    "constant": {
+      "constant": 78,
+      "variable": 1,
+      "unavailable": 2
+    },
+    "variable": {
+      "constant": 16,
+      "variable": 3,
+      "unavailable": 0
+    },
+    "invalid_reference": {
+      "constant": 0,
+      "variable": 0,
+      "unavailable": 0
+    }
+  },
+  "complete": true,
+  "baselineV541": {
+    "strictMainBpm": {
+      "numerator": 79,
+      "denominator": 100,
+      "percent": 79
+    },
+    "octaveOnlyAmongAll": {
+      "numerator": 11,
+      "denominator": 100,
+      "percent": 11
+    },
+    "variableClassification": {
+      "numerator": 49,
+      "denominator": 100,
+      "percent": 49
+    },
+    "bothCorrect": {
+      "numerator": 41,
+      "denominator": 100,
+      "percent": 41
+    }
+  },
+  "deltaFromBaseline": {
+    "strictMainBpm": {
+      "numerator": 0,
+      "percentagePoints": 0
+    },
+    "variableClassification": {
+      "numerator": 32,
+      "percentagePoints": 32
+    },
+    "bothCorrect": {
+      "numerator": 26,
+      "percentagePoints": 26
+    }
+  },
+  "ownerReview": [
+    {
+      "id": "sample-032",
+      "ownerRule": "三连音",
+      "expected": {
+        "variable": false,
+        "rhythm": "triplet",
+        "bpm": 108
+      },
+      "predicted": {
+        "bpm": 216,
+        "variable": false
+      },
+      "bpmMatches": false,
+      "classificationMatches": true
+    },
+    {
+      "id": "sample-034",
+      "ownerRule": "三连音",
+      "expected": {
+        "variable": false,
+        "rhythm": "triplet",
+        "bpm": 135
+      },
+      "predicted": {
+        "bpm": 135,
+        "variable": false
+      },
+      "bpmMatches": true,
+      "classificationMatches": true
+    },
+    {
+      "id": "sample-088",
+      "ownerRule": "基本上所有音均落在 1/4 上，无变速；始终 175 BPM，只是节奏密度或编曲发生变化",
+      "expected": {
+        "variable": false,
+        "rhythm": "quarter-note arrangement/density change",
+        "bpm": 175
+      },
+      "predicted": {
+        "bpm": 175,
+        "variable": false
+      },
+      "bpmMatches": true,
+      "classificationMatches": true
+    }
+  ]
+}

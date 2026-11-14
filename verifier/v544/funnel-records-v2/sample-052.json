@@ -1,0 +1,59 @@
+{
+  "id": "sample-052",
+  "directoryName": "916257 GYARI - Akari ga Yatte Kita Zo (Cut Ver)",
+  "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\916257 GYARI - Akari ga Yatte Kita Zo (Cut Ver)",
+  "status": "ok",
+  "referenceBpm": 136.00000000000009,
+  "referenceVariable": false,
+  "predictedBpm": 136,
+  "predictedVariable": false,
+  "variableLines": [],
+  "trueVariableMs": 0,
+  "flaggedWindowCount": 29,
+  "flaggedWindowsOnVariable": 0,
+  "rawCandidateCount": 1,
+  "rawCandidatesOnVariable": 0,
+  "finalEvidenceCount": 0,
+  "finalEvidenceOnVariable": 0,
+  "candidates": [
+    {
+      "startMs": 78878,
+      "endMs": 84875,
+      "bpm": 60.444,
+      "points": 3,
+      "maxSupport": 0.12823427973480203,
+      "localGridCoverage": 0.04285714285714286,
+      "rejection": "weak_short",
+      "independentMainScore": 0.3308388911760885,
+      "independentLocalScore": 0.15353865258856733,
+      "variableOverlapMs": 0,
+      "overlapsVariable": false,
+      "tripletVotes": [
+        {
+          "timeMs": 80878.0045351474,
+          "bpm": 60.444,
+          "localGridCoverage": 0.041379310344827586,
+          "tripletGridCoverage": 0.46206896551724136,
+          "tripletGridHalfCoverage": 0.2413793103448276,
+          "tripletGridDoubleCoverage": 0.6
+        },
+        {
+          "timeMs": 81876.46258503401,
+          "bpm": 60.444,
+          "localGridCoverage": 0.05673758865248227,
+          "tripletGridCoverage": 0.46808510638297873,
+          "tripletGridHalfCoverage": 0.24113475177304963,
+          "tripletGridDoubleCoverage": 0.5815602836879432
+        },
+        {
+          "timeMs": 82874.92063492064,
+          "bpm": 60.444,
+          "localGridCoverage": 0.04285714285714286,
+          "tripletGridCoverage": 0.4642857142857143,
+          "tripletGridHalfCoverage": 0.25,
+          "tripletGridDoubleCoverage": 0.6214285714285714
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "id": "sample-094",
+  "directoryName": "568215 Various Artists - ChronoJigga Season 2",
+  "beatmapFile": "Various Artists - ChronoJigga Season 2 (ChronoNig) [Los! Los! Los!].osu",
+  "metadata": {
+    "Title": "ChronoJigga Season 2",
+    "TitleUnicode": "ChronoJigga Season 2",
+    "Artist": "Various Artists",
+    "ArtistUnicode": "Various Artists",
+    "Creator": "ChronoNig",
+    "Version": "Los! Los! Los!",
+    "Source": "",
+    "Tags": "",
+    "BeatmapID": "1207974",
+    "BeatmapSetID": "568215",
+    "Mode": "0"
+  },
+  "audioDurationMs": 90122.44897959183,
+  "redLines": [
+    {
+      "time": 1204,
+      "beatLength": 250,
+      "bpm": 240,
+      "durationMs": 88918.44897959183
+    }
+  ],
+  "referenceBpm": 240,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 88918.44897959183,
+  "status": "ok",
+  "prediction": {
+    "bpm": 239.9,
+    "offsetMs": 722,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 87,
+    "rawBpm": 239.9,
+    "rawSegmentCount": 59
+  },
+  "evaluationMs": 897
+}

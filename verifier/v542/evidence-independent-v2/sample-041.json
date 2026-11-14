@@ -1,0 +1,92 @@
+{
+  "id": "sample-041",
+  "directoryName": "191429 C-Show - UNOwen wa kanojo nanoka (TO-HOlic mix)",
+  "beatmapFile": "C-Show - U.N.Owen wa kanojo nanoka (TO-HOlic mix) (Rugure) [leqek's 4K EXH].osu",
+  "referenceBpm": 219.9999999999998,
+  "predictedBpm": 220,
+  "frozenBpm": 220,
+  "deterministicEvidence": true,
+  "evidence": [
+    {
+      "startMs": 9984,
+      "endMs": 16980,
+      "bpm": 62.832,
+      "points": 4,
+      "maxSupport": 0.16445425078944986,
+      "index": 0,
+      "ratioToPredictedMain": 0.2856,
+      "ratioToAnnotatedMain": 0.28560000000000024,
+      "boundary": "start",
+      "localBpmMin": 62.832,
+      "localBpmMax": 63.024,
+      "medianSupport": 0.1598064433847213,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 27.272727272727273,
+          "first": -0.04271887967375418,
+          "second": 0.007401147866791565,
+          "combined": -0.026179270585374084
+        },
+        "annotatedMain": {
+          "lag": 27.2727272727273,
+          "first": -0.042718879673754866,
+          "second": 0.007401147866794052,
+          "combined": -0.026179270585373726
+        },
+        "evidenceBpm": {
+          "lag": 95.49274255156608,
+          "first": 0.06780591470559665,
+          "second": null,
+          "combined": 0.06780591470559665
+        }
+      },
+      "objectCount": 89,
+      "objectGrid": {
+        "predictedMainHalf": 0.8876404494382022,
+        "annotatedMainHalf": 0.8876404494382022,
+        "evidenceHalf": 0.19101123595505617
+      }
+    },
+    {
+      "startMs": 35944,
+      "endMs": 41941,
+      "bpm": 62.68,
+      "points": 3,
+      "maxSupport": 0.1716676724553505,
+      "index": 1,
+      "ratioToPredictedMain": 0.2849090909090909,
+      "ratioToAnnotatedMain": 0.28490909090909117,
+      "boundary": "interior",
+      "localBpmMin": 62.642,
+      "localBpmMax": 62.68,
+      "medianSupport": 0.1716676724553505,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 27.272727272727273,
+          "first": -0.0035305498617653314,
+          "second": 0.11505142745375985,
+          "combined": 0.03560150265235798
+        },
+        "annotatedMain": {
+          "lag": 27.2727272727273,
+          "first": -0.0035305498617639046,
+          "second": 0.11505142745375695,
+          "combined": 0.03560150265235797
+        },
+        "evidenceBpm": {
+          "lag": 95.72431397574984,
+          "first": -0.006085458657510492,
+          "second": null,
+          "combined": -0.0060854586575104916
+        }
+      },
+      "objectCount": 79,
+      "objectGrid": {
+        "predictedMainHalf": 0.8481012658227848,
+        "annotatedMainHalf": 0.8481012658227848,
+        "evidenceHalf": 0.17721518987341772
+      }
+    }
+  ],
+  "analysisMs": 1178
+}

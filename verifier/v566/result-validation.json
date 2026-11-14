@@ -1,0 +1,27 @@
+{
+  "version": "v566-local-rising-edge-independent-recheck-v1",
+  "passed": true,
+  "comparisonRows": 90,
+  "calibrationRecords": 6,
+  "rawAudioCandidatesVerified": true,
+  "oppositeFoldIsolationVerified": true,
+  "csvVerified": true,
+  "groupsVerified": [
+    "overall",
+    "perSample",
+    "perStratum",
+    "perFold"
+  ],
+  "outputGuardrailsUnchanged": true,
+  "hypotheses": {
+    "H1": false,
+    "H2": false,
+    "H3": true
+  },
+  "targetAchieved": false,
+  "sample044AtLeast80Preserved": true,
+  "audibleCorrectRate": 0.5891085501949022,
+  "deltaFromE5": -0.11562981942707262,
+  "netFixedWeightFromE5": -211.60000000000002,
+  "failures": []
+}

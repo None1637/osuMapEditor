@@ -1,0 +1,54 @@
+{
+  "id": "sample-050",
+  "directoryName": "1787128 Chiro, Kotono, Hiyorin - My Dream Kingdom!",
+  "beatmapFile": "Chiro, Kotono, Hiyorin - My Dream Kingdom! (Snow Note) [Snother].osu",
+  "metadata": {
+    "Title": "My Dream Kingdom!",
+    "TitleUnicode": "まいどりーむきんぐだむ！",
+    "Artist": "Chiro, Kotono, Hiyorin",
+    "ArtistUnicode": "ちろ; ことの; ひよりん*",
+    "Creator": "Snow Note",
+    "Version": "Snother",
+    "Source": "まいどりーむきんぐだむ！",
+    "Tags": "7odoa",
+    "BeatmapID": "3661317",
+    "BeatmapSetID": "1787128",
+    "Mode": "0"
+  },
+  "audioDurationMs": 190280,
+  "redLines": [
+    {
+      "time": 993,
+      "beatLength": 500,
+      "bpm": 120,
+      "durationMs": 76012
+    },
+    {
+      "time": 77005,
+      "beatLength": 500,
+      "bpm": 120,
+      "durationMs": 48008
+    },
+    {
+      "time": 125013,
+      "beatLength": 500,
+      "bpm": 120,
+      "durationMs": 65267
+    }
+  ],
+  "referenceBpm": 120,
+  "referenceVariable": false,
+  "referenceRedLineCount": 3,
+  "referenceCoverageMs": 189287,
+  "status": "ok",
+  "prediction": {
+    "bpm": 239.9,
+    "offsetMs": 239,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 157,
+    "rawBpm": 239.9,
+    "rawSegmentCount": 36
+  },
+  "evaluationMs": 1719
+}

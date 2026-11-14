@@ -1,0 +1,19 @@
+{
+  "id": "sample-066",
+  "directoryName": "730303 ONE OK ROCK - 2020",
+  "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\730303 ONE OK ROCK - 2020",
+  "status": "ok",
+  "referenceBpm": 164.99999999999983,
+  "referenceVariable": false,
+  "predictedBpm": 164.95,
+  "predictedVariable": false,
+  "variableLines": [],
+  "trueVariableMs": 0,
+  "flaggedWindowCount": 20,
+  "flaggedWindowsOnVariable": 0,
+  "rawCandidateCount": 0,
+  "rawCandidatesOnVariable": 0,
+  "finalEvidenceCount": 0,
+  "finalEvidenceOnVariable": 0,
+  "candidates": []
+}

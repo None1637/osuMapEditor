@@ -1,0 +1,51 @@
+{
+  "id": "sample-015",
+  "directoryName": "1780278 DJ Myosuke & Laur - Break Through Myself feat Risa Yuzuki (Short Ver)",
+  "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\1780278 DJ Myosuke & Laur - Break Through Myself feat Risa Yuzuki (Short Ver)",
+  "status": "ok",
+  "referenceBpm": 200,
+  "referenceVariable": false,
+  "predictedBpm": 200,
+  "predictedVariable": false,
+  "variableLines": [],
+  "trueVariableMs": 0,
+  "flaggedWindowCount": 47,
+  "flaggedWindowsOnVariable": 0,
+  "rawCandidateCount": 1,
+  "rawCandidatesOnVariable": 0,
+  "finalEvidenceCount": 0,
+  "finalEvidenceOnVariable": 0,
+  "candidates": [
+    {
+      "startMs": 127802,
+      "endMs": 133799,
+      "bpm": 89.103,
+      "points": 3,
+      "maxSupport": 0.24286429836411713,
+      "localGridCoverage": 0.06060606060606061,
+      "rejection": "weak_short",
+      "independentMainScore": 0.2105235524679695,
+      "independentLocalScore": 0.08432753214682703,
+      "variableOverlapMs": 0,
+      "overlapsVariable": false,
+      "tripletVotes": [
+        {
+          "timeMs": 129802.44897959183,
+          "bpm": 89.103,
+          "localGridCoverage": 0.06097560975609756,
+          "tripletGridCoverage": 0.5792682926829268,
+          "tripletGridHalfCoverage": 0.36585365853658536,
+          "tripletGridDoubleCoverage": 0.6158536585365854
+        },
+        {
+          "timeMs": 130800.90702947846,
+          "bpm": 89.103,
+          "localGridCoverage": 0.06060606060606061,
+          "tripletGridCoverage": 0.5393939393939394,
+          "tripletGridHalfCoverage": 0.3575757575757576,
+          "tripletGridDoubleCoverage": 0.6303030303030303
+        }
+      ]
+    }
+  ]
+}

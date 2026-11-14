@@ -1,0 +1,121 @@
+{
+  "id": "sample-004",
+  "directoryName": "1256680 Mori Calliope - Excuse My Rudeness, But Could You Please RIP",
+  "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\1256680 Mori Calliope - Excuse My Rudeness, But Could You Please RIP",
+  "status": "ok",
+  "referenceBpm": 124.00000000000013,
+  "referenceVariable": false,
+  "predictedBpm": 124,
+  "predictedVariable": false,
+  "variableLines": [],
+  "trueVariableMs": 0,
+  "flaggedWindowCount": 50,
+  "flaggedWindowsOnVariable": 0,
+  "rawCandidateCount": 3,
+  "rawCandidatesOnVariable": 0,
+  "finalEvidenceCount": 0,
+  "finalEvidenceOnVariable": 0,
+  "candidates": [
+    {
+      "startMs": 0,
+      "endMs": 5997,
+      "bpm": 76,
+      "points": 3,
+      "maxSupport": 0.2626392508423541,
+      "localGridCoverage": 0.0851063829787234,
+      "rejection": "weak_short",
+      "independentMainScore": 0.07064910045072795,
+      "independentLocalScore": -0.007589826375943979,
+      "variableOverlapMs": 0,
+      "overlapsVariable": false,
+      "tripletVotes": [
+        {
+          "timeMs": 2998.2766439909296,
+          "bpm": 76,
+          "localGridCoverage": 0.07246376811594203,
+          "tripletGridCoverage": 0.42028985507246375,
+          "tripletGridHalfCoverage": 0.21739130434782608,
+          "tripletGridDoubleCoverage": 0.5942028985507246
+        },
+        {
+          "timeMs": 3996.734693877551,
+          "bpm": 82.688,
+          "localGridCoverage": 0.15384615384615385,
+          "tripletGridCoverage": 0.5,
+          "tripletGridHalfCoverage": 0.34615384615384615,
+          "tripletGridDoubleCoverage": 0.7307692307692307
+        }
+      ]
+    },
+    {
+      "startMs": 25960,
+      "endMs": 31957,
+      "bpm": 71.037,
+      "points": 3,
+      "maxSupport": 0.14796211282414184,
+      "localGridCoverage": 0.07894736842105263,
+      "rejection": "weak_short",
+      "independentMainScore": 0.34974308289338063,
+      "independentLocalScore": -0.02867035990629215,
+      "variableOverlapMs": 0,
+      "overlapsVariable": false,
+      "tripletVotes": [
+        {
+          "timeMs": 28958.185941043084,
+          "bpm": 71.037,
+          "localGridCoverage": 0.0821917808219178,
+          "tripletGridCoverage": 0.4794520547945205,
+          "tripletGridHalfCoverage": 0.2465753424657534,
+          "tripletGridDoubleCoverage": 0.6575342465753424
+        },
+        {
+          "timeMs": 29956.643990929704,
+          "bpm": 71.037,
+          "localGridCoverage": 0.06666666666666667,
+          "tripletGridCoverage": 0.5066666666666667,
+          "tripletGridHalfCoverage": 0.26666666666666666,
+          "tripletGridDoubleCoverage": 0.64
+        }
+      ]
+    },
+    {
+      "startMs": 41935,
+      "endMs": 48930,
+      "bpm": 70.794,
+      "points": 4,
+      "maxSupport": 0.12665525696493843,
+      "localGridCoverage": 0.08196721311475409,
+      "rejection": "insufficient_margin",
+      "independentMainScore": 0.22944442628671066,
+      "independentLocalScore": 0.043293581934667716,
+      "variableOverlapMs": 0,
+      "overlapsVariable": false,
+      "tripletVotes": [
+        {
+          "timeMs": 43935.056689342404,
+          "bpm": 70.794,
+          "localGridCoverage": 0.07692307692307693,
+          "tripletGridCoverage": 0.4461538461538462,
+          "tripletGridHalfCoverage": 0.26153846153846155,
+          "tripletGridDoubleCoverage": 0.6615384615384615
+        },
+        {
+          "timeMs": 44933.514739229024,
+          "bpm": 71.037,
+          "localGridCoverage": 0.08196721311475409,
+          "tripletGridCoverage": 0.5081967213114754,
+          "tripletGridHalfCoverage": 0.29508196721311475,
+          "tripletGridDoubleCoverage": 0.7213114754098361
+        },
+        {
+          "timeMs": 45931.97278911564,
+          "bpm": 70.794,
+          "localGridCoverage": 0.08333333333333333,
+          "tripletGridCoverage": 0.4666666666666667,
+          "tripletGridHalfCoverage": 0.25,
+          "tripletGridDoubleCoverage": 0.65
+        }
+      ]
+    }
+  ]
+}

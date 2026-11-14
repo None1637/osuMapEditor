@@ -1,0 +1,13 @@
+{
+  "version": "v564-residual-independent-recheck-v1",
+  "passed": true,
+  "audibleRows": 52,
+  "pairedRows": 49,
+  "csvRows": 52,
+  "allGroupsAndOrderedResidualsVerified": true,
+  "foldOppositionExplainedByE5Algebra": true,
+  "maximumAbsoluteErrorMs": 12.684244403626508,
+  "target80WeightGap": 174.3266666666666,
+  "recommendedE6": "same-song leave-one-out unweighted median absolute-error correction",
+  "failures": []
+}

@@ -1,0 +1,52 @@
+{
+  "id": "sample-084",
+  "directoryName": "64839 Misato Aki - DESIRE (Short Ver)",
+  "beatmapFile": "Misato Aki - DESIRE (Short Ver.) (Nichiyouki) [Sekai's Easy].osu",
+  "referenceBpm": 118.99999999999999,
+  "predictedBpm": 238,
+  "frozenBpm": 238,
+  "deterministicEvidence": true,
+  "evidence": [
+    {
+      "startMs": 67895,
+      "endMs": 73892,
+      "bpm": 68,
+      "points": 3,
+      "maxSupport": 0.12280370108404437,
+      "index": 0,
+      "ratioToPredictedMain": 0.2857142857142857,
+      "ratioToAnnotatedMain": 0.5714285714285715,
+      "boundary": "interior",
+      "localBpmMin": 68,
+      "localBpmMax": 68.044,
+      "medianSupport": 0.12280370108404437,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 25.210084033613448,
+          "first": 0.25602899749219915,
+          "second": 0.24461115775447004,
+          "combined": 0.25226111037874854
+        },
+        "annotatedMain": {
+          "lag": 50.420168067226896,
+          "first": 0.24461115775447004,
+          "second": 0.1313660609332931,
+          "combined": 0.20724027580348167
+        },
+        "evidenceBpm": {
+          "lag": 88.23529411764706,
+          "first": 0.16328766904288616,
+          "second": null,
+          "combined": 0.16328766904288616
+        }
+      },
+      "objectCount": 5,
+      "objectGrid": {
+        "predictedMainHalf": 1,
+        "annotatedMainHalf": 1,
+        "evidenceHalf": 0.2
+      }
+    }
+  ],
+  "analysisMs": 1110
+}

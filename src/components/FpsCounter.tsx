@@ -1,6 +1,7 @@
 // v220: 右下角帧数显示 — 悬浮于其他所有控件之上 (z-[100] + pointer-events-none),
 // 挂在 v217 zoom 容器之外 (App 外层), 不随 uiZoom 缩放; 独立 rAF 计帧, 每 500ms 刷新一次读数
 import { useEffect, useState } from 'react';
+import { UiControl, UiText } from './uiLayout/UiControl'; // v536
 
 export function FpsCounter() {
   const [fps, setFps] = useState(0);
@@ -18,9 +19,9 @@ export function FpsCounter() {
     return () => cancelAnimationFrame(raf);
   }, []);
   return (
-    <div className="fixed bottom-2 right-3 z-[100] pointer-events-none select-none
+    <UiControl id="fps"><div className="fixed bottom-2 right-3 z-[100] pointer-events-none select-none
       rounded px-1.5 py-0.5 bg-black/40 text-xs font-mono text-white/60">
-      {fps} FPS
-    </div>
+      <UiText id="fps" vars={{ fps }}>{'{fps}'} FPS</UiText>
+    </div></UiControl>
   );
 }

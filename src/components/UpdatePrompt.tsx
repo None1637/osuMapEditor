@@ -7,6 +7,8 @@
 import { useEffect, useState } from 'react';
 import { getElectronAPI, type ElectronUpdateResult } from '@/osu/electronBridge';
 import { tNow, useT } from '@/i18n';
+import { X } from 'lucide-react';
+import { UiControl, UiIcon, UiText } from './uiLayout/UiControl'; // v536
 
 type UpdateInfo = NonNullable<ElectronUpdateResult['update']>;
 const SKIP_KEY = 'osu-editor:updateSkip';
@@ -73,19 +75,19 @@ export function UpdatePrompt() {
   return (
     <>
       {pending && !dialog && (
-        <div className="fixed right-3 bottom-3 z-[85] flex items-center gap-2 rounded-lg bg-[#1a1a24] border border-pink-400/50 px-3 py-2 text-sm shadow-xl" data-update-badge>
-          <button className="text-pink-300 hover:text-pink-200 font-bold" data-update-open onClick={() => setDialog(pending)}>
-            {t('update.badge', 'New version v{v} available (click to view)', { v: pending.info.version })}
-          </button>
-          <button data-update-dismiss onClick={() => setPending(null)} className="px-1 text-white/50 hover:text-white" title={t('update.dismiss', 'Dismiss (this session)')}>✕</button>
-        </div>
+        <UiControl id="update.badge"><div className="fixed right-3 bottom-3 z-[85] flex items-center gap-2 rounded-lg bg-[#1a1a24] border border-pink-400/50 px-3 py-2 text-sm shadow-xl" data-update-badge>
+          <UiControl id="update.open"><button className="text-pink-300 hover:text-pink-200 font-bold" data-update-open onClick={() => setDialog(pending)}>
+            <UiText id="update.open" textKey="update.badge" vars={{ v: pending.info.version }}>New version v{'{v}'} available (click to view)</UiText>
+          </button></UiControl>
+          <UiControl id="update.dismiss"><button data-update-dismiss onClick={() => setPending(null)} className="px-1 text-white/50 hover:text-white" title={t('update.dismiss', 'Dismiss (this session)')}><UiIcon id="update.dismiss"><X className="w-4 h-4" /></UiIcon></button></UiControl>
+        </div></UiControl>
       )}
       {toast && (
-        <div className="fixed right-3 bottom-14 z-[85] rounded bg-black/70 border border-white/15 px-3 py-1.5 text-sm text-white/85" data-update-toast>{toast}</div>
+        <UiControl id="update.toast"><div className="fixed right-3 bottom-14 z-[85] rounded bg-black/70 border border-white/15 px-3 py-1.5 text-sm text-white/85" data-update-toast>{toast}</div></UiControl>
       )}
       {dialog && (
         <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/50" data-update-dialog>
-          <div className="w-[480px] max-h-[70vh] flex flex-col rounded-lg bg-[#1a1a24] border border-white/15 p-4 space-y-2 text-sm text-white/85 shadow-xl">
+          <UiControl id="update.dialog"><div className="w-[480px] max-h-[70vh] flex flex-col rounded-lg bg-[#1a1a24] border border-white/15 p-4 space-y-2 text-sm text-white/85 shadow-xl">
             <div className="text-base font-bold text-white">{t('update.title', 'New version v{v} available', { v: dialog.info.version })}</div>
             <div className="text-white/50">
               {t('update.current', 'Current: v{v}', { v: dialog.current })}
@@ -95,21 +97,21 @@ export function UpdatePrompt() {
               {dialog.info.body || t('update.no_notes', '(no release notes)')}
             </div>
             <div className="flex gap-2 pt-1">
-              <button data-update-accept
+              <UiControl id="update.accept"><button data-update-accept
                 onClick={() => { void getElectronAPI()?.openExternal(dialog.info.url); setDialog(null); setPending(null); }}
                 className="px-3 py-1 rounded bg-pink-500 hover:bg-pink-400 text-white font-bold">
-                {t('update.accept', 'Update now')}
-              </button>
-              <button data-update-skip
+                <UiText id="update.accept" textKey="update.accept">Update now</UiText>
+              </button></UiControl>
+              <UiControl id="update.skip"><button data-update-skip
                 onClick={() => { localStorage.setItem(SKIP_KEY, dialog.info.version); setDialog(null); setPending(null); }}
                 className="px-3 py-1 rounded bg-white/10 hover:bg-white/20">
-                {t('update.skip', 'Skip this version')}
-              </button>
-              <button data-update-later onClick={() => setDialog(null)} className="px-3 py-1 rounded bg-white/10 hover:bg-white/20">
-                {t('update.later', 'Not now')}
-              </button>
+                <UiText id="update.skip" textKey="update.skip">Skip this version</UiText>
+              </button></UiControl>
+              <UiControl id="update.later"><button data-update-later onClick={() => setDialog(null)} className="px-3 py-1 rounded bg-white/10 hover:bg-white/20">
+                <UiText id="update.later" textKey="update.later">Not now</UiText>
+              </button></UiControl>
             </div>
-          </div>
+          </div></UiControl>
         </div>
       )}
     </>

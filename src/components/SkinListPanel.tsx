@@ -5,6 +5,7 @@ import { applyServerSkin } from '../osu/serverSkin';
 import { skinSourceName } from '../osu/skin';
 import { useCounterZoom } from '../osu/uiZoom';
 import { useT } from '@/i18n';
+import { UiControl, UiIcon, UiText } from './uiLayout/UiControl'; // v537
 
 /**
  * exe 皮肤面板: 列出 <osu!>/Skins 下的全部皮肤, 点击即应用并保存到 settings.json。
@@ -19,14 +20,14 @@ function Row({ name, label, current, busy, onChoose }: {
   onChoose: (name: string | null) => void;
 }) {
   return (
-    <button
+    <UiControl id="skin-list.row"><button
       data-skin-current={current === name ? '1' : undefined} // v172: 打开时滚动定位用
       className={`w-full flex items-center gap-2 px-3 py-1.5 text-xs text-left disabled:opacity-40 ${current === name ? 'bg-[#e6437d]/25 text-white' : 'text-slate-300 hover:bg-[#22222c]'}`}
       disabled={busy}
       onClick={() => onChoose(name)}>
-      <span className="w-4 shrink-0">{current === name ? <Check className="w-3.5 h-3.5" /> : ''}</span>
+      <span className="w-4 shrink-0">{current === name ? <UiIcon id="skin-list.row"><Check className="w-3.5 h-3.5" /></UiIcon> : ''}</span>
       <span className="truncate">{label}</span>
-    </button>
+    </button></UiControl>
   );
 }
 
@@ -79,13 +80,13 @@ export function SkinListPanel({ onClose }: { onClose: () => void }) {
 
   return (
     <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center" onClick={onClose} data-dialog="skin-list"> {/* v431 */}
-      <div ref={cz.ref} style={cz.style} className="w-[480px] max-w-[92vw] bg-[#16161d] border border-[#333] rounded-lg flex flex-col overflow-hidden"
+      <UiControl id="skin-list.panel"><div ref={cz.ref} style={cz.style} className="w-[480px] max-w-[92vw] bg-[#16161d] border border-[#333] rounded-lg flex flex-col overflow-hidden"
            onClick={e => e.stopPropagation()}>
         <div className="flex items-center gap-3 px-4 py-2.5 border-b border-[#2c2c38]">
-          <span className="text-sm font-semibold flex items-center gap-1.5"><Palette className="w-4 h-4" />{t('skin.title', 'Skin')}</span>
+          <UiControl id="skin-list.title"><span className="text-sm font-semibold flex items-center gap-1.5"><UiIcon id="skin-list.title"><Palette className="w-4 h-4" /></UiIcon><UiText id="skin-list.title" textKey="skin.title">Skin</UiText></span></UiControl>
           <span className="text-xs text-slate-500 truncate">{t('skin.current', 'Current: {name}', { name: skinSourceName === '默认皮肤' ? t('skin.defaultSkinName', 'Default Skin') : skinSourceName })}</span>
           <div className="flex-1" />
-          <button className="text-xs px-2 py-1 rounded bg-[#2c2c38] hover:bg-[#3c3c4c] flex items-center" onClick={onClose}><X className="w-3.5 h-3.5" /></button>
+          <UiControl id="skin-list.close"><button className="text-xs px-2 py-1 rounded bg-[#2c2c38] hover:bg-[#3c3c4c] flex items-center" onClick={onClose}><UiIcon id="skin-list.close"><X className="w-3.5 h-3.5" /></UiIcon></button></UiControl>
         </div>
 
         <div className="p-3 flex flex-col gap-2">
@@ -104,7 +105,7 @@ export function SkinListPanel({ onClose }: { onClose: () => void }) {
             </>
           )}
         </div>
-      </div>
+      </div></UiControl>
     </div>
   );
 }

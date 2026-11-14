@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 // v181: 图标统一用 Lucide (规范: 界面禁用 emoji 图标, 见 AGENTS.md)
-import { Volume2, Eye, Keyboard, FolderOpen, Palette, Ruler, Lock, LockOpen, Crosshair, Box, Magnet, Settings2, Package, AudioWaveform, Star, Undo2, Redo2, Grid3x3, MousePointer2, Circle, Spline, Disc, Move, Target, RefreshCw } from 'lucide-react'; // v390: Play 移除 (测试游玩按钮挪到底栏)
+import { Volume2, Eye, Keyboard, FolderOpen, Palette, Ruler, Lock, LockOpen, Crosshair, Box, Magnet, Settings2, Package, AudioWaveform, Star, Undo2, Redo2, Grid3x3, MousePointer2, Circle, Spline, Disc, Move, Target, RefreshCw, LayoutDashboard } from 'lucide-react'; // v390: Play 移除 (测试游玩按钮挪到底栏)
 import { store, useEditor, type Tool } from '@/osu/store';
 import { loadDifficulty } from '@/osu/library'; // v350: 刷新谱面 (从磁盘重载)
 import { seekByBeats } from '@/osu/seekSnapping';
@@ -47,6 +47,10 @@ import { BpmDetectDialog } from '@/components/BpmDetectDialog'; // v508: 测全�
 import { TransformDialog } from '@/components/TransformDialog'; // v209: 旋转/缩放独立窗口
 import { FpsCounter } from '@/components/FpsCounter'; // v220: 右下角帧数显示
 import { SavedFlash } from '@/components/SavedFlash'; // v460: stable 风「地图已保存」中央横条
+import { UiLayoutEditor } from '@/components/uiLayout/UiLayoutEditor'; // v524
+import { UiControl, UiIcon, UiText } from '@/components/uiLayout/UiControl';
+import { isUiLayoutEditorOpen, openUiLayoutEditor } from '@/osu/uiLayoutEdit';
+import { redoUiLayout, undoUiLayout } from '@/osu/uiLayout'; // v538
 import { displaySettings } from '@/osu/displaySettings'; // v253: 帧数显示开关
 import { installSelectWheelCycle } from '@/osu/selectWheel'; // v381: 枚举下拉框滚轮循环
 import { installNumberWheel } from '@/osu/numberWheel'; // v388: 数值框滚轮调值
@@ -66,16 +70,15 @@ const TOOLS: { id: Tool; labelKey: string; label: string; action: string; icon: 
 // 聚焦后编辑原文 (可输负号/小数中间态), 仅有限值提交 (scale 钳 0.1..10), 失焦还原
 // v224: grow = 平分父行宽度 (x/y 行); 默认固定宽 (开关行的缩放)
 // v367: digits = 非聚焦态显示小数位 (Zoom 缩放框 3 位, 如 1.000; 缺省 = 原始值字符串)
-function PanNumInput({ label, labelKey, value, step, min, max, grow, digits, onCommit }: {
-  label: string; labelKey?: string; value: number; step: number; min?: number; max?: number; grow?: boolean;
+function PanNumInput({ id, label, labelKey, value, step, min, max, grow, digits, onCommit }: {
+  id: string; label: string; labelKey?: string; value: number; step: number; min?: number; max?: number; grow?: boolean;
   digits?: number; onCommit: (v: number) => void;
 }) {
-  const t = useT(); // v346
   const [text, setText] = useState<string | null>(null);
   return (
     <span className={`flex items-center gap-0.5 whitespace-nowrap ${grow ? 'flex-1 min-w-0' : 'shrink-0'}`}>
-      <span className="text-white/50 shrink-0">{labelKey ? t(labelKey, label) : label}</span>
-      <input type="number" step={step} data-pan-input={label}
+      <span className="text-white/50 shrink-0"><UiText id={id} textKey={labelKey ?? ''}>{label}</UiText></span>
+      <UiControl id={id}><input type="number" step={step} data-pan-input={label}
         value={text ?? (digits !== undefined ? value.toFixed(digits) : String(value))}
         onFocus={() => setText(String(value))}
         onBlur={() => setText(null)}
@@ -87,7 +90,7 @@ function PanNumInput({ label, labelKey, value, step, min, max, grow, digits, onC
           if (max !== undefined) v = Math.min(max, v);
           onCommit(v);
         }}
-        className={`${grow ? 'flex-1' : 'w-12'} min-w-0 bg-black/40 border border-white/15 rounded px-1 py-0.5 text-right`} />
+        className={`${grow ? 'flex-1' : 'w-12'} min-w-0 bg-black/40 border border-white/15 rounded px-1 py-0.5 text-right`} /></UiControl>
     </span>
   );
 }
@@ -100,7 +103,7 @@ function GridSpacingInput({ disabled }: { disabled: boolean }) {
   // (输入过程中的提交也会触发, 但此刻 text 与 committed 同值, 显示无感)
   useEffect(() => { setText(null); }, [committed]);
   return (
-    <input type="number" min={4} max={256} step={1} disabled={disabled} data-grid-input="spacing"
+    <UiControl id="sidebar.left.grid-spacing"><input type="number" min={4} max={256} step={1} disabled={disabled} data-grid-input="spacing"
       value={text ?? String(committed)}
       onChange={e => {
         setText(e.target.value);
@@ -112,7 +115,7 @@ function GridSpacingInput({ disabled }: { disabled: boolean }) {
       }}
       onBlur={() => setText(null)}
       // v432: w-12 → flex-1 min-w-0 (Spacing 独占一行后拉满; 固定宽堆砌是 v432 栏横向溢出源)
-      className="flex-1 min-w-0 bg-black/40 border border-white/15 rounded px-1 py-0.5 text-right" />
+      className="flex-1 min-w-0 bg-black/40 border border-white/15 rounded px-1 py-0.5 text-right" /></UiControl>
   );
 }
 
@@ -124,23 +127,23 @@ function ShiftAllDialog({ onClose }: { onClose: () => void }) {
   const ok = isFinite(ms) && ms !== 0;
   return (
     <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center" onClick={onClose}>
-      <div className="w-72 bg-[#16161d] border border-[#333] rounded-lg p-4 flex flex-col gap-3 text-xs text-white/80"
+      <UiControl id="shift-all.panel"><div className="w-72 bg-[#16161d] border border-[#333] rounded-lg p-4 flex flex-col gap-3 text-xs text-white/80"
            onClick={e => e.stopPropagation()} data-shiftall-dialog>
         <div className="text-sm font-semibold text-white">{t('app.shift_all_title', 'Shift All Objects in Time')}</div>
         <label className="flex items-center gap-2">
           {t('app.shift_all_offset', 'Offset (ms)')}
-          <input type="number" step={1} autoFocus value={text} data-shiftall-input
+          <UiControl id="shift-all.input"><input type="number" step={1} autoFocus value={text} data-shiftall-input
             onChange={e => setText(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter' && ok) { store.timingShiftAll(ms); onClose(); } if (e.key === 'Escape') onClose(); }}
-            className="flex-1 bg-black/40 border border-white/15 rounded px-2 py-1 text-right" />
+            className="flex-1 bg-black/40 border border-white/15 rounded px-2 py-1 text-right" /></UiControl>
         </label>
         <div className="text-white/40">{t('app.shift_all_hint', 'Shifts time/endTime of all objects together (negative moves earlier). Supports undo (Ctrl+Z).')}</div>
         <div className="flex justify-end gap-2">
-          <button className="px-3 py-1 rounded bg-[#2c2c38] hover:bg-[#3c3c4c]" onClick={onClose}>{t('app.cancel', 'Cancel')}</button>
-          <button className="px-3 py-1 rounded bg-[#e6437d] hover:bg-[#f0558e] disabled:opacity-40" disabled={!ok}
-            onClick={() => { store.timingShiftAll(ms); onClose(); }}>{t('app.apply', 'Apply')}</button>
+          <UiControl id="shift-all.cancel"><button className="px-3 py-1 rounded bg-[#2c2c38] hover:bg-[#3c3c4c]" onClick={onClose}><UiText id="shift-all.cancel" textKey="app.cancel">Cancel</UiText></button></UiControl>
+          <UiControl id="shift-all.apply"><button className="px-3 py-1 rounded bg-[#e6437d] hover:bg-[#f0558e] disabled:opacity-40" disabled={!ok}
+            onClick={() => { store.timingShiftAll(ms); onClose(); }}><UiText id="shift-all.apply" textKey="app.apply">Apply</UiText></button></UiControl>
         </div>
-      </div>
+      </div></UiControl>
     </div>
   );
 }
@@ -285,6 +288,15 @@ export default function App() {
     const onKey = (e: KeyboardEvent) => {
       const tag = (e.target as HTMLElement)?.tagName;
       if (showLibrary || showSkin || testPlay) return;
+      // v538: 布局编辑器的 undo/redo 独立于谱面; 文本框仍保留原生文本撤销
+      if (isUiLayoutEditorOpen()) {
+        const textEdit = tag === 'TEXTAREA' || (tag === 'INPUT' && !['number', 'checkbox', 'radio', 'range'].includes((e.target as HTMLInputElement).type));
+        if (!textEdit) {
+          const idLayout = findHotkeyAction(e);
+          if (idLayout === 'undo') { e.preventDefault(); undoUiLayout(); return; }
+          if (idLayout === 'redo') { e.preventDefault(); redoUiLayout(); return; }
+        }
+      }
       if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') {
         // v380: number 输入框无原生文本撤销语义 — 放行 undo/redo (修复「网格间距输入框聚焦时 Ctrl+Z 被吞,
         //   撤销不回复间距值」的漏网路径; Electron 原生菜单 accelerator 之外的浏览器/CDP 路径)。
@@ -429,6 +441,9 @@ export default function App() {
     if (!ed) return;
     return ed.onMenuCommand(async (cmd) => {
       if (testPlayRef.current) return; // v287: 测试游玩期间屏蔽菜单命令 (F6 等 accelerator 不切页签)
+      // v538: Electron 原生菜单的 undo/redo 同样路由到布局历史
+      if (isUiLayoutEditorOpen() && cmd.type === 'edit-undo') { undoUiLayout(); return; }
+      if (isUiLayoutEditorOpen() && cmd.type === 'edit-redo') { redoUiLayout(); return; }
       // v156: Timing 菜单 — 页签跳转/平移弹窗在 App 层处理, 其余命令走 handleMenuCommand
       if (cmd.type === 'timing-open-settings') { setTab('timing'); return; }
       if (cmd.type === 'bpm-detect-song') { store.openBpmDetect(); return; } // v508: 测全曲 timing
@@ -547,17 +562,21 @@ export default function App() {
       <div className="flex items-stretch gap-1 px-3 bg-[#101016] border-b border-white/10 shrink-0" data-app-chrome
         style={hideTitleBar ? { WebkitAppRegion: testPlay ? 'no-drag' : 'drag' } as CSSProperties : undefined}>
         {([['edit', 'compose', 'tab-compose'], ['timing', 'timing', 'tab-timing']] as const).map(([id, label, action]) => (
-          <button key={id} onClick={() => setTab(id)}
-            style={{ WebkitAppRegion: 'no-drag' } as CSSProperties}
-            className={`px-7 py-2 text-lg tracking-wide transition-colors ${tab === id ? 'bg-[#2563eb] text-white font-bold rounded-t-md mt-1' : 'text-white/45 hover:text-white/80'}`}>
-            {label} <span className="opacity-50 text-xs">{hotkeyLabel(action)}</span>{/* v352: F1/F2 提示 */}
-          </button>
+          <UiControl key={id} id={`chrome.tab.${id === 'edit' ? 'compose' : id}`}>
+            <button onClick={() => setTab(id)}
+              style={{ WebkitAppRegion: 'no-drag' } as CSSProperties}
+              className={`px-7 py-2 text-lg tracking-wide transition-colors ${tab === id ? 'bg-[#2563eb] text-white font-bold rounded-t-md mt-1' : 'text-white/45 hover:text-white/80'}`}>
+              <UiText id={`chrome.tab.${id === 'edit' ? 'compose' : id}`} textKey={`app.tab_${id === 'edit' ? 'compose' : id}`}>{label}</UiText> <span className="opacity-50 text-xs">{hotkeyLabel(action)}</span>{/* v352: F1/F2 提示 */}
+            </button>
+          </UiControl>
         ))}
-        <button onClick={() => setTab('setup')}
-          style={{ WebkitAppRegion: 'no-drag' } as CSSProperties}
-          className={`px-7 py-2 text-lg tracking-wide transition-colors ${tab === 'setup' ? 'bg-[#2563eb] text-white font-bold rounded-t-md mt-1' : 'text-white/45 hover:text-white/80'}`}>
-          song setup <span className="opacity-50 text-xs">{hotkeyLabel('tab-setup')}</span>{/* v352: F3 提示 */}
-        </button>
+        <UiControl id="chrome.tab.setup">
+          <button onClick={() => setTab('setup')}
+            style={{ WebkitAppRegion: 'no-drag' } as CSSProperties}
+            className={`px-7 py-2 text-lg tracking-wide transition-colors ${tab === 'setup' ? 'bg-[#2563eb] text-white font-bold rounded-t-md mt-1' : 'text-white/45 hover:text-white/80'}`}>
+            <UiText id="chrome.tab.setup" textKey="app.tab_setup">song setup</UiText> <span className="opacity-50 text-xs">{hotkeyLabel('tab-setup')}</span>{/* v352: F3 提示 */}
+          </button>
+        </UiControl>
         {/* v184: 谱面信息从游玩区左下角移到页签栏 — v186: song setup 在谱面信息左边, flex-1 居中尽量靠窗口中间 (所有页签可见);
             仍分两个 Label: 左 = 名称 (艺术家-歌曲名[难度名], 未保存指示器/保存反馈随行), 右 = 谱面数据 (CS/AR/物件数/★星数);
             (原 v111 左下角 / v124 未保存指示器 / v169 两段拆分, 位置属性 data-dirty-indicator/data-save-message 不变) */}
@@ -578,39 +597,51 @@ export default function App() {
         {!bm && <div className="flex-1" />}
         {/* v132: 显示设置 — 页签栏右侧按钮 (皮肤颜色/滑条轨迹线/缩圈/滑条渐出/点击特效) */}
         {/* v144: 音量设置 — 显示设置左侧按钮 (主音量/歌曲音量/音效音量) */}
-        <button onClick={() => store.setVolumePanelOpen(!store.volumePanelOpen)}
-          data-volume-panel-btn
-          style={{ WebkitAppRegion: 'no-drag' } as CSSProperties}
-          className={`self-center px-3 py-1 rounded text-sm transition-colors ${store.volumePanelOpen ? 'bg-red-500/40 border border-red-400/50' : 'bg-white/10 hover:bg-white/20'}`}
-          title={t('app.volume_title', 'Volume settings: master / music / effects volume')}>
-          <Volume2 className="inline-block w-4 h-4 mr-1 -mt-0.5" />{t('app.volume', 'Volume')}
-        </button>
+        <UiControl id="chrome.volume">
+          <button onClick={() => store.setVolumePanelOpen(!store.volumePanelOpen)}
+            data-volume-panel-btn style={{ WebkitAppRegion: 'no-drag' } as CSSProperties}
+            className={`self-center px-3 py-1 rounded text-sm transition-colors ${store.volumePanelOpen ? 'bg-red-500/40 border border-red-400/50' : 'bg-white/10 hover:bg-white/20'}`}
+            title={t('app.volume_title', 'Volume settings: master / music / effects volume')}>
+            <UiIcon id="chrome.volume"><Volume2 className="inline-block w-4 h-4 mr-1 -mt-0.5" /></UiIcon><UiText id="chrome.volume" textKey="app.volume">Volume</UiText>
+          </button>
+        </UiControl>
         {/* v286: 快捷键设置 — 显示设置左侧按钮 (自定义改键) */}
-        <button onClick={() => store.setHotkeyPanelOpen(!store.hotkeyPanelOpen)}
-          data-hotkey-panel-btn
-          style={{ WebkitAppRegion: 'no-drag' } as CSSProperties}
-          className={`self-center px-3 py-1 rounded text-sm transition-colors ${store.hotkeyPanelOpen ? 'bg-red-500/40 border border-red-400/50' : 'bg-white/10 hover:bg-white/20'}`}
-          title={t('app.hotkeys_title', 'Hotkey settings: view/customize all hotkeys')}>
-          <Keyboard className="inline-block w-4 h-4 mr-1 -mt-0.5" />{t('app.hotkeys', 'Hotkeys')}
-        </button>
-        <button onClick={() => store.setDisplayPanelOpen(!store.displayPanelOpen)}
-          data-display-panel-btn
-          style={{ WebkitAppRegion: 'no-drag' } as CSSProperties}
-          className={`self-center px-3 py-1 rounded text-sm transition-colors ${store.displayPanelOpen ? 'bg-red-500/40 border border-red-400/50' : 'bg-white/10 hover:bg-white/20'}`}
-          title={t('app.display_settings_title', 'Display settings: skin colors / slider track lines / approach circles / slider fade-out / note click effects toggles')}>
-          <Eye className="inline-block w-4 h-4 mr-1 -mt-0.5" />{t('app.display_settings', 'Display Settings')}
-        </button>
+        <UiControl id="chrome.hotkeys">
+          <button onClick={() => store.setHotkeyPanelOpen(!store.hotkeyPanelOpen)}
+            data-hotkey-panel-btn style={{ WebkitAppRegion: 'no-drag' } as CSSProperties}
+            className={`self-center px-3 py-1 rounded text-sm transition-colors ${store.hotkeyPanelOpen ? 'bg-red-500/40 border border-red-400/50' : 'bg-white/10 hover:bg-white/20'}`}
+            title={t('app.hotkeys_title', 'Hotkey settings: view/customize all hotkeys')}>
+            <UiIcon id="chrome.hotkeys"><Keyboard className="inline-block w-4 h-4 mr-1 -mt-0.5" /></UiIcon><UiText id="chrome.hotkeys" textKey="app.hotkeys">Hotkeys</UiText>
+          </button>
+        </UiControl>
+        <UiControl id="chrome.display">
+          <button onClick={() => store.setDisplayPanelOpen(!store.displayPanelOpen)}
+            data-display-panel-btn style={{ WebkitAppRegion: 'no-drag' } as CSSProperties}
+            className={`self-center px-3 py-1 rounded text-sm transition-colors ${store.displayPanelOpen ? 'bg-red-500/40 border border-red-400/50' : 'bg-white/10 hover:bg-white/20'}`}
+            title={t('app.display_settings_title', 'Display settings: skin colors / slider track lines / approach circles / slider fade-out / note click effects toggles')}>
+            <UiIcon id="chrome.display"><Eye className="inline-block w-4 h-4 mr-1 -mt-0.5" /></UiIcon><UiText id="chrome.display" textKey="app.display_settings">Display Settings</UiText>
+          </button>
+        </UiControl>
+        <UiControl id="chrome.layout-editor">
+          <button onClick={openUiLayoutEditor} data-ui-layout-open
+            style={{ WebkitAppRegion: 'no-drag' } as CSSProperties}
+            className="self-center px-3 py-1 rounded text-sm transition-colors bg-white/10 hover:bg-white/20"
+            title={t('uiLayout.title', 'Customize UI Layout')}>
+            <UiIcon id="chrome.layout-editor"><LayoutDashboard className="inline-block w-4 h-4 mr-1 -mt-0.5" /></UiIcon><UiText id="chrome.layout-editor" textKey="uiLayout.open">Customize Layout</UiText>
+          </button>
+        </UiControl>
         {/* v350: 刷新谱面 — 外部修改 .osu 后从磁盘重载 (无磁盘来源时禁用) */}
-        <button onClick={() => { void reloadMap(); }}
-          data-reload-map-btn
-          disabled={!store.mapSource || reloadingMap}
-          style={{ WebkitAppRegion: 'no-drag' } as CSSProperties}
-          className="self-center px-3 py-1 rounded text-sm transition-colors bg-white/10 hover:bg-white/20 disabled:opacity-40 disabled:cursor-not-allowed"
-          title={t('app.reload_map_title', 'Reload the current beatmap from disk (picks up external edits, e.g. from osu! or a text editor; unsaved changes are discarded)')}>
-          <RefreshCw className={`inline-block w-4 h-4 mr-1 -mt-0.5${reloadingMap ? ' animate-spin' : ''}`} />{t('app.reload_map', 'Reload')}
-        </button>
+        <UiControl id="chrome.reload">
+          <button onClick={() => { void reloadMap(); }}
+            data-reload-map-btn disabled={!store.mapSource || reloadingMap}
+            style={{ WebkitAppRegion: 'no-drag' } as CSSProperties}
+            className="self-center px-3 py-1 rounded text-sm transition-colors bg-white/10 hover:bg-white/20 disabled:opacity-40 disabled:cursor-not-allowed"
+            title={t('app.reload_map_title', 'Reload the current beatmap from disk (picks up external edits, e.g. from osu! or a text editor; unsaved changes are discarded)')}>
+            <UiIcon id="chrome.reload"><RefreshCw className={`inline-block w-4 h-4 mr-1 -mt-0.5${reloadingMap ? ' animate-spin' : ''}`} /></UiIcon><UiText id="chrome.reload" textKey="app.reload_map">Reload</UiText>
+          </button>
+        </UiControl>
         {/* v346: 语言切换 (简体中文/繁體中文/English) */}
-        <LangSwitcher />
+        <UiControl id="chrome.language"><LangSwitcher /></UiControl>
       </div>
 
       {/* v129: 主区 = 相对容器 — edit 页签时 EditorCanvas 铺满底层 (absolute inset-0 z-0),
@@ -642,111 +673,113 @@ export default function App() {
         {/* v432: overflow-x-clip 兜底 — 左栏出现横向滚动 = bug (v432 实测 Rotation 输入溢出栏外 61px), 各行已重构为
             label shrink-0 + 输入框 flex-1 min-w-0 (主修复); 裁剪只是最后防线, 会掩盖未来的视觉溢出,
             但 ui-audit col-hscroll 按 scrollWidth 口径检测, 超出行照样被抓 — 有恃无恐才加裁剪 */}
+        <UiControl id="sidebar.left.panel">
         <div className="shrink-0 bg-[#16161d]/75 border-r border-white/10 overflow-y-auto overflow-x-clip flex flex-col gap-1.5 px-2 py-2 text-sm pointer-events-auto" data-ui-interactive
           style={{ width: 224 / uiZoom }}>
           {/* 文件 (v151: 曲库/皮肤各半宽, 并排一行) */}
           <div className="flex gap-1.5">
-            <button onClick={() => setShowLibrary(true)} className="flex-1 min-w-0 text-left px-3 py-1.5 rounded whitespace-nowrap bg-white/10 hover:bg-white/20" title={t('app.song_library_title', 'Browse the osu! Songs folder, pick a song and difficulty')}><FolderOpen className="inline-block w-4 h-4 mr-1 -mt-0.5" />{t('app.song_library', 'Library')}</button>{/* v428: en 'Song Library'→'Library' — 半宽钮 101px 放不下 (v430 实测 117), 砍修饰词; zh 曲库不变, 全名在 title */}
-            <button onClick={() => setShowSkin(true)} className="flex-1 min-w-0 text-left px-3 py-1.5 rounded whitespace-nowrap bg-white/10 hover:bg-white/20" title={t('app.skin_title', 'Pick an osu! skin folder (textures + hitsounds); the choice is remembered')}><Palette className="inline-block w-4 h-4 mr-1 -mt-0.5" />{t('app.skin', 'Skin')}</button>
+            <UiControl id="sidebar.left.library"><button onClick={() => setShowLibrary(true)} className="flex-1 min-w-0 text-left px-3 py-1.5 rounded whitespace-nowrap bg-white/10 hover:bg-white/20" title={t('app.song_library_title', 'Browse the osu! Songs folder, pick a song and difficulty')}><UiIcon id="sidebar.left.library"><FolderOpen className="inline-block w-4 h-4 mr-1 -mt-0.5" /></UiIcon><UiText id="sidebar.left.library" textKey="app.song_library">Library</UiText></button></UiControl>{/* v428: en 'Song Library'→'Library' — 半宽钮 101px 放不下 (v430 实测 117), 砍修饰词; zh 曲库不变, 全名在 title */}
+            <UiControl id="sidebar.left.skin"><button onClick={() => setShowSkin(true)} className="flex-1 min-w-0 text-left px-3 py-1.5 rounded whitespace-nowrap bg-white/10 hover:bg-white/20" title={t('app.skin_title', 'Pick an osu! skin folder (textures + hitsounds); the choice is remembered')}><UiIcon id="sidebar.left.skin"><Palette className="inline-block w-4 h-4 mr-1 -mt-0.5" /></UiIcon><UiText id="sidebar.left.skin" textKey="app.skin">Skin</UiText></button></UiControl>
           </div>
           {/* v81: 旧「打开文件」「导出」按钮已删除 (无用: 打开走曲库/拖拽, 保存走 Ctrl+S) */}
           <div className="h-px bg-white/15 mx-1 my-0.5" />
           {/* 工具 (v151: 常用按钮放大 — 一行一个, 整行宽) */}
           <div className="flex flex-col gap-1.5">
             {TOOLS.map(tool => (
-              <button key={tool.id}
-                onClick={() => { store.tool = tool.id; store.pendingSlider = []; store.pendingSpinner = null; store.emit(); }}
-                className={`w-full text-left px-3 py-1.5 rounded whitespace-nowrap ${store.tool === tool.id ? 'bg-pink-500/30 border border-pink-400/40 font-bold' : 'bg-white/10 hover:bg-white/20'}`}>
-                <tool.icon className="inline-block w-4 h-4 mr-1.5 -mt-0.5" />{t(tool.labelKey, tool.label)} <span className="opacity-50 text-xs">{hotkeyLabel(tool.action)}</span>
-              </button>
+              <UiControl key={tool.id} id={`sidebar.left.tool.${tool.id}`}>
+                <button onClick={() => { store.tool = tool.id; store.pendingSlider = []; store.pendingSpinner = null; store.emit(); }}
+                  className={`w-full text-left px-3 py-1.5 rounded whitespace-nowrap ${store.tool === tool.id ? 'bg-pink-500/30 border border-pink-400/40 font-bold' : 'bg-white/10 hover:bg-white/20'}`}>
+                  <UiIcon id={`sidebar.left.tool.${tool.id}`}><tool.icon className="inline-block w-4 h-4 mr-1.5 -mt-0.5" /></UiIcon><UiText id={`sidebar.left.tool.${tool.id}`} textKey={tool.labelKey}>{tool.label}</UiText> <span className="opacity-50 text-xs">{hotkeyLabel(tool.action)}</span>
+                </button>
+              </UiControl>
             ))}
           </div>
           <div className="h-px bg-white/15 mx-1 my-0.5" />
           {/* 节拍吸附 */}
           <label className="flex items-center gap-1.5 text-sm text-white/70 px-1 whitespace-nowrap">
             {t('app.beat_snap_divisor', 'Beat Snap Divisor 1/')}
-            <select value={store.beatSnap} onChange={e => { store.beatSnap = parseInt(e.target.value); store.emit(); }}
+            <UiControl id="sidebar.left.beat-snap"><select value={store.beatSnap} onChange={e => { store.beatSnap = parseInt(e.target.value); store.emit(); }}
               className="bg-black/40 border border-white/15 rounded px-1.5 py-1">
               {BEAT_SNAP_OPTIONS.map(n => <option key={n} value={n}>{n}</option>)}
-            </select>
+            </select></UiControl>
           </label>
           <div className="h-px bg-white/15 mx-1 my-0.5" />
           {/* 锁定间距 (v351: 高亮改橘色, 与锁定物件同色系 — 用户反馈左栏颜色太杂) */}
-          <button onClick={() => { store.distanceLock = !store.distanceLock; store.emit(); }}
+          <UiControl id="sidebar.left.distance-toggle"><button onClick={() => { store.distanceLock = !store.distanceLock; store.emit(); }}
             className={`w-full text-left px-3 py-1.5 rounded whitespace-nowrap ${store.distanceLock ? 'bg-amber-500/40 border border-amber-400/50' : 'bg-white/10 hover:bg-white/20'}`}
             title={t('app.distance_snap_title', 'Distance Snap: keep a fixed distance between the new object and the previous one')}>
-            <Ruler className="inline-block w-4 h-4 mr-1 -mt-0.5" />{t('app.distance_snap', 'Distance Snap')}
-          </button>
+            <UiIcon id="sidebar.left.distance-toggle"><Ruler className="inline-block w-4 h-4 mr-1 -mt-0.5" /></UiIcon><UiText id="sidebar.left.distance-toggle" textKey="app.distance_snap">Distance Snap</UiText>
+          </button></UiControl>
           {/* v45: 锁定间距倍率控制 (DistanceSpacing), 与右上角 Prev/Next 同单位; v149: 上限 10x, 滑条拉满控件宽度 */}
           <label className="w-full flex items-center gap-1.5 text-sm text-white/70 px-1 whitespace-nowrap" title={t('app.distance_snap_multiplier_title', 'Distance snap multiplier: 1x = distance the slider ball travels per beat = 100×SliderMultiplier×current SV px (same as lazer, varies with SV)')}>
-            <input type="range" min={0.1} max={10} step={0.05} disabled={!bm} data-ds-input="range"
+            <UiControl id="sidebar.left.distance-range"><input type="range" min={0.1} max={10} step={0.05} disabled={!bm} data-ds-input="range"
               value={bm?.editor.distanceSpacing ?? 1}
               onChange={e => store.setEditorField('distanceSpacing', parseFloat(e.target.value))} // v345: 入 undo (拖动连写自动合并)
-              className="flex-1 min-w-0 h-7 accent-amber-400" /> {/* v428: h-7 — 原生 range 默认太矮, 0.6 档视觉 <14px (v430 实测 9.6), 与右栏控件同高 */}
-            <input type="number" min={0.1} max={10} step={0.05} disabled={!bm} data-ds-input="number"
+              className="flex-1 min-w-0 h-7 accent-amber-400" /></UiControl> {/* v428: h-7 — 原生 range 默认太矮, 0.6 档视觉 <14px (v430 实测 9.6), 与右栏控件同高 */}
+            <UiControl id="sidebar.left.distance-value"><input type="number" min={0.1} max={10} step={0.05} disabled={!bm} data-ds-input="number"
               value={bm ? Math.round(bm.editor.distanceSpacing * 100) / 100 : 1}
               onChange={e => {
                 const v = parseFloat(e.target.value);
                 if (store.beatmap && isFinite(v)) store.setEditorField('distanceSpacing', Math.max(0.1, Math.min(10, v))); // v345: 入 undo
               }}
-              className="w-14 shrink-0 bg-black/40 border border-white/15 rounded px-1 py-0.5 text-right" />
+              className="w-14 shrink-0 bg-black/40 border border-white/15 rounded px-1 py-0.5 text-right" /></UiControl>
             <span className="shrink-0">x</span>
           </label>
           {/* v115: 锁定物件 (stable 「编辑 > Lock Notes」): 开启后无法移动/修改/删除任何已有物件; 放置新物件/粘贴/绿线编辑不受影响 */}
-          <button onClick={() => { store.lockNotes = !store.lockNotes; store.emitSelection(); }}
+          <UiControl id="sidebar.left.lock-notes"><button onClick={() => { store.lockNotes = !store.lockNotes; store.emitSelection(); }}
             data-lock-notes="toggle"
             className={`w-full text-left px-3 py-1.5 rounded whitespace-nowrap ${store.lockNotes ? 'bg-amber-500/40 border border-amber-400/50' : 'bg-white/10 hover:bg-white/20'}`}
             title={t('app.lock_notes_title', 'Lock Notes: objects cannot be moved/modified/deleted while on; placing new objects and inherited timing point editing are unaffected')}>
-            {store.lockNotes
+            <UiIcon id="sidebar.left.lock-notes" state={store.lockNotes ? 'active' : 'default'}>{store.lockNotes
               ? <Lock className="inline-block w-4 h-4 mr-1 -mt-0.5" />
-              : <LockOpen className="inline-block w-4 h-4 mr-1 -mt-0.5" />}{t('app.lock_notes', 'Lock Notes')}
-          </button>
+              : <LockOpen className="inline-block w-4 h-4 mr-1 -mt-0.5" />}</UiIcon><UiText id="sidebar.left.lock-notes" textKey="app.lock_notes">Lock Notes</UiText>
+          </button></UiControl>
           {/* v406: 滑条尾吸附节拍开关 (editorPrefs.sliderTailSnap, localStorage 持久化):
               关 = 放置拖尾与节点编辑后的滑条长度直通几何全长, 不吸附当前细分; 开 = 现状 (吸附当前细分的 1/2) */}
-          <button onClick={() => store.setEditorPref('sliderTailSnap', !editorPrefs.sliderTailSnap)}
+          <UiControl id="sidebar.left.slider-tail-snap"><button onClick={() => store.setEditorPref('sliderTailSnap', !editorPrefs.sliderTailSnap)}
             data-slider-tail-snap="toggle"
             className={`w-full text-left px-3 py-1.5 rounded whitespace-nowrap ${editorPrefs.sliderTailSnap ? 'bg-cyan-500/40 border border-cyan-400/50' : 'bg-white/10 hover:bg-white/20'}`}
             title={t('app.slider_tail_snap_title', 'Slider tail beat snap: on = slider length snaps to the beat divisor (current divisor x1/2) when placing and after node edits; off = length follows the raw geometry')}>
-            <Magnet className="inline-block w-4 h-4 mr-1 -mt-0.5" />{t('app.slider_tail_snap', 'Slider Tail Snap')}
-          </button>
+            <UiIcon id="sidebar.left.slider-tail-snap"><Magnet className="inline-block w-4 h-4 mr-1 -mt-0.5" /></UiIcon><UiText id="sidebar.left.slider-tail-snap" textKey="app.slider_tail_snap">Slider Tail Snap</UiText>
+          </button></UiControl>
           <div className="h-px bg-white/15 mx-1 my-0.5" />
           {/* v223: 游玩区平移/缩放 — 开启后按住鼠标中键拖动游玩区域; x/y/缩放输入框实时显示并可设定 (视图辅助, 不入谱面)
               v224: 开关半宽 + 缩放同行 (放按钮后); x/y 两个输入框平分下一行
               v391: 加旋转 — 开关改独占一行 (撤销 v224 同行), 下一行缩放/旋转平分, x/y 行不变 */}
           <div className="flex items-center gap-1.5">
-            <button onClick={() => { store.playfieldPanEnabled = !store.playfieldPanEnabled; store.emit(); }}
+            <UiControl id="sidebar.left.pan-toggle"><button onClick={() => { store.playfieldPanEnabled = !store.playfieldPanEnabled; store.emit(); }}
               data-pan-input="toggle"
               className={`w-full text-left px-3 py-1.5 rounded whitespace-nowrap ${store.playfieldPanEnabled ? 'bg-cyan-500/40 border border-cyan-400/50' : 'bg-white/10 hover:bg-white/20'}`}
               title={t('app.playfield_pan_title', 'Playfield pan: hold the middle mouse button to drag the playfield; x/y = offset (osu px), zoom = scale (default 1.0), rot = rotation degrees around the playfield centre; turning off restores the default view (values are kept)')}>
-              <Move className="inline-block w-4 h-4 mr-1 -mt-0.5" />{t('app.playfield_pan', 'Playfield Pan')}
-            </button>
+              <UiIcon id="sidebar.left.pan-toggle"><Move className="inline-block w-4 h-4 mr-1 -mt-0.5" /></UiIcon><UiText id="sidebar.left.pan-toggle" textKey="app.playfield_pan">Playfield Pan</UiText>
+            </button></UiControl>
           </div>
           {/* v432 曾拆两行防英文溢出; v435: 恢复单行紧凑 — Zoom/Rot 两个输入框平分一行 (同 x/y 行),
               用户反馈独占一行的输入框过大; en 标签本来就短 (Zoom/Rot), zh 缩放/旋转更短 */}
           <div className="flex items-center gap-1.5 text-sm text-white/70 px-1 whitespace-nowrap">
             {/* v367: 缩放精细度 ×10 — 步进 0.1→0.01, 显示 2 位→3 位小数 (用户反馈调整精细度不够) */}
-            <PanNumInput label="Zoom" labelKey="app.playfield_zoom" grow value={Math.round(store.playfieldScale * 1000) / 1000} step={0.01} min={0.1} max={10} digits={3}
+            <PanNumInput id="sidebar.left.pan-zoom" label="Zoom" labelKey="app.playfield_zoom" grow value={Math.round(store.playfieldScale * 1000) / 1000} step={0.01} min={0.1} max={10} digits={3}
               onCommit={v => { store.playfieldScale = v; store.emit(); }} />
             {/* v391: 旋转 (度, 绕游玩区中心; 1 位小数) */}
-            <PanNumInput label="Rot" labelKey="app.playfield_rot" grow value={Math.round(store.playfieldRotation * 10) / 10} step={1} digits={1}
+            <PanNumInput id="sidebar.left.pan-rotation" label="Rot" labelKey="app.playfield_rot" grow value={Math.round(store.playfieldRotation * 10) / 10} step={1} digits={1}
               onCommit={v => { store.playfieldRotation = v; store.emit(); }} />
           </div>
           <div className="flex items-center gap-1.5 text-sm text-white/70 px-1 whitespace-nowrap">
-            <PanNumInput label="x" grow value={Math.round(store.playfieldPanX * 10) / 10} step={1}
+            <PanNumInput id="sidebar.left.pan-x" label="x" grow value={Math.round(store.playfieldPanX * 10) / 10} step={1}
               onCommit={v => { store.playfieldPanX = v; store.emit(); }} />
-            <PanNumInput label="y" grow value={Math.round(store.playfieldPanY * 10) / 10} step={1}
+            <PanNumInput id="sidebar.left.pan-y" label="y" grow value={Math.round(store.playfieldPanY * 10) / 10} step={1}
               onCommit={v => { store.playfieldPanY = v; store.emit(); }} />
           </div>
           <div className="h-px bg-white/15 mx-1 my-0.5" />
           {/* v56: 网格吸附 (lazer OsuGridToolboxGroup): 开关 + 类型 + 间距 (写回 GridSize) + 旋转 (圆形禁用);
               v151: 吸附开关与类型下拉各半宽放一行; 间距/旋转原同行, v432 拆两行 (英文放不下) */}
           <div className="flex gap-1.5">
-            <button onClick={() => { store.gridSnap = !store.gridSnap; store.emit(); }}
+            <UiControl id="sidebar.left.grid-toggle"><button onClick={() => { store.gridSnap = !store.gridSnap; store.emit(); }}
               className={`flex-1 min-w-0 text-left px-3 py-1.5 rounded whitespace-nowrap ${store.gridSnap ? 'bg-cyan-500/40 border border-cyan-400/50' : 'bg-white/10 hover:bg-white/20'}`}
               title={t('app.grid_snap_title', 'Grid Snap: snap placement/dragging to a position grid (priority: object snap > distance snap > grid)')}>
-              <Grid3x3 className="inline-block w-4 h-4 mr-1 -mt-0.5" />{t('app.grid_snap', 'Grid Snap')}
-            </button>
-            <select value={store.gridType} data-grid-input="type"
+              <UiIcon id="sidebar.left.grid-toggle"><Grid3x3 className="inline-block w-4 h-4 mr-1 -mt-0.5" /></UiIcon><UiText id="sidebar.left.grid-toggle" textKey="app.grid_snap">Grid Snap</UiText>
+            </button></UiControl>
+            <UiControl id="sidebar.left.grid-type"><select value={store.gridType} data-grid-input="type"
               onChange={e => {
                 store.setGridType(e.target.value as 'square' | 'triangle' | 'circle' | 'none'); // v119: none = 无网格; v321 (F25): setter 内持久化
                 const period = rotationPeriod(store.gridType); // lazer: 切换类型按周期归一旋转 (正方形 ±45, 三角形 ±30)
@@ -758,7 +791,7 @@ export default function App() {
               <option value="triangle">{t('app.grid_triangle', 'Triangle')}</option>
               <option value="circle">{t('app.grid_circle', 'Circle')}</option>
               <option value="none">{t('app.grid_none', 'No Grid')}</option>
-            </select>
+            </select></UiControl>
           </div>
           {/* v432 曾拆两行防英文溢出; v435: 恢复单行紧凑 — en 'Rotation' 简写为 'Rot' (用户点名认可,
               与 Playfield Pan 的 Rot 一致), Spacing/Rot 输入框 flex-1 平分剩余宽度, 不再独占整行 */}
@@ -767,82 +800,82 @@ export default function App() {
             <GridSpacingInput disabled={!bm} />
             <span className="shrink-0">px</span>
             <span className="shrink-0" title={t('app.grid_rotation_title', 'Grid rotation (degrees; disabled for circle grid — lazer GridLinesRotation.Disabled)')}>{t('app.grid_rotation', 'Rot')}</span>
-            <input type="number" step={1} disabled={!bm || store.gridType === 'circle' || store.gridType === 'none'} data-grid-input="rotation"
+            <UiControl id="sidebar.left.grid-rotation"><input type="number" step={1} disabled={!bm || store.gridType === 'circle' || store.gridType === 'none'} data-grid-input="rotation"
               value={Math.round(store.gridRotation * 10) / 10}
               onChange={e => {
                 const v = parseFloat(e.target.value);
                 if (isFinite(v)) store.setGridRotation(Math.max(-180, Math.min(180, v))); // v278: 走 setter 持久化 (内含 emit)
               }}
-              className="flex-1 min-w-0 bg-black/40 border border-white/15 rounded px-1 py-0.5 text-right disabled:opacity-30" />
+              className="flex-1 min-w-0 bg-black/40 border border-white/15 rounded px-1 py-0.5 text-right disabled:opacity-30" /></UiControl>
             <span className="shrink-0">°</span>
           </div>
           {/* v78: 自定义网格中心 (lazer StartPositionX/Y 可配): 开关 + x/y 输入; 画布上青色标记可拖拽 */}
-          <button onClick={() => store.setGridOriginCustom(!store.gridOriginCustom)} disabled={!bm}
+          <UiControl id="sidebar.left.grid-origin-toggle"><button onClick={() => store.setGridOriginCustom(!store.gridOriginCustom)} disabled={!bm}
             data-grid-input="origin-toggle"
             className={`w-full text-left px-3 py-1.5 rounded whitespace-nowrap disabled:opacity-30 ${store.gridOriginCustom ? 'bg-cyan-500/40 border border-cyan-400/50' : 'bg-white/10 hover:bg-white/20'}`}
             title={t('app.grid_origin_title', 'Custom grid origin: grid/snapping uses the given point as origin (default: playfield center); the cyan marker on the canvas is draggable')}>
-            <Crosshair className="inline-block w-4 h-4 mr-1 -mt-0.5" />{t('app.grid_origin', 'Grid Origin')}
-          </button>
+            <UiIcon id="sidebar.left.grid-origin-toggle"><Crosshair className="inline-block w-4 h-4 mr-1 -mt-0.5" /></UiIcon><UiText id="sidebar.left.grid-origin-toggle" textKey="app.grid_origin">Grid Origin</UiText>
+          </button></UiControl>
           {store.gridOriginCustom && (
             <label className="flex items-center gap-1.5 text-sm text-white/70 px-1 whitespace-nowrap" title={t('app.grid_origin_coords_title', 'Grid origin coordinates (osu px; synced with the draggable canvas marker)')}>
-              <input type="number" step={1} data-grid-input="origin-x" value={store.gridOrigin.x}
+              <UiControl id="sidebar.left.grid-origin-x"><input type="number" step={1} data-grid-input="origin-x" value={store.gridOrigin.x}
                 onChange={e => { const v = parseFloat(e.target.value); if (isFinite(v)) store.setGridOrigin({ x: v, y: store.gridOrigin.y }); }}
-                className="w-14 bg-black/40 border border-white/15 rounded px-1 py-0.5 text-right" />
-              <input type="number" step={1} data-grid-input="origin-y" value={store.gridOrigin.y}
+                className="w-14 bg-black/40 border border-white/15 rounded px-1 py-0.5 text-right" /></UiControl>
+              <UiControl id="sidebar.left.grid-origin-y"><input type="number" step={1} data-grid-input="origin-y" value={store.gridOrigin.y}
                 onChange={e => { const v = parseFloat(e.target.value); if (isFinite(v)) store.setGridOrigin({ x: store.gridOrigin.x, y: v }); }}
-                className="w-14 bg-black/40 border border-white/15 rounded px-1 py-0.5 text-right" />
+                className="w-14 bg-black/40 border border-white/15 rounded px-1 py-0.5 text-right" /></UiControl>
             </label>
           )}
           {/* v235: 吸附到物件总开关 (默认开) — 控制放置/拖拽/节点拖拽的物件中心·滑条尾吸附 + 几何辅助/间距辅助线吸附 */}
-          <button onClick={() => store.setObjectSnapEnabled(!store.objectSnapEnabled)} disabled={!bm}
+          <UiControl id="sidebar.left.object-snap"><button onClick={() => store.setObjectSnapEnabled(!store.objectSnapEnabled)} disabled={!bm}
             data-grid-input="object-snap-toggle"
             className={`w-full text-left px-3 py-1.5 rounded whitespace-nowrap disabled:opacity-30 ${store.objectSnapEnabled ? 'bg-cyan-500/40 border border-cyan-400/50' : 'bg-white/10 hover:bg-white/20'}`}
             title={t('app.object_snap_title', "Snap to objects: snap to other objects' centers and slider ends when placing/dragging (incl. geometry/distance guide snapping); off = grid snap only (default on)")}>
-            <Target className="inline-block w-4 h-4 mr-1 -mt-0.5" />{t('app.object_snap', 'Snap to Objects')}
-          </button>
+            <UiIcon id="sidebar.left.object-snap"><Target className="inline-block w-4 h-4 mr-1 -mt-0.5" /></UiIcon><UiText id="sidebar.left.object-snap" textKey="app.object_snap">Snap to Objects</UiText>
+          </button></UiControl>
           {/* v163: 限制物件在游玩区域内 (默认开 = 既有行为); 关闭后可拖动/放置物件到游玩区外 */}
-          <button onClick={() => store.setLimitToPlayfield(!store.limitToPlayfield)} disabled={!bm}
+          <UiControl id="sidebar.left.limit-playfield"><button onClick={() => store.setLimitToPlayfield(!store.limitToPlayfield)} disabled={!bm}
             data-grid-input="limit-playfield"
             className={`w-full text-left px-3 py-1.5 rounded whitespace-nowrap disabled:opacity-30 ${store.limitToPlayfield ? 'bg-cyan-500/40 border border-cyan-400/50' : 'bg-white/10 hover:bg-white/20'}`}
             title={t('app.limit_playfield_title', 'Limit objects to the playfield: objects stay inside the playfield when placed/dragged (default on); off allows placing outside (for shaping)')}>
-            <Box className="inline-block w-4 h-4 mr-1 -mt-0.5" />{t('app.limit_playfield', 'Limit to Playfield')}
-          </button>
+            <UiIcon id="sidebar.left.limit-playfield"><Box className="inline-block w-4 h-4 mr-1 -mt-0.5" /></UiIcon><UiText id="sidebar.left.limit-playfield" textKey="app.limit_playfield">Limit to Playfield</UiText>
+          </button></UiControl>
           <div className="h-px bg-white/15 mx-1 my-0.5" />
           {/* v84/v90: 辅助线 — 按钮 = 显示/隐藏总开关 (高亮=开); 旁「辅助线配置」开面板 (圆心点/三点圆/直线延伸线 + 显示范围) */}
-          <button onClick={() => store.setGeoEnabled(!store.geoEnabled)} disabled={!bm}
+          <UiControl id="sidebar.left.geo-toggle"><button onClick={() => store.setGeoEnabled(!store.geoEnabled)} disabled={!bm}
             data-geo-input="toggle"
             className={`w-full text-left px-3 py-1.5 rounded whitespace-nowrap disabled:opacity-30 ${store.geoEnabled ? 'bg-red-500/40 border border-red-400/50' : 'bg-white/10 hover:bg-white/20'}`}
             title={t('app.geo_lines_title', 'Geometry guides: show/hide guide points and lines (circle centers / 3-point circles / line extensions of selected sliders; snappable when placing and dragging)')}>
-            <Magnet className="inline-block w-4 h-4 mr-1 -mt-0.5" />{t('app.geo_lines', 'Guides')}
-          </button>
-          <button onClick={() => store.setGeoPanelOpen(!store.geoPanelOpen)} disabled={!bm}
+            <UiIcon id="sidebar.left.geo-toggle"><Magnet className="inline-block w-4 h-4 mr-1 -mt-0.5" /></UiIcon><UiText id="sidebar.left.geo-toggle" textKey="app.geo_lines">Guides</UiText>
+          </button></UiControl>
+          <UiControl id="sidebar.left.geo-config"><button onClick={() => store.setGeoPanelOpen(!store.geoPanelOpen)} disabled={!bm}
             data-geo-input="panel-toggle"
             className={`w-full text-left px-3 py-1.5 rounded whitespace-nowrap disabled:opacity-30 ${store.geoPanelOpen ? 'bg-red-500/40 border border-red-400/50' : 'bg-white/10 hover:bg-white/20'}`}
             title={t('app.geo_config_title', 'Guide settings: toggles for the three guide shapes + display scope')}>
-            <Settings2 className="inline-block w-4 h-4 mr-1 -mt-0.5" />{t('app.geo_config', 'Guide Settings')}
-          </button>
+            <UiIcon id="sidebar.left.geo-config"><Settings2 className="inline-block w-4 h-4 mr-1 -mt-0.5" /></UiIcon><UiText id="sidebar.left.geo-config" textKey="app.geo_config">Guide Settings</UiText>
+          </button></UiControl>
           <div className="h-px bg-white/15 mx-1 my-0.5" />
           {/* v86: pattern 库 — 收藏选中物件为 pattern, 缩略图拖到游玩区落盘 (节拍时序, 跨 BPM 保结构) */}
-          <button onClick={() => { store.loadPatternsIfNeeded(); store.setPatternPanelOpen(!store.patternPanelOpen); }} disabled={!bm}
+          <UiControl id="sidebar.left.pattern"><button onClick={() => { store.loadPatternsIfNeeded(); store.setPatternPanelOpen(!store.patternPanelOpen); }} disabled={!bm}
             data-pattern-input="panel-toggle"
             className={`w-full text-left px-3 py-1.5 rounded whitespace-nowrap disabled:opacity-30 ${store.patternPanelOpen ? 'bg-emerald-500/40 border border-emerald-400/50' : 'bg-white/10 hover:bg-white/20'}`}
             title={t('app.pattern_library_title', 'Pattern library: bookmark selected objects, drag from the panel onto the playfield to place (recorded by beat intervals, supports SV/scale alignment)')}>
-            <Package className="inline-block w-4 h-4 mr-1 -mt-0.5" />pattern
-          </button>
+            <UiIcon id="sidebar.left.pattern"><Package className="inline-block w-4 h-4 mr-1 -mt-0.5" /></UiIcon><UiText id="sidebar.left.pattern" textKey="app.pattern_library">pattern</UiText>
+          </button></UiControl>
           {/* v127: 波形/频谱显示开关 — 画在上方时间轴 (默认背景层, 时间轴右侧按钮切模式/层级); 原悬浮窗 (v103) 已废弃 */}
-          <button onClick={() => store.setWavePanelOpen(!store.wavePanelOpen)} disabled={!bm}
+          <UiControl id="sidebar.left.waveform"><button onClick={() => store.setWavePanelOpen(!store.wavePanelOpen)} disabled={!bm}
             data-wave-input="toggle"
             className={`w-full text-left px-3 py-1.5 rounded whitespace-nowrap disabled:opacity-30 ${store.wavePanelOpen ? 'bg-emerald-500/40 border border-emerald-400/50' : 'bg-white/10 hover:bg-white/20'}`}
             title={t('app.waveform_title', 'Waveform: show the audio waveform/spectrogram on the top timeline (buttons on the right side of the timeline switch waveform/spectrogram and background/overlay)')}>
-            <AudioWaveform className="inline-block w-4 h-4 mr-1 -mt-0.5" />{t('app.waveform', 'Waveform')}
-          </button>
+            <UiIcon id="sidebar.left.waveform"><AudioWaveform className="inline-block w-4 h-4 mr-1 -mt-0.5" /></UiIcon><UiText id="sidebar.left.waveform" textKey="app.waveform">Waveform</UiText>
+          </button></UiControl>
           <div className="h-px bg-white/15 mx-1 my-0.5" />
           {/* 历史 */}
           <div className="flex gap-1.5">
-            <button onClick={() => store.undo()} disabled={!store.canUndo} className="flex-1 px-2 py-1.5 rounded whitespace-nowrap bg-white/10 hover:bg-white/20 disabled:opacity-30" title={hotkeyLabel('undo')}><Undo2 className="inline-block w-4 h-4 mr-1 -mt-0.5" />{t('app.undo', 'Undo')}</button>
-            <button onClick={() => store.redo()} disabled={!store.canRedo} className="flex-1 px-2 py-1.5 rounded whitespace-nowrap bg-white/10 hover:bg-white/20 disabled:opacity-30" title={hotkeyLabel('redo')}><Redo2 className="inline-block w-4 h-4 mr-1 -mt-0.5" />{t('app.redo', 'Redo')}</button>
+            <UiControl id="sidebar.left.undo"><button onClick={() => store.undo()} disabled={!store.canUndo} className="flex-1 px-2 py-1.5 rounded whitespace-nowrap bg-white/10 hover:bg-white/20 disabled:opacity-30" title={hotkeyLabel('undo')}><UiIcon id="sidebar.left.undo"><Undo2 className="inline-block w-4 h-4 mr-1 -mt-0.5" /></UiIcon><UiText id="sidebar.left.undo" textKey="app.undo">Undo</UiText></button></UiControl>
+            <UiControl id="sidebar.left.redo"><button onClick={() => store.redo()} disabled={!store.canRedo} className="flex-1 px-2 py-1.5 rounded whitespace-nowrap bg-white/10 hover:bg-white/20 disabled:opacity-30" title={hotkeyLabel('redo')}><UiIcon id="sidebar.left.redo"><Redo2 className="inline-block w-4 h-4 mr-1 -mt-0.5" /></UiIcon><UiText id="sidebar.left.redo" textKey="app.redo">Redo</UiText></button></UiControl>
           </div>
-        </div>
+        </div></UiControl>
 
       {tab === 'edit' ? (
         <>
@@ -858,7 +891,7 @@ export default function App() {
             </div>
             {/* 右侧检查器 (v129: 背景半透明 /75 + pointer-events-auto; v404: data-ui-interactive 可交互 UI 优先于物件穿透) */}
             {/* v426: 视觉宽度恒定 224px — 布局宽 = 224/zoom 抵消根容器 CSS zoom (v217), 小窗口下右栏不再被压窄; 只改右栏, 左栏不动 */}
-            <div className="shrink-0 bg-[#16161d]/75 border-l border-white/10 overflow-auto pointer-events-auto" data-ui-interactive
+            <UiControl id="sidebar.right.panel"><div className="shrink-0 bg-[#16161d]/75 border-l border-white/10 overflow-auto pointer-events-auto" data-ui-interactive
               style={{ width: 224 / uiZoom }}>
               {/* v244: 放置态指示移到右侧栏顶部且始终显示 (原 v241 在左栏工具区, 仅放置工具时显示) —
                   放置工具下按 Q/W/E/R 预设下次放下物件的 NC (仅一次, 放置后复位) 与音效 (保持) */}
@@ -873,9 +906,9 @@ export default function App() {
               {store.b4SliderCount > 0 && (
                 <div className="px-3 py-2 text-[11px] border-b border-white/10 bg-amber-500/10 text-amber-200" data-b4-warning>
                   <div>{t('app.b4_warning', '{count} B-spline (B4) slider(s) — stable osu! cannot read them', { count: store.b4SliderCount })}</div>
-                  <button onClick={() => store.convertAllBSplineSliders()} className="mt-1 px-2 py-0.5 rounded bg-amber-400/20 hover:bg-amber-400/30 text-amber-100">
-                    {t('app.b4_convert_all', 'Convert all to Bezier')}
-                  </button>
+                  <UiControl id="sidebar.right.b4-convert"><button onClick={() => store.convertAllBSplineSliders()} className="mt-1 px-2 py-0.5 rounded bg-amber-400/20 hover:bg-amber-400/30 text-amber-100">
+                    <UiText id="sidebar.right.b4-convert" textKey="app.b4_convert_all">Convert all to Bezier</UiText>
+                  </button></UiControl>
                 </div>
               )}
               <Inspector />
@@ -922,7 +955,7 @@ export default function App() {
                 <div>{t('app.hk_tl_pill', 'double-click BPM/SV pill: edit dialog · right-click object/green line: delete')}</div>
                 <div>{t('app.hk_tl_seek', 'bottom timeline: click/drag to seek')}</div>
               </div>
-            </div>
+            </div></UiControl>
           </div>
         </>
       ) : tab === 'setup' ? (
@@ -959,6 +992,7 @@ export default function App() {
       {store.timingPointDialog && <TimingPointDialog />}
       {store.transformDialog && <TransformDialog mode={store.transformDialog} />}{/* v209: 旋转/缩放独立窗口 (编辑菜单 / Ctrl+Shift+R/S) */}
       {showShiftAll && <ShiftAllDialog onClose={() => setShowShiftAll(false)} />}{/* v156 */}
+      <UiLayoutEditor />{/* v524: 自定义控件布局 */}
       {/* v120: 未保存改动提示 (z 层级最高, 盖住曲库等弹窗) */}
       <UnsavedDialog />
       {/* v349: 首次启动先选语言 (悬浮于所有控件之上, 选后不再出现) */}

@@ -1,0 +1,42 @@
+{
+  "id": "sample-064",
+  "directoryName": "558041 Kanae Asaba - Endless Starlight ~Inochi no Kirameki~ (OP ver)",
+  "beatmapFile": "Kanae Asaba - Endless Starlight ~Inochi no Kirameki~ (OP ver.) (A r M i N) [Bronze].osu",
+  "metadata": {
+    "Title": "Endless Starlight ~Inochi no Kirameki~ (OP ver.)",
+    "TitleUnicode": "Endless Starlight 〜命のキラメキ〜 (OP ver.)",
+    "Artist": "Kanae Asaba",
+    "ArtistUnicode": "浅場佳苗",
+    "Creator": "A r M i N",
+    "Version": "Bronze",
+    "Source": "リーグ・オブ・レジェンド",
+    "Tags": "lol league of legends janna lux poppy lulu jinx star guardians theme song opening version guardian mahou shoujo magical girl riot games tencent japan japanese armin a_r_m_i_n",
+    "BeatmapID": "1213845",
+    "BeatmapSetID": "558041",
+    "Mode": "0"
+  },
+  "audioDurationMs": 107651.70068027212,
+  "redLines": [
+    {
+      "time": 7664,
+      "beatLength": 331.491712707182,
+      "bpm": 181.00000000000017,
+      "durationMs": 99987.70068027212
+    }
+  ],
+  "referenceBpm": 181.00000000000017,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 99987.70068027212,
+  "status": "ok",
+  "prediction": {
+    "bpm": 179.6,
+    "offsetMs": 337,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 96,
+    "rawBpm": 359.2,
+    "rawSegmentCount": 104
+  },
+  "evaluationMs": 1031
+}

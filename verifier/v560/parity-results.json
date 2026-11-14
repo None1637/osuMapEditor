@@ -1,0 +1,95 @@
+{
+  "version": "v560-ddc-onset-official-parity-v1",
+  "passed": true,
+  "fixtureSamples": 202310,
+  "featureFrames": 460,
+  "scoreFrames": 460,
+  "featureComparison": {
+    "meanAbsoluteDifference": 0.011172435246407986,
+    "maxAbsoluteDifference": 7.860115051269531
+  },
+  "scoreChecks": [
+    {
+      "chunkSize": 128,
+      "scoreSumAbsoluteDifference": 0.0010290706995874643,
+      "scoreMaxAbsoluteDifference": 3.719329833984375e-05,
+      "peakAndAboveThresholdCounts": [
+        [
+          68,
+          0
+        ],
+        [
+          68,
+          0
+        ],
+        [
+          67,
+          1
+        ],
+        [
+          67,
+          3
+        ],
+        [
+          66,
+          7
+        ]
+      ]
+    },
+    {
+      "chunkSize": 256,
+      "scoreSumAbsoluteDifference": 0.0010290706995874643,
+      "scoreMaxAbsoluteDifference": 3.719329833984375e-05,
+      "peakAndAboveThresholdCounts": [
+        [
+          68,
+          0
+        ],
+        [
+          68,
+          0
+        ],
+        [
+          67,
+          1
+        ],
+        [
+          67,
+          3
+        ],
+        [
+          66,
+          7
+        ]
+      ]
+    },
+    {
+      "chunkSize": 512,
+      "scoreSumAbsoluteDifference": 0.0010290706995874643,
+      "scoreMaxAbsoluteDifference": 3.719329833984375e-05,
+      "peakAndAboveThresholdCounts": [
+        [
+          68,
+          0
+        ],
+        [
+          68,
+          0
+        ],
+        [
+          67,
+          1
+        ],
+        [
+          67,
+          3
+        ],
+        [
+          66,
+          7
+        ]
+      ]
+    }
+  ],
+  "timeMapping": "frame i = i/100 seconds; no legacy spectral-flux bias"
+}

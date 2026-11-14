@@ -1,0 +1,25 @@
+{
+  "version": "v563-crossfit-independent-recheck-v1",
+  "passed": true,
+  "comparisonRows": 90,
+  "calibrationRecords": 6,
+  "independentAbsoluteTimeReconstruction": true,
+  "oppositeFoldIsolationVerified": true,
+  "csvVerified": true,
+  "groupsVerified": [
+    "overall",
+    "perSample",
+    "perStratum",
+    "perFold"
+  ],
+  "outputGuardrailsUnchanged": true,
+  "hypotheses": {
+    "H1": true,
+    "H2": true,
+    "H3": true
+  },
+  "targetAchieved": false,
+  "sample044AtLeast80Preserved": true,
+  "audibleCorrectRate": 0.7047383696219748,
+  "failures": []
+}

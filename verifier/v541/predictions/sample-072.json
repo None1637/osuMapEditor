@@ -1,0 +1,77 @@
+{
+  "id": "sample-072",
+  "directoryName": "20125 Demetori - Solar Sect of Mystic Wisdom ~ Nuclear Fusion",
+  "beatmapFile": "Demetori - Solar Sect of Mystic Wisdom ~ Nuclear Fusion (Louis Cyphre) [Atomic].osu",
+  "metadata": {
+    "Title": "Solar Sect of Mystic Wisdom ~ Nuclear Fusion",
+    "Artist": "Demetori",
+    "Creator": "Louis Cyphre",
+    "Version": "Atomic",
+    "Source": "Touhou",
+    "Tags": "mekadon Subterranean Animism Reiuji Utsuho metal Chireiden Nada Upasana Pundarika OnosakiHito ignorethis",
+    "Mode": "0"
+  },
+  "audioDurationMs": 259213.06122448982,
+  "redLines": [
+    {
+      "time": 231,
+      "beatLength": 324.324324324324,
+      "bpm": 185.0000000000002,
+      "durationMs": 2432
+    },
+    {
+      "time": 2663,
+      "beatLength": 346.820809248555,
+      "bpm": 172.99999999999994,
+      "durationMs": 693
+    },
+    {
+      "time": 3356,
+      "beatLength": 346.820809248555,
+      "bpm": 172.99999999999994,
+      "durationMs": 137168
+    },
+    {
+      "time": 140524,
+      "beatLength": 346.820809248555,
+      "bpm": 172.99999999999994,
+      "durationMs": 21849
+    },
+    {
+      "time": 162373,
+      "beatLength": 346.820809248555,
+      "bpm": 172.99999999999994,
+      "durationMs": 96840.06122448982
+    }
+  ],
+  "referenceBpm": 172.99999999999994,
+  "referenceVariable": true,
+  "referenceRedLineCount": 5,
+  "referenceCoverageMs": 256550.06122448982,
+  "status": "ok",
+  "prediction": {
+    "bpm": 173,
+    "offsetMs": 267,
+    "variable": true,
+    "evidence": [
+      {
+        "startMs": 197695,
+        "endMs": 203691,
+        "bpm": 76.847,
+        "points": 3,
+        "maxSupport": 0.09127902977597745
+      },
+      {
+        "startMs": 233639,
+        "endMs": 239636,
+        "bpm": 76.847,
+        "points": 3,
+        "maxSupport": 0.08561013479815802
+      }
+    ],
+    "localPointCount": 251,
+    "rawBpm": 346,
+    "rawSegmentCount": 184
+  },
+  "evaluationMs": 2364
+}

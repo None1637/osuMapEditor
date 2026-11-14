@@ -1,0 +1,119 @@
+{
+  "id": "sample-017",
+  "directoryName": "1510535 65daysofstatic - Retreat! Retreat! (Cut Ver)",
+  "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\1510535 65daysofstatic - Retreat! Retreat! (Cut Ver)",
+  "status": "ok",
+  "referenceBpm": 194.9999999999998,
+  "referenceVariable": true,
+  "predictedBpm": 195.1,
+  "predictedVariable": false,
+  "variableLines": [
+    {
+      "time": 185,
+      "beatLength": 1283.42245989305,
+      "bpm": 46.74999999999993,
+      "durationMs": 1283
+    },
+    {
+      "time": 1468,
+      "beatLength": 1196.41076769691,
+      "bpm": 50.14999999999997,
+      "durationMs": 1196
+    },
+    {
+      "time": 2664,
+      "beatLength": 1246.10591900312,
+      "bpm": 48.149999999999814,
+      "durationMs": 2492
+    },
+    {
+      "time": 5156,
+      "beatLength": 1202.40480961924,
+      "bpm": 49.899999999999935,
+      "durationMs": 1202
+    },
+    {
+      "time": 6358,
+      "beatLength": 1233.29907502569,
+      "bpm": 48.65000000000015,
+      "durationMs": 1233
+    },
+    {
+      "time": 7591,
+      "beatLength": 1253.91849529781,
+      "bpm": 47.84999999999983,
+      "durationMs": 1253
+    }
+  ],
+  "trueVariableMs": 8659,
+  "flaggedWindowCount": 28,
+  "flaggedWindowsOnVariable": 1,
+  "rawCandidateCount": 2,
+  "rawCandidatesOnVariable": 0,
+  "finalEvidenceCount": 0,
+  "finalEvidenceOnVariable": 0,
+  "candidates": [
+    {
+      "startMs": 48924,
+      "endMs": 54921,
+      "bpm": 65.211,
+      "points": 3,
+      "maxSupport": 0.16234004121414403,
+      "localGridCoverage": 0.0594059405940594,
+      "rejection": "triplet",
+      "independentMainScore": null,
+      "independentLocalScore": null,
+      "variableOverlapMs": 0,
+      "overlapsVariable": false,
+      "tripletVotes": [
+        {
+          "timeMs": 50924.26303854875,
+          "bpm": 65.211,
+          "localGridCoverage": 0.050505050505050504,
+          "tripletGridCoverage": 0.5656565656565656,
+          "tripletGridHalfCoverage": 0.3434343434343434,
+          "tripletGridDoubleCoverage": 0.5858585858585859
+        },
+        {
+          "timeMs": 51922.72108843538,
+          "bpm": 70.843,
+          "localGridCoverage": 0.06542056074766354,
+          "tripletGridCoverage": 0.5700934579439252,
+          "tripletGridHalfCoverage": 0.3177570093457944,
+          "tripletGridDoubleCoverage": 0.5420560747663551
+        }
+      ]
+    },
+    {
+      "startMs": 87864,
+      "endMs": 93861,
+      "bpm": 65.006,
+      "points": 3,
+      "maxSupport": 0.07194001780712124,
+      "localGridCoverage": 0.05063291139240506,
+      "rejection": "triplet",
+      "independentMainScore": null,
+      "independentLocalScore": null,
+      "variableOverlapMs": 0,
+      "overlapsVariable": false,
+      "tripletVotes": [
+        {
+          "timeMs": 89864.12698412698,
+          "bpm": 70.794,
+          "localGridCoverage": 0.05128205128205128,
+          "tripletGridCoverage": 0.532051282051282,
+          "tripletGridHalfCoverage": 0.36538461538461536,
+          "tripletGridDoubleCoverage": 0.5705128205128205
+        },
+        {
+          "timeMs": 90862.58503401361,
+          "bpm": 65.006,
+          "localGridCoverage": 0.05063291139240506,
+          "tripletGridCoverage": 0.5632911392405063,
+          "tripletGridHalfCoverage": 0.34177215189873417,
+          "tripletGridDoubleCoverage": 0.5379746835443038
+        }
+      ]
+    }
+  ]
+}

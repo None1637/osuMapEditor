@@ -1,0 +1,301 @@
+{
+  "id": "sample-083",
+  "directoryName": "532381 Various Artists - osu! Jump Compilation",
+  "beatmapFile": "Various Artists - osu! Jump Compilation (bldoggy51) [DOS].osu",
+  "metadata": {
+    "Title": "osu! Jump Compilation",
+    "TitleUnicode": "osu! Jump Compilation",
+    "Artist": "Various Artists",
+    "ArtistUnicode": "Various Artists",
+    "Creator": "bldoggy51",
+    "Version": "DOS",
+    "Source": "",
+    "Tags": "station earth cold green eyes divine bearizm reol remote control max control! taeyang yousei teikoku senketsu no chikai insanity saten fear and loathing in las vegas fllv rave-up tonight extra lightr MONSTER FOREVER handsome bibuko Reizouko Mitara Pudding ga Nai Jumpudding Jumppudding val0108 team nekoman airman holy shit blue dragon silent siren routine jumpy route shapy panda eyes and teminite highscore game over fort hige driver join. selen Dadadadadadadadadada special spboxer3 dj taka quaver crescendo monstrata wagakki band tengaku uncompressed fury of a raging japanese god shiro omoi snow drive snowdrive arieeru lime smiling arles lahphnya",
+    "BeatmapID": "1128081",
+    "BeatmapSetID": "532381",
+    "Mode": "0"
+  },
+  "audioDurationMs": 668682.4489795918,
+  "redLines": [
+    {
+      "time": 5170,
+      "beatLength": 344.827586206897,
+      "bpm": 173.99999999999977,
+      "durationMs": 58169
+    },
+    {
+      "time": 63339,
+      "beatLength": 363.636363636364,
+      "bpm": 164.99999999999983,
+      "durationMs": 48188
+    },
+    {
+      "time": 111527,
+      "beatLength": 333.333333333333,
+      "bpm": 180.0000000000002,
+      "durationMs": 19386
+    },
+    {
+      "time": 130913,
+      "beatLength": 324.324324324324,
+      "bpm": 185.0000000000002,
+      "durationMs": 45645
+    },
+    {
+      "time": 176558,
+      "beatLength": 365.853658536585,
+      "bpm": 164.00000000000017,
+      "durationMs": 55321
+    },
+    {
+      "time": 231879,
+      "beatLength": 315.789473684211,
+      "bpm": 189.99999999999974,
+      "durationMs": 38244
+    },
+    {
+      "time": 270123,
+      "beatLength": 300,
+      "bpm": 200,
+      "durationMs": 36531
+    },
+    {
+      "time": 306654,
+      "beatLength": 340.909090909091,
+      "bpm": 175.99999999999994,
+      "durationMs": 54996
+    },
+    {
+      "time": 361650,
+      "beatLength": 545.454545454546,
+      "bpm": 109.9999999999999,
+      "durationMs": 30954
+    },
+    {
+      "time": 392604,
+      "beatLength": 384.615384615385,
+      "bpm": 155.99999999999986,
+      "durationMs": 1585
+    },
+    {
+      "time": 394189,
+      "beatLength": 384.615384615385,
+      "bpm": 155.99999999999986,
+      "durationMs": 24053
+    },
+    {
+      "time": 418242,
+      "beatLength": 326.086956521739,
+      "bpm": 184.00000000000006,
+      "durationMs": 1304
+    },
+    {
+      "time": 419546,
+      "beatLength": 322.58064516129,
+      "bpm": 186.00000000000017,
+      "durationMs": 32000
+    },
+    {
+      "time": 451546,
+      "beatLength": 258.620689655172,
+      "bpm": 232.00000000000037,
+      "durationMs": 512
+    },
+    {
+      "time": 452058,
+      "beatLength": 258.620689655172,
+      "bpm": 232.00000000000037,
+      "durationMs": 18621
+    },
+    {
+      "time": 470679,
+      "beatLength": 255.31914893617,
+      "bpm": 235.0000000000002,
+      "durationMs": 765
+    },
+    {
+      "time": 471444,
+      "beatLength": 266.666666666667,
+      "bpm": 224.9999999999997,
+      "durationMs": 266
+    },
+    {
+      "time": 471710,
+      "beatLength": 279.06976744186,
+      "bpm": 215.00000000000037,
+      "durationMs": 558
+    },
+    {
+      "time": 472268,
+      "beatLength": 272.727272727273,
+      "bpm": 219.9999999999998,
+      "durationMs": 487
+    },
+    {
+      "time": 472755,
+      "beatLength": 258.620689655172,
+      "bpm": 232.00000000000037,
+      "durationMs": 8265
+    },
+    {
+      "time": 481020,
+      "beatLength": 258.620689655172,
+      "bpm": 232.00000000000037,
+      "durationMs": 22985
+    },
+    {
+      "time": 504005,
+      "beatLength": 267.857142857143,
+      "bpm": 223.9999999999999,
+      "durationMs": 43597
+    },
+    {
+      "time": 547602,
+      "beatLength": 235.367958575239,
+      "bpm": 254.92000000000033,
+      "durationMs": 39948
+    },
+    {
+      "time": 587550,
+      "beatLength": 303.030303030303,
+      "bpm": 198.00000000000003,
+      "durationMs": 81132.44897959183
+    }
+  ],
+  "referenceBpm": 198.00000000000003,
+  "referenceVariable": true,
+  "referenceRedLineCount": 24,
+  "referenceCoverageMs": 81132.44897959183,
+  "status": "ok",
+  "prediction": {
+    "bpm": 174,
+    "offsetMs": 377,
+    "variable": true,
+    "evidence": [
+      {
+        "startMs": 252610,
+        "endMs": 258607,
+        "bpm": 191.406,
+        "points": 3,
+        "maxSupport": 0.09523697277964283,
+        "localGridCoverage": 0.10982658959537572,
+        "tripletLike": false,
+        "independentMainScore": -0.10208828966940567,
+        "independentMainBpm": 174,
+        "independentLocalScore": 0.4352948415429324
+      },
+      {
+        "startMs": 290551,
+        "endMs": 296548,
+        "bpm": 198.768,
+        "points": 3,
+        "maxSupport": 0.10050380427836918,
+        "localGridCoverage": 0.11695906432748537,
+        "tripletLike": false,
+        "independentMainScore": -0.07632434261171342,
+        "independentMainBpm": 174,
+        "independentLocalScore": 0.37725388379534464
+      },
+      {
+        "startMs": 355451,
+        "endMs": 363445,
+        "bpm": 109.957,
+        "points": 5,
+        "maxSupport": 0.41489370004135073,
+        "localGridCoverage": 0.08823529411764706,
+        "tripletLike": false,
+        "independentMainScore": 0.04389637736861416,
+        "independentMainBpm": 174,
+        "independentLocalScore": 0.29279727155847773
+      },
+      {
+        "startMs": 360443,
+        "endMs": 366440,
+        "bpm": 219.914,
+        "points": 3,
+        "maxSupport": 0.13908155901516298,
+        "localGridCoverage": 0.12299465240641712,
+        "tripletLike": false,
+        "independentMainScore": 0.0025888459780153954,
+        "independentMainBpm": 174,
+        "independentLocalScore": 0.35273080123016776
+      },
+      {
+        "startMs": 368431,
+        "endMs": 374428,
+        "bpm": 109.957,
+        "points": 3,
+        "maxSupport": 0.27019073613395117,
+        "localGridCoverage": 0.0970873786407767,
+        "tripletLike": false,
+        "independentMainScore": 0.0543477620384474,
+        "independentMainBpm": 174,
+        "independentLocalScore": 0.5479109927767957
+      },
+      {
+        "startMs": 479260,
+        "endMs": 487254,
+        "bpm": 234.908,
+        "points": 5,
+        "maxSupport": 0.11083107459058811,
+        "localGridCoverage": 0.10880829015544041,
+        "tripletLike": false,
+        "independentMainScore": -0.06241998217953683,
+        "independentMainBpm": 174,
+        "independentLocalScore": 0.10664539891196204
+      },
+      {
+        "startMs": 604067,
+        "endMs": 610064,
+        "bpm": 66.044,
+        "points": 3,
+        "maxSupport": 0.12053395015285324,
+        "localGridCoverage": 0.05084745762711865,
+        "tripletLike": false,
+        "independentMainScore": -0.0006015678099761425,
+        "independentMainBpm": 174,
+        "independentLocalScore": 0.3939059435713228
+      },
+      {
+        "startMs": 611056,
+        "endMs": 622045,
+        "bpm": 65.834,
+        "points": 8,
+        "maxSupport": 0.09077011446400518,
+        "localGridCoverage": 0.05232558139534884,
+        "tripletLike": false,
+        "independentMainScore": 0.06919427222196192,
+        "independentMainBpm": 174,
+        "independentLocalScore": 0.37331392797473684
+      },
+      {
+        "startMs": 626033,
+        "endMs": 632030,
+        "bpm": 65.876,
+        "points": 3,
+        "maxSupport": 0.12391803276733622,
+        "localGridCoverage": 0.056179775280898875,
+        "tripletLike": false,
+        "independentMainScore": 0.022415451909251233,
+        "independentMainBpm": 174,
+        "independentLocalScore": 0.3939859281064861
+      },
+      {
+        "startMs": 633022,
+        "endMs": 640018,
+        "bpm": 198.768,
+        "points": 4,
+        "maxSupport": 0.10208523851300742,
+        "localGridCoverage": 0.11764705882352941,
+        "tripletLike": false,
+        "independentMainScore": 0.09375931448639263,
+        "independentMainBpm": 174,
+        "independentLocalScore": 0.34825197628238147
+      }
+    ],
+    "localPointCount": 664,
+    "rawBpm": 174,
+    "rawSegmentCount": 269
+  },
+  "evaluationMs": 6017
+}

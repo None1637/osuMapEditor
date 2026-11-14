@@ -1,0 +1,19 @@
+{
+  "id": "sample-022",
+  "directoryName": "845859 Aoi vs r0y - Coldlapse",
+  "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\845859 Aoi vs r0y - Coldlapse",
+  "status": "ok",
+  "referenceBpm": 200,
+  "referenceVariable": false,
+  "predictedBpm": 200,
+  "predictedVariable": false,
+  "variableLines": [],
+  "trueVariableMs": 0,
+  "flaggedWindowCount": 10,
+  "flaggedWindowsOnVariable": 0,
+  "rawCandidateCount": 0,
+  "rawCandidatesOnVariable": 0,
+  "finalEvidenceCount": 0,
+  "finalEvidenceOnVariable": 0,
+  "candidates": []
+}

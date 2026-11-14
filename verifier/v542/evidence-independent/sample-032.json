@@ -1,0 +1,172 @@
+{
+  "id": "sample-032",
+  "directoryName": "149527 Ito Kanako - Sky of Twilight",
+  "beatmapFile": "Ito Kanako - Sky of Twilight (Brainpeeler) [Marathon].osu",
+  "referenceBpm": 107.99999999999991,
+  "predictedBpm": 216,
+  "frozenBpm": 216,
+  "deterministicEvidence": true,
+  "evidence": [
+    {
+      "startMs": 128801,
+      "endMs": 134798,
+      "bpm": 145.577,
+      "points": 3,
+      "maxSupport": 0.07879833657611517,
+      "index": 0,
+      "ratioToPredictedMain": 0.6739675925925925,
+      "ratioToAnnotatedMain": 1.3479351851851862,
+      "boundary": "interior",
+      "localBpmMin": 145.577,
+      "localBpmMax": 145.577,
+      "medianSupport": 0.07780245469461304,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 27.77777777777778,
+          "first": null,
+          "second": null,
+          "combined": null
+        },
+        "annotatedMain": {
+          "lag": 55.5555555555556,
+          "first": null,
+          "second": null,
+          "combined": null
+        },
+        "evidenceBpm": {
+          "lag": 41.215301867740095,
+          "first": null,
+          "second": null,
+          "combined": null
+        }
+      },
+      "objectCount": 70,
+      "objectGrid": {
+        "predictedMainHalf": 0.9142857142857143,
+        "annotatedMainHalf": 0.5571428571428572,
+        "evidenceHalf": 0.2571428571428571
+      }
+    },
+    {
+      "startMs": 223654,
+      "endMs": 230650,
+      "bpm": 61.892,
+      "points": 4,
+      "maxSupport": 0.10369044748707613,
+      "index": 1,
+      "ratioToPredictedMain": 0.28653703703703703,
+      "ratioToAnnotatedMain": 0.5730740740740745,
+      "boundary": "interior",
+      "localBpmMin": 61.892,
+      "localBpmMax": 61.892,
+      "medianSupport": 0.062310911922210936,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 27.77777777777778,
+          "first": null,
+          "second": null,
+          "combined": null
+        },
+        "annotatedMain": {
+          "lag": 55.5555555555556,
+          "first": null,
+          "second": null,
+          "combined": null
+        },
+        "evidenceBpm": {
+          "lag": 96.94306210818846,
+          "first": null,
+          "second": null,
+          "combined": null
+        }
+      },
+      "objectCount": 76,
+      "objectGrid": {
+        "predictedMainHalf": 0.6710526315789473,
+        "annotatedMainHalf": 0.47368421052631576,
+        "evidenceHalf": 0.3026315789473684
+      }
+    },
+    {
+      "startMs": 346465,
+      "endMs": 353460,
+      "bpm": 162.771,
+      "points": 4,
+      "maxSupport": 0.17894633993259215,
+      "index": 2,
+      "ratioToPredictedMain": 0.7535694444444444,
+      "ratioToAnnotatedMain": 1.50713888888889,
+      "boundary": "interior",
+      "localBpmMin": 162.771,
+      "localBpmMax": 162.771,
+      "medianSupport": 0.1510639386291831,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 27.77777777777778,
+          "first": null,
+          "second": null,
+          "combined": null
+        },
+        "annotatedMain": {
+          "lag": 55.5555555555556,
+          "first": null,
+          "second": null,
+          "combined": null
+        },
+        "evidenceBpm": {
+          "lag": 36.86160311111931,
+          "first": null,
+          "second": null,
+          "combined": null
+        }
+      },
+      "objectCount": 117,
+      "objectGrid": {
+        "predictedMainHalf": 0.4358974358974359,
+        "annotatedMainHalf": 0.358974358974359,
+        "evidenceHalf": 0.7008547008547008
+      }
+    },
+    {
+      "startMs": 355451,
+      "endMs": 361448,
+      "bpm": 61.523,
+      "points": 3,
+      "maxSupport": 0.09891754381908784,
+      "index": 3,
+      "ratioToPredictedMain": 0.2848287037037037,
+      "ratioToAnnotatedMain": 0.5696574074074079,
+      "boundary": "interior",
+      "localBpmMin": 61.523,
+      "localBpmMax": 61.523,
+      "medianSupport": 0.09891754381908784,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 27.77777777777778,
+          "first": null,
+          "second": null,
+          "combined": null
+        },
+        "annotatedMain": {
+          "lag": 55.5555555555556,
+          "first": null,
+          "second": null,
+          "combined": null
+        },
+        "evidenceBpm": {
+          "lag": 97.52450303138663,
+          "first": null,
+          "second": null,
+          "combined": null
+        }
+      },
+      "objectCount": 19,
+      "objectGrid": {
+        "predictedMainHalf": 0.7894736842105263,
+        "annotatedMainHalf": 0.6842105263157895,
+        "evidenceHalf": 0.21052631578947367
+      }
+    }
+  ],
+  "analysisMs": 3407
+}

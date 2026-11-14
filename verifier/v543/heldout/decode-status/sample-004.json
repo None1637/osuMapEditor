@@ -1,0 +1,6 @@
+{
+  "id": "sample-004",
+  "status": "audio_unavailable",
+  "audioCopyStatus": "copy_failed",
+  "error": "Error: ENOENT: no such file or directory, copyfile 'F:\\Backup\\D\\osu!\\Songs\\510859 Camellia - chrono diver -fragment- (Camellia's crossroads of chrono remix)\\compressing mp3 causes timing shift.mp3' -> 'D:\\Projects\\osuMapEditor\\Kimi_Agent_osu!编辑器改进 (1)\\app\\verifier\\v543\\heldout\\samples\\sample-004\\audio.mp3'"
+}

@@ -1,0 +1,50 @@
+{
+  "id": "sample-039",
+  "directoryName": "770246 Rabbit House - Final Overtake",
+  "beatmapFile": "Rabbit House - Final Overtake (bbu) [Normal].osu",
+  "metadata": {
+    "Title": "Final Overtake",
+    "TitleUnicode": "Final Overtake",
+    "Artist": "Rabbit House",
+    "ArtistUnicode": "Rabbit House",
+    "Creator": "bbu",
+    "Version": "Normal",
+    "Source": "BMS",
+    "Tags": "Down Habiholic RabbitHouse BGA BOFU2015 BOFU Kafuu Chino Kuro Usagi",
+    "BeatmapID": "1629357",
+    "BeatmapSetID": "770246",
+    "Mode": "0"
+  },
+  "audioDurationMs": 166297.86848072562,
+  "redLines": [
+    {
+      "time": -34,
+      "beatLength": 306.122448979592,
+      "bpm": 195.99999999999991,
+      "durationMs": 166297.86848072562
+    }
+  ],
+  "referenceBpm": 195.99999999999991,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 166297.86848072562,
+  "status": "ok",
+  "prediction": {
+    "bpm": 196,
+    "offsetMs": 309,
+    "variable": true,
+    "evidence": [
+      {
+        "startMs": 53917,
+        "endMs": 60912,
+        "bpm": 112.347,
+        "points": 4,
+        "maxSupport": 0.13745332962501305
+      }
+    ],
+    "localPointCount": 162,
+    "rawBpm": 392,
+    "rawSegmentCount": 70
+  },
+  "evaluationMs": 1514
+}

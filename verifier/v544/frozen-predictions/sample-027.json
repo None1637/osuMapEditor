@@ -1,0 +1,54 @@
+{
+  "id": "sample-027",
+  "directoryName": "76934 SYNCART'S - Innocent doll",
+  "beatmapFile": "SYNC.ART'S - Innocent doll (Loneight) [Hard].osu",
+  "metadata": {
+    "Title": "Innocent doll",
+    "TitleUnicode": "イノセント・ドール",
+    "Artist": "SYNC.ART'S",
+    "ArtistUnicode": "SYNC.ART'S",
+    "Creator": "Loneight",
+    "Version": "Hard",
+    "Source": "Touhou",
+    "Tags": "l1106188 komeiji koishi last remote Erica Masaki C83 Subterranean Animism MA CHERIE",
+    "BeatmapID": "216361",
+    "BeatmapSetID": "76934",
+    "Mode": "0"
+  },
+  "audioDurationMs": 294408.0725623583,
+  "redLines": [
+    {
+      "time": 484,
+      "beatLength": 750,
+      "bpm": 80,
+      "durationMs": 279000
+    },
+    {
+      "time": 279484,
+      "beatLength": 789.473684210526,
+      "bpm": 76.00000000000003,
+      "durationMs": 1578
+    },
+    {
+      "time": 281062,
+      "beatLength": 821.917808219178,
+      "bpm": 73,
+      "durationMs": 13346.072562358284
+    }
+  ],
+  "referenceBpm": 80,
+  "referenceVariable": true,
+  "referenceRedLineCount": 3,
+  "referenceCoverageMs": 279000,
+  "status": "ok",
+  "prediction": {
+    "bpm": 80,
+    "offsetMs": 562,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 289,
+    "rawBpm": 80,
+    "rawSegmentCount": 64
+  },
+  "evaluationMs": 2907
+}

@@ -1,0 +1,51 @@
+{
+  "id": "sample-020",
+  "directoryName": "42242 senya - Tsuki ni Murakumo Hana ni Kaze (Short Ver)",
+  "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\42242 senya - Tsuki ni Murakumo Hana ni Kaze (Short Ver)",
+  "status": "ok",
+  "referenceBpm": 160,
+  "referenceVariable": false,
+  "predictedBpm": 160,
+  "predictedVariable": false,
+  "variableLines": [],
+  "trueVariableMs": 0,
+  "flaggedWindowCount": 20,
+  "flaggedWindowsOnVariable": 0,
+  "rawCandidateCount": 1,
+  "rawCandidatesOnVariable": 0,
+  "finalEvidenceCount": 0,
+  "finalEvidenceOnVariable": 0,
+  "candidates": [
+    {
+      "startMs": 88863,
+      "endMs": 94860,
+      "bpm": 91.468,
+      "points": 3,
+      "maxSupport": 0.1982909025172564,
+      "localGridCoverage": 0.19230769230769232,
+      "rejection": "weak_short",
+      "independentMainScore": 0.22513291063499952,
+      "independentLocalScore": 0.04553223096427397,
+      "variableOverlapMs": 0,
+      "overlapsVariable": false,
+      "tripletVotes": [
+        {
+          "timeMs": 91861.04308390022,
+          "bpm": 91.468,
+          "localGridCoverage": 0.19230769230769232,
+          "tripletGridCoverage": 0.8461538461538461,
+          "tripletGridHalfCoverage": 0.4230769230769231,
+          "tripletGridDoubleCoverage": 0.8076923076923077
+        },
+        {
+          "timeMs": 92859.50113378685,
+          "bpm": 91.468,
+          "localGridCoverage": 0.2,
+          "tripletGridCoverage": 0.9,
+          "tripletGridHalfCoverage": 0.55,
+          "tripletGridDoubleCoverage": 0.9
+        }
+      ]
+    }
+  ]
+}

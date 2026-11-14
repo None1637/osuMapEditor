@@ -5,6 +5,7 @@ import { TriangleAlert } from 'lucide-react'; // v181: ⚠ → lucide
 import { store, useEditor } from '@/osu/store';
 import { useCounterZoom } from '@/osu/uiZoom';
 import { useT } from '@/i18n';
+import { UiControl, UiIcon, UiText } from './uiLayout/UiControl'; // v536
 
 export function UnsavedDialog() {
   useEditor();
@@ -26,30 +27,30 @@ export function UnsavedDialog() {
 
   return (
     <div className="fixed inset-0 z-[60] bg-black/70 flex items-center justify-center" data-unsaved-dialog="root" data-dialog="unsaved"> {/* v431: data-dialog = 弹窗不穿透到画布 */}
-      <div ref={cz.ref} style={cz.style} className="w-[420px] max-w-[92vw] bg-[#16161d] border border-[#333] rounded-lg p-5 shadow-2xl">
-        <div className="text-sm font-semibold mb-1 flex items-center gap-1.5"><TriangleAlert className="w-4 h-4" />{t('unsaved.title', 'Unsaved Changes')}</div>
+      <UiControl id="unsaved.panel"><div ref={cz.ref} style={cz.style} className="w-[420px] max-w-[92vw] bg-[#16161d] border border-[#333] rounded-lg p-5 shadow-2xl">
+        <UiControl id="unsaved.title"><div className="text-sm font-semibold mb-1 flex items-center gap-1.5"><UiIcon id="unsaved.title"><TriangleAlert className="w-4 h-4" /></UiIcon><UiText id="unsaved.title" textKey="unsaved.title">Unsaved Changes</UiText></div></UiControl>
         <div className="text-xs text-slate-400 mb-4 break-all">
           {t('unsaved.message', 'The current beatmap{map} has unsaved changes. Continuing will discard them.', { map: title ? ` (${title})` : '' })}
         </div>
         <div className="flex gap-2 justify-end">
-          <button
+          <UiControl id="unsaved.cancel"><button
             className="text-xs px-3 py-1.5 rounded bg-[#2c2c38] hover:bg-[#3c3c4c]"
             onClick={() => store.resolvePendingAction(false)} data-unsaved-dialog="cancel">
-            {t('unsaved.cancel', 'Cancel')}
-          </button>
-          <button
+            <UiText id="unsaved.cancel" textKey="unsaved.cancel">Cancel</UiText>
+          </button></UiControl>
+          <UiControl id="unsaved.discard"><button
             className="text-xs px-3 py-1.5 rounded bg-red-900/60 hover:bg-red-800/60 border border-red-700/50"
             onClick={() => store.resolvePendingAction(true)} data-unsaved-dialog="discard">
-            {t('unsaved.discard', 'Discard Changes')}
-          </button>
-          <button
+            <UiText id="unsaved.discard" textKey="unsaved.discard">Discard Changes</UiText>
+          </button></UiControl>
+          <UiControl id="unsaved.save"><button
             className="text-xs px-3 py-1.5 rounded bg-cyan-700/60 hover:bg-cyan-600/60 border border-cyan-500/50 disabled:opacity-40"
             disabled={saving}
             onClick={() => void saveAndContinue()} data-unsaved-dialog="save">
-            {saving ? t('unsaved.saving', 'Saving…') : t('unsaved.save_continue', 'Save and Continue')}
-          </button>
+            <UiText id="unsaved.save" textKey={saving ? 'unsaved.saving' : 'unsaved.save_continue'}>{saving ? 'Saving…' : 'Save and Continue'}</UiText>
+          </button></UiControl>
         </div>
-      </div>
+      </div></UiControl>
     </div>
   );
 }

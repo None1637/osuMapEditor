@@ -6,6 +6,7 @@ import { applyServerSkin } from '../osu/serverSkin';
 import { serverDir } from '../osu/serverFs';
 import { useCounterZoom } from '../osu/uiZoom';
 import { useT } from '@/i18n';
+import { UiControl, UiIcon, UiText } from './uiLayout/UiControl'; // v536
 
 /**
  * exe 首跑配置向导 (仅 Electron 环境出现):
@@ -65,9 +66,9 @@ export function FirstRunWizard({ onDone }: { onDone: () => void }) {
 
   return (
     <div className="fixed inset-0 z-[60] bg-black/80 flex items-center justify-center" data-dialog="first-run-wizard"> {/* v431 */}
-      <div ref={cz.ref} style={cz.style} className="w-[520px] max-w-[92vw] bg-[#16161d] border border-[#333] rounded-lg flex flex-col overflow-hidden">
+      <UiControl id="first-run.panel"><div ref={cz.ref} style={cz.style} className="w-[520px] max-w-[92vw] bg-[#16161d] border border-[#333] rounded-lg flex flex-col overflow-hidden">
         <div className="px-4 py-2.5 border-b border-[#2c2c38]">
-          <span className="text-sm font-semibold flex items-center gap-1.5"><Music className="w-4 h-4" />{t('wizard.title', 'First-Time Setup')}</span>
+          <UiControl id="first-run.title"><span className="text-sm font-semibold flex items-center gap-1.5"><UiIcon id="first-run.title"><Music className="w-4 h-4" /></UiIcon><UiText id="first-run.title" textKey="wizard.title">First-Time Setup</UiText></span></UiControl>
         </div>
 
         <div className="p-5 flex flex-col gap-4">
@@ -78,9 +79,9 @@ export function FirstRunWizard({ onDone }: { onDone: () => void }) {
               {t('wizard.step1_desc', 'Folder containing Songs / Skins folders')}{suggested ? t('wizard.step1_detected', ' (default installation detected: {path})', { path: suggested }) : ''}
             </div>
             <div className="flex items-center gap-2">
-              <button className="px-4 py-2 rounded bg-[#e6437d] hover:bg-[#f0558e] text-sm font-medium" onClick={pickDir}>
-                {osuPath ? t('wizard.pick_dir_again', 'Choose Again…') : t('wizard.pick_dir', 'Choose osu! Folder…')}
-              </button>
+              <UiControl id="first-run.pick-dir"><button className="px-4 py-2 rounded bg-[#e6437d] hover:bg-[#f0558e] text-sm font-medium" onClick={pickDir}>
+                <UiText id="first-run.pick-dir" textKey={osuPath ? 'wizard.pick_dir_again' : 'wizard.pick_dir'}>{osuPath ? 'Choose Again…' : 'Choose osu! Folder…'}</UiText>
+              </button></UiControl>
               {osuPath && <span className="text-xs text-emerald-400 truncate">{osuPath}</span>}
             </div>
             {osuPath && !error && (
@@ -96,13 +97,13 @@ export function FirstRunWizard({ onDone }: { onDone: () => void }) {
                 {skins.map(name => (
                   <label key={name}
                     className={`flex items-center gap-2 px-3 py-1.5 text-xs cursor-pointer ${skinName === name ? 'bg-[#e6437d]/25 text-white' : 'text-slate-300 hover:bg-[#22222c]'}`}>
-                    <input type="radio" name="skin" checked={skinName === name} onChange={() => setSkinName(name)} />
+                    <UiControl id="first-run.skin"><input type="radio" name="skin" checked={skinName === name} onChange={() => setSkinName(name)} /></UiControl>
                     <span className="truncate">{name}</span>
                   </label>
                 ))}
                 <label className={`flex items-center gap-2 px-3 py-1.5 text-xs cursor-pointer ${skinName === null ? 'bg-[#e6437d]/25 text-white' : 'text-slate-300 hover:bg-[#22222c]'}`}>
-                  <input type="radio" name="skin" checked={skinName === null} onChange={() => setSkinName(null)} />
-                  <span className="text-slate-500">{t('wizard.no_skin', 'Skip for now (use default skin)')}</span>
+                  <UiControl id="first-run.no-skin"><input type="radio" name="skin" checked={skinName === null} onChange={() => setSkinName(null)} /></UiControl>
+                  <span className="text-slate-500"><UiText id="first-run.no-skin" textKey="wizard.no_skin">Skip for now (use default skin)</UiText></span>
                 </label>
               </div>
             </div>
@@ -113,14 +114,14 @@ export function FirstRunWizard({ onDone }: { onDone: () => void }) {
 
           {error && <div className="text-xs text-red-400">{error}</div>}
 
-          <button
+          <UiControl id="first-run.finish"><button
             className="self-end px-5 py-2 rounded bg-[#e6437d] hover:bg-[#f0558e] text-sm font-medium disabled:opacity-40"
             disabled={!osuPath || busy}
             onClick={finish}>
-            {busy ? t('wizard.saving', 'Saving…') : t('wizard.finish', 'Done, Enter Song Library')}
-          </button>
+            <UiText id="first-run.finish" textKey={busy ? 'wizard.saving' : 'wizard.finish'}>{busy ? 'Saving…' : 'Done, Enter Song Library'}</UiText>
+          </button></UiControl>
         </div>
-      </div>
+      </div></UiControl>
     </div>
   );
 }

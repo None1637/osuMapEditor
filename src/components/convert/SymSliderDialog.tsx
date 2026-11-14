@@ -11,7 +11,8 @@
 //   (store.symSliderAxisView/symSliderAxisDragHandler, v210 对称轴同款接线; 拖拽回写 1 位小数)。
 import { useEffect, useMemo, useState } from 'react';
 import { store, useEditor } from '@/osu/store';
-import { DraggableDialog, DraftNum, loadParams, saveParams, useSaveParamsOnClose } from '../DraggableDialog';
+import { DialogButton, DraggableDialog, DraftNum, loadParams, saveParams, useSaveParamsOnClose } from '../DraggableDialog';
+import { UiAutoControl, UiAutoText } from '../uiLayout/UiControl'; // v533
 import { computeSymSlider, DEFAULT_SYM_SLIDER_PARAMS, type SymSliderMode, type SymSliderParams } from '@/osu/convert/symSlider';
 import { useT } from '@/i18n';
 
@@ -89,18 +90,18 @@ export function SymSliderDialog() {
       <Row label={t('convert.mode', 'Mode')}>
         {([['axis', t('convert.sym_mode_axis', 'Axis mirror')], ['point', t('convert.sym_mode_point', 'Point mirror')], ['rotate', t('convert.sym_mode_rotate', 'Rotate around center')], ['translate', t('convert.sym_mode_translate', 'Translate')]] as [SymSliderMode, string][]).map(([m, label]) => (
           <label key={m} className="flex items-center gap-0.5">
-            <input type="radio" name="sym-mode" checked={params.mode === m} data-conv={`mode-${m}`}
-              onChange={() => upd({ mode: m })} />
-            {label}
+            <UiAutoControl localId={`mode-${m}`}><input type="radio" name="sym-mode" checked={params.mode === m} data-conv={`mode-${m}`}
+              onChange={() => upd({ mode: m })} /></UiAutoControl>
+            <UiAutoText localId={`mode-${m}`}>{label}</UiAutoText>
           </label>
         ))}
       </Row>
       <Row label={t('convert.join', 'Join')}>
         {([['tail', t('convert.sym_join_tail', 'Join to tail')], ['head', t('convert.sym_join_head', 'Join to head')], ['none', t('convert.sym_join_none', 'Separate copy')]] as const).map(([j, label]) => (
           <label key={j} className="flex items-center gap-0.5">
-            <input type="radio" name="sym-join" checked={params.join === j} data-conv={`join-${j}`}
-              onChange={() => upd({ join: j })} />
-            {label}
+            <UiAutoControl localId={`join-${j}`}><input type="radio" name="sym-join" checked={params.join === j} data-conv={`join-${j}`}
+              onChange={() => upd({ join: j })} /></UiAutoControl>
+            <UiAutoText localId={`join-${j}`}>{label}</UiAutoText>
           </label>
         ))}
       </Row>
@@ -115,9 +116,9 @@ export function SymSliderDialog() {
         <Row label={t('convert.axis', 'Axis')}>
           {([['v', t('convert.sym_axis_v', 'Vertical line')], ['h', t('convert.sym_axis_h', 'Horizontal line')], ['custom', t('convert.custom', 'Custom')]] as const).map(([d, label]) => (
             <label key={d} className="flex items-center gap-0.5">
-              <input type="radio" name="sym-axis-dir" checked={params.axisDir === d} data-conv={`dir-${d}`}
-                onChange={() => upd({ axisDir: d })} />
-              {label}
+              <UiAutoControl localId={`dir-${d}`}><input type="radio" name="sym-axis-dir" checked={params.axisDir === d} data-conv={`dir-${d}`}
+                onChange={() => upd({ axisDir: d })} /></UiAutoControl>
+              <UiAutoText localId={`dir-${d}`}>{label}</UiAutoText>
             </label>
           ))}
         </Row>
@@ -160,9 +161,9 @@ export function SymSliderDialog() {
         <Row label={t('convert.anchor', 'Anchor')}>
           {([['tail', t('convert.sym_anchor_tail', 'Slider tail')], ['head', t('convert.sym_anchor_head', 'Slider head')], ['custom', t('convert.custom', 'Custom')]] as const).map(([a, label]) => (
             <label key={a} className="flex items-center gap-0.5">
-              <input type="radio" name="sym-anchor" checked={params.anchor === a} data-conv={`anchor-${a}`}
-                onChange={() => upd({ anchor: a })} />
-              {label}
+              <UiAutoControl localId={`anchor-${a}`}><input type="radio" name="sym-anchor" checked={params.anchor === a} data-conv={`anchor-${a}`}
+                onChange={() => upd({ anchor: a })} /></UiAutoControl>
+              <UiAutoText localId={`anchor-${a}`}>{label}</UiAutoText>
             </label>
           ))}
         </Row>
@@ -191,7 +192,7 @@ export function SymSliderDialog() {
       {result.length === 0 && obj && params.mode === 'axis' && params.axisDir === 'custom'
         && <div className="text-red-300">{t('convert.sym_axis_degenerate', 'Custom axis points coincide; cannot mirror')}</div>}
       <div className="flex gap-2 pt-1">
-        <button data-conv="apply"
+        <DialogButton uiId="apply" textKey="convert.apply" data-conv="apply"
           onClick={() => {
             if (!obj || !result.length) return;
             saveParams('symSlider', params);
@@ -199,10 +200,8 @@ export function SymSliderDialog() {
             store.applyConversion(params.join === 'none' ? [] : [obj.id], result);
           }}
           disabled={!obj || !result.length}
-          className="px-3 py-1 rounded bg-pink-500 hover:bg-pink-400 disabled:opacity-40 text-white font-bold">
-          {t('convert.apply', 'Apply')}
-        </button>
-        <button onClick={() => store.closeConversion()} className="px-3 py-1 rounded bg-white/10 hover:bg-white/20">{t('convert.cancel', 'Cancel')}</button>
+          className="px-3 py-1 rounded bg-pink-500 hover:bg-pink-400 disabled:opacity-40 text-white font-bold">Apply</DialogButton>
+        <DialogButton uiId="cancel" textKey="convert.cancel" onClick={() => store.closeConversion()} className="px-3 py-1 rounded bg-white/10 hover:bg-white/20">Cancel</DialogButton>
       </div>
     </DraggableDialog>
   );

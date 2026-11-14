@@ -1,0 +1,73 @@
+osu file format v14
+
+[General]
+AudioFilename: audio.mp3
+AudioLeadIn: 0
+PreviewTime: 40816
+Countdown: 0
+SampleSet: None
+StackLeniency: 0.7
+Mode: 0
+LetterboxInBreaks: 0
+WidescreenStoryboard: 1
+
+[Editor]
+DistanceSpacing: 1.3
+BeatDivisor: 4
+GridSize: 32
+TimelineZoom: 1
+
+[Metadata]
+Title:Interlude - teatime
+TitleUnicode:Interlude - teatime
+Artist:C.H.S
+ArtistUnicode:C.H.S
+Creator:wyrio
+Version:Normal
+Source:東方紅魔郷　～ the Embodiment of Scarlet Devil.
+Tags:上海紅茶館 Chinese Tea Shanghai Teahouse Hong Meiling  リズナ  c.h.s tpz t+pazolite 東 方 project
+BeatmapID:2005258
+BeatmapSetID:847400
+
+[Difficulty]
+HPDrainRate:2
+CircleSize:5.3
+OverallDifficulty:6
+ApproachRate:7.3
+SliderMultiplier:1.3
+SliderTickRate:1
+
+[Events]
+//Background and Video events
+0,0,"cropped-1920-1080-552127.jpg",0,0
+//Break Periods
+//Storyboard Layer 0 (Background)
+//Storyboard Layer 1 (Fail)
+//Storyboard Layer 2 (Pass)
+//Storyboard Layer 3 (Foreground)
+//Storyboard Sound Samples
+
+[TimingPoints]
+2416,600,4,2,0,30,1,0
+
+
+[HitObjects]
+135,171,2416,5,0,0:0:0:0:
+110,250,2716,2,0,P|170:247|214:189,1,130
+285,108,3616,2,0,P|282:161|306:197,2,97.5
+361,138,4816,5,0,0:0:0:0:
+439,111,5116,1,0,0:0:0:0:
+422,201,5416,2,0,P|461:175|485:175,1,65
+512,318,6016,6,0,P|468:307|445:276,1,65
+373,272,6616,1,0,0:0:0:0:
+309,329,6916,1,0,0:0:0:0:
+230,307,7216,5,0,0:0:0:0:
+155,348,7516,2,0,B|115:348|95:324|95:324|74:355|31:360,1,130
+0,279,8416,2,0,P|0:231|40:184,2,97.5
+84,254,9616,6,0,P|113:257|157:245,1,65
+167,169,10216,2,0,P|208:154|240:154,1,65
+307,195,10816,2,0,L|299:122,1,65
+345,59,11416,1,0,0:0:0:0:
+345,59,11716,1,0,0:0:0:0:
+418,87,12016,5,0,0:0:0:0:
+408,9,12316,2,0,P|425:68|485:96,1,130

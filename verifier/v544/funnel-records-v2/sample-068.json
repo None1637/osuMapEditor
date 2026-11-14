@@ -1,0 +1,19 @@
+{
+  "id": "sample-068",
+  "directoryName": "655912 TrySail - Adrenaline!!! -TV Size-",
+  "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\655912 TrySail - Adrenaline!!! -TV Size-",
+  "status": "ok",
+  "referenceBpm": 133.99999999999991,
+  "referenceVariable": false,
+  "predictedBpm": 134,
+  "predictedVariable": false,
+  "variableLines": [],
+  "trueVariableMs": 0,
+  "flaggedWindowCount": 19,
+  "flaggedWindowsOnVariable": 0,
+  "rawCandidateCount": 0,
+  "rawCandidatesOnVariable": 0,
+  "finalEvidenceCount": 0,
+  "finalEvidenceOnVariable": 0,
+  "candidates": []
+}

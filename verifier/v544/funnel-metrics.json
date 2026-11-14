@@ -1,0 +1,916 @@
+{
+  "version": "v544-funnel",
+  "recordCount": 100,
+  "evaluated": 98,
+  "variableSongs": 19,
+  "constantSongs": 79,
+  "variableSongFunnel": {
+    "flaggedWindowOnVariable": 15,
+    "rawCandidateOnVariable": 9,
+    "finalDetection": 3,
+    "finalEvidenceOnVariable": 3
+  },
+  "variableCandidates": {
+    "all": {
+      "triplet": 31,
+      "weak_short": 36,
+      "insufficient_margin": 13,
+      "accepted": 8
+    },
+    "overlappingReferenceVariable": {
+      "triplet": 23,
+      "insufficient_margin": 6,
+      "weak_short": 14,
+      "accepted": 6
+    }
+  },
+  "constantCandidates": {
+    "all": {
+      "weak_short": 50,
+      "insufficient_margin": 24,
+      "triplet": 18,
+      "accepted": 1
+    }
+  },
+  "missedVariableSongs": [
+    {
+      "id": "sample-001",
+      "directoryName": "673574 Camellia - Shun no Shifudo o Ikashita Kare Fumi Paeria",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\673574 Camellia - Shun no Shifudo o Ikashita Kare Fumi Paeria",
+      "referenceBpm": 219.9999999999998,
+      "predictedBpm": 220,
+      "flaggedWindowCount": 99,
+      "flaggedWindowsOnVariable": 78,
+      "rawCandidateCount": 9,
+      "rawCandidatesOnVariable": 9,
+      "alignedRejections": {
+        "triplet": 9
+      },
+      "variableLines": [
+        {
+          "time": 174822,
+          "beatLength": 405.405405405405,
+          "bpm": 148.00000000000014,
+          "durationMs": 810
+        },
+        {
+          "time": 175632,
+          "beatLength": 401.785714285714,
+          "bpm": 149.33333333333343,
+          "durationMs": 803
+        },
+        {
+          "time": 176435,
+          "beatLength": 398.230088495575,
+          "bpm": 150.66666666666674,
+          "durationMs": 796
+        },
+        {
+          "time": 177231,
+          "beatLength": 394.736842105263,
+          "bpm": 152.00000000000006,
+          "durationMs": 789
+        },
+        {
+          "time": 178020,
+          "beatLength": 398.229207457506,
+          "bpm": 150.66699999999986,
+          "durationMs": 796
+        },
+        {
+          "time": 178816,
+          "beatLength": 401.786611130828,
+          "bpm": 149.33300000000014,
+          "durationMs": 803
+        },
+        {
+          "time": 179619,
+          "beatLength": 405.405405405405,
+          "bpm": 148.00000000000014,
+          "durationMs": 810
+        },
+        {
+          "time": 180429,
+          "beatLength": 409.090909090909,
+          "bpm": 146.66666666666669,
+          "durationMs": 818
+        },
+        {
+          "time": 181247,
+          "beatLength": 193.548387096774,
+          "bpm": 310.0000000000003,
+          "durationMs": 774
+        },
+        {
+          "time": 182021,
+          "beatLength": 200,
+          "bpm": 300,
+          "durationMs": 79200
+        },
+        {
+          "time": 261221,
+          "beatLength": 218.181818181818,
+          "bpm": 275.0000000000002,
+          "durationMs": 872
+        },
+        {
+          "time": 262093,
+          "beatLength": 240,
+          "bpm": 250,
+          "durationMs": 960
+        },
+        {
+          "time": 263053,
+          "beatLength": 285.714285714286,
+          "bpm": 209.99999999999977,
+          "durationMs": 1142
+        },
+        {
+          "time": 264195,
+          "beatLength": 375,
+          "bpm": 160,
+          "durationMs": 750
+        },
+        {
+          "time": 264945,
+          "beatLength": 413.793103448276,
+          "bpm": 144.99999999999994,
+          "durationMs": 413
+        },
+        {
+          "time": 265358,
+          "beatLength": 461.538461538462,
+          "bpm": 129.99999999999986,
+          "durationMs": 15255.333333333372
+        }
+      ]
+    },
+    {
+      "id": "sample-002",
+      "directoryName": "2242341 TRUE - Blast!",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\2242341 TRUE - Blast!",
+      "referenceBpm": 179,
+      "predictedBpm": 178.55,
+      "flaggedWindowCount": 88,
+      "flaggedWindowsOnVariable": 0,
+      "rawCandidateCount": 6,
+      "rawCandidatesOnVariable": 0,
+      "alignedRejections": {},
+      "variableLines": [
+        {
+          "time": 31725,
+          "beatLength": 342.857142857143,
+          "bpm": 174.99999999999991,
+          "durationMs": 340
+        },
+        {
+          "time": 79564,
+          "beatLength": 307.692307692308,
+          "bpm": 194.9999999999998,
+          "durationMs": 102
+        },
+        {
+          "time": 80234,
+          "beatLength": 307.692307692308,
+          "bpm": 194.9999999999998,
+          "durationMs": 102
+        },
+        {
+          "time": 217095,
+          "beatLength": 324.324324324324,
+          "bpm": 185.0000000000002,
+          "durationMs": 324
+        },
+        {
+          "time": 227810,
+          "beatLength": 342.857142857143,
+          "bpm": 174.99999999999991,
+          "durationMs": 343
+        },
+        {
+          "time": 230994,
+          "beatLength": 352.941176470588,
+          "bpm": 170.0000000000001,
+          "durationMs": 351
+        },
+        {
+          "time": 238548,
+          "beatLength": 346.820809248555,
+          "bpm": 172.99999999999994,
+          "durationMs": 347
+        },
+        {
+          "time": 254140,
+          "beatLength": 320.855614973262,
+          "bpm": 187.00000000000003,
+          "durationMs": 481
+        },
+        {
+          "time": 254621,
+          "beatLength": 377.358490566038,
+          "bpm": 158.99999999999991,
+          "durationMs": 189
+        }
+      ]
+    },
+    {
+      "id": "sample-003",
+      "directoryName": "606995 False Noise - Skyshards",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\606995 False Noise - Skyshards",
+      "referenceBpm": 171.99999999999977,
+      "predictedBpm": 172,
+      "flaggedWindowCount": 58,
+      "flaggedWindowsOnVariable": 9,
+      "rawCandidateCount": 4,
+      "rawCandidatesOnVariable": 1,
+      "alignedRejections": {
+        "insufficient_margin": 1
+      },
+      "variableLines": [
+        {
+          "time": 67325,
+          "beatLength": 377.358490566038,
+          "bpm": 158.99999999999991,
+          "durationMs": 377
+        },
+        {
+          "time": 67702,
+          "beatLength": 400,
+          "bpm": 150,
+          "durationMs": 400
+        },
+        {
+          "time": 68102,
+          "beatLength": 402.684563758389,
+          "bpm": 149.00000000000009,
+          "durationMs": 402
+        },
+        {
+          "time": 68504,
+          "beatLength": 434.782608695652,
+          "bpm": 138.00000000000006,
+          "durationMs": 434
+        },
+        {
+          "time": 68938,
+          "beatLength": 461.538461538462,
+          "bpm": 129.99999999999986,
+          "durationMs": 461
+        },
+        {
+          "time": 69399,
+          "beatLength": 466.926070038911,
+          "bpm": 128.49999999999986,
+          "durationMs": 466
+        },
+        {
+          "time": 69865,
+          "beatLength": 582.52427184466,
+          "bpm": 103.00000000000003,
+          "durationMs": 582
+        },
+        {
+          "time": 70447,
+          "beatLength": 641.711229946524,
+          "bpm": 93.50000000000001,
+          "durationMs": 641
+        },
+        {
+          "time": 71088,
+          "beatLength": 659.340659340659,
+          "bpm": 91.00000000000004,
+          "durationMs": 659
+        },
+        {
+          "time": 71747,
+          "beatLength": 895.522388059701,
+          "bpm": 67.00000000000003,
+          "durationMs": 895
+        },
+        {
+          "time": 72642,
+          "beatLength": 1016.94915254237,
+          "bpm": 59.00000000000016,
+          "durationMs": 508
+        },
+        {
+          "time": 73150,
+          "beatLength": 1071.42857142857,
+          "bpm": 56.00000000000008,
+          "durationMs": 535
+        },
+        {
+          "time": 73685,
+          "beatLength": 1363.63636363636,
+          "bpm": 44.000000000000114,
+          "durationMs": 681
+        },
+        {
+          "time": 74366,
+          "beatLength": 1818.18181818181,
+          "bpm": 33.00000000000015,
+          "durationMs": 909
+        },
+        {
+          "time": 75275,
+          "beatLength": 2866.01385240029,
+          "bpm": 20.934999999999974,
+          "durationMs": 2865
+        },
+        {
+          "time": 223605,
+          "beatLength": 377.358490566038,
+          "bpm": 158.99999999999991,
+          "durationMs": 377
+        },
+        {
+          "time": 223982,
+          "beatLength": 400,
+          "bpm": 150,
+          "durationMs": 400
+        },
+        {
+          "time": 224382,
+          "beatLength": 402.684563758389,
+          "bpm": 149.00000000000009,
+          "durationMs": 402
+        },
+        {
+          "time": 224784,
+          "beatLength": 434.782608695652,
+          "bpm": 138.00000000000006,
+          "durationMs": 434
+        },
+        {
+          "time": 225218,
+          "beatLength": 461.538461538462,
+          "bpm": 129.99999999999986,
+          "durationMs": 461
+        },
+        {
+          "time": 225679,
+          "beatLength": 466.926070038911,
+          "bpm": 128.49999999999986,
+          "durationMs": 466
+        },
+        {
+          "time": 226145,
+          "beatLength": 582.52427184466,
+          "bpm": 103.00000000000003,
+          "durationMs": 582
+        },
+        {
+          "time": 226727,
+          "beatLength": 641.711229946524,
+          "bpm": 93.50000000000001,
+          "durationMs": 641
+        },
+        {
+          "time": 227368,
+          "beatLength": 659.340659340659,
+          "bpm": 91.00000000000004,
+          "durationMs": 659
+        },
+        {
+          "time": 228027,
+          "beatLength": 895.522388059701,
+          "bpm": 67.00000000000003,
+          "durationMs": 895
+        },
+        {
+          "time": 228922,
+          "beatLength": 1016.94915254237,
+          "bpm": 59.00000000000016,
+          "durationMs": 508
+        },
+        {
+          "time": 229430,
+          "beatLength": 1071.42857142857,
+          "bpm": 56.00000000000008,
+          "durationMs": 535
+        },
+        {
+          "time": 229965,
+          "beatLength": 1363.63636363636,
+          "bpm": 44.000000000000114,
+          "durationMs": 681
+        },
+        {
+          "time": 230646,
+          "beatLength": 1818.18181818182,
+          "bpm": 32.999999999999964,
+          "durationMs": 909
+        },
+        {
+          "time": 231555,
+          "beatLength": 2866.01385240029,
+          "bpm": 20.934999999999974,
+          "durationMs": 2865
+        }
+      ]
+    },
+    {
+      "id": "sample-007",
+      "directoryName": "7158 Liverne - Necrofantasia",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\7158 Liverne - Necrofantasia",
+      "referenceBpm": 180.0000000000002,
+      "predictedBpm": 180,
+      "flaggedWindowCount": 22,
+      "flaggedWindowsOnVariable": 0,
+      "rawCandidateCount": 2,
+      "rawCandidatesOnVariable": 0,
+      "alignedRejections": {},
+      "variableLines": [
+        {
+          "time": 236199,
+          "beatLength": 2666.66666666667,
+          "bpm": 22.49999999999997,
+          "durationMs": 1666
+        }
+      ]
+    },
+    {
+      "id": "sample-010",
+      "directoryName": "1220647 osu!mania 7K Dan Course - LN Dan Phase III",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\1220647 osu!mania 7K Dan Course - LN Dan Phase III",
+      "referenceBpm": 189.99999999999974,
+      "predictedBpm": 199.9,
+      "flaggedWindowCount": 87,
+      "flaggedWindowsOnVariable": 49,
+      "rawCandidateCount": 4,
+      "rawCandidatesOnVariable": 2,
+      "alignedRejections": {
+        "triplet": 1,
+        "weak_short": 1
+      },
+      "variableLines": [
+        {
+          "time": 131210,
+          "beatLength": 285.714285714286,
+          "bpm": 209.99999999999977,
+          "durationMs": 129318
+        },
+        {
+          "time": 260528,
+          "beatLength": 300,
+          "bpm": 200,
+          "durationMs": 119056
+        }
+      ]
+    },
+    {
+      "id": "sample-017",
+      "directoryName": "1510535 65daysofstatic - Retreat! Retreat! (Cut Ver)",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\1510535 65daysofstatic - Retreat! Retreat! (Cut Ver)",
+      "referenceBpm": 194.9999999999998,
+      "predictedBpm": 195.1,
+      "flaggedWindowCount": 28,
+      "flaggedWindowsOnVariable": 1,
+      "rawCandidateCount": 2,
+      "rawCandidatesOnVariable": 0,
+      "alignedRejections": {},
+      "variableLines": [
+        {
+          "time": 185,
+          "beatLength": 1283.42245989305,
+          "bpm": 46.74999999999993,
+          "durationMs": 1283
+        },
+        {
+          "time": 1468,
+          "beatLength": 1196.41076769691,
+          "bpm": 50.14999999999997,
+          "durationMs": 1196
+        },
+        {
+          "time": 2664,
+          "beatLength": 1246.10591900312,
+          "bpm": 48.149999999999814,
+          "durationMs": 2492
+        },
+        {
+          "time": 5156,
+          "beatLength": 1202.40480961924,
+          "bpm": 49.899999999999935,
+          "durationMs": 1202
+        },
+        {
+          "time": 6358,
+          "beatLength": 1233.29907502569,
+          "bpm": 48.65000000000015,
+          "durationMs": 1233
+        },
+        {
+          "time": 7591,
+          "beatLength": 1253.91849529781,
+          "bpm": 47.84999999999983,
+          "durationMs": 1253
+        }
+      ]
+    },
+    {
+      "id": "sample-025",
+      "directoryName": "1817787 SOUND HOLIC feat Nana Takahashi - Chinmoku ~Cercueil no Shoujo~",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\1817787 SOUND HOLIC feat Nana Takahashi - Chinmoku ~Cercueil no Shoujo~",
+      "referenceBpm": 139.99999999999986,
+      "predictedBpm": 140,
+      "flaggedWindowCount": 47,
+      "flaggedWindowsOnVariable": 17,
+      "rawCandidateCount": 1,
+      "rawCandidatesOnVariable": 1,
+      "alignedRejections": {
+        "weak_short": 1
+      },
+      "variableLines": [
+        {
+          "time": 18155,
+          "beatLength": 806.451612903226,
+          "bpm": 74.39999999999999,
+          "durationMs": 3225
+        },
+        {
+          "time": 21380,
+          "beatLength": 465.116279069768,
+          "bpm": 128.99999999999986,
+          "durationMs": 697
+        },
+        {
+          "time": 22077,
+          "beatLength": 465.116279069768,
+          "bpm": 128.99999999999986,
+          "durationMs": 24186
+        },
+        {
+          "time": 46263,
+          "beatLength": 454.545454545455,
+          "bpm": 131.99999999999986,
+          "durationMs": 1818
+        },
+        {
+          "time": 265795,
+          "beatLength": 468.75,
+          "bpm": 128,
+          "durationMs": 13125
+        },
+        {
+          "time": 278920,
+          "beatLength": 500,
+          "bpm": 120,
+          "durationMs": 13173.333333333314
+        }
+      ]
+    },
+    {
+      "id": "sample-027",
+      "directoryName": "76934 SYNCART'S - Innocent doll",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\76934 SYNCART'S - Innocent doll",
+      "referenceBpm": 80,
+      "predictedBpm": 80,
+      "flaggedWindowCount": 84,
+      "flaggedWindowsOnVariable": 4,
+      "rawCandidateCount": 5,
+      "rawCandidatesOnVariable": 0,
+      "alignedRejections": {},
+      "variableLines": [
+        {
+          "time": 279484,
+          "beatLength": 789.473684210526,
+          "bpm": 76.00000000000003,
+          "durationMs": 1578
+        },
+        {
+          "time": 281062,
+          "beatLength": 821.917808219178,
+          "bpm": 73,
+          "durationMs": 13346.072562358284
+        }
+      ]
+    },
+    {
+      "id": "sample-040",
+      "directoryName": "29183 ZUN - Night Sakura of Dead Spirits",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\29183 ZUN - Night Sakura of Dead Spirits",
+      "referenceBpm": 147.00000000000017,
+      "predictedBpm": 147,
+      "flaggedWindowCount": 28,
+      "flaggedWindowsOnVariable": 8,
+      "rawCandidateCount": 1,
+      "rawCandidatesOnVariable": 0,
+      "alignedRejections": {},
+      "variableLines": [
+        {
+          "time": 20,
+          "beatLength": 425.531914893617,
+          "bpm": 141,
+          "durationMs": 11702
+        }
+      ]
+    },
+    {
+      "id": "sample-058",
+      "directoryName": "1820368 Natsu - Regression",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\1820368 Natsu - Regression",
+      "referenceBpm": 189.99999999999974,
+      "predictedBpm": 190,
+      "flaggedWindowCount": 60,
+      "flaggedWindowsOnVariable": 24,
+      "rawCandidateCount": 4,
+      "rawCandidatesOnVariable": 2,
+      "alignedRejections": {
+        "triplet": 2
+      },
+      "variableLines": [
+        {
+          "time": 3355,
+          "beatLength": 631.578947368421,
+          "bpm": 95,
+          "durationMs": 8842
+        },
+        {
+          "time": 12197,
+          "beatLength": 666.666666666667,
+          "bpm": 89.99999999999996,
+          "durationMs": 666
+        },
+        {
+          "time": 12863,
+          "beatLength": 600,
+          "bpm": 100,
+          "durationMs": 597
+        },
+        {
+          "time": 32400,
+          "beatLength": 428.571428571429,
+          "bpm": 139.99999999999986,
+          "durationMs": 1288
+        },
+        {
+          "time": 33688,
+          "beatLength": 421.052631578947,
+          "bpm": 142.5000000000001,
+          "durationMs": 20196
+        },
+        {
+          "time": 331773,
+          "beatLength": 631.578947368421,
+          "bpm": 95,
+          "durationMs": 5052
+        },
+        {
+          "time": 336825,
+          "beatLength": 625,
+          "bpm": 96,
+          "durationMs": 5000
+        },
+        {
+          "time": 341825,
+          "beatLength": 666.666666666666,
+          "bpm": 90.0000000000001,
+          "durationMs": 1333
+        },
+        {
+          "time": 343158,
+          "beatLength": 674.157303370787,
+          "bpm": 88.99999999999994,
+          "durationMs": 674
+        },
+        {
+          "time": 343832,
+          "beatLength": 705.882352941176,
+          "bpm": 85.00000000000006,
+          "durationMs": 705
+        },
+        {
+          "time": 344537,
+          "beatLength": 749.999999999999,
+          "bpm": 80.00000000000011,
+          "durationMs": 1729
+        },
+        {
+          "time": 346266,
+          "beatLength": 833.333333333332,
+          "bpm": 72.00000000000011,
+          "durationMs": 1458
+        },
+        {
+          "time": 347724,
+          "beatLength": 895.522388059701,
+          "bpm": 67.00000000000003,
+          "durationMs": 895
+        },
+        {
+          "time": 348619,
+          "beatLength": 937.5,
+          "bpm": 64,
+          "durationMs": 937
+        },
+        {
+          "time": 349556,
+          "beatLength": 1000,
+          "bpm": 60,
+          "durationMs": 1500
+        },
+        {
+          "time": 351056,
+          "beatLength": 1052.63157894737,
+          "bpm": 56.99999999999992,
+          "durationMs": 526
+        },
+        {
+          "time": 351582,
+          "beatLength": 1090.90909090909,
+          "bpm": 55.00000000000004,
+          "durationMs": 1405
+        },
+        {
+          "time": 352987,
+          "beatLength": 1200,
+          "bpm": 50,
+          "durationMs": 1521
+        },
+        {
+          "time": 354508,
+          "beatLength": 3157.89473684211,
+          "bpm": 18.99999999999997,
+          "durationMs": 7668.054421768698
+        }
+      ]
+    },
+    {
+      "id": "sample-059",
+      "directoryName": "820771 C&K - Nirv lucE",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\820771 C&K - Nirv lucE",
+      "referenceBpm": 259.9999999999997,
+      "predictedBpm": 130,
+      "flaggedWindowCount": 17,
+      "flaggedWindowsOnVariable": 1,
+      "rawCandidateCount": 0,
+      "rawCandidatesOnVariable": 0,
+      "alignedRejections": {},
+      "variableLines": [
+        {
+          "time": 7384,
+          "beatLength": 461.538461538462,
+          "bpm": 129.99999999999986,
+          "durationMs": 14769
+        },
+        {
+          "time": 51691,
+          "beatLength": 461.538461538462,
+          "bpm": 129.99999999999986,
+          "durationMs": 3692
+        }
+      ]
+    },
+    {
+      "id": "sample-067",
+      "directoryName": "732851 LeaF - Lyrith",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\732851 LeaF - Lyrith",
+      "referenceBpm": 176.9999999999998,
+      "predictedBpm": 177.05,
+      "flaggedWindowCount": 14,
+      "flaggedWindowsOnVariable": 1,
+      "rawCandidateCount": 2,
+      "rawCandidatesOnVariable": 0,
+      "alignedRejections": {},
+      "variableLines": [
+        {
+          "time": 130249,
+          "beatLength": 169.491525423729,
+          "bpm": 353.9999999999996,
+          "durationMs": 8135
+        }
+      ]
+    },
+    {
+      "id": "sample-072",
+      "directoryName": "20125 Demetori - Solar Sect of Mystic Wisdom ~ Nuclear Fusion",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\20125 Demetori - Solar Sect of Mystic Wisdom ~ Nuclear Fusion",
+      "referenceBpm": 172.99999999999994,
+      "predictedBpm": 173,
+      "flaggedWindowCount": 46,
+      "flaggedWindowsOnVariable": 1,
+      "rawCandidateCount": 2,
+      "rawCandidatesOnVariable": 0,
+      "alignedRejections": {},
+      "variableLines": [
+        {
+          "time": 231,
+          "beatLength": 324.324324324324,
+          "bpm": 185.0000000000002,
+          "durationMs": 2432
+        }
+      ]
+    },
+    {
+      "id": "sample-077",
+      "directoryName": "967321 Tokyo Jihen - Sounan",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\967321 Tokyo Jihen - Sounan",
+      "referenceBpm": 155.99999999999986,
+      "predictedBpm": 155.4,
+      "flaggedWindowCount": 24,
+      "flaggedWindowsOnVariable": 0,
+      "rawCandidateCount": 1,
+      "rawCandidatesOnVariable": 0,
+      "alignedRejections": {},
+      "variableLines": [
+        {
+          "time": 18468,
+          "beatLength": 365.853658536585,
+          "bpm": 164.00000000000017,
+          "durationMs": 393
+        },
+        {
+          "time": 30015,
+          "beatLength": 408.163265306122,
+          "bpm": 147.00000000000017,
+          "durationMs": 408
+        },
+        {
+          "time": 171161,
+          "beatLength": 363.636363636364,
+          "bpm": 164.99999999999983,
+          "durationMs": 755
+        }
+      ]
+    },
+    {
+      "id": "sample-091",
+      "directoryName": "761046 Dave Rodgers - Deja Vu",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\761046 Dave Rodgers - Deja Vu",
+      "referenceBpm": 153.99999999999986,
+      "predictedBpm": 154,
+      "flaggedWindowCount": 28,
+      "flaggedWindowsOnVariable": 0,
+      "rawCandidateCount": 0,
+      "rawCandidatesOnVariable": 0,
+      "alignedRejections": {},
+      "variableLines": [
+        {
+          "time": 91947,
+          "beatLength": 4000,
+          "bpm": 15,
+          "durationMs": 779
+        }
+      ]
+    },
+    {
+      "id": "sample-100",
+      "directoryName": "9394 dj TAKA - Absolute",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\9394 dj TAKA - Absolute",
+      "referenceBpm": 143.9999999999999,
+      "predictedBpm": 144,
+      "flaggedWindowCount": 8,
+      "flaggedWindowsOnVariable": 3,
+      "rawCandidateCount": 1,
+      "rawCandidatesOnVariable": 1,
+      "alignedRejections": {
+        "weak_short": 1
+      },
+      "variableLines": [
+        {
+          "time": 111137,
+          "beatLength": 451.127819548872,
+          "bpm": 133.00000000000006,
+          "durationMs": 451
+        },
+        {
+          "time": 111588,
+          "beatLength": 500,
+          "bpm": 120,
+          "durationMs": 500
+        },
+        {
+          "time": 112088,
+          "beatLength": 535.714285714286,
+          "bpm": 111.99999999999994,
+          "durationMs": 535
+        },
+        {
+          "time": 112623,
+          "beatLength": 674.157303370787,
+          "bpm": 88.99999999999994,
+          "durationMs": 674
+        },
+        {
+          "time": 113297,
+          "beatLength": 705.882352941176,
+          "bpm": 85.00000000000006,
+          "durationMs": 705
+        },
+        {
+          "time": 114002,
+          "beatLength": 1000,
+          "bpm": 60,
+          "durationMs": 1000
+        },
+        {
+          "time": 115002,
+          "beatLength": 750,
+          "bpm": 80,
+          "durationMs": 9131.8775510204
+        }
+      ]
+    }
+  ]
+}

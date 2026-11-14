@@ -1,0 +1,66 @@
+{
+  "version": "v573-annotation-validation-v1",
+  "passed": true,
+  "status": "complete_provisional_blind_annotations_validated",
+  "completedSongs": 6,
+  "labeledObjects": 180,
+  "missingSegmentIds": [],
+  "extraSegmentIds": [],
+  "perSample": [
+    {
+      "sampleId": "sample-017",
+      "count": 30,
+      "confidenceCounts": {
+        "no_clear_onset": 10,
+        "clear": 13,
+        "approximate": 7
+      }
+    },
+    {
+      "sampleId": "sample-047",
+      "count": 30,
+      "confidenceCounts": {
+        "clear": 17,
+        "no_clear_onset": 5,
+        "approximate": 8
+      }
+    },
+    {
+      "sampleId": "sample-054",
+      "count": 30,
+      "confidenceCounts": {
+        "clear": 14,
+        "approximate": 10,
+        "no_clear_onset": 6
+      }
+    },
+    {
+      "sampleId": "sample-067",
+      "count": 30,
+      "confidenceCounts": {
+        "clear": 21,
+        "approximate": 6,
+        "no_clear_onset": 3
+      }
+    },
+    {
+      "sampleId": "sample-077",
+      "count": 30,
+      "confidenceCounts": {
+        "approximate": 7,
+        "clear": 19,
+        "no_clear_onset": 4
+      }
+    },
+    {
+      "sampleId": "sample-099",
+      "count": 30,
+      "confidenceCounts": {
+        "no_clear_onset": 6,
+        "approximate": 12,
+        "clear": 12
+      }
+    }
+  ],
+  "failures": []
+}

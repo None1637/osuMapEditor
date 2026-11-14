@@ -1,0 +1,89 @@
+{
+  "id": "sample-010",
+  "directoryName": "1220647 osu!mania 7K Dan Course - LN Dan Phase III",
+  "beatmapFile": "osu!mania 7K Dan Course - LN Dan Phase III (Jinjin) [Zenith Dan].osu",
+  "metadata": {
+    "Title": "LN Dan Phase III",
+    "TitleUnicode": "LN Dan Phase III",
+    "Artist": "osu!mania 7K Dan Course",
+    "ArtistUnicode": "osu!mania 7K Dan Course",
+    "Creator": "Jinjin",
+    "Version": "Zenith Dan",
+    "Source": "",
+    "Tags": "段位認定 long note noodle iJinjin TheToaphster Toaph Daddy _Kobii Pengdoll Blocko Kim_GodSSI Starving Trancer New Gravity Xceon Toromaru Enigma とろまる Hustle Beat!! 兎々 鬼天 Totto Onigami DJ TOTTO SpaceLand☆TOYBOX OSTER project CODE -CRiMSON- Shiron attack in the minor key Mr.T Tomoyuki Uchida 内田智之 DJ'TEKINA//SOMETHING Internet bitch P​*​Light Remix Yuyoyuppe ゆよゆっぺ quaver♪ Risk Junk dj TAKA Hellfire Hommarju Pure Ruby SHIKI シュレーディンガーの猫 Cait Sith Schrodinger no neko JOMANDA DJ YOSHITAKA 朱雀 Suzaku Big Brother 核P-MODEL Kaku Susumu Hirasawa 平沢 進 licca Qrispy Joybox 絶対零度 かねこちはる Zettai Reido Kaneko Chiharu Redshift technoplanet Dement ~after legend~ LunaticSounds Cosmograph wa. Black Lotus Alexandrite brz1128",
+    "BeatmapID": "2764028",
+    "BeatmapSetID": "1220647",
+    "Mode": "3"
+  },
+  "audioDurationMs": 484645.9863945578,
+  "redLines": [
+    {
+      "time": 1758,
+      "beatLength": 315.789473684211,
+      "bpm": 189.99999999999974,
+      "durationMs": 129452
+    },
+    {
+      "time": 131210,
+      "beatLength": 285.714285714286,
+      "bpm": 209.99999999999977,
+      "durationMs": 129318
+    },
+    {
+      "time": 260528,
+      "beatLength": 300,
+      "bpm": 200,
+      "durationMs": 119056
+    },
+    {
+      "time": 379584,
+      "beatLength": 312.5,
+      "bpm": 192,
+      "durationMs": 105061.98639455781
+    }
+  ],
+  "referenceBpm": 189.99999999999974,
+  "referenceVariable": true,
+  "referenceRedLineCount": 4,
+  "referenceCoverageMs": 129452,
+  "status": "ok",
+  "prediction": {
+    "bpm": 199.9,
+    "offsetMs": 440,
+    "variable": true,
+    "evidence": [
+      {
+        "startMs": 1997,
+        "endMs": 7994,
+        "bpm": 108.799,
+        "points": 3,
+        "maxSupport": 0.10510759107352956
+      },
+      {
+        "startMs": 290551,
+        "endMs": 297546,
+        "bpm": 66.683,
+        "points": 4,
+        "maxSupport": 0.26830834557068584
+      },
+      {
+        "startMs": 360443,
+        "endMs": 366440,
+        "bpm": 114.844,
+        "points": 3,
+        "maxSupport": 0.12826454823911732
+      },
+      {
+        "startMs": 446311,
+        "endMs": 452307,
+        "bpm": 69.837,
+        "points": 3,
+        "maxSupport": 0.10163670883982537
+      }
+    ],
+    "localPointCount": 439,
+    "rawBpm": 399.8,
+    "rawSegmentCount": 455
+  },
+  "evaluationMs": 4490
+}

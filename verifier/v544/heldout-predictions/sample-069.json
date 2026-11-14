@@ -1,0 +1,42 @@
+{
+  "id": "sample-069",
+  "directoryName": "401869 Azusa Tadokoro - Junshin Always",
+  "beatmapFile": "Azusa Tadokoro - Junshin Always (Rizia) [Colorful].osu",
+  "metadata": {
+    "Title": "Junshin Always",
+    "TitleUnicode": "純真Always",
+    "Artist": "Azusa Tadokoro",
+    "ArtistUnicode": "田所あずさ",
+    "Creator": "Rizia",
+    "Version": "Colorful",
+    "Source": "無彩限のファントム・ワールド",
+    "Tags": "Musaigen no Phantom World Myriad Colors tv size ending kawaiwkyik happy623 sekaii einess iamkwan skystar",
+    "BeatmapID": "878721",
+    "BeatmapSetID": "401869",
+    "Mode": "0"
+  },
+  "audioDurationMs": 90120,
+  "redLines": [
+    {
+      "time": -98,
+      "beatLength": 333.333333333333,
+      "bpm": 180.0000000000002,
+      "durationMs": 90120
+    }
+  ],
+  "referenceBpm": 180.0000000000002,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 90120,
+  "status": "ok",
+  "prediction": {
+    "bpm": 180,
+    "offsetMs": 1270,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 87,
+    "rawBpm": 180,
+    "rawSegmentCount": 15
+  },
+  "evaluationMs": 870
+}

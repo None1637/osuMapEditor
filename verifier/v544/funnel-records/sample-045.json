@@ -1,0 +1,67 @@
+{
+  "id": "sample-045",
+  "directoryName": "1128596 Silentroom - NULCTRL EX",
+  "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\1128596 Silentroom - NULCTRL EX",
+  "status": "ok",
+  "referenceBpm": 100,
+  "referenceVariable": false,
+  "predictedBpm": 200,
+  "predictedVariable": false,
+  "variableLines": [],
+  "trueVariableMs": 0,
+  "flaggedWindowCount": 36,
+  "flaggedWindowsOnVariable": 0,
+  "rawCandidateCount": 1,
+  "rawCandidatesOnVariable": 0,
+  "finalEvidenceCount": 0,
+  "finalEvidenceOnVariable": 0,
+  "candidates": [
+    {
+      "startMs": 35944,
+      "endMs": 42940,
+      "bpm": 67.555,
+      "points": 4,
+      "maxSupport": 0.31910998920403105,
+      "localGridCoverage": 0.12121212121212122,
+      "rejection": "triplet",
+      "independentMainScore": null,
+      "independentLocalScore": null,
+      "variableOverlapMs": 0,
+      "overlapsVariable": false,
+      "tripletVotes": [
+        {
+          "timeMs": 37944.30839002268,
+          "bpm": 61.707,
+          "localGridCoverage": 0.12,
+          "tripletGridCoverage": 0.8,
+          "tripletGridHalfCoverage": 0.64,
+          "tripletGridDoubleCoverage": 0.76
+        },
+        {
+          "timeMs": 38942.7664399093,
+          "bpm": 67.116,
+          "localGridCoverage": 0.12121212121212122,
+          "tripletGridCoverage": 0.696969696969697,
+          "tripletGridHalfCoverage": 0.5454545454545454,
+          "tripletGridDoubleCoverage": 0.5757575757575758
+        },
+        {
+          "timeMs": 39941.22448979592,
+          "bpm": 73.045,
+          "localGridCoverage": 0.12121212121212122,
+          "tripletGridCoverage": 0.6666666666666666,
+          "tripletGridHalfCoverage": 0.5151515151515151,
+          "tripletGridDoubleCoverage": 0.5454545454545454
+        },
+        {
+          "timeMs": 40939.68253968254,
+          "bpm": 67.555,
+          "localGridCoverage": 0.10909090909090909,
+          "tripletGridCoverage": 0.6727272727272727,
+          "tripletGridHalfCoverage": 0.4909090909090909,
+          "tripletGridDoubleCoverage": 0.5818181818181818
+        }
+      ]
+    }
+  ]
+}

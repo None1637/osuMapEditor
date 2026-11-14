@@ -50,7 +50,7 @@ export type TransformOrigin = 'selection' | 'playfield' | Pt;
 export type Tool = 'select' | 'circle' | 'slider' | 'spinner';
 
 export const PLAYBACK_RATES = [0.5, 0.75, 1] as const;
-const WHEEL_GESTURE_END_MS = 90; // v514: 短滚轮手势静默上限, 到时补发不足一刻度的唯一一步
+const WHEEL_GESTURE_END_MS = 16; // v514/v577: 短滚轮补步仅等到下一帧, 避免暂停时轻滚产生 90ms 延迟
 
 /** v101: hitsound 总线增益 (留余量防削波; 所有 hitsound 经此总线再到 destination) */
 export const HITSOUND_BUS_GAIN = 0.8;
@@ -2523,7 +2523,7 @@ class EditorStore {
 
   /**
    * 滚轮 seek 总入口 (游玩区/上时间轴/下时间轴共用):
-   *  - 连续手势仍按 120px 累积; v514: 静默 90ms 后, 若整段手势一步都没产生, 按余量方向补一步;
+   *  - 连续手势仍按 120px 累积; v514/v577: 静默 16ms 后, 若整段手势一步都没产生, 按余量方向补一步;
    *  - 暂停: 每步沿方向吸附一个 1/beatSnap 网格点 (seekByBeats, v179 语义);
    *  - 播放中: 不吸附, 步长 = BeatLength × BPM/120 × (1+250/(int)BeatLength), 轻量重定位 (不 pause/play)。
    */

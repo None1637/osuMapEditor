@@ -1,0 +1,51 @@
+{
+  "id": "sample-098",
+  "directoryName": "14853 COOL&CREATE - Saishoukichiku Imouto Flandre S",
+  "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\14853 COOL&CREATE - Saishoukichiku Imouto Flandre S",
+  "status": "ok",
+  "referenceBpm": 200,
+  "referenceVariable": false,
+  "predictedBpm": 200,
+  "predictedVariable": false,
+  "variableLines": [],
+  "trueVariableMs": 0,
+  "flaggedWindowCount": 8,
+  "flaggedWindowsOnVariable": 0,
+  "rawCandidateCount": 1,
+  "rawCandidatesOnVariable": 0,
+  "finalEvidenceCount": 0,
+  "finalEvidenceOnVariable": 0,
+  "candidates": [
+    {
+      "startMs": 36943,
+      "endMs": 42940,
+      "bpm": 66.469,
+      "points": 3,
+      "maxSupport": 0.1601701392705922,
+      "localGridCoverage": 0.13157894736842105,
+      "rejection": "triplet",
+      "independentMainScore": null,
+      "independentLocalScore": null,
+      "variableOverlapMs": 0,
+      "overlapsVariable": false,
+      "tripletVotes": [
+        {
+          "timeMs": 39941.22448979592,
+          "bpm": 66.256,
+          "localGridCoverage": 0.13157894736842105,
+          "tripletGridCoverage": 0.6578947368421053,
+          "tripletGridHalfCoverage": 0.4473684210526316,
+          "tripletGridDoubleCoverage": 0.6578947368421053
+        },
+        {
+          "timeMs": 40939.68253968254,
+          "bpm": 72.788,
+          "localGridCoverage": 0.1111111111111111,
+          "tripletGridCoverage": 0.75,
+          "tripletGridHalfCoverage": 0.4722222222222222,
+          "tripletGridDoubleCoverage": 0.8055555555555556
+        }
+      ]
+    }
+  ]
+}

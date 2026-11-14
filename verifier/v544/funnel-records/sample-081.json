@@ -1,0 +1,82 @@
+{
+  "id": "sample-081",
+  "directoryName": "506155 Ayalis - Ai o Chikaishi Hime Kazari",
+  "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\506155 Ayalis - Ai o Chikaishi Hime Kazari",
+  "status": "ok",
+  "referenceBpm": 209.99999999999977,
+  "referenceVariable": false,
+  "predictedBpm": 209.95,
+  "predictedVariable": false,
+  "variableLines": [],
+  "trueVariableMs": 0,
+  "flaggedWindowCount": 51,
+  "flaggedWindowsOnVariable": 0,
+  "rawCandidateCount": 2,
+  "rawCandidatesOnVariable": 0,
+  "finalEvidenceCount": 0,
+  "finalEvidenceOnVariable": 0,
+  "candidates": [
+    {
+      "startMs": 33947,
+      "endMs": 39944,
+      "bpm": 60.128,
+      "points": 3,
+      "maxSupport": 0.07874412111962709,
+      "localGridCoverage": 0.04929577464788732,
+      "rejection": "insufficient_margin",
+      "independentMainScore": 0.269260080538289,
+      "independentLocalScore": 0.3253874000034692,
+      "variableOverlapMs": 0,
+      "overlapsVariable": false,
+      "tripletVotes": [
+        {
+          "timeMs": 35947.39229024943,
+          "bpm": 60.128,
+          "localGridCoverage": 0.04895104895104895,
+          "tripletGridCoverage": 0.5174825174825175,
+          "tripletGridHalfCoverage": 0.34965034965034963,
+          "tripletGridDoubleCoverage": 0.6083916083916084
+        },
+        {
+          "timeMs": 36945.85034013605,
+          "bpm": 60.128,
+          "localGridCoverage": 0.04929577464788732,
+          "tripletGridCoverage": 0.5352112676056338,
+          "tripletGridHalfCoverage": 0.3591549295774648,
+          "tripletGridDoubleCoverage": 0.5774647887323944
+        }
+      ]
+    },
+    {
+      "startMs": 193701,
+      "endMs": 199698,
+      "bpm": 85.069,
+      "points": 3,
+      "maxSupport": 0.08335825403206754,
+      "localGridCoverage": 0.06896551724137931,
+      "rejection": "weak_short",
+      "independentMainScore": -0.020375821184883562,
+      "independentLocalScore": 0.07222286197605275,
+      "variableOverlapMs": 0,
+      "overlapsVariable": false,
+      "tripletVotes": [
+        {
+          "timeMs": 196699.13832199547,
+          "bpm": 85.069,
+          "localGridCoverage": 0.06837606837606838,
+          "tripletGridCoverage": 0.5641025641025641,
+          "tripletGridHalfCoverage": 0.36752136752136755,
+          "tripletGridDoubleCoverage": 0.5555555555555556
+        },
+        {
+          "timeMs": 197697.59637188207,
+          "bpm": 85.421,
+          "localGridCoverage": 0.07692307692307693,
+          "tripletGridCoverage": 0.5555555555555556,
+          "tripletGridHalfCoverage": 0.37606837606837606,
+          "tripletGridDoubleCoverage": 0.5641025641025641
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "id": "sample-055",
+  "directoryName": "1357570 MAKOOTO - Tanukichi no Bouken",
+  "beatmapFile": "MAKOOTO - Tanukichi no Bouken (Xinely) [Natsuko's Salad].osu",
+  "metadata": {
+    "Title": "Tanukichi no Bouken",
+    "TitleUnicode": "たぬきちの冒険",
+    "Artist": "MAKOOTO",
+    "ArtistUnicode": "MAKOOTO",
+    "Creator": "Xinely",
+    "Version": "Natsuko's Salad",
+    "Source": "",
+    "Tags": "兎田ぺこら usada pekora ホロライブプロダクション hololive production fantasy 3rd third generation rabbit electronic instrumental Natsuko Leniane konpeko peko virtual youtuber vtuber",
+    "BeatmapID": "2809890",
+    "BeatmapSetID": "1357570",
+    "Mode": "2"
+  },
+  "audioDurationMs": 73900.40816326531,
+  "redLines": [
+    {
+      "time": 1094,
+      "beatLength": 454.545454545455,
+      "bpm": 131.99999999999986,
+      "durationMs": 72806.40816326531
+    }
+  ],
+  "referenceBpm": 131.99999999999986,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 72806.40816326531,
+  "status": "ok",
+  "prediction": {
+    "bpm": 132,
+    "offsetMs": 660,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 70,
+    "rawBpm": 132,
+    "rawSegmentCount": 2
+  },
+  "evaluationMs": 661
+}

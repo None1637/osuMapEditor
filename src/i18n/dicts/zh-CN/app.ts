@@ -21,6 +21,9 @@ export const zhCN: Record<string, string> = {
   'app.saved_flash': '地图已保存',
   'app.unsaved': '未保存',
   'app.object_count': '{n} 物件',
+  'app.tab_compose': 'compose',
+  'app.tab_timing': 'timing',
+  'app.tab_setup': 'song setup',
   // ---- 页签栏右侧按钮 ----
   'app.volume': '音量',
   'app.volume_title': '音量设置: 主音量 / 歌曲音量 / 音效音量',

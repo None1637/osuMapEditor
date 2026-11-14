@@ -1,0 +1,984 @@
+{
+  "version": "v557-validation-v1",
+  "passed": true,
+  "segmentCount": 90,
+  "perSample": {
+    "sample-044": 30,
+    "sample-032": 30,
+    "sample-002": 30
+  },
+  "perStratumPerSample": {
+    "sample-044": {
+      "both-within5": 18,
+      "only-high-within5": 2,
+      "neither-within5": 10
+    },
+    "sample-032": {
+      "both-within5": 10,
+      "only-high-within5": 10,
+      "neither-within5": 10
+    },
+    "sample-002": {
+      "both-within5": 10,
+      "only-high-within5": 10,
+      "neither-within5": 10
+    }
+  },
+  "independentSampleRanking": [
+    "sample-044",
+    "sample-032",
+    "sample-002"
+  ],
+  "wavDurationSeconds": 1,
+  "wavMatchesDecodedPcmSampleForSample": true,
+  "groundTruthFieldsBlank": true,
+  "algorithmCandidatesHiddenFromPlots": true,
+  "failures": [],
+  "files": [
+    {
+      "path": "clips\\sample-044_h24947.wav",
+      "bytes": 44144,
+      "sha256": "07a6d6f3693812981ad9830cf7bae5574e0f3c66be31384aeaada85b29deb3f1"
+    },
+    {
+      "path": "plots\\sample-044_h24947.png",
+      "bytes": 438094,
+      "sha256": "122472ca58c8751696463596ef46b9e6bbc2d1bba87e0b6b5953b7ec5bc8dd06"
+    },
+    {
+      "path": "clips\\sample-044_h5781.wav",
+      "bytes": 44144,
+      "sha256": "c23b7e43ccea7e9b65eb4b3a2ea136a3299653b0f9382474abedc901d92b6368"
+    },
+    {
+      "path": "plots\\sample-044_h5781.png",
+      "bytes": 421244,
+      "sha256": "00dca2c0b7c52d9638a5dd8835fb62bd0f86426e558ecf85ac96c72d0f46a38b"
+    },
+    {
+      "path": "clips\\sample-044_h24614.wav",
+      "bytes": 44144,
+      "sha256": "8815b05f6285dd9bd4ed18feffda64bf2bd8928e896ac97e40d3082f523a6dfe"
+    },
+    {
+      "path": "plots\\sample-044_h24614.png",
+      "bytes": 403907,
+      "sha256": "a5d0bc5aed367966a1dc047ab66a4edcbff1fff3ae7081a3ce83d178121d84a3"
+    },
+    {
+      "path": "clips\\sample-044_h27615.wav",
+      "bytes": 44144,
+      "sha256": "91176c70fd25b9820ccdb5f159556c3b66432f3772b2a49e64bc622a78b9d66f"
+    },
+    {
+      "path": "plots\\sample-044_h27615.png",
+      "bytes": 444059,
+      "sha256": "09ef4523ad0a32ab85299dd4772389b20be41e860c80b0464f21e6ae8379730a"
+    },
+    {
+      "path": "clips\\sample-044_h35281.wav",
+      "bytes": 44144,
+      "sha256": "8d1f2e6f4ad5e452f42aea8a6948498e738511f68c85b83bbcab3a2df2f1c3c4"
+    },
+    {
+      "path": "plots\\sample-044_h35281.png",
+      "bytes": 396038,
+      "sha256": "37a58ad8476997ba85265fe3ca13b093449b02e0f6a0a07661195cb3bec034a0"
+    },
+    {
+      "path": "clips\\sample-044_h40947.wav",
+      "bytes": 44144,
+      "sha256": "6d456b80086ceaab67fd805392da79d4b593360fc03b0da75e78464be1661c4d"
+    },
+    {
+      "path": "plots\\sample-044_h40947.png",
+      "bytes": 442673,
+      "sha256": "32e2b4ef6b83ce6c2616dfec6f183679980abbf0a5801a0fa2cc42967ebc1a82"
+    },
+    {
+      "path": "clips\\sample-044_h154531.wav",
+      "bytes": 44144,
+      "sha256": "918e3d83651c88bd18a5957ac252fb8964611b9680e0112c1f6ae298c2588eb1"
+    },
+    {
+      "path": "plots\\sample-044_h154531.png",
+      "bytes": 277311,
+      "sha256": "d4be254874654eb455852ba0b1f27b7e7167b36f0099f7078ccdc27726bf4e9b"
+    },
+    {
+      "path": "clips\\sample-044_h4447.wav",
+      "bytes": 44144,
+      "sha256": "82fed7c69e596fb5f17b694cbbeaf8afc708f4f9c44ecc764fdf407ca2f2f038"
+    },
+    {
+      "path": "plots\\sample-044_h4447.png",
+      "bytes": 419025,
+      "sha256": "303de64df2f73252505c5fd12df3918e73008a4e3eec3204604544598e8636a9"
+    },
+    {
+      "path": "clips\\sample-044_h3447.wav",
+      "bytes": 44144,
+      "sha256": "32d89a1ae6438fb0ece408e34a800e6ed7aa83f85ac8d2f302f69aed1b6951ce"
+    },
+    {
+      "path": "plots\\sample-044_h3447.png",
+      "bytes": 412157,
+      "sha256": "5cee63e0dd108cca9e8bc5df8b03cd7e6a8846c09bcfc62a1e7219384195a417"
+    },
+    {
+      "path": "clips\\sample-044_h10614.wav",
+      "bytes": 44144,
+      "sha256": "a3e10e7eeb77cff63572a34b6ec13e46da3e6bb924e2acc26fff89850136a46e"
+    },
+    {
+      "path": "plots\\sample-044_h10614.png",
+      "bytes": 429457,
+      "sha256": "64e49f316ffe72fe0fb1c5b834e94829ba3841db9b6fd3828c316bdb016d1295"
+    },
+    {
+      "path": "clips\\sample-044_h2114.wav",
+      "bytes": 44144,
+      "sha256": "624766d984fc8a5b7f2ff2371e13fd9a4e51b29e1fb7576d6ce184a5b9b3cb77"
+    },
+    {
+      "path": "plots\\sample-044_h2114.png",
+      "bytes": 404726,
+      "sha256": "b6a9b674f5591ed1088459f1fd5b8875f3c346d1f5319e73dc8191595f64251c"
+    },
+    {
+      "path": "clips\\sample-044_h6281.wav",
+      "bytes": 44144,
+      "sha256": "cdf220ac659dca5498c6d04d848104d68f4390cf7e8e33330288645e00142e6f"
+    },
+    {
+      "path": "plots\\sample-044_h6281.png",
+      "bytes": 382592,
+      "sha256": "bf5d400c1016b05af015d071f62e32dddb1efa6af592974450c50f36d00a721c"
+    },
+    {
+      "path": "clips\\sample-044_h25447.wav",
+      "bytes": 44144,
+      "sha256": "1fd2d5889430edea516ebceb3afd44d249de4292d7a697bb203f68ce32b518b5"
+    },
+    {
+      "path": "plots\\sample-044_h25447.png",
+      "bytes": 412716,
+      "sha256": "1bbe31b51523f815fd221220e663e5d27e7cc2dc83437fac53bacbf0f213c475"
+    },
+    {
+      "path": "clips\\sample-044_h38281.wav",
+      "bytes": 44144,
+      "sha256": "a409fa6666d399c20a69f51e18f6880f0cd80650f2d09c6cc72c881ad4f0da72"
+    },
+    {
+      "path": "plots\\sample-044_h38281.png",
+      "bytes": 364230,
+      "sha256": "98142643ab615c74e3771ca19449ca1a1b65161a8dccdf7c61e2ce1ad76fa9d0"
+    },
+    {
+      "path": "clips\\sample-044_h29947.wav",
+      "bytes": 44144,
+      "sha256": "30a8d59557709e0665fd4318edb4b9911493c8036b7f2587d03ac06e6efff461"
+    },
+    {
+      "path": "plots\\sample-044_h29947.png",
+      "bytes": 407867,
+      "sha256": "5ca36e17308f3fb11bea1a1e375e3cfe3bf7dee7e1404c1ce48b50ea587f6596"
+    },
+    {
+      "path": "clips\\sample-044_h43614.wav",
+      "bytes": 44144,
+      "sha256": "7ed95206149cda36d6c78fd1f6d55e4fa0e311283abe404716e85e57d64e7e50"
+    },
+    {
+      "path": "plots\\sample-044_h43614.png",
+      "bytes": 422129,
+      "sha256": "b3b43fd7584924fa2460360a9852f0105921f17ef8cbb7f0ee2415e5b614aead"
+    },
+    {
+      "path": "clips\\sample-044_h9447.wav",
+      "bytes": 44144,
+      "sha256": "0c3b065a474d981aaf763528d070da29666e4a19a80a70182d4619f2391bf595"
+    },
+    {
+      "path": "plots\\sample-044_h9447.png",
+      "bytes": 425591,
+      "sha256": "2ffdc6027734fafcb3dd42f4d50c149029fb14aac6bf14c4a8f8148b8bdf490b"
+    },
+    {
+      "path": "clips\\sample-044_h28114.wav",
+      "bytes": 44144,
+      "sha256": "82c28862ad94b310dc3ffe55974ac0e0a46ee32e7528c5bfc4471ab315d8acb1"
+    },
+    {
+      "path": "plots\\sample-044_h28114.png",
+      "bytes": 423076,
+      "sha256": "d77d7842816e709ea09e535870db0cbd435cc62c1158141d7af83c4fed498bf6"
+    },
+    {
+      "path": "clips\\sample-044_h32947.wav",
+      "bytes": 44144,
+      "sha256": "d0fca050a9475df14e0e8bbce167ac73a98eb0f8c2a57a91e6ea3558ac73beb5"
+    },
+    {
+      "path": "plots\\sample-044_h32947.png",
+      "bytes": 489126,
+      "sha256": "5ba9ad91e1cef859f164adb8b61a1e655a3e6c44cff76ab1bf80674007bf6c38"
+    },
+    {
+      "path": "clips\\sample-044_h39781.wav",
+      "bytes": 44144,
+      "sha256": "a4100511bac864673dd798007961e6ee17b734ccc869d7767b7dfdc2b53e6cd2"
+    },
+    {
+      "path": "plots\\sample-044_h39781.png",
+      "bytes": 385830,
+      "sha256": "86efafe7de99da7127b34cfac2375a27328072d4189303159be03198e61fa538"
+    },
+    {
+      "path": "clips\\sample-044_h36781.wav",
+      "bytes": 44144,
+      "sha256": "bb07b848570169d40b8bbfd175f4fa34a694cd32b7a029bbd6e3503bce666736"
+    },
+    {
+      "path": "plots\\sample-044_h36781.png",
+      "bytes": 404258,
+      "sha256": "3562021a3107ea9c4eb6d9f52446d6f27181f82fdcfab503d3b26b58ab45144d"
+    },
+    {
+      "path": "clips\\sample-044_h30281.wav",
+      "bytes": 44144,
+      "sha256": "14b48ec133dd922d4fe6abdf9c84b787a5c6075ec2799e5dd944c20a4947f6f0"
+    },
+    {
+      "path": "plots\\sample-044_h30281.png",
+      "bytes": 444964,
+      "sha256": "22a7df06f390d667a87626d16b7d51146e5e31675a19e6b4c126a2651f312a98"
+    },
+    {
+      "path": "clips\\sample-044_h42447.wav",
+      "bytes": 44144,
+      "sha256": "3bf218f7788b423553e3149f813c9641a8ff63c71a81d847edf26f733885f6cc"
+    },
+    {
+      "path": "plots\\sample-044_h42447.png",
+      "bytes": 386485,
+      "sha256": "6aeb9e48ee9481469e0f226ceba2b26ee444ed340f53632bd4c849816c21f62d"
+    },
+    {
+      "path": "clips\\sample-044_h7281.wav",
+      "bytes": 44144,
+      "sha256": "6168201b7f3d6e5c7d7f776c0da8b74e714151cbc0674f54d0bcf2d87b8f4bb4"
+    },
+    {
+      "path": "plots\\sample-044_h7281.png",
+      "bytes": 404139,
+      "sha256": "4111597fdd47c978e20d4aad32c6fcaea85f70df04fcad9ebf1b66867d5cabb8"
+    },
+    {
+      "path": "clips\\sample-044_h42114.wav",
+      "bytes": 44144,
+      "sha256": "68b50b5a9db8ba05da87cec3d4d09dda717963c07b5c9a6e223e57adb3404a14"
+    },
+    {
+      "path": "plots\\sample-044_h42114.png",
+      "bytes": 416416,
+      "sha256": "0b4c44e95e1bbf526a77099d66ffcbabe3551fba97aa0b1ad8e726f6d1513e6a"
+    },
+    {
+      "path": "clips\\sample-044_h8947.wav",
+      "bytes": 44144,
+      "sha256": "b4c7e5897a18d36aca35078cbac3841c82a7fb24b9afe17311dc8427ac8e899e"
+    },
+    {
+      "path": "plots\\sample-044_h8947.png",
+      "bytes": 451792,
+      "sha256": "bc1deb370866d93082597889894c36697d7ba22c80e3711cf2c180973137c033"
+    },
+    {
+      "path": "clips\\sample-044_h18114.wav",
+      "bytes": 44144,
+      "sha256": "8639558c2bb23a890c739535957d8cd527a480e91c6bf1004c456854d664284b"
+    },
+    {
+      "path": "plots\\sample-044_h18114.png",
+      "bytes": 380064,
+      "sha256": "dc0ccad772e4c83b4ae78d3e0ce3a9bd3e47469dc03825a9d81b7553a99ce869"
+    },
+    {
+      "path": "clips\\sample-044_h14114.wav",
+      "bytes": 44144,
+      "sha256": "cdceaafdca8aed9412eac8a253dc9950969975e1238f2e08e731b19da27cb5aa"
+    },
+    {
+      "path": "plots\\sample-044_h14114.png",
+      "bytes": 350324,
+      "sha256": "49d6b71edf240d4270bbeb1b871c056d79e7153fa003b1cae33f5dc685ac5596"
+    },
+    {
+      "path": "clips\\sample-044_h23781.wav",
+      "bytes": 44144,
+      "sha256": "a6770168835bbbe2f4cb407485cc7f18a28ebd7a89b52829eded07ab9a7d6b6b"
+    },
+    {
+      "path": "plots\\sample-044_h23781.png",
+      "bytes": 387229,
+      "sha256": "20903e711a09a4d5426785f0ec07ccb59e209f78302cf2b97639e3b7a788b6c8"
+    },
+    {
+      "path": "clips\\sample-044_h38614.wav",
+      "bytes": 44144,
+      "sha256": "5a1ec9ffc55decdf82ef98fd73765f2feac6998b186bd56f31ed5f13d5a4653d"
+    },
+    {
+      "path": "plots\\sample-044_h38614.png",
+      "bytes": 352516,
+      "sha256": "cdc6674992ec941a08fb6c99a1517c890c7af0c402a01b148953616e0e9d2974"
+    },
+    {
+      "path": "clips\\sample-032_h80970.wav",
+      "bytes": 44144,
+      "sha256": "e13270094a8d68d10fe86e0afeb4dbbee041c6dad071d6ab0ab125d37670d6e9"
+    },
+    {
+      "path": "plots\\sample-032_h80970.png",
+      "bytes": 510796,
+      "sha256": "d2bf947353f187f7c8c6074bb46790869b9bab9b81350988169d27e859b5f126"
+    },
+    {
+      "path": "clips\\sample-032_h203192.wav",
+      "bytes": 44144,
+      "sha256": "7530cc735eda19a2636b9941cd1327c2e7993dc14fede506c79252527baca8ed"
+    },
+    {
+      "path": "plots\\sample-032_h203192.png",
+      "bytes": 441865,
+      "sha256": "8215029d669179e78031719385306f0e90c7146c38c33bf1d077de7ed91b06b0"
+    },
+    {
+      "path": "clips\\sample-032_h117220.wav",
+      "bytes": 44144,
+      "sha256": "fd1ec56070ed986156a480558cc961de25ae04877a5fe8bd2a21665370caa3ae"
+    },
+    {
+      "path": "plots\\sample-032_h117220.png",
+      "bytes": 528135,
+      "sha256": "07950af29def488794814ad622da47ffb3f80dd2dea33c6e44aa7511bcd7e13a"
+    },
+    {
+      "path": "clips\\sample-032_h60415.wav",
+      "bytes": 44144,
+      "sha256": "b4a8a2c529a62c25e0c666999b655e33b4f20fcb1ab4939c376fe5ad8d2128df"
+    },
+    {
+      "path": "plots\\sample-032_h60415.png",
+      "bytes": 474768,
+      "sha256": "dfb9a654051955c38974dc184b317fe68cce956708dc7cbdb3c7f7def88528bd"
+    },
+    {
+      "path": "clips\\sample-032_h168748.wav",
+      "bytes": 44144,
+      "sha256": "43dbf947655bd2fa3ce0766153317248e3ebda20653e27dda68a9a60b64665d4"
+    },
+    {
+      "path": "plots\\sample-032_h168748.png",
+      "bytes": 517064,
+      "sha256": "e31d7edb3de38e485331779f4b13e3726dbf16421248e2ca373b70b5d32b0e7f"
+    },
+    {
+      "path": "clips\\sample-032_h129997.wav",
+      "bytes": 44144,
+      "sha256": "8fb93ab0e0c0133e4d7be2a67703ca80423f4607bfd02824f7f424bcb02e1c57"
+    },
+    {
+      "path": "plots\\sample-032_h129997.png",
+      "bytes": 536728,
+      "sha256": "1e1db1d705244b7e08827c71ee17ca7b5639542f4cbf565e6b3a6dcc40ee6b18"
+    },
+    {
+      "path": "clips\\sample-032_h218192.wav",
+      "bytes": 44144,
+      "sha256": "2289ab7c980059907a594b0528e4b8c8b63b6d1d0d77d8fb9685ff6cb12ae3b3"
+    },
+    {
+      "path": "plots\\sample-032_h218192.png",
+      "bytes": 543291,
+      "sha256": "378cc9c1dde03cd2845107c35fe8224d8b859ff3e655058886859dcf11002697"
+    },
+    {
+      "path": "clips\\sample-032_h334165.wav",
+      "bytes": 44144,
+      "sha256": "2b355fcf4135333b0525d82b45fef505a0d2132e1082eea15fef7817ee01f485"
+    },
+    {
+      "path": "plots\\sample-032_h334165.png",
+      "bytes": 550328,
+      "sha256": "b05e3f1f9cb9600db5781d33b128848664c47b71fcedfd1ba87fbe06d8ecf544"
+    },
+    {
+      "path": "clips\\sample-032_h294303.wav",
+      "bytes": 44144,
+      "sha256": "7bb5d3d8720335fe9b22ac1b300e06896fb225cbc2bbd2a31b88b8ee4d52ac18"
+    },
+    {
+      "path": "plots\\sample-032_h294303.png",
+      "bytes": 545806,
+      "sha256": "ad9dcb5a5d2e01bd144aa8d3484e054058a01b75142c3589bbfac9a4f7ef0055"
+    },
+    {
+      "path": "clips\\sample-032_h336873.wav",
+      "bytes": 44144,
+      "sha256": "60bf9f74b04c35b6ab5d7b140975d4af3f9dfcd8556767857c542e717345aeeb"
+    },
+    {
+      "path": "plots\\sample-032_h336873.png",
+      "bytes": 517262,
+      "sha256": "9fa24ec74e6e524b29e6dfef3e8eefe50d486da9981e5058de18652543fac26b"
+    },
+    {
+      "path": "clips\\sample-032_h310415.wav",
+      "bytes": 44144,
+      "sha256": "a19e158c7c3a0adc0cd05283aa191b21284fddc4cbd5fffcbaa5f6db4f879fcf"
+    },
+    {
+      "path": "plots\\sample-032_h310415.png",
+      "bytes": 506778,
+      "sha256": "38d694c47db61e7b08d443d2c5a8ad8b0d666c230c6dbfec6de5d97828548027"
+    },
+    {
+      "path": "clips\\sample-032_h45553.wav",
+      "bytes": 44144,
+      "sha256": "5a65ce2057fedaa7d2a8766d27504378758ea80682f3b0e659e262b7d852d7c5"
+    },
+    {
+      "path": "plots\\sample-032_h45553.png",
+      "bytes": 524246,
+      "sha256": "0e5f36b0902007a48ff4896f16ff14bdfb1d8a9a3139dda5ffd498db5013844e"
+    },
+    {
+      "path": "clips\\sample-032_h47220.wav",
+      "bytes": 44144,
+      "sha256": "5e2cf93cf82a0505f894bf95a20387be8a63468d261458303270e5e083810132"
+    },
+    {
+      "path": "plots\\sample-032_h47220.png",
+      "bytes": 516808,
+      "sha256": "6e6a6e0f652281e0ce2bd802d234b1aed756028d11b136cba5934f599c2c48af"
+    },
+    {
+      "path": "clips\\sample-032_h24026.wav",
+      "bytes": 44144,
+      "sha256": "b55fe033b83e639ed2d48c1f43bb6cbaa9891d6981307d8dceb1680115471bfa"
+    },
+    {
+      "path": "plots\\sample-032_h24026.png",
+      "bytes": 544272,
+      "sha256": "259a31cd6ec0cf753d1cf87d27df4708d6a0a02e2050c71f5d54741d80ed5150"
+    },
+    {
+      "path": "clips\\sample-032_h88401.wav",
+      "bytes": 44144,
+      "sha256": "a0275adde79608f4a42cfa37da5a41e93ddf3c85f350ac991d720129b0cfe69b"
+    },
+    {
+      "path": "plots\\sample-032_h88401.png",
+      "bytes": 539965,
+      "sha256": "d8589d1d51f5cb79364cd31c262382c7f756a49316af1f4de07fb312877a3bb4"
+    },
+    {
+      "path": "clips\\sample-032_h75692.wav",
+      "bytes": 44144,
+      "sha256": "acf9999a3cde1c5e59aa1f9871afafa105a9c0de9f992dc8bd0d9a897b35c05d"
+    },
+    {
+      "path": "plots\\sample-032_h75692.png",
+      "bytes": 497471,
+      "sha256": "53f9ae6a5b3d14e7e6c6fc9118017e6fa82128194e3be598b645086597513626"
+    },
+    {
+      "path": "clips\\sample-032_h250970.wav",
+      "bytes": 44144,
+      "sha256": "e14716c6d7e077b539c6687e40b0ae7a1ce0fae271241633b8f6f3853afdf394"
+    },
+    {
+      "path": "plots\\sample-032_h250970.png",
+      "bytes": 496587,
+      "sha256": "6d714cd17737e855d24a7797af2a7d1a0eca25f72c3606aec69e0b46ee43af65"
+    },
+    {
+      "path": "clips\\sample-032_h33470.wav",
+      "bytes": 44144,
+      "sha256": "4973ced94c5ea855be919a92e65d95fec79ce36c922bf28f192493838356816a"
+    },
+    {
+      "path": "plots\\sample-032_h33470.png",
+      "bytes": 531387,
+      "sha256": "cc014dac7b3debe48c2d0bf3d12b411efe88cd697fca2df9cb9ad334ce5f5b8a"
+    },
+    {
+      "path": "clips\\sample-032_h309581.wav",
+      "bytes": 44144,
+      "sha256": "6c5946d74c5d1d8c8f55bbc4641b5ea32bf08d849a0fecab9b77effd912b7e90"
+    },
+    {
+      "path": "plots\\sample-032_h309581.png",
+      "bytes": 511411,
+      "sha256": "3fef4519724008633c8b7c1f1c8ef8bc7b47d4569c0140698f1eea85410cfcaf"
+    },
+    {
+      "path": "clips\\sample-032_h97220.wav",
+      "bytes": 44144,
+      "sha256": "46431ca490da905d79b08d7d1045dbdf20edde997bedbe9a1b45252125a238df"
+    },
+    {
+      "path": "plots\\sample-032_h97220.png",
+      "bytes": 525141,
+      "sha256": "36341359fe57b380517b18f12cdcd787cfc3f7bc94dd0849b51443e2058ef61e"
+    },
+    {
+      "path": "clips\\sample-032_h177915.wav",
+      "bytes": 44144,
+      "sha256": "c9a8e33847916bbf80e2f365019609d83d0ad9da257155d7140616e87d3462df"
+    },
+    {
+      "path": "plots\\sample-032_h177915.png",
+      "bytes": 532824,
+      "sha256": "058f0a540509dfa43c4218c7f8a18b3106535d8b34cd3c7ad733129fe02892cc"
+    },
+    {
+      "path": "clips\\sample-032_h210067.wav",
+      "bytes": 44144,
+      "sha256": "15893fc14f103bffbd3b0bc693a633c5c6f36f45e47f98d2f4d28a3c6b040cc2"
+    },
+    {
+      "path": "plots\\sample-032_h210067.png",
+      "bytes": 495956,
+      "sha256": "ca03894d46c409991ab559967047c58757ff282953c5878ac889415dcee196a3"
+    },
+    {
+      "path": "clips\\sample-032_h354790.wav",
+      "bytes": 44144,
+      "sha256": "dafcd9864daa50dd5eb4abc27ec774dbbaa2d1fe87d3f6d935e87b21b495e5ba"
+    },
+    {
+      "path": "plots\\sample-032_h354790.png",
+      "bytes": 524132,
+      "sha256": "1460478fcec0a63501eaf4406c4237fed82e34e929e3218f96e3d06b8591493e"
+    },
+    {
+      "path": "clips\\sample-032_h308262.wav",
+      "bytes": 44144,
+      "sha256": "240c4a54c7cf1bb94304419040bf8bdfe1c78ad6100f217ec2a8044508633059"
+    },
+    {
+      "path": "plots\\sample-032_h308262.png",
+      "bytes": 533872,
+      "sha256": "ce55c0ecde5a96078ee471a10ba14136926b40d56d0bdb9eb3eba567eff1f05a"
+    },
+    {
+      "path": "clips\\sample-032_h186248.wav",
+      "bytes": 44144,
+      "sha256": "a6cf06bacff8ace42790cf96256d106bdc377cf5e971f073feef34e21b72ef4e"
+    },
+    {
+      "path": "plots\\sample-032_h186248.png",
+      "bytes": 564677,
+      "sha256": "f0eddd6a4982636ad2e5a1fb441c72cfafa25829f7fde1ca03d1baf0807da62d"
+    },
+    {
+      "path": "clips\\sample-032_h355067.wav",
+      "bytes": 44144,
+      "sha256": "2b1195fb0a70a336e6b735f24c9ed3558249239b61a4b8e9fd0b1477066b2b58"
+    },
+    {
+      "path": "plots\\sample-032_h355067.png",
+      "bytes": 528383,
+      "sha256": "9968bcb3b00ff4d9e4a222462432d11c954b5c0c4d091a28f0ee2e3cd22b44a3"
+    },
+    {
+      "path": "clips\\sample-032_h93192.wav",
+      "bytes": 44144,
+      "sha256": "db2666494cf653da595e4f8a2517219de72c54c71e008211796ee9d51a1f8f8b"
+    },
+    {
+      "path": "plots\\sample-032_h93192.png",
+      "bytes": 532860,
+      "sha256": "4d3c97b708c9edb3e9ab56de03877be3460290647be70ea5478f4b1783464803"
+    },
+    {
+      "path": "clips\\sample-032_h332220.wav",
+      "bytes": 44144,
+      "sha256": "9c43dbd5d0381462e1a1545691af08f2ad008e76095949ac2f7a5afcbaa304df"
+    },
+    {
+      "path": "plots\\sample-032_h332220.png",
+      "bytes": 538554,
+      "sha256": "b9bc7fb15b0f0fa5fe9255bde6460e36b46a9b166a2ad6ea9e555db010cbaee9"
+    },
+    {
+      "path": "clips\\sample-032_h309859.wav",
+      "bytes": 44144,
+      "sha256": "9472309ff06b9eb745fbe7c6257d54527cbb322b417124988c98520a9897fd9f"
+    },
+    {
+      "path": "plots\\sample-032_h309859.png",
+      "bytes": 529267,
+      "sha256": "299561096306001d98b91539bcdfc261f6572fcba3ebac3d48936f1add405f0f"
+    },
+    {
+      "path": "clips\\sample-032_h295831.wav",
+      "bytes": 44144,
+      "sha256": "9ba5c7dd6f90e7c7ae861c7a31a2158fd7d53be935d64d0a4fefcf73fc191b79"
+    },
+    {
+      "path": "plots\\sample-032_h295831.png",
+      "bytes": 519688,
+      "sha256": "7725e8dda416d2434affa4e750b835be61bafdf15032be14a9191449925dc86c"
+    },
+    {
+      "path": "clips\\sample-002_h217921.wav",
+      "bytes": 44144,
+      "sha256": "b56b2eb57fd34d973912a95ae2e576a50c05dccf84d4c66d6ec3e5dd56036c77"
+    },
+    {
+      "path": "plots\\sample-002_h217921.png",
+      "bytes": 495864,
+      "sha256": "131e1e98f5038e507eca30a796e1a1a95cc44cc888cfaba901d8784de33e9e13"
+    },
+    {
+      "path": "clips\\sample-002_h34243.wav",
+      "bytes": 44144,
+      "sha256": "2e2408b2a959c7d8166aa00f3b57f396b88e00f7a992c953f254f5ac75be8b15"
+    },
+    {
+      "path": "plots\\sample-002_h34243.png",
+      "bytes": 419844,
+      "sha256": "d605958bec70b75ca04fa7e37c8a69e0cfc08e13e5c7e94ab84073779f536235"
+    },
+    {
+      "path": "clips\\sample-002_h113017.wav",
+      "bytes": 44144,
+      "sha256": "58cb3c086710d38553279b2c94ba84c0d4088a8d49721b941a35ff1e5c8404b7"
+    },
+    {
+      "path": "plots\\sample-002_h113017.png",
+      "bytes": 542917,
+      "sha256": "a98d9c504e5b6ad3eb66b0ac2b48cf4b60cf63af88f579251e6949e1d3763f06"
+    },
+    {
+      "path": "clips\\sample-002_h240570.wav",
+      "bytes": 44144,
+      "sha256": "9ddc89d7abb8964e1e409b5d821b07de930e342d662ecb113faf0f5b66dad93c"
+    },
+    {
+      "path": "plots\\sample-002_h240570.png",
+      "bytes": 527526,
+      "sha256": "96dbcdd4783bc65cc52d859d712ec2b6115e79f9ae11066d5e4519e67c739801"
+    },
+    {
+      "path": "clips\\sample-002_h220770.wav",
+      "bytes": 44144,
+      "sha256": "60df0691067a2e945e6aa256007109f71de9810a783c884fcccc7ec7bb19838e"
+    },
+    {
+      "path": "plots\\sample-002_h220770.png",
+      "bytes": 521331,
+      "sha256": "0a4a38926a4494b0caf97a05519e2749271fc8019bdd1828e4a9459966bb26b0"
+    },
+    {
+      "path": "clips\\sample-002_h235701.wav",
+      "bytes": 44144,
+      "sha256": "11a310ae3e3900b901b6002a4ec01b443e85551721ac889dff5d7d786d766d25"
+    },
+    {
+      "path": "plots\\sample-002_h235701.png",
+      "bytes": 484761,
+      "sha256": "b9f5c7e7037831bb481c38f2326f19e431bbfe0774608a3a3d6fa73e3fe44af7"
+    },
+    {
+      "path": "clips\\sample-002_h140503.wav",
+      "bytes": 44144,
+      "sha256": "eb78a13d2bf1fa18509d88981f0e39cfaf60e8672976ea2f7a382b15d10f222c"
+    },
+    {
+      "path": "plots\\sample-002_h140503.png",
+      "bytes": 522193,
+      "sha256": "6ad3938cbe08aa43e022f6676d02260fa57f75746063fd7e295735dd8a12f539"
+    },
+    {
+      "path": "clips\\sample-002_h136984.wav",
+      "bytes": 44144,
+      "sha256": "fe7f5dc51a67e5d4ee6c95ed2952447e444721dc55ba384d7dd06e637b66e9dc"
+    },
+    {
+      "path": "plots\\sample-002_h136984.png",
+      "bytes": 495703,
+      "sha256": "dce19c33918ad263a9a3b045378563033e1d23490069357fe740a96c3e24118a"
+    },
+    {
+      "path": "clips\\sample-002_h42958.wav",
+      "bytes": 44144,
+      "sha256": "ed1f112b225e9b62173fb5d2163ce534f625d27bc391357ee4f22fbcdd899f6f"
+    },
+    {
+      "path": "plots\\sample-002_h42958.png",
+      "bytes": 482543,
+      "sha256": "2ac6a6e6b2a12e2f28e26004a973b533497f65b2140e29d9cc98e05d4dccec80"
+    },
+    {
+      "path": "clips\\sample-002_h111928.wav",
+      "bytes": 44144,
+      "sha256": "d706803fcb11c92fae5c5b72666363fb82d3ac06b4b1627a36e440c41ea6e3e1"
+    },
+    {
+      "path": "plots\\sample-002_h111928.png",
+      "bytes": 497547,
+      "sha256": "a64a1caf7198859a2f0e2ba6f15f72a267c5bd7fc70fbcd0e366cfde472c01cc"
+    },
+    {
+      "path": "clips\\sample-002_h99106.wav",
+      "bytes": 44144,
+      "sha256": "0a7aad35d3d74ba64b8d20d2b49ebf50443c6842584729e84c201ab547d74665"
+    },
+    {
+      "path": "plots\\sample-002_h99106.png",
+      "bytes": 492753,
+      "sha256": "b8d575ca1bfebf1aec4bb8585521a1b6c46ee26d45ed0aabc40cfcef98871629"
+    },
+    {
+      "path": "clips\\sample-002_h151396.wav",
+      "bytes": 44144,
+      "sha256": "0b1af2c62f9ead91c13b2a1e6763fc6780dfad8cf9d5f5099ebc5bc9131c7e22"
+    },
+    {
+      "path": "plots\\sample-002_h151396.png",
+      "bytes": 513419,
+      "sha256": "ad4bb26cac9466a6c373b956b18d35e98f1ff6c66cc303eee1b79d78bac71d19"
+    },
+    {
+      "path": "clips\\sample-002_h205028.wav",
+      "bytes": 44144,
+      "sha256": "76bb36d8e48b291cb9baa56f9b88a05e137060da65efbf76e77640734f04c8ab"
+    },
+    {
+      "path": "plots\\sample-002_h205028.png",
+      "bytes": 512338,
+      "sha256": "5eea6eb2e4b5eca1e24e348d573fa1ce0badfcef98062239961a066bd2277784"
+    },
+    {
+      "path": "clips\\sample-002_h118715.wav",
+      "bytes": 44144,
+      "sha256": "7ffbe4860804bf992de2db6ce6324f9dff2b3e0753ddf7d7f55211423087b77d"
+    },
+    {
+      "path": "plots\\sample-002_h118715.png",
+      "bytes": 479892,
+      "sha256": "503ed0ae69cb6095bb9624d209346848aa086491f493927f7e067273b57ea474"
+    },
+    {
+      "path": "clips\\sample-002_h217419.wav",
+      "bytes": 44144,
+      "sha256": "63a4f5d7e4a8650fa606b378e44342729cc7de3ca464b20fcebed79426c9b1b8"
+    },
+    {
+      "path": "plots\\sample-002_h217419.png",
+      "bytes": 482731,
+      "sha256": "e2f1548ab344b96148de73201eaa3ec4a8aa1db92cbdd918d61ceb8cdebb95c9"
+    },
+    {
+      "path": "clips\\sample-002_h85447.wav",
+      "bytes": 44144,
+      "sha256": "d508a3e934a451e0a5eaba4e89ec7ed7471cd5ebd6185a1b2060a2fcefefa458"
+    },
+    {
+      "path": "plots\\sample-002_h85447.png",
+      "bytes": 494917,
+      "sha256": "a0aced956c75efd49e7cdf5a11003eff25b7ac96f78c4e8ef9302cd67641dff3"
+    },
+    {
+      "path": "clips\\sample-002_h106313.wav",
+      "bytes": 44144,
+      "sha256": "8c8b4f6cf12016d53a6746fa1175669c1dbd3a99bb0c6d4006af00e49aecf304"
+    },
+    {
+      "path": "plots\\sample-002_h106313.png",
+      "bytes": 519020,
+      "sha256": "695e61030f2ad362c9e13c726eeef2d8542d300f6edec16fd99dd71a3a82d05a"
+    },
+    {
+      "path": "clips\\sample-002_h242581.wav",
+      "bytes": 44144,
+      "sha256": "ba1b066f493c47c61001c3993ccb1d7eda0bc95767b39138688933c1dbe66a7b"
+    },
+    {
+      "path": "plots\\sample-002_h242581.png",
+      "bytes": 524690,
+      "sha256": "6b5ce8a2424027d322e5fc6ae5b03ef51bca972c0a43c33a3fe22d9b0ffc2ada"
+    },
+    {
+      "path": "clips\\sample-002_h90894.wav",
+      "bytes": 44144,
+      "sha256": "6d61358421d619e07a77efbafe23f965cd739fb5b736085739e7024d4c798577"
+    },
+    {
+      "path": "plots\\sample-002_h90894.png",
+      "bytes": 500012,
+      "sha256": "cfd40a1b4225dfaf17065a81e163d9f48aca9f980933be1cf7e1c5754109a817"
+    },
+    {
+      "path": "clips\\sample-002_h255647.wav",
+      "bytes": 44144,
+      "sha256": "e2347112e0cb65fd92125a375b1e4d3de11f8d78d8296ee218e4745268488863"
+    },
+    {
+      "path": "plots\\sample-002_h255647.png",
+      "bytes": 425687,
+      "sha256": "4aff3dacac13135989f4bcb81979adb651e61e9febb0a222c337a4a05a3dbfa8"
+    },
+    {
+      "path": "clips\\sample-002_h237210.wav",
+      "bytes": 44144,
+      "sha256": "e6ac3c25bf09574005fad4cc4bf886870435fe29b403e6c0bd7c228d3a4a3427"
+    },
+    {
+      "path": "plots\\sample-002_h237210.png",
+      "bytes": 470153,
+      "sha256": "4bb6da394f60f4d6cbfea6ef6547d7a446bcec7bc6168e0cec8284e2659e87ed"
+    },
+    {
+      "path": "clips\\sample-002_h257155.wav",
+      "bytes": 44144,
+      "sha256": "528b61783f1b7bf8ee5a158a180b2fe490f01f95746c7d32af8e38bf1d2bb2db"
+    },
+    {
+      "path": "plots\\sample-002_h257155.png",
+      "bytes": 459685,
+      "sha256": "7d1362e01a3becd75310af4a23a5b324851cb93159743c22e88136e6b184607e"
+    },
+    {
+      "path": "clips\\sample-002_h201760.wav",
+      "bytes": 44140,
+      "sha256": "66ec59c01e1b2cee31597b4b6e07b50a70b6d9be3f82a5b20aa85c0f0077e894"
+    },
+    {
+      "path": "plots\\sample-002_h201760.png",
+      "bytes": 511288,
+      "sha256": "a6bbb70bf09d0ff1fc38ab1b8a56b52ebef55f3279d6104d87a6970704c062bf"
+    },
+    {
+      "path": "clips\\sample-002_h30715.wav",
+      "bytes": 44144,
+      "sha256": "561c0d782b7f9813ea8f861c8422a4ad2c9b28606927286025e7616892e9da74"
+    },
+    {
+      "path": "plots\\sample-002_h30715.png",
+      "bytes": 448538,
+      "sha256": "719078954cb5fb410127cdd25ae9c123f26af879794c75b1777bdd035d460d70"
+    },
+    {
+      "path": "clips\\sample-002_h168491.wav",
+      "bytes": 44144,
+      "sha256": "cf642c71af481f5f0830936afa0b3e10386b05de69729448f96fece64797e72d"
+    },
+    {
+      "path": "plots\\sample-002_h168491.png",
+      "bytes": 451553,
+      "sha256": "421970ceb54e48427cd1db640f2b7b69d0f887d2194f23b333858c07c4741333"
+    },
+    {
+      "path": "clips\\sample-002_h133799.wav",
+      "bytes": 44144,
+      "sha256": "0e5278d395b82076e6eea81ef3d1ab3aa86126d83570d8da37f61cfc3b1dcdc0"
+    },
+    {
+      "path": "plots\\sample-002_h133799.png",
+      "bytes": 492789,
+      "sha256": "fc970509eb05dc2fd3c3c364dc86e3fd5b00a3638ac57eb338f5f96cc394c293"
+    },
+    {
+      "path": "clips\\sample-002_h204134.wav",
+      "bytes": 44144,
+      "sha256": "935dac61b89c35efde4a7cba3d84a909a63003c2d1333d4d9cf69b64be7bca1a"
+    },
+    {
+      "path": "plots\\sample-002_h204134.png",
+      "bytes": 487098,
+      "sha256": "194870d381f42190b199f2ef1bff2e4233919270439f6a018a095127cf33a903"
+    },
+    {
+      "path": "clips\\sample-002_h89386.wav",
+      "bytes": 44144,
+      "sha256": "a53d6f5648f95c691403be443727cf97ad8ed01b40539bba4be59822f017a532"
+    },
+    {
+      "path": "plots\\sample-002_h89386.png",
+      "bytes": 497547,
+      "sha256": "57f1ad9b67e537f93af0ce8388b0f399b88d7d983e129279b1d0a0771256658a"
+    },
+    {
+      "path": "clips\\sample-002_h19658.wav",
+      "bytes": 44144,
+      "sha256": "a9980e285fee06309e30eda527cce251e2cc0f35d65e5efe7580c21efa49b1ec"
+    },
+    {
+      "path": "plots\\sample-002_h19658.png",
+      "bytes": 488414,
+      "sha256": "c46a342c92a88c7b102ef70eb32ca4e6ed28c13f18bcae7a4ed21d204f517673"
+    },
+    {
+      "path": "clips\\sample-002_h141006.wav",
+      "bytes": 44144,
+      "sha256": "0e913cc4b6f19fa67a70245756d22a42a2dfd2cf7ac43f2a2273f041cd0236f6"
+    },
+    {
+      "path": "plots\\sample-002_h141006.png",
+      "bytes": 525802,
+      "sha256": "c279243576fb1702d386d36ed4debd3961f63a8beec463c1da34adacd42023be"
+    },
+    {
+      "path": "sample-044-both-within5-contact.png",
+      "bytes": 2281795,
+      "sha256": "57029c9c6f17146267fa0e1d80749de03e1d4d31ff846e7944fd746c20b90758"
+    },
+    {
+      "path": "sample-044-only-high-within5-contact.png",
+      "bytes": 266449,
+      "sha256": "2aa4da14fd26cbe7a23f6d96e2a7d757ef61f606b15389c5a7a94582073ac8e4"
+    },
+    {
+      "path": "sample-044-neither-within5-contact.png",
+      "bytes": 1235467,
+      "sha256": "d3ae94a7b917646841f958553d1074581d63107eb5b8f6aa998bd76a2ed5d25f"
+    },
+    {
+      "path": "sample-032-both-within5-contact.png",
+      "bytes": 1592985,
+      "sha256": "22eeafbc442b792fc49c210f7c6e1383db545d44f901cfe6fe1f3d36b926af7c"
+    },
+    {
+      "path": "sample-032-only-high-within5-contact.png",
+      "bytes": 1632162,
+      "sha256": "27e64158502086befe46201fabe9ca8c32f0e5b9e1765890770effbc3d3f0d29"
+    },
+    {
+      "path": "sample-032-neither-within5-contact.png",
+      "bytes": 1635886,
+      "sha256": "dbf38fa5686d1353efaf913743f190f370bb02063dfb7d563d137c208422faee"
+    },
+    {
+      "path": "sample-002-both-within5-contact.png",
+      "bytes": 1585508,
+      "sha256": "9b04281ede873f4506e5f408ba7019cab3ada1dc8e93afcfaccedf73479b5dba"
+    },
+    {
+      "path": "sample-002-only-high-within5-contact.png",
+      "bytes": 1519657,
+      "sha256": "76eac6ab0fbecc5b252183e6a44bedcb3bcad1280b40e1e493516e852d697a28"
+    },
+    {
+      "path": "sample-002-neither-within5-contact.png",
+      "bytes": 1522128,
+      "sha256": "3f19093eb6ff28fb4e25029af7263f87bc89738ee280fa70463b4a8237117cb9"
+    }
+  ]
+}

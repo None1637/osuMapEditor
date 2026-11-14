@@ -1,0 +1,64 @@
+{
+  "id": "sample-004",
+  "directoryName": "1256680 Mori Calliope - Excuse My Rudeness, But Could You Please RIP",
+  "beatmapFile": "Mori Calliope - Excuse My Rudeness, But Could You Please RIP (arcwinolivirus) [Normal Beats].osu",
+  "metadata": {
+    "Title": "Excuse My Rudeness, But Could You Please RIP?",
+    "TitleUnicode": "失礼しますが、RIP♡",
+    "Artist": "Mori Calliope",
+    "ArtistUnicode": "森カリオペ",
+    "Creator": "arcwinolivirus",
+    "Version": "Normal Beats",
+    "Source": "",
+    "Tags": "SV vtuber virtual youtuber intro rap god DEAD BEATS holoMyth hololive EN callioP kokorobeats K's Coro english japanese",
+    "BeatmapID": "2617849",
+    "BeatmapSetID": "1256680",
+    "Mode": "3"
+  },
+  "audioDurationMs": 189521.3605442177,
+  "redLines": [
+    {
+      "time": 14,
+      "beatLength": 483.870967741935,
+      "bpm": 124.00000000000013,
+      "durationMs": 189507.3605442177
+    }
+  ],
+  "referenceBpm": 124.00000000000013,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 189507.3605442177,
+  "status": "ok",
+  "prediction": {
+    "bpm": 124,
+    "offsetMs": 520,
+    "variable": true,
+    "evidence": [
+      {
+        "startMs": 0,
+        "endMs": 5997,
+        "bpm": 76,
+        "points": 3,
+        "maxSupport": 0.2626392508423541
+      },
+      {
+        "startMs": 25960,
+        "endMs": 31957,
+        "bpm": 71.037,
+        "points": 3,
+        "maxSupport": 0.14796211282414184
+      },
+      {
+        "startMs": 41935,
+        "endMs": 48930,
+        "bpm": 70.794,
+        "points": 4,
+        "maxSupport": 0.12665525696493843
+      }
+    ],
+    "localPointCount": 183,
+    "rawBpm": 248,
+    "rawSegmentCount": 80
+  },
+  "evaluationMs": 1678
+}

@@ -1,0 +1,112 @@
+{
+  "version": "v544-heldout",
+  "sampleCount": 100,
+  "algorithmFrozen": true,
+  "statusCounts": {
+    "ok": 98,
+    "decode_unavailable": 2
+  },
+  "categoryCounts": {
+    "correct": 72,
+    "decode_unavailable": 2,
+    "bpm_and_classification_error": 6,
+    "octave_error": 9,
+    "variable_false_negative": 6,
+    "bpm_error": 5
+  },
+  "confusion": {
+    "constant": {
+      "constant": 81,
+      "variable": 1,
+      "unavailable": 1
+    },
+    "variable": {
+      "constant": 11,
+      "variable": 5,
+      "unavailable": 1
+    },
+    "invalid_reference": {
+      "constant": 0,
+      "variable": 0,
+      "unavailable": 0
+    }
+  },
+  "allSamples": {
+    "strictMainBpm": {
+      "numerator": 78,
+      "denominator": 100,
+      "percent": 78
+    },
+    "variableClassification": {
+      "numerator": 86,
+      "denominator": 100,
+      "percent": 86
+    },
+    "bothCorrect": {
+      "numerator": 72,
+      "denominator": 100,
+      "percent": 72
+    }
+  },
+  "byReferenceClass": {
+    "constant": {
+      "total": 83,
+      "strictMainBpm": {
+        "numerator": 70,
+        "denominator": 83,
+        "percent": 84.3
+      },
+      "classification": {
+        "numerator": 81,
+        "denominator": 83,
+        "percent": 97.6
+      },
+      "both": {
+        "numerator": 70,
+        "denominator": 83,
+        "percent": 84.3
+      }
+    },
+    "variable": {
+      "total": 17,
+      "strictMainBpm": {
+        "numerator": 8,
+        "denominator": 17,
+        "percent": 47.1
+      },
+      "classification": {
+        "numerator": 5,
+        "denominator": 17,
+        "percent": 29.4
+      },
+      "both": {
+        "numerator": 2,
+        "denominator": 17,
+        "percent": 11.8
+      }
+    }
+  },
+  "complete": true,
+  "v543": {
+    "strictMainBpm": {
+      "numerator": 78,
+      "denominator": 100,
+      "percent": 78
+    },
+    "octaveOnlyAmongAll": {
+      "numerator": 12,
+      "denominator": 100,
+      "percent": 12
+    },
+    "variableClassification": {
+      "numerator": 86,
+      "denominator": 100,
+      "percent": 86
+    },
+    "bothCorrect": {
+      "numerator": 72,
+      "denominator": 100,
+      "percent": 72
+    }
+  }
+}

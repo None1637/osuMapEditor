@@ -1,0 +1,28 @@
+{
+  "version": "v567-ddc-parabolic-crossfit-e8-v1",
+  "status": "frozen_before_candidate_evaluation",
+  "datasetRole": "development_crossfit_provisional_visual_blind_labels_not_independent_confirmation",
+  "sampleIds": ["sample-044", "sample-032", "sample-002"],
+  "candidateSource": "../v560/candidates.json",
+  "metadataSource": "../v563/calibrated-candidates.json",
+  "candidateField": "ddcParabolicResidualMs",
+  "candidateAbsoluteRule": "e8RawCandidateAbsoluteMs = targetMs + ddcParabolicResidualMs; no new inference, peak matching, interpolation or fallback to full",
+  "candidateAvailability": "Only frozen DDC parabolic candidates; missing remains missing and is incorrect for audible recall and transitions",
+  "calibration": "E5 opposite-fold same-song unweighted median of raw DDC absolute errors among clear/approximate objects with candidates; minimum 3 pairs, fallback 0 ms",
+  "application": "e8CandidateAbsoluteMs = e8RawCandidateAbsoluteMs - oppositeFoldCorrectionMs; e8ErrorMs = e8RawErrorMs - oppositeFoldCorrectionMs",
+  "methods": ["full", "e5Calibrated", "e8DdcParabolic"],
+  "primaryComparator": "e5Calibrated",
+  "primaryMetric": "Population-weighted clear+approximate +/-5 ms correct rate using absolute candidate time, including missing candidates as incorrect",
+  "coveragePolicy": "Report DDC candidate coverage and no-clear output explicitly; calibration itself must not change DDC candidate availability",
+  "toleranceMs": 5,
+  "targetAudibleCorrectRate": 0.8,
+  "sample044MinimumAudibleCorrectRate": 0.8,
+  "hypotheses": {
+    "H1": "Calibrated DDC parabolic candidates improve weighted audible +/-5 ms correct rate over E5",
+    "H2": "Relative to E5, DDC fixes more weighted errors than it breaks and sample-044 remains at least 80%",
+    "H3": "Every result is deterministic from validated frozen v560 candidates and opposite-fold calibration"
+  },
+  "testPolicy": "Exactly one existing DDC representation and one calibration; no official/parabolic selection after metrics, no full fallback, fusion, rematching, threshold, difficulty or model change",
+  "confirmationSetPolicy": "Do not read confirmation audio, candidates or labels",
+  "productionCodeChanged": false
+}

@@ -1,0 +1,52 @@
+{
+  "id": "sample-052",
+  "directoryName": "916257 GYARI - Akari ga Yatte Kita Zo (Cut Ver)",
+  "beatmapFile": "GYARI - Akari ga Yatte Kita Zo (Cut Ver.) (LeiN-) [notice me].osu",
+  "referenceBpm": 136.00000000000009,
+  "predictedBpm": 136,
+  "frozenBpm": 136,
+  "deterministicEvidence": true,
+  "evidence": [
+    {
+      "startMs": 78878,
+      "endMs": 84875,
+      "bpm": 60.444,
+      "points": 3,
+      "maxSupport": 0.12823427973480203,
+      "index": 0,
+      "ratioToPredictedMain": 0.44444117647058823,
+      "ratioToAnnotatedMain": 0.44444117647058795,
+      "boundary": "interior",
+      "localBpmMin": 60.444,
+      "localBpmMax": 60.444,
+      "medianSupport": 0.09397513338823661,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 44.11764705882353,
+          "first": -0.002867242508674902,
+          "second": -0.0034100632226476495,
+          "combined": -0.0030463733442859086
+        },
+        "annotatedMain": {
+          "lag": 44.1176470588235,
+          "first": -0.002867242508674823,
+          "second": -0.0034100632226474886,
+          "combined": -0.0030463733442858028
+        },
+        "evidenceBpm": {
+          "lag": 99.26543577526306,
+          "first": -0.0035495998539788365,
+          "second": null,
+          "combined": -0.0035495998539788365
+        }
+      },
+      "objectCount": 107,
+      "objectGrid": {
+        "predictedMainHalf": 0.5233644859813084,
+        "annotatedMainHalf": 0.5233644859813084,
+        "evidenceHalf": 0.1308411214953271
+      }
+    }
+  ],
+  "analysisMs": 1134
+}

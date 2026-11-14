@@ -1,0 +1,247 @@
+{
+  "version": "v553-three-strata-population-weighted-provisional-v1",
+  "status": "provisional_visual_estimate_not_80_percent_acceptance",
+  "target": "object onset absolute error <=5 ms for at least 80% under an explicitly reported denominator",
+  "weightRule": "each sampled object weight = its sample/stratum population / 10; total weight = 4103 objects",
+  "definitions": {
+    "correct": "candidate residual minus independently labeled actualRelativeMs has absolute value <=5 ms",
+    "candidatePrecision": "weighted correct / weighted candidate outputs; no_clear_onset proposals are incorrect",
+    "clearOnsetRecall": "weighted correct clear onsets / weighted clear onsets",
+    "clearAndApproximateOnsetRecall": "weighted correct clear or approximate onsets / weighted clear or approximate onsets",
+    "allObjectCorrectRate": "weighted correct / all 4103 objects; no_clear_onset and missing candidates cannot count as correct"
+  },
+  "overall": {
+    "current": {
+      "populationWeight": 4103.0,
+      "candidateOutputWeight": 2756.0,
+      "correctWeight": 1310.3,
+      "clearOnsetWeight": 1190.7,
+      "clearAndApproximateOnsetWeight": 2131.2,
+      "noClearOnsetWeight": 1971.8,
+      "correctClearWeight": 574.1,
+      "correctBroadWeight": 1310.3,
+      "candidatePrecision": 0.47543541364296077,
+      "candidateCoverage": 0.6717036314891542,
+      "clearOnsetRecall": 0.4821533551692282,
+      "clearAndApproximateOnsetRecall": 0.614817942942943,
+      "allObjectCorrectRate": 0.319351693882525
+    },
+    "sup5": {
+      "populationWeight": 4103.0,
+      "candidateOutputWeight": 3965.6,
+      "correctWeight": 1581.4,
+      "clearOnsetWeight": 1190.7,
+      "clearAndApproximateOnsetWeight": 2131.2,
+      "noClearOnsetWeight": 1971.8,
+      "correctClearWeight": 816.0,
+      "correctBroadWeight": 1581.4,
+      "candidatePrecision": 0.3987795037320961,
+      "candidateCoverage": 0.9665123080672678,
+      "clearOnsetRecall": 0.6853111615016376,
+      "clearAndApproximateOnsetRecall": 0.7420232732732733,
+      "allObjectCorrectRate": 0.3854252985620278
+    }
+  },
+  "perSample": {
+    "sample-003": {
+      "current": {
+        "populationWeight": 1168.0,
+        "candidateOutputWeight": 826.0,
+        "correctWeight": 273.2,
+        "clearOnsetWeight": 331.3,
+        "clearAndApproximateOnsetWeight": 536.2,
+        "noClearOnsetWeight": 631.8,
+        "correctClearWeight": 68.3,
+        "correctBroadWeight": 273.2,
+        "candidatePrecision": 0.3307506053268765,
+        "candidateCoverage": 0.7071917808219178,
+        "clearOnsetRecall": 0.20615756112284936,
+        "clearAndApproximateOnsetRecall": 0.5095113763521073,
+        "allObjectCorrectRate": 0.2339041095890411
+      },
+      "sup5": {
+        "populationWeight": 1168.0,
+        "candidateOutputWeight": 1099.0,
+        "correctWeight": 344.7,
+        "clearOnsetWeight": 331.3,
+        "clearAndApproximateOnsetWeight": 536.2,
+        "noClearOnsetWeight": 631.8,
+        "correctClearWeight": 139.8,
+        "correctBroadWeight": 344.7,
+        "candidatePrecision": 0.31364877161055504,
+        "candidateCoverage": 0.9409246575342466,
+        "clearOnsetRecall": 0.42197404165408997,
+        "clearAndApproximateOnsetRecall": 0.6428571428571428,
+        "allObjectCorrectRate": 0.29511986301369864
+      }
+    },
+    "sample-042": {
+      "current": {
+        "populationWeight": 1441.0,
+        "candidateOutputWeight": 1112.2,
+        "correctWeight": 519.5,
+        "clearOnsetWeight": 381.1,
+        "clearAndApproximateOnsetWeight": 651.1,
+        "noClearOnsetWeight": 789.9,
+        "correctClearWeight": 311.70000000000005,
+        "correctBroadWeight": 519.5,
+        "candidatePrecision": 0.46709224959539647,
+        "candidateCoverage": 0.7718251214434421,
+        "clearOnsetRecall": 0.817895565468381,
+        "clearAndApproximateOnsetRecall": 0.7978805099063123,
+        "allObjectCorrectRate": 0.3605135322692575
+      },
+      "sup5": {
+        "populationWeight": 1441.0,
+        "candidateOutputWeight": 1430.0,
+        "correctWeight": 607.1,
+        "clearOnsetWeight": 381.1,
+        "clearAndApproximateOnsetWeight": 651.1,
+        "noClearOnsetWeight": 789.9,
+        "correctClearWeight": 370.1,
+        "correctBroadWeight": 607.1,
+        "candidatePrecision": 0.42454545454545456,
+        "candidateCoverage": 0.9923664122137404,
+        "clearOnsetRecall": 0.9711361847284178,
+        "clearAndApproximateOnsetRecall": 0.9324220549838734,
+        "allObjectCorrectRate": 0.4213046495489244
+      }
+    },
+    "sample-095": {
+      "current": {
+        "populationWeight": 1494.0,
+        "candidateOutputWeight": 817.8000000000001,
+        "correctWeight": 517.6,
+        "clearOnsetWeight": 478.3,
+        "clearAndApproximateOnsetWeight": 943.9,
+        "noClearOnsetWeight": 550.1,
+        "correctClearWeight": 194.10000000000002,
+        "correctBroadWeight": 517.6,
+        "candidatePrecision": 0.6329175837613108,
+        "candidateCoverage": 0.5473895582329318,
+        "clearOnsetRecall": 0.4058122517248589,
+        "clearAndApproximateOnsetRecall": 0.5483631740650493,
+        "allObjectCorrectRate": 0.3464524765729585
+      },
+      "sup5": {
+        "populationWeight": 1494.0,
+        "candidateOutputWeight": 1436.6000000000001,
+        "correctWeight": 629.6,
+        "clearOnsetWeight": 478.3,
+        "clearAndApproximateOnsetWeight": 943.9,
+        "noClearOnsetWeight": 550.1,
+        "correctClearWeight": 306.1,
+        "correctBroadWeight": 629.6,
+        "candidatePrecision": 0.43825699568425447,
+        "candidateCoverage": 0.9615796519410978,
+        "clearOnsetRecall": 0.6399749111436337,
+        "clearAndApproximateOnsetRecall": 0.6670198114207014,
+        "allObjectCorrectRate": 0.4214190093708166
+      }
+    }
+  },
+  "perStratum": {
+    "both-within5": {
+      "current": {
+        "populationWeight": 2369.0,
+        "candidateOutputWeight": 2369.0,
+        "correctWeight": 1310.3,
+        "clearOnsetWeight": 574.1,
+        "clearAndApproximateOnsetWeight": 1310.3,
+        "noClearOnsetWeight": 1058.7,
+        "correctClearWeight": 574.1,
+        "correctBroadWeight": 1310.3,
+        "candidatePrecision": 0.5531025749261291,
+        "candidateCoverage": 1.0,
+        "clearOnsetRecall": 1.0,
+        "clearAndApproximateOnsetRecall": 1.0,
+        "allObjectCorrectRate": 0.5531025749261291
+      },
+      "sup5": {
+        "populationWeight": 2369.0,
+        "candidateOutputWeight": 2369.0,
+        "correctWeight": 1310.3,
+        "clearOnsetWeight": 574.1,
+        "clearAndApproximateOnsetWeight": 1310.3,
+        "noClearOnsetWeight": 1058.7,
+        "correctClearWeight": 574.1,
+        "correctBroadWeight": 1310.3,
+        "candidatePrecision": 0.5531025749261291,
+        "candidateCoverage": 1.0,
+        "clearOnsetRecall": 1.0,
+        "clearAndApproximateOnsetRecall": 1.0,
+        "allObjectCorrectRate": 0.5531025749261291
+      }
+    },
+    "only-sup5-within5": {
+      "current": {
+        "populationWeight": 1107.0,
+        "candidateOutputWeight": 136.2,
+        "correctWeight": 0,
+        "clearOnsetWeight": 272.4,
+        "clearAndApproximateOnsetWeight": 357.6,
+        "noClearOnsetWeight": 749.4,
+        "correctClearWeight": 0,
+        "correctBroadWeight": 0,
+        "candidatePrecision": 0.0,
+        "candidateCoverage": 0.12303523035230352,
+        "clearOnsetRecall": 0.0,
+        "clearAndApproximateOnsetRecall": 0.0,
+        "allObjectCorrectRate": 0.0
+      },
+      "sup5": {
+        "populationWeight": 1107.0,
+        "candidateOutputWeight": 1107.0,
+        "correctWeight": 225.10000000000002,
+        "clearOnsetWeight": 272.4,
+        "clearAndApproximateOnsetWeight": 357.6,
+        "noClearOnsetWeight": 749.4,
+        "correctClearWeight": 195.9,
+        "correctBroadWeight": 225.10000000000002,
+        "candidatePrecision": 0.20334236675700093,
+        "candidateCoverage": 1.0,
+        "clearOnsetRecall": 0.7191629955947137,
+        "clearAndApproximateOnsetRecall": 0.6294742729306488,
+        "allObjectCorrectRate": 0.20334236675700093
+      }
+    },
+    "neither-within5": {
+      "current": {
+        "populationWeight": 627.0,
+        "candidateOutputWeight": 250.79999999999998,
+        "correctWeight": 0,
+        "clearOnsetWeight": 344.2,
+        "clearAndApproximateOnsetWeight": 463.29999999999995,
+        "noClearOnsetWeight": 163.7,
+        "correctClearWeight": 0,
+        "correctBroadWeight": 0,
+        "candidatePrecision": 0.0,
+        "candidateCoverage": 0.39999999999999997,
+        "clearOnsetRecall": 0.0,
+        "clearAndApproximateOnsetRecall": 0.0,
+        "allObjectCorrectRate": 0.0
+      },
+      "sup5": {
+        "populationWeight": 627.0,
+        "candidateOutputWeight": 489.59999999999997,
+        "correctWeight": 46,
+        "clearOnsetWeight": 344.2,
+        "clearAndApproximateOnsetWeight": 463.29999999999995,
+        "noClearOnsetWeight": 163.7,
+        "correctClearWeight": 46,
+        "correctBroadWeight": 46,
+        "candidatePrecision": 0.09395424836601309,
+        "candidateCoverage": 0.7808612440191387,
+        "clearOnsetRecall": 0.1336432306798373,
+        "clearAndApproximateOnsetRecall": 0.09928771854090224,
+        "allObjectCorrectRate": 0.0733652312599681
+      }
+    }
+  },
+  "limitations": [
+    "visual waveform/spectral-flux review only; no independent listening confirmation",
+    "no_clear_onset means no clearly separable onset near the object, not proof of silence",
+    "three fixed songs are not a representative estimate for the original 100-song library",
+    "weighted estimates describe only the 4103 objects in these three songs, not all 17149 objects or the 100-song sample"
+  ]
+}

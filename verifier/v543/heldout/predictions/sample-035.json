@@ -1,0 +1,90 @@
+{
+  "id": "sample-035",
+  "directoryName": "267779",
+  "beatmapFile": "Marc-Andre' Hamelin - Circus Galop (BMS ver.) (spro) [].osu",
+  "metadata": {
+    "Title": "Circus Galop (BMS ver.)",
+    "TitleUnicode": "Circus Galop (BMS ver.)",
+    "Artist": "Marc-Andre' Hamelin",
+    "ArtistUnicode": "Marc-Andre' Hamelin",
+    "Creator": "spro",
+    "Version": "?",
+    "Source": "",
+    "Tags": "",
+    "BeatmapID": "609875",
+    "BeatmapSetID": "267779",
+    "Mode": "0"
+  },
+  "audioDurationMs": 124965.98639455781,
+  "redLines": [
+    {
+      "time": -20,
+      "beatLength": 333.333333333333,
+      "bpm": 180.0000000000002,
+      "durationMs": 17646
+    },
+    {
+      "time": 17646,
+      "beatLength": 333.333333333333,
+      "bpm": 180.0000000000002,
+      "durationMs": 12999
+    },
+    {
+      "time": 30645,
+      "beatLength": 333.333333333333,
+      "bpm": 180.0000000000002,
+      "durationMs": 5834
+    },
+    {
+      "time": 36479,
+      "beatLength": 333.333333333333,
+      "bpm": 180.0000000000002,
+      "durationMs": 32749
+    },
+    {
+      "time": 69228,
+      "beatLength": 333.333333333333,
+      "bpm": 180.0000000000002,
+      "durationMs": 6583
+    },
+    {
+      "time": 75811,
+      "beatLength": 333.333333333333,
+      "bpm": 180.0000000000002,
+      "durationMs": 8668
+    },
+    {
+      "time": 84479,
+      "beatLength": 331.491712707182,
+      "bpm": 181.00000000000017,
+      "durationMs": 1987
+    },
+    {
+      "time": 86466,
+      "beatLength": 331.491712707182,
+      "bpm": 181.00000000000017,
+      "durationMs": 37792
+    },
+    {
+      "time": 124258,
+      "beatLength": 342.857142857143,
+      "bpm": 174.99999999999991,
+      "durationMs": 707.9863945578109
+    }
+  ],
+  "referenceBpm": 180.0000000000002,
+  "referenceVariable": true,
+  "referenceRedLineCount": 9,
+  "referenceCoverageMs": 84479,
+  "status": "ok",
+  "prediction": {
+    "bpm": 180,
+    "offsetMs": 1680,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 122,
+    "rawBpm": 360,
+    "rawSegmentCount": 18
+  },
+  "evaluationMs": 1181
+}

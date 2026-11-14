@@ -1,0 +1,16 @@
+{
+  "version": "v573-selection-independent-reconstruction-v1",
+  "passed": true,
+  "sampleIds": [
+    "sample-017",
+    "sample-047",
+    "sample-054",
+    "sample-067",
+    "sample-077",
+    "sample-099"
+  ],
+  "selectedObjects": 180,
+  "fullPeaksVerified": true,
+  "populationVerified": true,
+  "selectionFieldsVerified": true
+}

@@ -1,0 +1,43 @@
+{
+  "id": "sample-062",
+  "directoryName": "293475 Renard vs Kitsune^2 - The Castle",
+  "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\293475 Renard vs Kitsune^2 - The Castle",
+  "status": "ok",
+  "referenceBpm": 200,
+  "referenceVariable": false,
+  "predictedBpm": 200,
+  "predictedVariable": false,
+  "variableLines": [],
+  "trueVariableMs": 0,
+  "flaggedWindowCount": 14,
+  "flaggedWindowsOnVariable": 0,
+  "rawCandidateCount": 1,
+  "rawCandidatesOnVariable": 0,
+  "finalEvidenceCount": 0,
+  "finalEvidenceOnVariable": 0,
+  "candidates": [
+    {
+      "startMs": 53917,
+      "endMs": 59913,
+      "bpm": 73.045,
+      "points": 3,
+      "maxSupport": 0.22889364510774612,
+      "localGridCoverage": 0.21739130434782608,
+      "rejection": "weak_short",
+      "independentMainScore": 0.17594810680826722,
+      "independentLocalScore": 0.012268114896543078,
+      "variableOverlapMs": 0,
+      "overlapsVariable": false,
+      "tripletVotes": [
+        {
+          "timeMs": 56915.011337868484,
+          "bpm": 73.045,
+          "localGridCoverage": 0.1,
+          "tripletGridCoverage": 0.95,
+          "tripletGridHalfCoverage": 0.65,
+          "tripletGridDoubleCoverage": 0.95
+        }
+      ]
+    }
+  ]
+}

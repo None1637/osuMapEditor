@@ -1,0 +1,44 @@
+{
+  "id": "sample-009",
+  "directoryName": "11426 Sound Holic - Love-Colored Dream",
+  "beatmapFile": "Sound Holic - Love-Colored Dream (Yes) [Easy].osu",
+  "metadata": {
+    "Title": "Love-Colored Dream",
+    "Artist": "Sound Holic",
+    "Creator": "Yes",
+    "Version": "Easy",
+    "Source": "Tokoshie",
+    "Tags": "Touhou Marisa roxkyuubiforever",
+    "Mode": "0"
+  },
+  "audioDurationMs": 192725.62358276645,
+  "redLines": [
+    {
+      "time": 582,
+      "beatLength": 468.75,
+      "bpm": 128,
+      "durationMs": 77830
+    },
+    {
+      "time": 78412,
+      "beatLength": 468.75,
+      "bpm": 128,
+      "durationMs": 114313.62358276645
+    }
+  ],
+  "referenceBpm": 128,
+  "referenceVariable": false,
+  "referenceRedLineCount": 2,
+  "referenceCoverageMs": 192143.62358276645,
+  "status": "ok",
+  "prediction": {
+    "bpm": 128,
+    "offsetMs": 614,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 189,
+    "rawBpm": 256,
+    "rawSegmentCount": 21
+  },
+  "evaluationMs": 2141
+}

@@ -1,0 +1,40 @@
+{
+  "id": "sample-028",
+  "directoryName": "88180 t+pazolite - cheatreal",
+  "beatmapFile": "t+pazolite - cheatreal (caren_sk) [Kloyd's Hard].osu",
+  "metadata": {
+    "Title": "cheatreal",
+    "TitleUnicode": "cheatreal",
+    "Artist": "t+pazolite",
+    "ArtistUnicode": "t+pazolite",
+    "Creator": "caren_sk",
+    "Version": "Kloyd's Hard",
+    "Source": "",
+    "Tags": "Answer from X Girlz happy hardcore rave gabber RLC",
+    "Mode": "0"
+  },
+  "audioDurationMs": 295848.0725623582,
+  "redLines": [
+    {
+      "time": 91,
+      "beatLength": 300,
+      "bpm": 200,
+      "durationMs": 295757.0725623582
+    }
+  ],
+  "referenceBpm": 200,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 295757.0725623582,
+  "status": "ok",
+  "prediction": {
+    "bpm": 200,
+    "offsetMs": 420,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 283,
+    "rawBpm": 400,
+    "rawSegmentCount": 76
+  },
+  "evaluationMs": 2571
+}

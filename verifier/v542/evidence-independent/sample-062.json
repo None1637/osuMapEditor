@@ -1,0 +1,52 @@
+{
+  "id": "sample-062",
+  "directoryName": "293475 Renard vs Kitsune^2 - The Castle",
+  "beatmapFile": "Renard vs Kitsune^2 - The Castle (Nivrad00) [Fortress].osu",
+  "referenceBpm": 200,
+  "predictedBpm": 200,
+  "frozenBpm": 200,
+  "deterministicEvidence": true,
+  "evidence": [
+    {
+      "startMs": 53917,
+      "endMs": 59913,
+      "bpm": 73.045,
+      "points": 3,
+      "maxSupport": 0.22889364510774612,
+      "index": 0,
+      "ratioToPredictedMain": 0.365225,
+      "ratioToAnnotatedMain": 0.365225,
+      "boundary": "interior",
+      "localBpmMin": 73.045,
+      "localBpmMax": 73.045,
+      "medianSupport": 0.2045181691646576,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 30,
+          "first": -0.0017620281532320051,
+          "second": -0.0018462228074353046,
+          "combined": -0.0017898123891190942
+        },
+        "annotatedMain": {
+          "lag": 30,
+          "first": -0.0017620281532320051,
+          "second": -0.0018462228074353046,
+          "combined": -0.0017898123891190942
+        },
+        "evidenceBpm": {
+          "lag": 82.14114586898486,
+          "first": -0.002192799001961393,
+          "second": null,
+          "combined": -0.002192799001961393
+        }
+      },
+      "objectCount": 94,
+      "objectGrid": {
+        "predictedMainHalf": 0.9361702127659575,
+        "annotatedMainHalf": 0.9361702127659575,
+        "evidenceHalf": 0.14893617021276595
+      }
+    }
+  ],
+  "analysisMs": 1046
+}

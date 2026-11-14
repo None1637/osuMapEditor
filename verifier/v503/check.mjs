@@ -40,7 +40,8 @@ section('C: 源码契约');
   assert(/6000 \/ \(\(store\.beatmap\?\.editor\.timelineZoom \|\| 1\) \* 1000\)/.test(read('src/components/BpmDetectDialog.tsx')), 'v505: 默认缩放与上方时间轴一致');
   assert(/formatMsTime\(t\)/.test(pv) && /store\.beatSnap/.test(pv), 'v505: 每 4/1 拍时间标注 + beatSnap 细分刻度');
   const dict = read('src/i18n/dicts/zh-CN/timing.ts');
-  for (const k of ['timing.bpmdetect_spectro', 'timing.bpmdetect_preview']) assert(dict.includes(`'${k}'`), `zh-CN ${k}`);
+  // v524: 未使用的 bpmdetect_spectro 旧键已删除, 仅校验仍在使用的 preview
+  assert(dict.includes("'timing.bpmdetect_preview'"), 'zh-CN timing.bpmdetect_preview');
 }
 
 section('D: CDP 预览');

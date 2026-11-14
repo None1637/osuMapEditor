@@ -1,0 +1,42 @@
+{
+  "id": "sample-081",
+  "directoryName": "375910 Shiena Nishizawa - Brand-new World",
+  "beatmapFile": "Shiena Nishizawa - Brand-new World (AtHeoN) [Akitoshi's Insane].osu",
+  "metadata": {
+    "Title": "Brand-new World",
+    "TitleUnicode": "Brand-new World",
+    "Artist": "Shiena Nishizawa",
+    "ArtistUnicode": "Shiena Nishizawa",
+    "Creator": "AtHeoN",
+    "Version": "Akitoshi's Insane",
+    "Source": "学戦都市アスタリスク",
+    "Tags": "THE ASTERISK WAR The Academy City on the Water  Gakusen Toshi Asterisk",
+    "BeatmapID": "939738",
+    "BeatmapSetID": "375910",
+    "Mode": "0"
+  },
+  "audioDurationMs": 249733.3333333333,
+  "redLines": [
+    {
+      "time": 619,
+      "beatLength": 292.682926829268,
+      "bpm": 205.0000000000002,
+      "durationMs": 249114.3333333333
+    }
+  ],
+  "referenceBpm": 205.0000000000002,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 249114.3333333333,
+  "status": "ok",
+  "prediction": {
+    "bpm": 205.05,
+    "offsetMs": 363,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 212,
+    "rawBpm": 410.1,
+    "rawSegmentCount": 266
+  },
+  "evaluationMs": 2350
+}

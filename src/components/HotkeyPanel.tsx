@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
-import { DraggableDialog } from './DraggableDialog';
+import { DialogButton, DraggableDialog } from './DraggableDialog';
+import { Plus, RotateCcw, X } from 'lucide-react';
+import { UiAutoControl, UiAutoIcon, UiAutoText } from './uiLayout/UiControl'; // v534
 import { store, useEditor } from '@/osu/store';
 // v386: 「通用」区两个 editorPrefs 开关挪到菜单栏「设置」菜单 (checkbox 菜单项), 本面板不再含偏好开关
 import { useT } from '@/i18n';
@@ -113,7 +115,7 @@ export function HotkeyPanel() {
                   <span className="w-48 shrink-0 text-sm text-osu-text"> {/* v293: 13px→14px */}
                     {actionLabel(a)}
                     {overridden && (
-                      <button
+                      <UiAutoControl localId={`action.${a.id}.reset`} kind="button" defaultIcon="lucide:RotateCcw"><button
                         className="ml-1 cursor-pointer text-osu-textdim hover:text-osu-yellow"
                         title={t('hotkey.reset_default', 'Reset to Default')}
                         data-testid={`hotkey-reset-${a.id}`}
@@ -123,8 +125,8 @@ export function HotkeyPanel() {
                           store.emit(); // v321 (F21)
                         }}
                       >
-                        ⟲
-                      </button>
+                        <UiAutoIcon localId={`action.${a.id}.reset`}><RotateCcw className="w-3.5 h-3.5" /></UiAutoIcon>
+                      </button></UiAutoControl>
                     )}
                   </span>
                   <span className="flex flex-1 flex-wrap items-center justify-end gap-1">
@@ -149,7 +151,7 @@ export function HotkeyPanel() {
                       <>
                         {binds.map((b, i) => (
                           <span key={`${b}-${i}`} className="flex items-center">
-                            <button
+                            <UiAutoControl localId={`action.${a.id}.binding.${i}`} kind="button"><button
                               className={`cursor-pointer rounded border px-1.5 py-0.5 font-mono text-[13px] ${ // v293: 12→13px
                                 overridden
                                   ? 'border-osu-yellow/50 text-osu-yellow hover:bg-osu-yellow/10'
@@ -162,10 +164,10 @@ export function HotkeyPanel() {
                                 setCapture({ id: a.id, index: i });
                               }}
                             >
-                              {formatCombo(b)}
-                            </button>
+                              <UiAutoText localId={`action.${a.id}.binding.${i}`}>{formatCombo(b)}</UiAutoText>
+                            </button></UiAutoControl>
                             {overridden && (
-                              <button
+                              <UiAutoControl localId={`action.${a.id}.unbind.${i}`} kind="button" defaultIcon="lucide:X"><button
                                 className="ml-0.5 cursor-pointer text-[11px] text-osu-textdim hover:text-osu-red"
                                 title={t('hotkey.remove_binding', 'Remove this binding (removing the last one restores defaults)')}
                                 data-testid={`hotkey-unbind-${a.id}`}
@@ -178,13 +180,13 @@ export function HotkeyPanel() {
                                   store.emit();
                                 }}
                               >
-                                ×
-                              </button>
+                                <UiAutoIcon localId={`action.${a.id}.unbind.${i}`}><X className="w-3 h-3" /></UiAutoIcon>
+                              </button></UiAutoControl>
                             )}
                           </span>
                         ))}
                         {/* v358: 追加绑定 — 自定义也可像默认一样绑多个键 */}
-                        <button
+                        <UiAutoControl localId={`action.${a.id}.add`} kind="button" defaultIcon="lucide:Plus"><button
                           className="cursor-pointer rounded border border-dashed border-osu-border px-1.5 py-0.5 font-mono text-[13px] text-osu-textdim hover:border-osu-yellow hover:text-osu-yellow"
                           title={t('hotkey.add_binding', 'Add another binding')}
                           data-testid={`hotkey-add-${a.id}`}
@@ -193,8 +195,8 @@ export function HotkeyPanel() {
                             setCapture({ id: a.id, index: null });
                           }}
                         >
-                          +
-                        </button>
+                          <UiAutoIcon localId={`action.${a.id}.add`}><Plus className="w-3.5 h-3.5" /></UiAutoIcon>
+                        </button></UiAutoControl>
                       </>
                     )}
                   </span>
@@ -231,17 +233,14 @@ export function HotkeyPanel() {
       </div>
       <div className="mt-2 flex items-center justify-between">
         <span className="text-[11px] text-osu-textdim">{t('hotkey.footer_hint', 'Click a binding and press the new combo to rebind; "+" binds an additional key for the same action; kept after closing the editor')}</span> {/* v293: 10→11px */}
-        <button
+        <DialogButton uiId="reset-all" textKey="hotkey.reset_all"
           className="cursor-pointer rounded border border-osu-border px-2 py-0.5 text-[13px] text-osu-textdim hover:text-osu-text"
           data-testid="hotkey-reset-all"
           onClick={() => {
             resetAllHotkeys();
             setConflict(null);
             setTick((t) => t + 1);
-          }}
-        >
-          {t('hotkey.reset_all', 'Reset All to Defaults')}
-        </button>
+          }}>Reset All to Defaults</DialogButton>
       </div>
     </DraggableDialog>
   );

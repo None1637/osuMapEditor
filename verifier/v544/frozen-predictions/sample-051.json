@@ -1,0 +1,42 @@
+{
+  "id": "sample-051",
+  "directoryName": "773330 Nanamori-chu  Goraku-bu - Happy Time wa Owaranai (1)",
+  "beatmapFile": "Nanamori-chu  Goraku-bu - Happy Time wa Owaranai (eiri-) [Dash's Extra].osu",
+  "metadata": {
+    "Title": "Happy Time wa Owaranai",
+    "TitleUnicode": "ハッピータイムは終わらない",
+    "Artist": "Nanamori-chu * Goraku-bu",
+    "ArtistUnicode": "七森中☆ごらく部",
+    "Creator": "eiri-",
+    "Version": "Dash's Extra",
+    "Source": "ゆるゆり",
+    "Tags": "Ayyri Realazy Real Dashyy- Dash hypercyte hyper lit120 -Hakurei- byd bite you death Naotoshi Nao Tomori Shiinoha Kotone Tomadoi Sotarks YuruYuri 三上枝織 大坪由佳 津田美波 大久保瑠美 Mikami Shiori Otsubo Yuka Tsuda Minami Okubo Rumi 赤座あかり Akaza Akari 歳納京子 Toshino Kyoko 船見結衣 Funami Yui 吉川ちなつ Yoshikawa Chinatsu YRYR Yuru Yuri",
+    "BeatmapID": "1656870",
+    "BeatmapSetID": "773330",
+    "Mode": "0"
+  },
+  "audioDurationMs": 137703.67346938775,
+  "redLines": [
+    {
+      "time": 1635,
+      "beatLength": 315.789473684211,
+      "bpm": 189.99999999999974,
+      "durationMs": 136068.67346938775
+    }
+  ],
+  "referenceBpm": 189.99999999999974,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 136068.67346938775,
+  "status": "ok",
+  "prediction": {
+    "bpm": 190,
+    "offsetMs": 244,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 130,
+    "rawBpm": 380,
+    "rawSegmentCount": 49
+  },
+  "evaluationMs": 1405
+}

@@ -1,0 +1,44 @@
+{
+  "id": "sample-063",
+  "directoryName": "29508 Tatsh feat. Hoshino Kanako - Hakanaku Chiriyuku Yozakura",
+  "beatmapFile": "Tatsh feat. Hoshino Kanako - Hakanaku Chiriyuku Yozakura (Expressoeve) [Insane].osu",
+  "metadata": {
+    "Title": "Hakanaku Chiriyuku Yozakura",
+    "Artist": "Tatsh feat. Hoshino Kanako",
+    "Creator": "Expressoeve",
+    "Version": "Insane",
+    "Source": "Touhou",
+    "Tags": "saigyouji yuyuko c79  Bloom Nobly, Cherry Blossoms of Sumizome ~ Border of Life",
+    "Mode": "0"
+  },
+  "audioDurationMs": 193306.1224489796,
+  "redLines": [
+    {
+      "time": 1908,
+      "beatLength": 392.156862745098,
+      "bpm": 153,
+      "durationMs": 87058
+    },
+    {
+      "time": 88966,
+      "beatLength": 392.156862745098,
+      "bpm": 153,
+      "durationMs": 104340.12244897959
+    }
+  ],
+  "referenceBpm": 153,
+  "referenceVariable": false,
+  "referenceRedLineCount": 2,
+  "referenceCoverageMs": 191398.1224489796,
+  "status": "ok",
+  "prediction": {
+    "bpm": 153,
+    "offsetMs": 760,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 190,
+    "rawBpm": 306,
+    "rawSegmentCount": 43
+  },
+  "evaluationMs": 1775
+}

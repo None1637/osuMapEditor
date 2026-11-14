@@ -1,0 +1,188 @@
+{
+  "id": "sample-027",
+  "directoryName": "76934 SYNCART'S - Innocent doll",
+  "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\76934 SYNCART'S - Innocent doll",
+  "status": "ok",
+  "referenceBpm": 80,
+  "referenceVariable": true,
+  "predictedBpm": 80,
+  "predictedVariable": false,
+  "variableLines": [
+    {
+      "time": 279484,
+      "beatLength": 789.473684210526,
+      "bpm": 76.00000000000003,
+      "durationMs": 1578
+    },
+    {
+      "time": 281062,
+      "beatLength": 821.917808219178,
+      "bpm": 73,
+      "durationMs": 13346.072562358284
+    }
+  ],
+  "trueVariableMs": 14924.072562358284,
+  "flaggedWindowCount": 84,
+  "flaggedWindowsOnVariable": 4,
+  "rawCandidateCount": 5,
+  "rawCandidatesOnVariable": 0,
+  "finalEvidenceCount": 0,
+  "finalEvidenceOnVariable": 0,
+  "candidates": [
+    {
+      "startMs": 24961,
+      "endMs": 30958,
+      "bpm": 105.469,
+      "points": 3,
+      "maxSupport": 0.1368948785882822,
+      "localGridCoverage": 0.09411764705882353,
+      "rejection": "weak_short",
+      "independentMainScore": 0.04395934761866797,
+      "independentLocalScore": -0.04470138054637918,
+      "variableOverlapMs": 0,
+      "overlapsVariable": false,
+      "tripletVotes": [
+        {
+          "timeMs": 26961.26984126984,
+          "bpm": 104.933,
+          "localGridCoverage": 0.08333333333333333,
+          "tripletGridCoverage": 0.2976190476190476,
+          "tripletGridHalfCoverage": 0.17857142857142858,
+          "tripletGridDoubleCoverage": 0.5833333333333334
+        },
+        {
+          "timeMs": 27959.72789115646,
+          "bpm": 105.469,
+          "localGridCoverage": 0.09411764705882353,
+          "tripletGridCoverage": 0.29411764705882354,
+          "tripletGridHalfCoverage": 0.16470588235294117,
+          "tripletGridDoubleCoverage": 0.5176470588235295
+        }
+      ]
+    },
+    {
+      "startMs": 34946,
+      "endMs": 41941,
+      "bpm": 73.045,
+      "points": 4,
+      "maxSupport": 0.22811689807128963,
+      "localGridCoverage": 0.08333333333333333,
+      "rejection": "insufficient_margin",
+      "independentMainScore": 0.11131342667275171,
+      "independentLocalScore": 0.02097679208686962,
+      "variableOverlapMs": 0,
+      "overlapsVariable": false,
+      "tripletVotes": [
+        {
+          "timeMs": 37944.30839002268,
+          "bpm": 73.045,
+          "localGridCoverage": 0.1076923076923077,
+          "tripletGridCoverage": 0.3230769230769231,
+          "tripletGridHalfCoverage": 0.16923076923076924,
+          "tripletGridDoubleCoverage": 0.6
+        },
+        {
+          "timeMs": 38942.7664399093,
+          "bpm": 68.906,
+          "localGridCoverage": 0.08333333333333333,
+          "tripletGridCoverage": 0.2916666666666667,
+          "tripletGridHalfCoverage": 0.16666666666666666,
+          "tripletGridDoubleCoverage": 0.5625
+        }
+      ]
+    },
+    {
+      "startMs": 98847,
+      "endMs": 104844,
+      "bpm": 166.709,
+      "points": 3,
+      "maxSupport": 0.08653949819462162,
+      "localGridCoverage": 0.10227272727272728,
+      "rejection": "weak_short",
+      "independentMainScore": 0.2302536412373558,
+      "independentLocalScore": 0.04793313400926685,
+      "variableOverlapMs": 0,
+      "overlapsVariable": false,
+      "tripletVotes": [
+        {
+          "timeMs": 100847.16553287982,
+          "bpm": 166.709,
+          "localGridCoverage": 0.10824742268041238,
+          "tripletGridCoverage": 0.27835051546391754,
+          "tripletGridHalfCoverage": 0.13917525773195877,
+          "tripletGridDoubleCoverage": 0.5103092783505154
+        },
+        {
+          "timeMs": 101845.62358276643,
+          "bpm": 159.505,
+          "localGridCoverage": 0.0967741935483871,
+          "tripletGridCoverage": 0.2903225806451613,
+          "tripletGridHalfCoverage": 0.15053763440860216,
+          "tripletGridDoubleCoverage": 0.510752688172043
+        }
+      ]
+    },
+    {
+      "startMs": 200690,
+      "endMs": 206687,
+      "bpm": 107.666,
+      "points": 3,
+      "maxSupport": 0.08204090086047987,
+      "localGridCoverage": 0.0748663101604278,
+      "rejection": "weak_short",
+      "independentMainScore": 0.19830375314546012,
+      "independentLocalScore": 0.10401822822390104,
+      "variableOverlapMs": 0,
+      "overlapsVariable": false,
+      "tripletVotes": [
+        {
+          "timeMs": 203688.3446712018,
+          "bpm": 107.666,
+          "localGridCoverage": 0.06989247311827956,
+          "tripletGridCoverage": 0.2903225806451613,
+          "tripletGridHalfCoverage": 0.15591397849462366,
+          "tripletGridDoubleCoverage": 0.543010752688172
+        },
+        {
+          "timeMs": 204686.80272108843,
+          "bpm": 110.545,
+          "localGridCoverage": 0.08900523560209424,
+          "tripletGridCoverage": 0.27225130890052357,
+          "tripletGridHalfCoverage": 0.14136125654450263,
+          "tripletGridDoubleCoverage": 0.5287958115183246
+        }
+      ]
+    },
+    {
+      "startMs": 234637,
+      "endMs": 240634,
+      "bpm": 62.078,
+      "points": 3,
+      "maxSupport": 0.3943470460319666,
+      "localGridCoverage": 0.0851063829787234,
+      "rejection": "weak_short",
+      "independentMainScore": 0.12649005540347263,
+      "independentLocalScore": -0.049985925606958,
+      "variableOverlapMs": 0,
+      "overlapsVariable": false,
+      "tripletVotes": [
+        {
+          "timeMs": 236637.46031746033,
+          "bpm": 60.621,
+          "localGridCoverage": 0.0851063829787234,
+          "tripletGridCoverage": 0.3617021276595745,
+          "tripletGridHalfCoverage": 0.2127659574468085,
+          "tripletGridDoubleCoverage": 0.6170212765957447
+        },
+        {
+          "timeMs": 237635.91836734692,
+          "bpm": 62.078,
+          "localGridCoverage": 0.07547169811320754,
+          "tripletGridCoverage": 0.33962264150943394,
+          "tripletGridHalfCoverage": 0.20754716981132076,
+          "tripletGridDoubleCoverage": 0.5660377358490566
+        }
+      ]
+    }
+  ]
+}

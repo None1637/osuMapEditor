@@ -1,0 +1,42 @@
+{
+  "id": "sample-061",
+  "directoryName": "201607 sound piercer - Candy & Baguette",
+  "beatmapFile": "sound piercer - Candy & Baguette (iJinjin) [4K Insane].osu",
+  "metadata": {
+    "Title": "Candy & Baguette",
+    "TitleUnicode": "Candy & Baguette",
+    "Artist": "sound piercer",
+    "ArtistUnicode": "sound piercer",
+    "Creator": "iJinjin",
+    "Version": "4K Insane",
+    "Source": "BMS",
+    "Tags": "",
+    "BeatmapID": "477331",
+    "BeatmapSetID": "201607",
+    "Mode": "3"
+  },
+  "audioDurationMs": 132744.39909297053,
+  "redLines": [
+    {
+      "time": 1320,
+      "beatLength": 335.195530726257,
+      "bpm": 179,
+      "durationMs": 131424.39909297053
+    }
+  ],
+  "referenceBpm": 179,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 131424.39909297053,
+  "status": "ok",
+  "prediction": {
+    "bpm": 178.95,
+    "offsetMs": 1179,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 122,
+    "rawBpm": 357.9,
+    "rawSegmentCount": 38
+  },
+  "evaluationMs": 1267
+}

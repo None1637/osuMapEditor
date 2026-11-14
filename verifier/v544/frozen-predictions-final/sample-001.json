@@ -1,0 +1,144 @@
+{
+  "id": "sample-001",
+  "directoryName": "673574 Camellia - Shun no Shifudo o Ikashita Kare Fumi Paeria",
+  "beatmapFile": "Camellia - Shun no Shifudo o Ikashita Kare Fumi Paeria (SparkinG) [DOWN SLOW!].osu",
+  "metadata": {
+    "Title": "Shun no Shifudo o Ikashita Kare Fumi Paeria",
+    "TitleUnicode": "旬のシーフードを活かしたカレー風味パエリア ～808シェフのTwerkとTrap仕立て～",
+    "Artist": "Camellia",
+    "ArtistUnicode": "かめりあ",
+    "Creator": "SparkinG",
+    "Version": "DOWN SLOW!",
+    "Source": "",
+    "Tags": "DanteD3mon Sparking camellia drumstep down slow octopus",
+    "BeatmapID": "1425476",
+    "BeatmapSetID": "673574",
+    "Mode": "0"
+  },
+  "audioDurationMs": 280613.3333333334,
+  "redLines": [
+    {
+      "time": 278,
+      "beatLength": 272.727272727273,
+      "bpm": 219.9999999999998,
+      "durationMs": 122181
+    },
+    {
+      "time": 122459,
+      "beatLength": 272.727272727273,
+      "bpm": 219.9999999999998,
+      "durationMs": 52363
+    },
+    {
+      "time": 174822,
+      "beatLength": 405.405405405405,
+      "bpm": 148.00000000000014,
+      "durationMs": 810
+    },
+    {
+      "time": 175632,
+      "beatLength": 401.785714285714,
+      "bpm": 149.33333333333343,
+      "durationMs": 803
+    },
+    {
+      "time": 176435,
+      "beatLength": 398.230088495575,
+      "bpm": 150.66666666666674,
+      "durationMs": 796
+    },
+    {
+      "time": 177231,
+      "beatLength": 394.736842105263,
+      "bpm": 152.00000000000006,
+      "durationMs": 789
+    },
+    {
+      "time": 178020,
+      "beatLength": 398.229207457506,
+      "bpm": 150.66699999999986,
+      "durationMs": 796
+    },
+    {
+      "time": 178816,
+      "beatLength": 401.786611130828,
+      "bpm": 149.33300000000014,
+      "durationMs": 803
+    },
+    {
+      "time": 179619,
+      "beatLength": 405.405405405405,
+      "bpm": 148.00000000000014,
+      "durationMs": 810
+    },
+    {
+      "time": 180429,
+      "beatLength": 409.090909090909,
+      "bpm": 146.66666666666669,
+      "durationMs": 818
+    },
+    {
+      "time": 181247,
+      "beatLength": 193.548387096774,
+      "bpm": 310.0000000000003,
+      "durationMs": 774
+    },
+    {
+      "time": 182021,
+      "beatLength": 200,
+      "bpm": 300,
+      "durationMs": 79200
+    },
+    {
+      "time": 261221,
+      "beatLength": 218.181818181818,
+      "bpm": 275.0000000000002,
+      "durationMs": 872
+    },
+    {
+      "time": 262093,
+      "beatLength": 240,
+      "bpm": 250,
+      "durationMs": 960
+    },
+    {
+      "time": 263053,
+      "beatLength": 285.714285714286,
+      "bpm": 209.99999999999977,
+      "durationMs": 1142
+    },
+    {
+      "time": 264195,
+      "beatLength": 375,
+      "bpm": 160,
+      "durationMs": 750
+    },
+    {
+      "time": 264945,
+      "beatLength": 413.793103448276,
+      "bpm": 144.99999999999994,
+      "durationMs": 413
+    },
+    {
+      "time": 265358,
+      "beatLength": 461.538461538462,
+      "bpm": 129.99999999999986,
+      "durationMs": 15255.333333333372
+    }
+  ],
+  "referenceBpm": 219.9999999999998,
+  "referenceVariable": true,
+  "referenceRedLineCount": 18,
+  "referenceCoverageMs": 174544,
+  "status": "ok",
+  "prediction": {
+    "bpm": 220,
+    "offsetMs": 317,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 261,
+    "rawBpm": 220,
+    "rawSegmentCount": 29
+  },
+  "evaluationMs": 2721
+}

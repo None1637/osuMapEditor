@@ -1,0 +1,1099 @@
+[
+  {
+    "id": "sample-019",
+    "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\Sokoninaru_-_Gou_Ni_Moyu",
+    "beatmapFile": "Sokoninaru - Gou Ni Moyu (ReflectGoku) [backup].osu",
+    "referenceBpm": 300,
+    "predictedBpm": 150.1,
+    "referenceVariable": true,
+    "predictedVariable": false,
+    "category": "bpm_and_classification_error",
+    "redLines": [
+      {
+        "time": 430,
+        "beatLength": 400,
+        "bpm": 150,
+        "durationMs": 23200
+      },
+      {
+        "time": 23630,
+        "beatLength": 200,
+        "bpm": 300,
+        "durationMs": 216697.61904761902
+      }
+    ],
+    "evidence": []
+  },
+  {
+    "id": "sample-035",
+    "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\267779",
+    "beatmapFile": "Marc-Andre' Hamelin - Circus Galop (BMS ver.) (spro) [].osu",
+    "referenceBpm": 180.0000000000002,
+    "predictedBpm": 180,
+    "referenceVariable": true,
+    "predictedVariable": false,
+    "category": "variable_false_negative",
+    "redLines": [
+      {
+        "time": -20,
+        "beatLength": 333.333333333333,
+        "bpm": 180.0000000000002,
+        "durationMs": 17646
+      },
+      {
+        "time": 17646,
+        "beatLength": 333.333333333333,
+        "bpm": 180.0000000000002,
+        "durationMs": 12999
+      },
+      {
+        "time": 30645,
+        "beatLength": 333.333333333333,
+        "bpm": 180.0000000000002,
+        "durationMs": 5834
+      },
+      {
+        "time": 36479,
+        "beatLength": 333.333333333333,
+        "bpm": 180.0000000000002,
+        "durationMs": 32749
+      },
+      {
+        "time": 69228,
+        "beatLength": 333.333333333333,
+        "bpm": 180.0000000000002,
+        "durationMs": 6583
+      },
+      {
+        "time": 75811,
+        "beatLength": 333.333333333333,
+        "bpm": 180.0000000000002,
+        "durationMs": 8668
+      },
+      {
+        "time": 84479,
+        "beatLength": 331.491712707182,
+        "bpm": 181.00000000000017,
+        "durationMs": 1987
+      },
+      {
+        "time": 86466,
+        "beatLength": 331.491712707182,
+        "bpm": 181.00000000000017,
+        "durationMs": 37792
+      },
+      {
+        "time": 124258,
+        "beatLength": 342.857142857143,
+        "bpm": 174.99999999999991,
+        "durationMs": 707.9863945578109
+      }
+    ],
+    "evidence": []
+  },
+  {
+    "id": "sample-036",
+    "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\1217337 Kamiyama Yoh - bunny",
+    "beatmapFile": "Kamiyama Yoh - bunny (Keiga) [Insane].osu",
+    "referenceBpm": 128,
+    "predictedBpm": 128,
+    "referenceVariable": true,
+    "predictedVariable": false,
+    "category": "variable_false_negative",
+    "redLines": [
+      {
+        "time": 585,
+        "beatLength": 468.75,
+        "bpm": 128,
+        "durationMs": 157031
+      },
+      {
+        "time": 157616,
+        "beatLength": 441.176470588235,
+        "bpm": 136.00000000000009,
+        "durationMs": 441
+      },
+      {
+        "time": 158057,
+        "beatLength": 468.75,
+        "bpm": 128,
+        "durationMs": 6590
+      },
+      {
+        "time": 164647,
+        "beatLength": 468.75,
+        "bpm": 128,
+        "durationMs": 49844.42857142858
+      }
+    ],
+    "evidence": []
+  },
+  {
+    "id": "sample-038",
+    "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\404447 Two Steps From Hell - Winterspell (Nightcore Mix)",
+    "beatmapFile": "Two Steps From Hell - Winterspell (Nightcore Mix) (Nayrus) [Winterwind].osu",
+    "referenceBpm": 160.30000000000015,
+    "predictedBpm": 120.2,
+    "referenceVariable": false,
+    "predictedVariable": true,
+    "category": "bpm_and_classification_error",
+    "redLines": [
+      {
+        "time": 1395,
+        "beatLength": 374.298190892077,
+        "bpm": 160.30000000000015,
+        "durationMs": 150298.06122448982
+      }
+    ],
+    "evidence": [
+      {
+        "startMs": 998,
+        "endMs": 14983,
+        "bpm": 160.247,
+        "points": 11,
+        "maxSupport": 0.12777702661891424,
+        "localGridCoverage": 0.18571428571428572,
+        "independentMainScore": 0.2376519948467123,
+        "independentLocalScore": 0.5391843158884906
+      }
+    ]
+  },
+  {
+    "id": "sample-050",
+    "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\1756972 ReeK - SUPER SEX DELIVERY 2 - ENTER THE CUM ZONE",
+    "beatmapFile": "ReeK - SUPER SEX DELIVERY 2 - ENTER THE CUM ZONE (Ryax) [YOUR CUM WON'T LAST].osu",
+    "referenceBpm": 150,
+    "predictedBpm": 74.9,
+    "referenceVariable": true,
+    "predictedVariable": false,
+    "category": "bpm_and_classification_error",
+    "redLines": [
+      {
+        "time": 458,
+        "beatLength": 400,
+        "bpm": 150,
+        "durationMs": 51200
+      },
+      {
+        "time": 51658,
+        "beatLength": 796.019900497512,
+        "bpm": 75.37500000000004,
+        "durationMs": 398
+      },
+      {
+        "time": 52056,
+        "beatLength": 776.699029126214,
+        "bpm": 77.24999999999996,
+        "durationMs": 388
+      },
+      {
+        "time": 52444,
+        "beatLength": 712.166172106825,
+        "bpm": 84.24999999999999,
+        "durationMs": 356
+      },
+      {
+        "time": 52800,
+        "beatLength": 657.534246575342,
+        "bpm": 91.25000000000007,
+        "durationMs": 328
+      },
+      {
+        "time": 53128,
+        "beatLength": 609.137055837563,
+        "bpm": 98.50000000000007,
+        "durationMs": 304
+      },
+      {
+        "time": 53432,
+        "beatLength": 568.720379146919,
+        "bpm": 105.50000000000009,
+        "durationMs": 284
+      },
+      {
+        "time": 53716,
+        "beatLength": 528.63436123348,
+        "bpm": 113.50000000000003,
+        "durationMs": 264
+      },
+      {
+        "time": 53980,
+        "beatLength": 497.92531120332,
+        "bpm": 120.49999999999987,
+        "durationMs": 248
+      },
+      {
+        "time": 54228,
+        "beatLength": 456.273764258555,
+        "bpm": 131.50000000000003,
+        "durationMs": 228
+      },
+      {
+        "time": 54456,
+        "beatLength": 441.176470588235,
+        "bpm": 136.00000000000009,
+        "durationMs": 220
+      },
+      {
+        "time": 54676,
+        "beatLength": 400,
+        "bpm": 150,
+        "durationMs": 200
+      },
+      {
+        "time": 54876,
+        "beatLength": 392.156862745098,
+        "bpm": 153,
+        "durationMs": 196
+      },
+      {
+        "time": 55072,
+        "beatLength": 365.853658536585,
+        "bpm": 164.00000000000017,
+        "durationMs": 182
+      },
+      {
+        "time": 55254,
+        "beatLength": 340.909090909091,
+        "bpm": 175.99999999999994,
+        "durationMs": 170
+      },
+      {
+        "time": 55424,
+        "beatLength": 329.67032967033,
+        "bpm": 181.99999999999983,
+        "durationMs": 164
+      },
+      {
+        "time": 55588,
+        "beatLength": 309.278350515464,
+        "bpm": 193.99999999999994,
+        "durationMs": 154
+      },
+      {
+        "time": 55742,
+        "beatLength": 297.029702970297,
+        "bpm": 202,
+        "durationMs": 148
+      },
+      {
+        "time": 55890,
+        "beatLength": 280.373831775701,
+        "bpm": 213.99999999999997,
+        "durationMs": 140
+      },
+      {
+        "time": 56030,
+        "beatLength": 269.058295964126,
+        "bpm": 222.99999999999966,
+        "durationMs": 134
+      },
+      {
+        "time": 56164,
+        "beatLength": 256.410256410256,
+        "bpm": 234.00000000000037,
+        "durationMs": 128
+      },
+      {
+        "time": 56292,
+        "beatLength": 248.96265560166,
+        "bpm": 240.99999999999974,
+        "durationMs": 124
+      },
+      {
+        "time": 56416,
+        "beatLength": 228.136882129278,
+        "bpm": 262.9999999999995,
+        "durationMs": 114
+      },
+      {
+        "time": 56530,
+        "beatLength": 228.136882129278,
+        "bpm": 262.9999999999995,
+        "durationMs": 114
+      },
+      {
+        "time": 56644,
+        "beatLength": 221.40221402214,
+        "bpm": 271.0000000000003,
+        "durationMs": 110
+      },
+      {
+        "time": 56754,
+        "beatLength": 200.66889632107,
+        "bpm": 299.00000000000034,
+        "durationMs": 100
+      },
+      {
+        "time": 56854,
+        "beatLength": 196.72131147541,
+        "bpm": 304.9999999999997,
+        "durationMs": 98
+      },
+      {
+        "time": 56952,
+        "beatLength": 196.72131147541,
+        "bpm": 304.9999999999997,
+        "durationMs": 98
+      },
+      {
+        "time": 57050,
+        "beatLength": 188.679245283019,
+        "bpm": 317.99999999999983,
+        "durationMs": 94
+      },
+      {
+        "time": 57144,
+        "beatLength": 180.18018018018,
+        "bpm": 333.00000000000034,
+        "durationMs": 90
+      },
+      {
+        "time": 57234,
+        "beatLength": 169.014084507042,
+        "bpm": 355.0000000000005,
+        "durationMs": 84
+      },
+      {
+        "time": 57318,
+        "beatLength": 168.067226890756,
+        "bpm": 357.0000000000007,
+        "durationMs": 84
+      },
+      {
+        "time": 57402,
+        "beatLength": 168.067226890756,
+        "bpm": 357.0000000000007,
+        "durationMs": 84
+      },
+      {
+        "time": 57486,
+        "beatLength": 164.383561643836,
+        "bpm": 364.99999999999915,
+        "durationMs": 82
+      },
+      {
+        "time": 57568,
+        "beatLength": 144.578313253012,
+        "bpm": 415.00000000000017,
+        "durationMs": 72
+      },
+      {
+        "time": 57640,
+        "beatLength": 418.118466898955,
+        "bpm": 143.49999999999991,
+        "durationMs": 418
+      },
+      {
+        "time": 58058,
+        "beatLength": 400,
+        "bpm": 150,
+        "durationMs": 360319.1428571429
+      }
+    ],
+    "evidence": []
+  },
+  {
+    "id": "sample-059",
+    "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\2056719 Noctem - Dichotomy of Malignancy",
+    "beatmapFile": "Noctem - Dichotomy of Malignancy (Mahan) [Torment].osu",
+    "referenceBpm": 200,
+    "predictedBpm": 198.95,
+    "referenceVariable": true,
+    "predictedVariable": false,
+    "category": "bpm_and_classification_error",
+    "redLines": [
+      {
+        "time": 525,
+        "beatLength": 300,
+        "bpm": 200,
+        "durationMs": 249600
+      },
+      {
+        "time": 250125,
+        "beatLength": 450.011250281257,
+        "bpm": 133.33,
+        "durationMs": 32091.0544217687
+      }
+    ],
+    "evidence": []
+  },
+  {
+    "id": "sample-060",
+    "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\9137 SHK - Death Moon",
+    "beatmapFile": "SHK - Death Moon (Dr_dy) [SHD].osu",
+    "referenceBpm": 160,
+    "predictedBpm": 159.55,
+    "referenceVariable": true,
+    "predictedVariable": false,
+    "category": "bpm_and_classification_error",
+    "redLines": [
+      {
+        "time": 85,
+        "beatLength": 375,
+        "bpm": 160,
+        "durationMs": 6000
+      },
+      {
+        "time": 6085,
+        "beatLength": 300,
+        "bpm": 200,
+        "durationMs": 1500
+      },
+      {
+        "time": 7585,
+        "beatLength": 375,
+        "bpm": 160,
+        "durationMs": 1500
+      },
+      {
+        "time": 9085,
+        "beatLength": 250,
+        "bpm": 240,
+        "durationMs": 1500
+      },
+      {
+        "time": 10585,
+        "beatLength": 375,
+        "bpm": 160,
+        "durationMs": 4515
+      },
+      {
+        "time": 15100,
+        "beatLength": 750,
+        "bpm": 80,
+        "durationMs": 750
+      },
+      {
+        "time": 15850,
+        "beatLength": 375,
+        "bpm": 160,
+        "durationMs": 35235
+      },
+      {
+        "time": 51085,
+        "beatLength": 375,
+        "bpm": 160,
+        "durationMs": 2250
+      },
+      {
+        "time": 53335,
+        "beatLength": 379.746835443038,
+        "bpm": 158,
+        "durationMs": 189
+      },
+      {
+        "time": 53524,
+        "beatLength": 384.615384615385,
+        "bpm": 155.99999999999986,
+        "durationMs": 192
+      },
+      {
+        "time": 53716,
+        "beatLength": 389.61038961039,
+        "bpm": 153.99999999999986,
+        "durationMs": 194
+      },
+      {
+        "time": 53910,
+        "beatLength": 394.736842105263,
+        "bpm": 152.00000000000006,
+        "durationMs": 197
+      },
+      {
+        "time": 54107,
+        "beatLength": 400,
+        "bpm": 150,
+        "durationMs": 200
+      },
+      {
+        "time": 54307,
+        "beatLength": 405.405405405405,
+        "bpm": 148.00000000000014,
+        "durationMs": 202
+      },
+      {
+        "time": 54509,
+        "beatLength": 410.958904109589,
+        "bpm": 146,
+        "durationMs": 205
+      },
+      {
+        "time": 54714,
+        "beatLength": 416.666666666667,
+        "bpm": 143.9999999999999,
+        "durationMs": 208
+      },
+      {
+        "time": 54922,
+        "beatLength": 422.535211267606,
+        "bpm": 141.9999999999999,
+        "durationMs": 211
+      },
+      {
+        "time": 55133,
+        "beatLength": 428.571428571429,
+        "bpm": 139.99999999999986,
+        "durationMs": 214
+      },
+      {
+        "time": 55347,
+        "beatLength": 434.782608695652,
+        "bpm": 138.00000000000006,
+        "durationMs": 217
+      },
+      {
+        "time": 55564,
+        "beatLength": 441.176470588235,
+        "bpm": 136.00000000000009,
+        "durationMs": 220
+      },
+      {
+        "time": 55784,
+        "beatLength": 447.761194029851,
+        "bpm": 133.99999999999991,
+        "durationMs": 223
+      },
+      {
+        "time": 56007,
+        "beatLength": 454.545454545455,
+        "bpm": 131.99999999999986,
+        "durationMs": 227
+      },
+      {
+        "time": 56234,
+        "beatLength": 461.538461538462,
+        "bpm": 129.99999999999986,
+        "durationMs": 230
+      },
+      {
+        "time": 56464,
+        "beatLength": 468.75,
+        "bpm": 128,
+        "durationMs": 234
+      },
+      {
+        "time": 56698,
+        "beatLength": 952.380952380952,
+        "bpm": 63.00000000000003,
+        "durationMs": 238
+      },
+      {
+        "time": 56936,
+        "beatLength": 967.741935483871,
+        "bpm": 62,
+        "durationMs": 241
+      },
+      {
+        "time": 57177,
+        "beatLength": 983.606557377049,
+        "bpm": 61.000000000000014,
+        "durationMs": 253
+      },
+      {
+        "time": 57430,
+        "beatLength": 1000,
+        "bpm": 60,
+        "durationMs": 1753
+      },
+      {
+        "time": 59183,
+        "beatLength": 3000,
+        "bpm": 20,
+        "durationMs": 750
+      },
+      {
+        "time": 59933,
+        "beatLength": 375,
+        "bpm": 160,
+        "durationMs": 731
+      },
+      {
+        "time": 60664,
+        "beatLength": 375,
+        "bpm": 160,
+        "durationMs": 39375
+      },
+      {
+        "time": 100039,
+        "beatLength": 500,
+        "bpm": 120,
+        "durationMs": 375
+      },
+      {
+        "time": 100414,
+        "beatLength": 375,
+        "bpm": 160,
+        "durationMs": 375
+      },
+      {
+        "time": 100789,
+        "beatLength": 300,
+        "bpm": 200,
+        "durationMs": 375
+      },
+      {
+        "time": 101164,
+        "beatLength": 750,
+        "bpm": 80,
+        "durationMs": 23250
+      },
+      {
+        "time": 124414,
+        "beatLength": 375,
+        "bpm": 160,
+        "durationMs": 41463.551020408166
+      }
+    ],
+    "evidence": []
+  },
+  {
+    "id": "sample-062",
+    "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\1015663 Roselia - Ringing Bloom",
+    "beatmapFile": "Roselia - Ringing Bloom (Virtue-) [Bouquet for Friends].osu",
+    "referenceBpm": 194.9999999999998,
+    "predictedBpm": 195,
+    "referenceVariable": true,
+    "predictedVariable": false,
+    "category": "variable_false_negative",
+    "redLines": [
+      {
+        "time": 420,
+        "beatLength": 377.358490566038,
+        "bpm": 158.99999999999991,
+        "durationMs": 754
+      },
+      {
+        "time": 1174,
+        "beatLength": 413.793103448276,
+        "bpm": 144.99999999999994,
+        "durationMs": 413
+      },
+      {
+        "time": 1587,
+        "beatLength": 342.857142857143,
+        "bpm": 174.99999999999991,
+        "durationMs": 342
+      },
+      {
+        "time": 1929,
+        "beatLength": 300,
+        "bpm": 200,
+        "durationMs": 300
+      },
+      {
+        "time": 2229,
+        "beatLength": 279.06976744186,
+        "bpm": 215.00000000000037,
+        "durationMs": 837
+      },
+      {
+        "time": 3066,
+        "beatLength": 315.789473684211,
+        "bpm": 189.99999999999974,
+        "durationMs": 315
+      },
+      {
+        "time": 3381,
+        "beatLength": 375,
+        "bpm": 160,
+        "durationMs": 375
+      },
+      {
+        "time": 3756,
+        "beatLength": 389.61038961039,
+        "bpm": 153.99999999999986,
+        "durationMs": 389
+      },
+      {
+        "time": 4145,
+        "beatLength": 983.606557377049,
+        "bpm": 61.000000000000014,
+        "durationMs": 4931
+      },
+      {
+        "time": 9076,
+        "beatLength": 307.692307692308,
+        "bpm": 194.9999999999998,
+        "durationMs": 312009
+      },
+      {
+        "time": 321085,
+        "beatLength": 429.682464658617,
+        "bpm": 139.6380000000001,
+        "durationMs": 859
+      },
+      {
+        "time": 321944,
+        "beatLength": 433.946161746199,
+        "bpm": 138.2660000000001,
+        "durationMs": 433
+      },
+      {
+        "time": 322377,
+        "beatLength": 348.140927447431,
+        "bpm": 172.34399999999985,
+        "durationMs": 348
+      },
+      {
+        "time": 322725,
+        "beatLength": 521.748204316597,
+        "bpm": 114.99799999999995,
+        "durationMs": 521
+      },
+      {
+        "time": 323246,
+        "beatLength": 284.308987007079,
+        "bpm": 211.0380000000002,
+        "durationMs": 284
+      },
+      {
+        "time": 323530,
+        "beatLength": 310.906603656262,
+        "bpm": 192.98399999999978,
+        "durationMs": 310
+      },
+      {
+        "time": 323840,
+        "beatLength": 305.237882056082,
+        "bpm": 196.56800000000024,
+        "durationMs": 610
+      },
+      {
+        "time": 324450,
+        "beatLength": 267.936686560966,
+        "bpm": 223.9334999999997,
+        "durationMs": 133
+      },
+      {
+        "time": 324583,
+        "beatLength": 344.67109760511,
+        "bpm": 174.07900000000018,
+        "durationMs": 172
+      },
+      {
+        "time": 324755,
+        "beatLength": 386.712556556711,
+        "bpm": 155.15400000000017,
+        "durationMs": 193
+      },
+      {
+        "time": 324948,
+        "beatLength": 434.285383401613,
+        "bpm": 138.1579999999999,
+        "durationMs": 434
+      },
+      {
+        "time": 325382,
+        "beatLength": 382.584742520468,
+        "bpm": 156.82800000000012,
+        "durationMs": 382
+      },
+      {
+        "time": 325764,
+        "beatLength": 391.905838090635,
+        "bpm": 153.09799999999993,
+        "durationMs": 391
+      },
+      {
+        "time": 326155,
+        "beatLength": 472.608404552794,
+        "bpm": 126.95500000000007,
+        "durationMs": 472
+      },
+      {
+        "time": 326627,
+        "beatLength": 547.120776911503,
+        "bpm": 109.66500000000005,
+        "durationMs": 547
+      },
+      {
+        "time": 327174,
+        "beatLength": 669.912018221607,
+        "bpm": 89.56399999999998,
+        "durationMs": 652
+      },
+      {
+        "time": 327826,
+        "beatLength": 600,
+        "bpm": 100,
+        "durationMs": 7272.775510204083
+      }
+    ],
+    "evidence": []
+  },
+  {
+    "id": "sample-066",
+    "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\456922 Saki & Rie fu - You & Me",
+    "beatmapFile": "Saki & Rie fu - You & Me (CrystilonZ) [Light Insane].osu",
+    "referenceBpm": 128,
+    "predictedBpm": 128,
+    "referenceVariable": true,
+    "predictedVariable": false,
+    "category": "variable_false_negative",
+    "redLines": [
+      {
+        "time": 769,
+        "beatLength": 468.75,
+        "bpm": 128,
+        "durationMs": 3747
+      },
+      {
+        "time": 4516,
+        "beatLength": 468.75,
+        "bpm": 128,
+        "durationMs": 2810
+      },
+      {
+        "time": 7326,
+        "beatLength": 458.015267175573,
+        "bpm": 130.99999999999986,
+        "durationMs": 933
+      },
+      {
+        "time": 8259,
+        "beatLength": 468.75,
+        "bpm": 128,
+        "durationMs": 30000
+      },
+      {
+        "time": 38259,
+        "beatLength": 465.116279069767,
+        "bpm": 129.0000000000001,
+        "durationMs": 1875
+      },
+      {
+        "time": 40134,
+        "beatLength": 468.75,
+        "bpm": 128,
+        "durationMs": 7031
+      },
+      {
+        "time": 47165,
+        "beatLength": 458.015267175573,
+        "bpm": 130.99999999999986,
+        "durationMs": 469
+      },
+      {
+        "time": 47634,
+        "beatLength": 468.75,
+        "bpm": 128,
+        "durationMs": 16875
+      },
+      {
+        "time": 64509,
+        "beatLength": 459.418070444104,
+        "bpm": 130.60000000000005,
+        "durationMs": 1875
+      },
+      {
+        "time": 66384,
+        "beatLength": 468.75,
+        "bpm": 128,
+        "durationMs": 11246
+      },
+      {
+        "time": 77630,
+        "beatLength": 468.75,
+        "bpm": 128,
+        "durationMs": 1394
+      },
+      {
+        "time": 79024,
+        "beatLength": 468.75,
+        "bpm": 128,
+        "durationMs": 468
+      },
+      {
+        "time": 79492,
+        "beatLength": 468.75,
+        "bpm": 128,
+        "durationMs": 1886
+      },
+      {
+        "time": 81378,
+        "beatLength": 468.75,
+        "bpm": 128,
+        "durationMs": 8719.052154195015
+      }
+    ],
+    "evidence": []
+  },
+  {
+    "id": "sample-068",
+    "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\682351 Aqours - Yuki wa Doko ni Kimi no Mune ni!",
+    "beatmapFile": "Aqours - Yuki wa Doko ni Kimi no Mune ni! (arcwinolivirus) [7K Expert].osu",
+    "referenceBpm": 167.00000000000023,
+    "predictedBpm": 167,
+    "referenceVariable": true,
+    "predictedVariable": false,
+    "category": "variable_false_negative",
+    "redLines": [
+      {
+        "time": 354,
+        "beatLength": 359.281437125748,
+        "bpm": 167.00000000000023,
+        "durationMs": 92514
+      },
+      {
+        "time": 92868,
+        "beatLength": 405.405405405405,
+        "bpm": 148.00000000000014,
+        "durationMs": 202
+      },
+      {
+        "time": 93070,
+        "beatLength": 437.956204379562,
+        "bpm": 137.00000000000003,
+        "durationMs": 218
+      },
+      {
+        "time": 93288,
+        "beatLength": 594.059405940594,
+        "bpm": 101,
+        "durationMs": 297
+      },
+      {
+        "time": 93585,
+        "beatLength": 833.333333333333,
+        "bpm": 72.00000000000003,
+        "durationMs": 416
+      },
+      {
+        "time": 94001,
+        "beatLength": 422.535211267606,
+        "bpm": 141.9999999999999,
+        "durationMs": 845
+      },
+      {
+        "time": 94846,
+        "beatLength": 359.281437125748,
+        "bpm": 167.00000000000023,
+        "durationMs": 6430.734693877559
+      }
+    ],
+    "evidence": []
+  },
+  {
+    "id": "sample-084",
+    "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\2451953 omekyu - omekyu accordion",
+    "beatmapFile": "omekyu - omekyu accordion (Hayakou) [Hayakou's Julaaaan].osu",
+    "referenceBpm": 230.99999999999977,
+    "predictedBpm": 115.7,
+    "referenceVariable": true,
+    "predictedVariable": false,
+    "category": "bpm_and_classification_error",
+    "redLines": [
+      {
+        "time": 385,
+        "beatLength": 246.913580246914,
+        "bpm": 242.9999999999996,
+        "durationMs": 987
+      },
+      {
+        "time": 1372,
+        "beatLength": 254.237288135593,
+        "bpm": 236.00000000000023,
+        "durationMs": 1049
+      },
+      {
+        "time": 2421,
+        "beatLength": 266.666666666667,
+        "bpm": 224.9999999999997,
+        "durationMs": 1066
+      },
+      {
+        "time": 3487,
+        "beatLength": 269.058295964126,
+        "bpm": 222.99999999999966,
+        "durationMs": 1076
+      },
+      {
+        "time": 4563,
+        "beatLength": 254.237288135593,
+        "bpm": 236.00000000000023,
+        "durationMs": 1016
+      },
+      {
+        "time": 5579,
+        "beatLength": 259.74025974026,
+        "bpm": 230.99999999999977,
+        "durationMs": 3116
+      },
+      {
+        "time": 8695,
+        "beatLength": 254.237288135593,
+        "bpm": 236.00000000000023,
+        "durationMs": 2033
+      },
+      {
+        "time": 10728,
+        "beatLength": 259.74025974026,
+        "bpm": 230.99999999999977,
+        "durationMs": 1038
+      },
+      {
+        "time": 11766,
+        "beatLength": 265.486725663717,
+        "bpm": 225.99999999999986,
+        "durationMs": 1061
+      },
+      {
+        "time": 12827,
+        "beatLength": 255.31914893617,
+        "bpm": 235.0000000000002,
+        "durationMs": 2028
+      },
+      {
+        "time": 14855,
+        "beatLength": 246.913580246914,
+        "bpm": 242.9999999999996,
+        "durationMs": 987
+      },
+      {
+        "time": 15842,
+        "beatLength": 257.510729613734,
+        "bpm": 232.99999999999991,
+        "durationMs": 291
+      },
+      {
+        "time": 16133,
+        "beatLength": 258.620689655173,
+        "bpm": 231.99999999999946,
+        "durationMs": 1317.7029478458062
+      }
+    ],
+    "evidence": []
+  },
+  {
+    "id": "sample-089",
+    "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\329149 t+pazolite - Buzy Lake (An Remix)",
+    "beatmapFile": "t+pazolite - Buzy Lake (An Remix) (Musty) [Extra].osu",
+    "referenceBpm": 200,
+    "predictedBpm": 200,
+    "referenceVariable": true,
+    "predictedVariable": false,
+    "category": "variable_false_negative",
+    "redLines": [
+      {
+        "time": -10,
+        "beatLength": 300,
+        "bpm": 200,
+        "durationMs": 145190
+      },
+      {
+        "time": 145190,
+        "beatLength": 4000,
+        "bpm": 15,
+        "durationMs": 1500
+      },
+      {
+        "time": 146690,
+        "beatLength": 300,
+        "bpm": 200,
+        "durationMs": 124190
+      }
+    ],
+    "evidence": []
+  }
+]

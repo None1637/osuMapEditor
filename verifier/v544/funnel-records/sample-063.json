@@ -1,0 +1,51 @@
+{
+  "id": "sample-063",
+  "directoryName": "senya - otogibanashi no karakuri ha,",
+  "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\senya - otogibanashi no karakuri ha,",
+  "status": "ok",
+  "referenceBpm": 133.99999999999991,
+  "referenceVariable": false,
+  "predictedBpm": 134,
+  "predictedVariable": false,
+  "variableLines": [],
+  "trueVariableMs": 0,
+  "flaggedWindowCount": 26,
+  "flaggedWindowsOnVariable": 0,
+  "rawCandidateCount": 1,
+  "rawCandidatesOnVariable": 0,
+  "finalEvidenceCount": 0,
+  "finalEvidenceOnVariable": 0,
+  "candidates": [
+    {
+      "startMs": 227648,
+      "endMs": 233645,
+      "bpm": 89.878,
+      "points": 3,
+      "maxSupport": 0.06742125056548984,
+      "localGridCoverage": 0.06598984771573604,
+      "rejection": "weak_short",
+      "independentMainScore": 0.05722028635864829,
+      "independentLocalScore": 0.01989623919255265,
+      "variableOverlapMs": 0,
+      "overlapsVariable": false,
+      "tripletVotes": [
+        {
+          "timeMs": 229648.25396825396,
+          "bpm": 87.593,
+          "localGridCoverage": 0.0707070707070707,
+          "tripletGridCoverage": 0.41919191919191917,
+          "tripletGridHalfCoverage": 0.24242424242424243,
+          "tripletGridDoubleCoverage": 0.5303030303030303
+        },
+        {
+          "timeMs": 230646.7120181406,
+          "bpm": 89.878,
+          "localGridCoverage": 0.06598984771573604,
+          "tripletGridCoverage": 0.4263959390862944,
+          "tripletGridHalfCoverage": 0.2436548223350254,
+          "tripletGridDoubleCoverage": 0.5329949238578681
+        }
+      ]
+    }
+  ]
+}

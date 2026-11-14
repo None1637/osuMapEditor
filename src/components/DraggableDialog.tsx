@@ -5,11 +5,13 @@
 //   left = pos/fit (Chromium 中 left/top 与宽高一样被 祖先zoom×自身zoom 连乘)。
 // v478: 顶栏避让 (标题栏/关闭钮不进入菜单栏+页签栏区域, 打开居中区与拖拽钳制都含下界)
 //   + 内容过高时内容区滚动 (maxHeight/overflow-y), 不再只靠整窗缩小 (英文长文本字号可读性)
-import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode, type PointerEvent } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type ButtonHTMLAttributes, type CSSProperties, type ReactNode, type PointerEvent } from 'react';
 import { X } from 'lucide-react'; // v181: 关闭按钮 emoji ✕ → lucide
 import { dialogFit, useUiZoom } from '../osu/uiZoom';
 import { editorPrefs } from '../osu/editorPrefs'; // v381: 拖动调值总开关
+import { beginUiLayoutGesture, endUiLayoutGesture, getUiOverride, setUiOverride, useUiLayout } from '../osu/uiLayout'; // v525/v538
 import { useT } from '../i18n';
+import { UiAutoControl, UiAutoIcon, UiAutoText, UiScope } from './uiLayout/UiControl'; // v532
 
 /** 居中落点 (纯函数): 视口 (vw,vh) 内放 (w,h) 窗口的左上角, 负值钳 0 */
 export function dialogCenterPos(vw: number, vh: number, w: number, h: number) {
@@ -31,14 +33,23 @@ export function DraggableDialog({ title, onClose, children, width = 300, testid 
 }) {
   const z = useUiZoom();
   const t = useT();
-  const [pos, setPos] = useState<{ x: number; y: number } | null>(null); // v249: 视觉 px
+  useUiLayout();
+  const dialogOverride = testid ? getUiOverride(`dialog.${testid}`) : {};
+  const layout = dialogOverride.layout;
+  const [pos, setPos] = useState<{ x: number; y: number } | null>(() =>
+    layout?.x !== undefined && layout.y !== undefined ? { x: layout.x, y: layout.y } : null); // v249: 视觉 px
+  const posRef = useRef(pos);
+  useEffect(() => { posRef.current = pos; }, [pos]);
   const [fit, setFit] = useState(1); // v249: 视口容纳系数 (1 = 自然大小)
   // v478: 内容区滚动上限 (布局 px) — 英文等长文本使窗口自然高超过视口时, 内容滚动而非整窗缩小
   //   (soulten: 英文界面窗口字太小 + 标题栏被顶到窗口顶部与页签栏重叠); fit 仍管宽度容纳
   const [contentMaxH, setContentMaxH] = useState<number | null>(null);
   const boxRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLDivElement>(null);
-  const dragRef = useRef<{ dx: number; dy: number } | null>(null);
+  const dragRef = useRef<{ dx: number; dy: number; moved: boolean } | null>(null);
+  const resizeRef = useRef<{ x: number; y: number; width: number; height: number; px: number; py: number; left: boolean; top: boolean } | null>(null);
+  const resolvedWidth = layout?.width ?? width;
+  const resolvedHeight = layout?.height;
   const c = fit / z; // 自身反缩放系数; 视觉 = 布局 × z × c = 布局 × fit
 
   useLayoutEffect(() => {
@@ -50,8 +61,12 @@ export function DraggableDialog({ title, onClose, children, width = 300, testid 
     if (Math.abs(f - fit) > 0.001) { setFit(f); return; } // fit 变化后下轮再定位 (视觉尺寸随之变)
     // v478: 内容上限 = 视口 - 顶栏 - 边距 - 标题栏 (视觉 px) / fit → 布局 px; 封顶后下轮重测收敛
     const titleH = titleRef.current?.getBoundingClientRect().height ?? 0;
-    const mh = Math.max(80, Math.round((window.innerHeight - chrome - 8 - titleH) / fit));
+    const viewportMh = Math.max(80, Math.round((window.innerHeight - chrome - 8 - titleH) / fit));
+    const mh = resolvedHeight === undefined ? viewportMh : Math.min(viewportMh, Math.max(40, Math.round(resolvedHeight - titleH / fit)));
     if (contentMaxH === null || Math.abs(contentMaxH - mh) > 1) { setContentMaxH(mh); return; }
+    // v525: 导入配置/属性面板的外部位置变化也实时应用
+    if (pos && layout?.x !== undefined && layout.y !== undefined && !dragRef.current
+      && (Math.abs(layout.x - pos.x) > 0.5 || Math.abs(layout.y - pos.y) > 0.5)) { setPos({ x: layout.x, y: layout.y }); return; }
     if (pos === null) {
       // v478: 居中区域 = 顶栏之下 (原为全视口, 窗口过高时标题栏会顶进页签栏行)
       const p = dialogCenterPos(window.innerWidth, window.innerHeight - chrome, r.width, r.height);
@@ -62,30 +77,85 @@ export function DraggableDialog({ title, onClose, children, width = 300, testid 
       const cy = Math.max(chrome, Math.min(pos.y, window.innerHeight - r.height));
       if (Math.abs(cx - pos.x) > 0.5 || Math.abs(cy - pos.y) > 0.5) setPos({ x: cx, y: cy });
     }
-  });
+  }, [children, contentMaxH, fit, layout?.x, layout?.y, pos, resolvedHeight, resolvedWidth]);
 
   const onPointerDown = (e: PointerEvent) => {
     if (!pos) return;
-    dragRef.current = { dx: e.clientX - pos.x, dy: e.clientY - pos.y };
+    beginUiLayoutGesture();
+    dragRef.current = { dx: e.clientX - pos.x, dy: e.clientY - pos.y, moved: false };
     (e.target as HTMLElement).setPointerCapture(e.pointerId);
   };
   const onPointerMove = (e: PointerEvent) => {
     const d = dragRef.current;
-    if (d) setPos({ x: Math.max(0, e.clientX - d.dx), y: Math.max(chromeBottom(), e.clientY - d.dy) }); // v478: y 下界顶栏避让
+    if (d) {
+      d.moved = true;
+      setPos({ x: Math.max(0, e.clientX - d.dx), y: Math.max(chromeBottom(), e.clientY - d.dy) }); // v478: y 下界顶栏避让
+    }
   };
-  const onPointerUp = () => { dragRef.current = null; };
+  const onPointerUp = () => {
+    const d = dragRef.current;
+    if (d?.moved && testid && posRef.current) setUiOverride(`dialog.${testid}`, { layout: { x: posRef.current.x, y: posRef.current.y } });
+    dragRef.current = null;
+    endUiLayoutGesture();
+  };
+
+  // v525: 八向缩放手柄; 起始快照计算目标尺寸, 左/上拖移同步移动窗口保持对边固定
+  const onResizeDown = (e: PointerEvent, left: boolean, top: boolean) => {
+    if (!pos || !boxRef.current) return;
+    e.preventDefault(); e.stopPropagation();
+    beginUiLayoutGesture();
+    const r = boxRef.current.getBoundingClientRect();
+    resizeRef.current = { x: e.clientX, y: e.clientY, width: r.width / fit, height: r.height / fit, px: pos.x, py: pos.y, left, top };
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+  const onResizeMove = (e: PointerEvent) => {
+    const d = resizeRef.current;
+    if (!d || !testid) return;
+    const dx = (e.clientX - d.x) / fit, dy = (e.clientY - d.y) / fit;
+    const w = Math.max(160, d.width + (d.left ? -dx : dx)), h = Math.max(80, d.height + (d.top ? -dy : dy));
+    const x = d.px + (d.left ? d.width - w : 0) * fit, y = d.py + (d.top ? d.height - h : 0) * fit;
+    if (d.left || d.top) setPos({ x, y });
+    setUiOverride(`dialog.${testid}`, { layout: { width: w, height: h, ...(d.left ? { x } : {}), ...(d.top ? { y } : {}) } });
+  };
+  const onResizeUp = () => { resizeRef.current = null; endUiLayoutGesture(); };
 
   return (
-    <div ref={boxRef} className="fixed z-40 rounded-lg border border-white/20 bg-[#1b1b24] shadow-2xl text-xs text-white/85"
-      style={{ left: pos ? pos.x / fit : -9999, top: pos ? pos.y / fit : -9999, width, zoom: c, '--fs-comp': 1, '--ui-zoom': 1 } as CSSProperties} data-dialog={testid}>{/* v339: 独立窗口反缩放后为自然字号, 不参与 13px 视觉下限换算 (v475: 12→13) */}
+    <UiScope id={`dialog.${testid ?? 'untitled'}`}><div ref={boxRef} className="fixed z-40 rounded-lg border border-white/20 bg-[#1b1b24] shadow-2xl text-xs text-white/85 flex flex-col overflow-hidden"
+      style={{ left: pos ? pos.x / fit : -9999, top: pos ? pos.y / fit : -9999, width: resolvedWidth, height: resolvedHeight, zoom: c, '--fs-comp': 1, '--ui-zoom': 1 } as CSSProperties}
+      data-dialog={testid} data-ui-id={testid ? `dialog.${testid}` : undefined} hidden={dialogOverride.visible === false}
+      data-ui-editor={testid === 'ui-layout-editor' ? true : undefined}
+      inert={dialogOverride.enabled === false ? true : undefined}>{/* v339/v525: 反缩放 + 布局/显示/启用覆盖 */}
       <div ref={titleRef} className="flex items-center justify-between px-3 py-2 rounded-t-lg bg-[#252532] cursor-move select-none font-bold text-white/90"
         onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp}>
-        <span>{title}</span>
-        <button onClick={onClose} className="px-1.5 rounded hover:bg-white/15 text-white/60 hover:text-white flex items-center" title={t('dialog.close_no_apply', 'Close (without applying)')}><X className="w-3.5 h-3.5" /></button>
+        <UiAutoControl localId="title" kind="panel"><span><UiAutoText localId="title">{title}</UiAutoText></span></UiAutoControl>
+        <UiAutoControl localId="close" kind="button" defaultIcon="lucide:X"><button onClick={onClose} className="px-1.5 rounded hover:bg-white/15 text-white/60 hover:text-white flex items-center" title={t('dialog.close_no_apply', 'Close (without applying)')}><UiAutoIcon localId="close"><X className="w-3.5 h-3.5" /></UiAutoIcon></button></UiAutoControl>
       </div>
-      <div className="p-3 space-y-2 rounded-b-lg" style={contentMaxH !== null ? { maxHeight: contentMaxH, overflowY: 'auto' } : undefined}>{children}</div>
-    </div>
+      <div className="p-3 space-y-2 rounded-b-lg min-h-0" style={contentMaxH !== null ? { maxHeight: contentMaxH, overflowY: 'auto' } : undefined}>{children}</div>
+      {/* v525: 八向边缘/角缩放 */}
+      {([
+        ['left', true, false, 'left-0 top-0 bottom-0 w-1.5 cursor-w-resize'],
+        ['right', false, false, 'right-0 top-0 bottom-0 w-1.5 cursor-e-resize'],
+        ['top', false, true, 'left-0 right-0 top-0 h-1.5 cursor-n-resize'],
+        ['bottom', false, false, 'left-0 right-0 bottom-0 h-1.5 cursor-s-resize'],
+        ['tl', true, true, 'left-0 top-0 w-2.5 h-2.5 cursor-nwse-resize'],
+        ['tr', false, true, 'right-0 top-0 w-2.5 h-2.5 cursor-nesw-resize'],
+        ['bl', true, false, 'left-0 bottom-0 w-2.5 h-2.5 cursor-nesw-resize'],
+        ['br', false, false, 'right-0 bottom-0 w-2.5 h-2.5 cursor-nwse-resize'],
+      ] as const).map(([name, left, top, cls]) => (
+        <div key={name} data-dialog-resize={name} className={`absolute z-20 ${cls}`}
+          onPointerDown={e => onResizeDown(e, left, top)} onPointerMove={onResizeMove} onPointerUp={onResizeUp} />
+      ))}
+    </div></UiScope>
   );
+}
+
+/** v533: 弹窗文本按钮的紧凑适配器; uiId 在所属窗口作用域内永久唯一 */
+export function DialogButton({ uiId, textKey = '', children, ...props }: {
+  uiId: string; textKey?: string; children: string;
+} & ButtonHTMLAttributes<HTMLButtonElement>) {
+  return <UiAutoControl localId={uiId} kind="button" defaultTextKey={textKey}><button {...props}>
+    <UiAutoText localId={uiId} textKey={textKey}>{children}</UiAutoText>
+  </button></UiAutoControl>;
 }
 
 /** 转换参数持久化 (localStorage, 记录上次设置) */
@@ -115,11 +185,12 @@ export function useSaveParamsOnClose<T>(key: string, v: T) {
  *  v381: 可全局关闭 (editorPrefs.dragAdjustNumbers, 关 = 按下不进入拖动调值; v386: 开关挪到菜单栏「设置」菜单) */
 /** v276: 已聚焦的输入框内按下拖动 = 原生文本框选, 不触发调值 (用户反馈「框选输入框中数字时
  *  不要触发左右拖动数值」); 调值只在未聚焦的输入框上按下拖动 (= 点击即聚焦的那次交互) */
-export function DraftNum({ value, set, testid, min, max, step = 1, digits, w = 'w-20', allowNaN = false }: {
+export function DraftNum({ value, set, testid, min, max, step = 1, digits, w = 'w-20', allowNaN = false, uiId }: {
   value: number; set: (v: number) => void; testid: string; min?: number; max?: number; step?: number;
   digits?: number; // v367: 非草稿态显示小数位 (缩放类框 3 位, 如 0.590; 缺省 = 原始值字符串)
   w?: string; // v489: 宽度类 (默认 w-20; 拍数分子等小框传 w-10)
   allowNaN?: boolean; // v517: 仅 BPM/SV 等显式允许的输入框接受字面量 NaN
+  uiId?: string; // v533: 动态规则用 UID; 缺省沿用测试 ID
 }) {
   const [draft, setDraft] = useState<string | null>(null);
   const dragRef = useRef<{ x0: number; v0: number; active: boolean } | null>(null);
@@ -146,7 +217,7 @@ export function DraftNum({ value, set, testid, min, max, step = 1, digits, w = '
     return () => el.removeEventListener('wheel', onWheel);
   });
   return (
-    <input ref={inputRef} type={allowNaN ? 'text' : 'number'} value={draft ?? (digits !== undefined ? value.toFixed(digits) : value)} min={min} max={max} step={step} data-conv={testid}
+    <UiAutoControl localId={`input.${uiId ?? testid}`}><input ref={inputRef} type={allowNaN ? 'text' : 'number'} value={draft ?? (digits !== undefined ? value.toFixed(digits) : value)} min={min} max={max} step={step} data-conv={testid}
       onFocus={() => setDraft(String(value))}
       onChange={e => {
         const raw = e.target.value;
@@ -187,7 +258,7 @@ export function DraftNum({ value, set, testid, min, max, step = 1, digits, w = '
           e.currentTarget.blur(); // 拖动结束退出草稿态, 回显最终值
         }
       }}
-      className={`${w} bg-black/40 border border-white/15 rounded px-1 py-0.5 text-white`} />
+      className={`${w} bg-black/40 border border-white/15 rounded px-1 py-0.5 text-white`} /></UiAutoControl>
   );
 }
 
@@ -200,11 +271,11 @@ export function ClickPct({ value, set, testid }: { value: number; set: (v: numbe
   const origRef = useRef(value);
   const clamp = (v: number) => Math.max(0, Math.min(100, Math.round(v)));
   if (!editing)
-    return <button type="button" data-pct-display={testid}
+    return <UiAutoControl localId={`percent.${testid}`} kind="button"><button type="button" data-pct-display={testid}
       onClick={() => { origRef.current = value; setEditing(true); }}
       title={t('panels.pct_click_edit', 'Click to type a value')}
-      className="w-10 shrink-0 text-right text-xs text-white/70 tabular-nums rounded hover:bg-white/10 hover:text-white cursor-text">{value}%</button>;
-  return <input type="number" min={0} max={100} step={1} autoFocus data-pct-input={testid}
+      className="w-10 shrink-0 text-right text-xs text-white/70 tabular-nums rounded hover:bg-white/10 hover:text-white cursor-text">{value}%</button></UiAutoControl>;
+  return <UiAutoControl localId={`percent.${testid}`}><input type="number" min={0} max={100} step={1} autoFocus data-pct-input={testid}
     defaultValue={value}
     onFocus={e => e.target.select()}
     onChange={e => { const v = parseInt(e.target.value); if (!isNaN(v)) set(clamp(v)); }}
@@ -213,5 +284,5 @@ export function ClickPct({ value, set, testid }: { value: number; set: (v: numbe
       if (e.key === 'Enter') e.currentTarget.blur();
       if (e.key === 'Escape') { set(origRef.current); setEditing(false); } // 恢复编辑前的值
     }}
-    className="w-10 shrink-0 bg-black/40 border border-white/15 rounded px-0.5 text-right text-xs text-white" />;
+    className="w-10 shrink-0 bg-black/40 border border-white/15 rounded px-0.5 text-right text-xs text-white" /></UiAutoControl>;
 }

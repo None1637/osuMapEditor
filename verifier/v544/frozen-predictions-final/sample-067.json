@@ -1,0 +1,54 @@
+{
+  "id": "sample-067",
+  "directoryName": "732851 LeaF - Lyrith",
+  "beatmapFile": "LeaF - Lyrith (aquarus91) [Maximum].osu",
+  "metadata": {
+    "Title": "Lyrith",
+    "TitleUnicode": "Lyrith",
+    "Artist": "LeaF",
+    "ArtistUnicode": "LeaF",
+    "Creator": "aquarus91",
+    "Version": "Maximum",
+    "Source": "",
+    "Tags": "ded_pixel",
+    "BeatmapID": "1654867",
+    "BeatmapSetID": "732851",
+    "Mode": "0"
+  },
+  "audioDurationMs": 150334.693877551,
+  "redLines": [
+    {
+      "time": 758,
+      "beatLength": 338.983050847458,
+      "bpm": 176.9999999999998,
+      "durationMs": 129491
+    },
+    {
+      "time": 130249,
+      "beatLength": 169.491525423729,
+      "bpm": 353.9999999999996,
+      "durationMs": 8135
+    },
+    {
+      "time": 138384,
+      "beatLength": 338.983050847458,
+      "bpm": 176.9999999999998,
+      "durationMs": 11950.693877551006
+    }
+  ],
+  "referenceBpm": 176.9999999999998,
+  "referenceVariable": true,
+  "referenceRedLineCount": 3,
+  "referenceCoverageMs": 141441.693877551,
+  "status": "ok",
+  "prediction": {
+    "bpm": 177.05,
+    "offsetMs": 471,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 110,
+    "rawBpm": 354.1,
+    "rawSegmentCount": 96
+  },
+  "evaluationMs": 1209
+}

@@ -1,0 +1,6 @@
+{
+  "id": "sample-012",
+  "status": "audio_unavailable",
+  "audioCopyStatus": "copy_failed",
+  "error": "Error: ENOENT: no such file or directory, copyfile 'F:\\Backup\\D\\osu!\\Songs\\196171 xxdbxx - Taekwonburi\\xxdbxx-Taekwonburi (www.myfreemp3.cc).mp3' -> 'D:\\Projects\\osuMapEditor\\Kimi_Agent_osu!编辑器改进 (1)\\app\\verifier\\v543\\heldout\\samples\\sample-012\\audio.mp3'"
+}

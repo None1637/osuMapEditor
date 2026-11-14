@@ -1,0 +1,28 @@
+{
+  "reviewedAt": "2026-11-08T22:37:00+08:00",
+  "reviewer": "owner",
+  "globalRule": "所有三连音（osu! 1/3、1/6 网格）均分类为没有变速；真实 tempo 阶跃仍须另测，不能只按 BPM 比值封杀。",
+  "reviews": [
+    {
+      "id": "sample-032",
+      "originalLabel": { "variable": false, "bpm": 108 },
+      "reviewedLabel": { "variable": false, "rhythm": "triplet", "bpm": 108 },
+      "evidenceRangeMs": [346465, 353460],
+      "ownerResponse": "三连音"
+    },
+    {
+      "id": "sample-034",
+      "originalLabel": { "variable": false, "bpm": 135 },
+      "reviewedLabel": { "variable": false, "rhythm": "triplet", "bpm": 135 },
+      "evidenceRangeMs": [30952, 53923],
+      "ownerResponse": "三连音"
+    },
+    {
+      "id": "sample-088",
+      "originalLabel": { "variable": false, "bpm": 175 },
+      "reviewedLabel": { "variable": false, "rhythm": "quarter-note arrangement/density change", "bpm": 175 },
+      "evidenceRangeMs": [102841, 122816],
+      "ownerResponse": "基本上所有音均落在 1/4 上，无变速；始终 175 BPM，只是节奏密度或编曲发生变化"
+    }
+  ]
+}

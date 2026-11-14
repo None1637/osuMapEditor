@@ -4,6 +4,7 @@ export const zhCN: Record<string, string> = {
   // 动作 (HOTKEY_ACTIONS, key = hotkey.action. + snake(id))
   'hotkey.action.play_pause': '播放/暂停',
   'hotkey.action.test_play': '测试游玩',
+  'hotkey.action.new': '新建谱面',
   'hotkey.action.save': '保存谱面',
   'hotkey.action.undo': '撤销',
   'hotkey.action.redo': '重做',

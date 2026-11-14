@@ -40,7 +40,7 @@ check('worker: batch/done/error 回传',
   /type: 'batch', entries: batch/.test(wk) && /type: 'done'/.test(wk) && /type: 'error'/.test(wk));
 
 // SongLibrary 接入
-check('startScan 签名 (h, native, thorough)', /startScan = useCallback\(async \(h: FsDirLike, native: FileSystemDirectoryHandle \| null = null, thorough = false\)/.test(sl));
+check('startScan 签名 (h, native, thorough, preserveView)', /startScan = useCallback\(async \(h: FsDirLike, native: FileSystemDirectoryHandle \| null = null, thorough = false, preserveView = false\)/.test(sl)); // v575 续扫参数
 check('索引进 buildLibraryIndexAuto + trustNames: !thorough',
   /buildLibraryIndexAuto\(h, native, cached, null,[\s\S]{0,120}\{ trustNames: !thorough \}\)/.test(sl));
 check('UI 节流: pendingRef + 250ms flush (v299: scheduleFlush 封装)',

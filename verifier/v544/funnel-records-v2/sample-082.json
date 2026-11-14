@@ -1,0 +1,51 @@
+{
+  "id": "sample-082",
+  "directoryName": "beatmap-637195271310242821-Oomori Seiko - JUSTadICE (TV Size)",
+  "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\beatmap-637195271310242821-Oomori Seiko - JUSTadICE (TV Size)",
+  "status": "ok",
+  "referenceBpm": 185.0000000000002,
+  "referenceVariable": false,
+  "predictedBpm": 185,
+  "predictedVariable": false,
+  "variableLines": [],
+  "trueVariableMs": 0,
+  "flaggedWindowCount": 29,
+  "flaggedWindowsOnVariable": 0,
+  "rawCandidateCount": 1,
+  "rawCandidatesOnVariable": 0,
+  "finalEvidenceCount": 0,
+  "finalEvidenceOnVariable": 0,
+  "candidates": [
+    {
+      "startMs": 12980,
+      "endMs": 18977,
+      "bpm": 82.358,
+      "points": 3,
+      "maxSupport": 0.2115756212621533,
+      "localGridCoverage": 0.06622516556291391,
+      "rejection": "weak_short",
+      "independentMainScore": 0.5763767995403284,
+      "independentLocalScore": -0.004426000837881319,
+      "variableOverlapMs": 0,
+      "overlapsVariable": false,
+      "tripletVotes": [
+        {
+          "timeMs": 15978.231292517006,
+          "bpm": 82.358,
+          "localGridCoverage": 0.07079646017699115,
+          "tripletGridCoverage": 0.5575221238938053,
+          "tripletGridHalfCoverage": 0.36283185840707965,
+          "tripletGridDoubleCoverage": 0.5575221238938053
+        },
+        {
+          "timeMs": 16976.689342403628,
+          "bpm": 82.358,
+          "localGridCoverage": 0.06622516556291391,
+          "tripletGridCoverage": 0.5827814569536424,
+          "tripletGridHalfCoverage": 0.32450331125827814,
+          "tripletGridDoubleCoverage": 0.543046357615894
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "id": "sample-083",
+  "directoryName": "845720 OSU! - PACK 9",
+  "beatmapFile": "OSU! - PACK 9 (Spinner) [Justability (Amamiya Nathan's Shooting Star) 1.4x - mapped by Skystar].osu",
+  "metadata": {
+    "Title": "PACK 9",
+    "TitleUnicode": "PACK 9",
+    "Artist": "OSU!",
+    "ArtistUnicode": "OSU!",
+    "Creator": "Spinner",
+    "Version": "Justability (Amamiya Nathan's Shooting Star) 1.4x - mapped by Skystar",
+    "Source": "音楽少女",
+    "Tags": "Spinner",
+    "BeatmapID": "1769822",
+    "BeatmapSetID": "845720",
+    "Mode": "0"
+  },
+  "audioDurationMs": 334787.4829931973,
+  "redLines": [
+    {
+      "time": 960,
+      "beatLength": 238.0952,
+      "bpm": 252.00004032000643,
+      "durationMs": 333827.4829931973
+    }
+  ],
+  "referenceBpm": 252.00004032000643,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 333827.4829931973,
+  "status": "ok",
+  "prediction": {
+    "bpm": 63,
+    "offsetMs": 1218,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 328,
+    "rawBpm": 63,
+    "rawSegmentCount": 74
+  },
+  "evaluationMs": 4405
+}

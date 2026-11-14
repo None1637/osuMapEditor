@@ -1,0 +1,103 @@
+{
+  "id": "sample-086",
+  "directoryName": "beatmap-ZUN - Taketorihisyou ~ Lunatic Princess",
+  "beatmapFile": "ZUN - Taketorihisyou ~ Lunatic Princess (None1637) [Lunatic].osu",
+  "metadata": {
+    "Title": "Taketorihisyou ~ Lunatic Princess",
+    "TitleUnicode": "竹取飛翔 ～ Lunatic Princess",
+    "Artist": "ZUN",
+    "ArtistUnicode": "ZUN",
+    "Creator": "None1637",
+    "Version": "Lunatic",
+    "Source": "",
+    "Tags": "",
+    "BeatmapID": "0",
+    "BeatmapSetID": "-1",
+    "Mode": "0"
+  },
+  "audioDurationMs": 160052.24489795917,
+  "redLines": [
+    {
+      "time": 1017,
+      "beatLength": 468.75,
+      "bpm": 128,
+      "durationMs": 6563
+    },
+    {
+      "time": 7580,
+      "beatLength": 454.545454545455,
+      "bpm": 131.99999999999986,
+      "durationMs": 1818
+    },
+    {
+      "time": 9398,
+      "beatLength": 447.761194029851,
+      "bpm": 133.99999999999991,
+      "durationMs": 1791
+    },
+    {
+      "time": 11189,
+      "beatLength": 437.956204379562,
+      "bpm": 137.00000000000003,
+      "durationMs": 1739
+    },
+    {
+      "time": 12928,
+      "beatLength": 421.052631578947,
+      "bpm": 142.5000000000001,
+      "durationMs": 3356
+    },
+    {
+      "time": 16284,
+      "beatLength": 394.736842105263,
+      "bpm": 152.00000000000006,
+      "durationMs": 6315
+    },
+    {
+      "time": 22599,
+      "beatLength": 389.61038961039,
+      "bpm": 153.99999999999986,
+      "durationMs": 60025
+    },
+    {
+      "time": 82624,
+      "beatLength": 402.414486921529,
+      "bpm": 149.10000000000008,
+      "durationMs": 12873
+    },
+    {
+      "time": 95497,
+      "beatLength": 394.736842105263,
+      "bpm": 152.00000000000006,
+      "durationMs": 64555.24489795917
+    }
+  ],
+  "referenceBpm": 152.00000000000006,
+  "referenceVariable": true,
+  "referenceRedLineCount": 9,
+  "referenceCoverageMs": 70870.24489795917,
+  "status": "ok",
+  "prediction": {
+    "bpm": 154,
+    "offsetMs": 804,
+    "variable": true,
+    "evidence": [
+      {
+        "startMs": 5991,
+        "endMs": 12986,
+        "bpm": 66.899,
+        "points": 4,
+        "maxSupport": 0.2194209139890982,
+        "localGridCoverage": 0.06666666666666667,
+        "tripletLike": false,
+        "independentMainScore": -0.042179238570087645,
+        "independentMainBpm": 154,
+        "independentLocalScore": 0.14249927126334208
+      }
+    ],
+    "localPointCount": 154,
+    "rawBpm": 154,
+    "rawSegmentCount": 12
+  },
+  "evaluationMs": 1431
+}

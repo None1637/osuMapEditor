@@ -1,0 +1,52 @@
+{
+  "id": "sample-045",
+  "directoryName": "1128596 Silentroom - NULCTRL EX",
+  "beatmapFile": "Silentroom - NULCTRL EX (AHHHHHHHHHHHHHH) [Hard].osu",
+  "referenceBpm": 100,
+  "predictedBpm": 200,
+  "frozenBpm": 200,
+  "deterministicEvidence": true,
+  "evidence": [
+    {
+      "startMs": 35944,
+      "endMs": 42940,
+      "bpm": 67.555,
+      "points": 4,
+      "maxSupport": 0.31910998920403105,
+      "index": 0,
+      "ratioToPredictedMain": 0.33777500000000005,
+      "ratioToAnnotatedMain": 0.6755500000000001,
+      "boundary": "interior",
+      "localBpmMin": 61.707,
+      "localBpmMax": 73.045,
+      "medianSupport": 0.3028138132120204,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 30,
+          "first": 0.43027177555674523,
+          "second": 0.08114158518466909,
+          "combined": 0.31505881273396014
+        },
+        "annotatedMain": {
+          "lag": 60,
+          "first": 0.08114158518466909,
+          "second": 0.06531273911441954,
+          "combined": 0.07591806598148675
+        },
+        "evidenceBpm": {
+          "lag": 88.81651987269632,
+          "first": 0.012138109440868761,
+          "second": null,
+          "combined": 0.012138109440868763
+        }
+      },
+      "objectCount": 47,
+      "objectGrid": {
+        "predictedMainHalf": 0.9574468085106383,
+        "annotatedMainHalf": 0.7021276595744681,
+        "evidenceHalf": 0.14893617021276595
+      }
+    }
+  ],
+  "analysisMs": 2184
+}

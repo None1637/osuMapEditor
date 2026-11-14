@@ -1,0 +1,19 @@
+{
+  "id": "sample-031",
+  "directoryName": "2250663 Yousei Teikoku - Zetsubou plantation",
+  "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\2250663 Yousei Teikoku - Zetsubou plantation",
+  "status": "ok",
+  "referenceBpm": 230.00000000000026,
+  "referenceVariable": false,
+  "predictedBpm": 230,
+  "predictedVariable": false,
+  "variableLines": [],
+  "trueVariableMs": 0,
+  "flaggedWindowCount": 8,
+  "flaggedWindowsOnVariable": 0,
+  "rawCandidateCount": 0,
+  "rawCandidatesOnVariable": 0,
+  "finalEvidenceCount": 0,
+  "finalEvidenceOnVariable": 0,
+  "candidates": []
+}

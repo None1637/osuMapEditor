@@ -1,0 +1,37 @@
+{
+  "version": "v557-annotation-validation-v2",
+  "passed": true,
+  "status": "complete_provisional_blind_annotations_validated",
+  "completedSongs": 3,
+  "labeledObjects": 90,
+  "perSample": [
+    {
+      "sampleId": "sample-002",
+      "count": 30,
+      "confidenceCounts": {
+        "clear": 8,
+        "approximate": 4,
+        "no_clear_onset": 18
+      }
+    },
+    {
+      "sampleId": "sample-032",
+      "count": 30,
+      "confidenceCounts": {
+        "no_clear_onset": 13,
+        "approximate": 9,
+        "clear": 8
+      }
+    },
+    {
+      "sampleId": "sample-044",
+      "count": 30,
+      "confidenceCounts": {
+        "no_clear_onset": 7,
+        "approximate": 3,
+        "clear": 20
+      }
+    }
+  ],
+  "failures": []
+}

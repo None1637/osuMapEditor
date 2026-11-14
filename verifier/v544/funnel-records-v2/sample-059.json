@@ -1,0 +1,32 @@
+{
+  "id": "sample-059",
+  "directoryName": "820771 C&K - Nirv lucE",
+  "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\820771 C&K - Nirv lucE",
+  "status": "ok",
+  "referenceBpm": 259.9999999999997,
+  "referenceVariable": true,
+  "predictedBpm": 130,
+  "predictedVariable": false,
+  "variableLines": [
+    {
+      "time": 7384,
+      "beatLength": 461.538461538462,
+      "bpm": 129.99999999999986,
+      "durationMs": 14769
+    },
+    {
+      "time": 51691,
+      "beatLength": 461.538461538462,
+      "bpm": 129.99999999999986,
+      "durationMs": 3692
+    }
+  ],
+  "trueVariableMs": 18461,
+  "flaggedWindowCount": 17,
+  "flaggedWindowsOnVariable": 1,
+  "rawCandidateCount": 0,
+  "rawCandidatesOnVariable": 0,
+  "finalEvidenceCount": 0,
+  "finalEvidenceOnVariable": 0,
+  "candidates": []
+}

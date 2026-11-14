@@ -1,0 +1,42 @@
+{
+  "id": "sample-052",
+  "directoryName": "916257 GYARI - Akari ga Yatte Kita Zo (Cut Ver)",
+  "beatmapFile": "GYARI - Akari ga Yatte Kita Zo (Cut Ver.) (LeiN-) [notice me].osu",
+  "metadata": {
+    "Title": "Akari ga Yatte Kita Zo (Cut Ver.)",
+    "TitleUnicode": "アカリがやってきたぞっ (Cut Ver.)",
+    "Artist": "GYARI",
+    "ArtistUnicode": "GYARI",
+    "Creator": "LeiN-",
+    "Version": "notice me",
+    "Source": "",
+    "Tags": "紲星あかり vocaloid VOICEROID Kizuna Akari has arrived Japanese Jazz Chordjack ココアシガレットP Cocoa Cigarette-P 葉狩はじめ Hagari Hajime 超銀河キズユカ歌合戦",
+    "BeatmapID": "1913572",
+    "BeatmapSetID": "916257",
+    "Mode": "3"
+  },
+  "audioDurationMs": 115954.01360544217,
+  "redLines": [
+    {
+      "time": 1787,
+      "beatLength": 441.176470588235,
+      "bpm": 136.00000000000009,
+      "durationMs": 114167.01360544217
+    }
+  ],
+  "referenceBpm": 136.00000000000009,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 114167.01360544217,
+  "status": "ok",
+  "prediction": {
+    "bpm": 136,
+    "offsetMs": 494,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 113,
+    "rawBpm": 272,
+    "rawSegmentCount": 43
+  },
+  "evaluationMs": 1258
+}

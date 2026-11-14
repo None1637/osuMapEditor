@@ -1,0 +1,2643 @@
+{
+  "version": "v545-oracle-onset-v2",
+  "status": "oracle_agreement_not_automatic_detection_accuracy",
+  "labels": {
+    "reviewedAt": "2026-11-09T21:32:00+08:00",
+    "reviewer": "owner",
+    "scope": "v544 两个 1.5x 歧义样本的人工复核；不覆盖 v541/v542/v544 的原始标签或历史记录",
+    "globalRule": "所有三连音（osu! 1/3、1/6 网格）均分类为没有变速；真实 tempo 阶跃仍须另测，不能只按 BPM 比值封杀。",
+    "reviews": [
+      {
+        "id": "sample-001",
+        "originalLabel": {
+          "variable": true
+        },
+        "reviewedLabel": {
+          "variable": true,
+          "redLinesTrusted": true,
+          "density": "几乎一个音变一次速"
+        },
+        "evidenceRangeMs": [
+          175728,
+          185719
+        ],
+        "originalAudioPath": "F:\\Backup\\D\\osu!\\Songs\\673574 Camellia - Shun no Shifudo o Ikashita Kare Fumi Paeria\\audio.mp3",
+        "ownerResponse": "真实变速，谱面中的红线是对的。而且这段几乎是一个音变一次速"
+      },
+      {
+        "id": "sample-058",
+        "originalLabel": {
+          "variable": true
+        },
+        "reviewedLabel": {
+          "variable": true,
+          "redLinesTrusted": true
+        },
+        "evidenceRangeMs": [
+          31950,
+          45935
+        ],
+        "originalAudioPath": "F:\\Backup\\D\\osu!\\Songs\\1820368 Natsu - Regression\\audio.ogg",
+        "ownerResponse": "真实变速，谱面中的红线是对的。"
+      }
+    ],
+    "interpretation": "001/058 是已确认的真实变速；032/034 的恒速三连音标签不变。不能由 1.5x 比值单独判定任一类别。"
+  },
+  "protocol": {
+    "audioSampleRateHz": 11025,
+    "energy": "mono, centered 10 ms RMS, log positive difference, 11-sample hop (~0.998 ms)",
+    "spectralFlux": "mono, 256-sample Hann STFT, log positive spectral difference, 11-sample hop; time bias=3*window/4",
+    "globalDelay": "one delay per song/feature estimated on hitobjects outside both dense redline regions and the owner-reviewed interval; range +/-60 ms, step 0.25 ms",
+    "localRefinement": "nearest local peak within +/-30 ms of reference+globalDelay; parabolic subframe interpolation; no per-note delay fitting",
+    "significantPeakThreshold": 0.02,
+    "strongPeakThreshold": 0.1,
+    "denseDefinition": "active positive redline duration <= 1200 ms",
+    "simultaneousHitobjects": "deduplicated by integer millisecond",
+    "denominator": "within5msAll includes unmatched references as failures; within5msMatched is conditional and not sufficient alone",
+    "jitterNull": "each hitobject shifted by a deterministic nonzero offset in +/-15..95 ms; this tests accidental nearest-peak agreement but preserves neither acoustic labels nor rhythmic structure",
+    "limitation": "Residual means agreement with mapper hitobject/redline times, not independently annotated acoustic-onset error. Redlines and hitobjects are oracle priors. No claim of automatic tempo discovery or per-note offset accuracy follows from these metrics alone."
+  },
+  "syntheticZeroDelayValidation": {
+    "energy": {
+      "metrics": {
+        "count": 60,
+        "matched": 60,
+        "unmatched": 0,
+        "matchCoverage": 1,
+        "within5msAll": 1,
+        "within5msMatched": 1,
+        "medianAbsMs": 0.09174666795161102,
+        "p90AbsMs": 0.1821698702455251,
+        "p95AbsMs": 0.21052919596197625,
+        "medianSignedMs": 0.08564142018468601
+      },
+      "eventCount": 60,
+      "forcedZeroDelay": true
+    },
+    "spectralFlux": {
+      "metrics": {
+        "count": 60,
+        "matched": 60,
+        "unmatched": 0,
+        "matchCoverage": 1,
+        "within5msAll": 1,
+        "within5msMatched": 1,
+        "medianAbsMs": 3.353049572295504,
+        "p90AbsMs": 3.506372125486064,
+        "p95AbsMs": 3.5396636840751174,
+        "medianSignedMs": -3.353049572295504
+      },
+      "eventCount": 60,
+      "forcedZeroDelay": true
+    }
+  },
+  "samples": [
+    {
+      "id": "sample-001",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\673574 Camellia - Shun no Shifudo o Ikashita Kare Fumi Paeria",
+      "originalAudioPath": "F:\\Backup\\D\\osu!\\Songs\\673574 Camellia - Shun no Shifudo o Ikashita Kare Fumi Paeria\\audio.mp3",
+      "beatmapFile": "Camellia - Shun no Shifudo o Ikashita Kare Fumi Paeria (SparkinG) [DOWN SLOW!].osu",
+      "reviewRangeMs": [
+        175728,
+        185719
+      ],
+      "reviewExcludedFromGlobalDelayCalibration": true,
+      "audioDurationMs": 280613.3333333334,
+      "redLineCount": 18,
+      "denseRedLineCount": 14,
+      "redLineDurationMs": {
+        "median": 810,
+        "p10": 766.8000000000001,
+        "p90": 60414.10000000002,
+        "minimum": 413,
+        "maximum": 122181
+      },
+      "uniqueHitobjectTimeCount": 1096,
+      "calibrationHitCount": 1040,
+      "redLines": [
+        {
+          "timeMs": 278,
+          "beatLengthMs": 272.727272727273,
+          "bpm": 219.9999999999998,
+          "endMs": 122459,
+          "durationMs": 122181
+        },
+        {
+          "timeMs": 122459,
+          "beatLengthMs": 272.727272727273,
+          "bpm": 219.9999999999998,
+          "endMs": 174822,
+          "durationMs": 52363
+        },
+        {
+          "timeMs": 174822,
+          "beatLengthMs": 405.405405405405,
+          "bpm": 148.00000000000014,
+          "endMs": 175632,
+          "durationMs": 810
+        },
+        {
+          "timeMs": 175632,
+          "beatLengthMs": 401.785714285714,
+          "bpm": 149.33333333333343,
+          "endMs": 176435,
+          "durationMs": 803
+        },
+        {
+          "timeMs": 176435,
+          "beatLengthMs": 398.230088495575,
+          "bpm": 150.66666666666674,
+          "endMs": 177231,
+          "durationMs": 796
+        },
+        {
+          "timeMs": 177231,
+          "beatLengthMs": 394.736842105263,
+          "bpm": 152.00000000000006,
+          "endMs": 178020,
+          "durationMs": 789
+        },
+        {
+          "timeMs": 178020,
+          "beatLengthMs": 398.229207457506,
+          "bpm": 150.66699999999986,
+          "endMs": 178816,
+          "durationMs": 796
+        },
+        {
+          "timeMs": 178816,
+          "beatLengthMs": 401.786611130828,
+          "bpm": 149.33300000000014,
+          "endMs": 179619,
+          "durationMs": 803
+        },
+        {
+          "timeMs": 179619,
+          "beatLengthMs": 405.405405405405,
+          "bpm": 148.00000000000014,
+          "endMs": 180429,
+          "durationMs": 810
+        },
+        {
+          "timeMs": 180429,
+          "beatLengthMs": 409.090909090909,
+          "bpm": 146.66666666666669,
+          "endMs": 181247,
+          "durationMs": 818
+        },
+        {
+          "timeMs": 181247,
+          "beatLengthMs": 193.548387096774,
+          "bpm": 310.0000000000003,
+          "endMs": 182021,
+          "durationMs": 774
+        },
+        {
+          "timeMs": 182021,
+          "beatLengthMs": 200,
+          "bpm": 300,
+          "endMs": 261221,
+          "durationMs": 79200
+        },
+        {
+          "timeMs": 261221,
+          "beatLengthMs": 218.181818181818,
+          "bpm": 275.0000000000002,
+          "endMs": 262093,
+          "durationMs": 872
+        },
+        {
+          "timeMs": 262093,
+          "beatLengthMs": 240,
+          "bpm": 250,
+          "endMs": 263053,
+          "durationMs": 960
+        },
+        {
+          "timeMs": 263053,
+          "beatLengthMs": 285.714285714286,
+          "bpm": 209.99999999999977,
+          "endMs": 264195,
+          "durationMs": 1142
+        },
+        {
+          "timeMs": 264195,
+          "beatLengthMs": 375,
+          "bpm": 160,
+          "endMs": 264945,
+          "durationMs": 750
+        },
+        {
+          "timeMs": 264945,
+          "beatLengthMs": 413.793103448276,
+          "bpm": 144.99999999999994,
+          "endMs": 265358,
+          "durationMs": 413
+        },
+        {
+          "timeMs": 265358,
+          "beatLengthMs": 461.538461538462,
+          "bpm": 129.99999999999986,
+          "endMs": 280613.3333333334,
+          "durationMs": 15255.333333333372
+        }
+      ],
+      "features": {
+        "energy": {
+          "globalDelay": {
+            "delayMs": 31,
+            "score": 0.010235043148071088,
+            "zeroDelayScore": 0.0036046486558960708,
+            "separatedRunnerUpDelayMs": 36.25,
+            "separatedRunnerUpScore": 0.006420433784772437,
+            "calibrationHitCount": 1040
+          },
+          "significantPeakCount": 11590,
+          "significantPeaksPerSecond": 41.302385251354174,
+          "hitobject": {
+            "full/all/all": {
+              "count": 1096,
+              "matched": 959,
+              "unmatched": 137,
+              "matchCoverage": 0.875,
+              "within5msAll": 0.5447080291970803,
+              "within5msMatched": 0.6225234619395204,
+              "medianAbsMs": 2.7744938573159743,
+              "p90AbsMs": 17.179328343283853,
+              "p95AbsMs": 21.511317407466407,
+              "medianSignedMs": -0.06018886524543632
+            },
+            "full/all/strong": {
+              "count": 18,
+              "matched": 18,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.8888888888888888,
+              "within5msMatched": 0.8888888888888888,
+              "medianAbsMs": 1.1468405948505733,
+              "p90AbsMs": 7.448343480761657,
+              "p95AbsMs": 14.275956886658966,
+              "medianSignedMs": 0.4532001576453695
+            },
+            "full/all/weak": {
+              "count": 1078,
+              "matched": 941,
+              "unmatched": 137,
+              "matchCoverage": 0.87291280148423,
+              "within5msAll": 0.538961038961039,
+              "within5msMatched": 0.6174282678002125,
+              "medianAbsMs": 2.835020379687194,
+              "p90AbsMs": 17.26806135537481,
+              "p95AbsMs": 21.549758309629397,
+              "medianSignedMs": -0.09932509975624271
+            },
+            "full/dense/all": {
+              "count": 27,
+              "matched": 26,
+              "unmatched": 1,
+              "matchCoverage": 0.9629629629629629,
+              "within5msAll": 0.5925925925925926,
+              "within5msMatched": 0.6153846153846154,
+              "medianAbsMs": 4.393940976879094,
+              "p90AbsMs": 10.57285343221156,
+              "p95AbsMs": 13.340531964233378,
+              "medianSignedMs": -0.5229385243874276
+            },
+            "full/dense/weak": {
+              "count": 27,
+              "matched": 26,
+              "unmatched": 1,
+              "matchCoverage": 0.9629629629629629,
+              "within5msAll": 0.5925925925925926,
+              "within5msMatched": 0.6153846153846154,
+              "medianAbsMs": 4.393940976879094,
+              "p90AbsMs": 10.57285343221156,
+              "p95AbsMs": 13.340531964233378,
+              "medianSignedMs": -0.5229385243874276
+            },
+            "full/stable/all": {
+              "count": 1069,
+              "matched": 933,
+              "unmatched": 136,
+              "matchCoverage": 0.872778297474275,
+              "within5msAll": 0.5434985968194574,
+              "within5msMatched": 0.6227224008574491,
+              "medianAbsMs": 2.7664324532524915,
+              "p90AbsMs": 17.34259839709412,
+              "p95AbsMs": 21.761063189085675,
+              "medianSignedMs": -0.05466848658397794
+            },
+            "full/stable/strong": {
+              "count": 18,
+              "matched": 18,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.8888888888888888,
+              "within5msMatched": 0.8888888888888888,
+              "medianAbsMs": 1.1468405948505733,
+              "p90AbsMs": 7.448343480761657,
+              "p95AbsMs": 14.275956886658966,
+              "medianSignedMs": 0.4532001576453695
+            },
+            "full/stable/weak": {
+              "count": 1051,
+              "matched": 915,
+              "unmatched": 136,
+              "matchCoverage": 0.8705994291151284,
+              "within5msAll": 0.5375832540437678,
+              "within5msMatched": 0.6174863387978142,
+              "medianAbsMs": 2.8141033483552746,
+              "p90AbsMs": 17.530780744171356,
+              "p95AbsMs": 22.092733062758633,
+              "medianSignedMs": -0.07592371336068027
+            },
+            "review/all/all": {
+              "count": 43,
+              "matched": 42,
+              "unmatched": 1,
+              "matchCoverage": 0.9767441860465116,
+              "within5msAll": 0.5116279069767442,
+              "within5msMatched": 0.5238095238095238,
+              "medianAbsMs": 4.825430378186866,
+              "p90AbsMs": 14.80490708008874,
+              "p95AbsMs": 16.84021061512175,
+              "medianSignedMs": -0.5295412669656798
+            },
+            "review/all/weak": {
+              "count": 43,
+              "matched": 42,
+              "unmatched": 1,
+              "matchCoverage": 0.9767441860465116,
+              "within5msAll": 0.5116279069767442,
+              "within5msMatched": 0.5238095238095238,
+              "medianAbsMs": 4.825430378186866,
+              "p90AbsMs": 14.80490708008874,
+              "p95AbsMs": 16.84021061512175,
+              "medianSignedMs": -0.5295412669656798
+            },
+            "review/dense/all": {
+              "count": 17,
+              "matched": 16,
+              "unmatched": 1,
+              "matchCoverage": 0.9411764705882353,
+              "within5msAll": 0.5294117647058824,
+              "within5msMatched": 0.5625,
+              "medianAbsMs": 4.6803034070908325,
+              "p90AbsMs": 10.57285343221156,
+              "p95AbsMs": 12.438091651602008,
+              "medianSignedMs": 0.3715128646144876
+            },
+            "review/dense/weak": {
+              "count": 17,
+              "matched": 16,
+              "unmatched": 1,
+              "matchCoverage": 0.9411764705882353,
+              "within5msAll": 0.5294117647058824,
+              "within5msMatched": 0.5625,
+              "medianAbsMs": 4.6803034070908325,
+              "p90AbsMs": 10.57285343221156,
+              "p95AbsMs": 12.438091651602008,
+              "medianSignedMs": 0.3715128646144876
+            },
+            "review/stable/all": {
+              "count": 26,
+              "matched": 26,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.5,
+              "within5msMatched": 0.5,
+              "medianAbsMs": 5.450255320887663,
+              "p90AbsMs": 15.04692264086043,
+              "p95AbsMs": 19.45839820511901,
+              "medianSignedMs": -1.1472996595111908
+            },
+            "review/stable/weak": {
+              "count": 26,
+              "matched": 26,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.5,
+              "within5msMatched": 0.5,
+              "medianAbsMs": 5.450255320887663,
+              "p90AbsMs": 15.04692264086043,
+              "p95AbsMs": 19.45839820511901,
+              "medianSignedMs": -1.1472996595111908
+            }
+          },
+          "hitobjectJitterNull": {
+            "full/all/all": {
+              "count": 1096,
+              "matched": 881,
+              "unmatched": 215,
+              "matchCoverage": 0.8038321167883211,
+              "within5msAll": 0.32116788321167883,
+              "within5msMatched": 0.3995459704880817,
+              "medianAbsMs": 6.6258503401477356,
+              "p90AbsMs": 21.21666817300138,
+              "p95AbsMs": 24.63982250958361,
+              "medianSignedMs": -0.6825396825370262
+            },
+            "full/all/strong": {
+              "count": 2,
+              "matched": 2,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0,
+              "within5msMatched": 0,
+              "medianAbsMs": 8.027557989444176,
+              "p90AbsMs": 8.849048858352763,
+              "p95AbsMs": 8.951735216966336,
+              "medianSignedMs": 8.027557989444176
+            },
+            "full/all/weak": {
+              "count": 1094,
+              "matched": 879,
+              "unmatched": 215,
+              "matchCoverage": 0.803473491773309,
+              "within5msAll": 0.3217550274223035,
+              "within5msMatched": 0.4004550625711035,
+              "medianAbsMs": 6.619047619053163,
+              "p90AbsMs": 21.22687569629925,
+              "p95AbsMs": 24.641260687940665,
+              "medianSignedMs": -0.7379792826250196
+            },
+            "full/dense/all": {
+              "count": 26,
+              "matched": 25,
+              "unmatched": 1,
+              "matchCoverage": 0.9615384615384616,
+              "within5msAll": 0.23076923076923078,
+              "within5msMatched": 0.24,
+              "medianAbsMs": 8.937601809215266,
+              "p90AbsMs": 17.201152449671646,
+              "p95AbsMs": 23.22318504645953,
+              "medianSignedMs": -1.5182945360720623
+            },
+            "full/dense/weak": {
+              "count": 26,
+              "matched": 25,
+              "unmatched": 1,
+              "matchCoverage": 0.9615384615384616,
+              "within5msAll": 0.23076923076923078,
+              "within5msMatched": 0.24,
+              "medianAbsMs": 8.937601809215266,
+              "p90AbsMs": 17.201152449671646,
+              "p95AbsMs": 23.22318504645953,
+              "medianSignedMs": -1.5182945360720623
+            },
+            "full/stable/all": {
+              "count": 1070,
+              "matched": 856,
+              "unmatched": 214,
+              "matchCoverage": 0.8,
+              "within5msAll": 0.3233644859813084,
+              "within5msMatched": 0.40420560747663553,
+              "medianAbsMs": 6.554328199221345,
+              "p90AbsMs": 21.24218698124605,
+              "p95AbsMs": 24.62526517266997,
+              "medianSignedMs": -0.6326530612241186
+            },
+            "full/stable/strong": {
+              "count": 2,
+              "matched": 2,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0,
+              "within5msMatched": 0,
+              "medianAbsMs": 8.027557989444176,
+              "p90AbsMs": 8.849048858352763,
+              "p95AbsMs": 8.951735216966336,
+              "medianSignedMs": 8.027557989444176
+            },
+            "full/stable/weak": {
+              "count": 1068,
+              "matched": 854,
+              "unmatched": 214,
+              "matchCoverage": 0.799625468164794,
+              "within5msAll": 0.32397003745318353,
+              "within5msMatched": 0.405152224824356,
+              "medianAbsMs": 6.540524634801841,
+              "p90AbsMs": 21.252394504543922,
+              "p95AbsMs": 24.62720615092512,
+              "medianSignedMs": -0.7102594825810229
+            },
+            "review/all/all": {
+              "count": 43,
+              "matched": 42,
+              "unmatched": 1,
+              "matchCoverage": 0.9767441860465116,
+              "within5msAll": 0.32558139534883723,
+              "within5msMatched": 0.3333333333333333,
+              "medianAbsMs": 7.38611610463704,
+              "p90AbsMs": 17.477564741004606,
+              "p95AbsMs": 24.640616558260806,
+              "medianSignedMs": -0.6692308935598703
+            },
+            "review/all/weak": {
+              "count": 43,
+              "matched": 42,
+              "unmatched": 1,
+              "matchCoverage": 0.9767441860465116,
+              "within5msAll": 0.32558139534883723,
+              "within5msMatched": 0.3333333333333333,
+              "medianAbsMs": 7.38611610463704,
+              "p90AbsMs": 17.477564741004606,
+              "p95AbsMs": 24.640616558260806,
+              "medianSignedMs": -0.6692308935598703
+            },
+            "review/dense/all": {
+              "count": 18,
+              "matched": 17,
+              "unmatched": 1,
+              "matchCoverage": 0.9444444444444444,
+              "within5msAll": 0.2222222222222222,
+              "within5msMatched": 0.23529411764705882,
+              "medianAbsMs": 8.005702645314159,
+              "p90AbsMs": 20.361146553070284,
+              "p95AbsMs": 24.744964665954466,
+              "medianSignedMs": -3.347499002760742
+            },
+            "review/dense/weak": {
+              "count": 18,
+              "matched": 17,
+              "unmatched": 1,
+              "matchCoverage": 0.9444444444444444,
+              "within5msAll": 0.2222222222222222,
+              "within5msMatched": 0.23529411764705882,
+              "medianAbsMs": 8.005702645314159,
+              "p90AbsMs": 20.361146553070284,
+              "p95AbsMs": 24.744964665954466,
+              "medianSignedMs": -3.347499002760742
+            },
+            "review/stable/all": {
+              "count": 25,
+              "matched": 25,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.4,
+              "within5msMatched": 0.4,
+              "medianAbsMs": 6.443054512870731,
+              "p90AbsMs": 16.19108981585014,
+              "p95AbsMs": 22.96269465081275,
+              "medianSignedMs": 1.852607709763106
+            },
+            "review/stable/weak": {
+              "count": 25,
+              "matched": 25,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.4,
+              "within5msMatched": 0.4,
+              "medianAbsMs": 6.443054512870731,
+              "p90AbsMs": 16.19108981585014,
+              "p95AbsMs": 22.96269465081275,
+              "medianSignedMs": 1.852607709763106
+            }
+          },
+          "redline": {
+            "full/all/all": {
+              "count": 18,
+              "matched": 17,
+              "unmatched": 1,
+              "matchCoverage": 0.9444444444444444,
+              "within5msAll": 0.5,
+              "within5msMatched": 0.5294117647058824,
+              "medianAbsMs": 4.353824270481709,
+              "p90AbsMs": 13.336731152911671,
+              "p95AbsMs": 18.31382409547222,
+              "medianSignedMs": -0.7510924682719633
+            },
+            "full/all/weak": {
+              "count": 18,
+              "matched": 17,
+              "unmatched": 1,
+              "matchCoverage": 0.9444444444444444,
+              "within5msAll": 0.5,
+              "within5msMatched": 0.5294117647058824,
+              "medianAbsMs": 4.353824270481709,
+              "p90AbsMs": 13.336731152911671,
+              "p95AbsMs": 18.31382409547222,
+              "medianSignedMs": -0.7510924682719633
+            },
+            "full/dense/all": {
+              "count": 14,
+              "matched": 13,
+              "unmatched": 1,
+              "matchCoverage": 0.9285714285714286,
+              "within5msAll": 0.5,
+              "within5msMatched": 0.5384615384615384,
+              "medianAbsMs": 4.353824270481709,
+              "p90AbsMs": 10.793356862536168,
+              "p95AbsMs": 13.33673115291166,
+              "medianSignedMs": -1.437178529013181
+            },
+            "full/dense/weak": {
+              "count": 14,
+              "matched": 13,
+              "unmatched": 1,
+              "matchCoverage": 0.9285714285714286,
+              "within5msAll": 0.5,
+              "within5msMatched": 0.5384615384615384,
+              "medianAbsMs": 4.353824270481709,
+              "p90AbsMs": 10.793356862536168,
+              "p95AbsMs": 13.33673115291166,
+              "medianSignedMs": -1.437178529013181
+            },
+            "full/stable/all": {
+              "count": 4,
+              "matched": 4,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.5,
+              "within5msMatched": 0.5,
+              "medianAbsMs": 4.285326917866769,
+              "p90AbsMs": 18.89617534709978,
+              "p95AbsMs": 21.370069595929813,
+              "medianSignedMs": 3.6403637256834145
+            },
+            "full/stable/weak": {
+              "count": 4,
+              "matched": 4,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.5,
+              "within5msMatched": 0.5,
+              "medianAbsMs": 4.285326917866769,
+              "p90AbsMs": 18.89617534709978,
+              "p95AbsMs": 21.370069595929813,
+              "medianSignedMs": 3.6403637256834145
+            },
+            "review/all/all": {
+              "count": 8,
+              "matched": 7,
+              "unmatched": 1,
+              "matchCoverage": 0.875,
+              "within5msAll": 0.25,
+              "within5msMatched": 0.2857142857142857,
+              "medianAbsMs": 10.205347715003882,
+              "p90AbsMs": 19.696359032794135,
+              "p95AbsMs": 21.770161438776988,
+              "medianSignedMs": -0.2947845805028919
+            },
+            "review/all/weak": {
+              "count": 8,
+              "matched": 7,
+              "unmatched": 1,
+              "matchCoverage": 0.875,
+              "within5msAll": 0.25,
+              "within5msMatched": 0.2857142857142857,
+              "medianAbsMs": 10.205347715003882,
+              "p90AbsMs": 19.696359032794135,
+              "p95AbsMs": 21.770161438776988,
+              "medianSignedMs": -0.2947845805028919
+            },
+            "review/dense/all": {
+              "count": 7,
+              "matched": 6,
+              "unmatched": 1,
+              "matchCoverage": 0.8571428571428571,
+              "within5msAll": 0.2857142857142857,
+              "within5msMatched": 0.3333333333333333,
+              "medianAbsMs": 7.782570585099165,
+              "p90AbsMs": 13.935824153784779,
+              "p95AbsMs": 15.43355665596755,
+              "medianSignedMs": -5.250066147753387
+            },
+            "review/dense/weak": {
+              "count": 7,
+              "matched": 6,
+              "unmatched": 1,
+              "matchCoverage": 0.8571428571428571,
+              "within5msAll": 0.2857142857142857,
+              "within5msMatched": 0.3333333333333333,
+              "medianAbsMs": 7.782570585099165,
+              "p90AbsMs": 13.935824153784779,
+              "p95AbsMs": 15.43355665596755,
+              "medianSignedMs": -5.250066147753387
+            },
+            "review/stable/all": {
+              "count": 1,
+              "matched": 1,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0,
+              "within5msMatched": 0,
+              "medianAbsMs": 23.843963844759855,
+              "p90AbsMs": 23.843963844759855,
+              "p95AbsMs": 23.843963844759855,
+              "medianSignedMs": 23.843963844759855
+            },
+            "review/stable/weak": {
+              "count": 1,
+              "matched": 1,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0,
+              "within5msMatched": 0,
+              "medianAbsMs": 23.843963844759855,
+              "p90AbsMs": 23.843963844759855,
+              "p95AbsMs": 23.843963844759855,
+              "medianSignedMs": 23.843963844759855
+            }
+          }
+        },
+        "spectral-flux": {
+          "globalDelay": {
+            "delayMs": 35,
+            "score": 0.14488203793659082,
+            "zeroDelayScore": 0.02852687496024085,
+            "separatedRunnerUpDelayMs": 40,
+            "separatedRunnerUpScore": 0.08015578827456155,
+            "calibrationHitCount": 1040
+          },
+          "significantPeakCount": 59325,
+          "significantPeaksPerSecond": 211.411907250784,
+          "hitobject": {
+            "full/all/all": {
+              "count": 1096,
+              "matched": 1096,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.9981751824817519,
+              "within5msMatched": 0.9981751824817519,
+              "medianAbsMs": 1.0070850333577255,
+              "p90AbsMs": 2.4547195790837577,
+              "p95AbsMs": 2.9261178815795574,
+              "medianSignedMs": -0.018667661450308515
+            },
+            "full/all/strong": {
+              "count": 762,
+              "matched": 762,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.9986876640419947,
+              "within5msMatched": 0.9986876640419947,
+              "medianAbsMs": 1.013394077466728,
+              "p90AbsMs": 2.426849188251435,
+              "p95AbsMs": 2.899928662714228,
+              "medianSignedMs": -0.012556895206216723
+            },
+            "full/all/weak": {
+              "count": 334,
+              "matched": 334,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.9970059880239521,
+              "within5msMatched": 0.9970059880239521,
+              "medianAbsMs": 1.0027657557311613,
+              "p90AbsMs": 2.554188984928623,
+              "p95AbsMs": 3.0264054171464476,
+              "medianSignedMs": -0.06297602444465156
+            },
+            "full/dense/all": {
+              "count": 27,
+              "matched": 27,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.9259259259259259,
+              "within5msMatched": 0.9259259259259259,
+              "medianAbsMs": 1.8806276564137079,
+              "p90AbsMs": 3.1189246315043437,
+              "p95AbsMs": 4.73994533222285,
+              "medianSignedMs": -0.7082466886786278
+            },
+            "full/dense/strong": {
+              "count": 9,
+              "matched": 9,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.8888888888888888,
+              "within5msMatched": 0.8888888888888888,
+              "medianAbsMs": 1.625917758239666,
+              "p90AbsMs": 4.04843827278819,
+              "p95AbsMs": 6.46345420507714,
+              "medianSignedMs": 1.164106800861191
+            },
+            "full/dense/weak": {
+              "count": 18,
+              "matched": 18,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.9444444444444444,
+              "within5msMatched": 0.9444444444444444,
+              "medianAbsMs": 1.9386460267705843,
+              "p90AbsMs": 3.0531212265486833,
+              "p95AbsMs": 3.7765022621635556,
+              "medianSignedMs": -0.8618976100551663
+            },
+            "full/stable/all": {
+              "count": 1069,
+              "matched": 1069,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 1,
+              "within5msMatched": 1,
+              "medianAbsMs": 0.992651709333586,
+              "p90AbsMs": 2.4237410970323254,
+              "p95AbsMs": 2.9061033756363024,
+              "medianSignedMs": -0.016532386558537837
+            },
+            "full/stable/strong": {
+              "count": 753,
+              "matched": 753,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 1,
+              "within5msMatched": 1,
+              "medianAbsMs": 1.0035869877028745,
+              "p90AbsMs": 2.3860703953214397,
+              "p95AbsMs": 2.895051890102331,
+              "medianSignedMs": -0.012632505182409659
+            },
+            "full/stable/weak": {
+              "count": 316,
+              "matched": 316,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 1,
+              "within5msMatched": 1,
+              "medianAbsMs": 0.9852647462575987,
+              "p90AbsMs": 2.4583661802316783,
+              "p95AbsMs": 2.968713582595228,
+              "medianSignedMs": -0.03909525755807408
+            },
+            "review/all/all": {
+              "count": 43,
+              "matched": 43,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.9767441860465116,
+              "within5msMatched": 0.9767441860465116,
+              "medianAbsMs": 1.164106800861191,
+              "p90AbsMs": 2.3709577549481766,
+              "p95AbsMs": 2.7548273731692454,
+              "medianSignedMs": 0.36327361047733575
+            },
+            "review/all/strong": {
+              "count": 26,
+              "matched": 26,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 1,
+              "within5msMatched": 1,
+              "medianAbsMs": 0.879647472887882,
+              "p90AbsMs": 2.2583433329709806,
+              "p95AbsMs": 2.401721255737357,
+              "medianSignedMs": 0.4346774417499546
+            },
+            "review/all/weak": {
+              "count": 17,
+              "matched": 17,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.9411764705882353,
+              "within5msMatched": 0.9411764705882353,
+              "medianAbsMs": 1.4145886205078568,
+              "p90AbsMs": 2.5708558332407847,
+              "p95AbsMs": 3.3376607561600373,
+              "medianSignedMs": 0.0949739862116985
+            },
+            "review/dense/all": {
+              "count": 17,
+              "matched": 17,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.9411764705882353,
+              "within5msMatched": 0.9411764705882353,
+              "medianAbsMs": 1.625917758239666,
+              "p90AbsMs": 2.6051514278165997,
+              "p95AbsMs": 3.3376607561600373,
+              "medianSignedMs": 0.36327361047733575
+            },
+            "review/dense/strong": {
+              "count": 5,
+              "matched": 5,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 1,
+              "within5msMatched": 1,
+              "medianAbsMs": 1.625917758239666,
+              "p90AbsMs": 2.3525217266287655,
+              "p95AbsMs": 2.395316715934314,
+              "medianSignedMs": 1.337231711280765
+            },
+            "review/dense/weak": {
+              "count": 12,
+              "matched": 12,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.9166666666666666,
+              "within5msMatched": 0.9166666666666666,
+              "medianAbsMs": 1.702349009065074,
+              "p90AbsMs": 2.8082351486082193,
+              "p95AbsMs": 3.9400979367579554,
+              "medianSignedMs": -0.8618976100551663
+            },
+            "review/stable/all": {
+              "count": 26,
+              "matched": 26,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 1,
+              "within5msMatched": 1,
+              "medianAbsMs": 0.815203940263018,
+              "p90AbsMs": 1.8268515728705097,
+              "p95AbsMs": 2.203980090598634,
+              "medianSignedMs": 0.2682491655286867
+            },
+            "review/stable/strong": {
+              "count": 21,
+              "matched": 21,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 1,
+              "within5msMatched": 1,
+              "medianAbsMs": 0.716330277005909,
+              "p90AbsMs": 1.9382706407050136,
+              "p95AbsMs": 2.2925499072298408,
+              "medianSignedMs": 0.16069888751371764
+            },
+            "review/stable/weak": {
+              "count": 5,
+              "matched": 5,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 1,
+              "within5msMatched": 1,
+              "medianAbsMs": 1.2395980964938644,
+              "p90AbsMs": 1.5098082291427999,
+              "p95AbsMs": 1.541548098687781,
+              "medianSignedMs": 1.2395980964938644
+            }
+          },
+          "hitobjectJitterNull": {
+            "full/all/all": {
+              "count": 1096,
+              "matched": 1096,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.9698905109489051,
+              "within5msMatched": 0.9698905109489051,
+              "medianAbsMs": 1.2258040599917877,
+              "p90AbsMs": 3.4331847178036696,
+              "p95AbsMs": 4.349918691515086,
+              "medianSignedMs": -0.07702089983649785
+            },
+            "full/all/strong": {
+              "count": 59,
+              "matched": 59,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.864406779661017,
+              "within5msMatched": 0.864406779661017,
+              "medianAbsMs": 1.7765333899526468,
+              "p90AbsMs": 5.401388220215449,
+              "p95AbsMs": 5.600393623517446,
+              "medianSignedMs": -0.35614799871109426
+            },
+            "full/all/weak": {
+              "count": 1037,
+              "matched": 1037,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.9758919961427194,
+              "within5msMatched": 0.9758919961427194,
+              "medianAbsMs": 1.2141748859430663,
+              "p90AbsMs": 3.307430521865899,
+              "p95AbsMs": 4.16859300925134,
+              "medianSignedMs": -0.05152482146513648
+            },
+            "full/dense/all": {
+              "count": 26,
+              "matched": 26,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.9615384615384616,
+              "within5msMatched": 0.9615384615384616,
+              "medianAbsMs": 1.0896544357965467,
+              "p90AbsMs": 2.959196179799619,
+              "p95AbsMs": 4.2157501562687685,
+              "medianSignedMs": 0.46545316229457967
+            },
+            "full/dense/weak": {
+              "count": 26,
+              "matched": 26,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.9615384615384616,
+              "within5msMatched": 0.9615384615384616,
+              "medianAbsMs": 1.0896544357965467,
+              "p90AbsMs": 2.959196179799619,
+              "p95AbsMs": 4.2157501562687685,
+              "medianSignedMs": 0.46545316229457967
+            },
+            "full/stable/all": {
+              "count": 1070,
+              "matched": 1070,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.9700934579439252,
+              "within5msMatched": 0.9700934579439252,
+              "medianAbsMs": 1.2340242536301957,
+              "p90AbsMs": 3.437815657307511,
+              "p95AbsMs": 4.341473648017563,
+              "medianSignedMs": -0.07828774009976769
+            },
+            "full/stable/strong": {
+              "count": 59,
+              "matched": 59,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.864406779661017,
+              "within5msMatched": 0.864406779661017,
+              "medianAbsMs": 1.7765333899526468,
+              "p90AbsMs": 5.401388220215449,
+              "p95AbsMs": 5.600393623517446,
+              "medianSignedMs": -0.35614799871109426
+            },
+            "full/stable/weak": {
+              "count": 1011,
+              "matched": 1011,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.9762611275964391,
+              "within5msMatched": 0.9762611275964391,
+              "medianAbsMs": 1.216023397675599,
+              "p90AbsMs": 3.314602939706674,
+              "p95AbsMs": 4.145913914573612,
+              "medianSignedMs": -0.06571654209983535
+            },
+            "review/all/all": {
+              "count": 43,
+              "matched": 43,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.9302325581395349,
+              "within5msMatched": 0.9302325581395349,
+              "medianAbsMs": 1.139327982236864,
+              "p90AbsMs": 4.093389580282387,
+              "p95AbsMs": 5.127344669651937,
+              "medianSignedMs": -0.35827173860161565
+            },
+            "review/all/strong": {
+              "count": 2,
+              "matched": 2,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.5,
+              "within5msMatched": 0.5,
+              "medianAbsMs": 2.946835957671283,
+              "p90AbsMs": 4.9094603718433065,
+              "p95AbsMs": 5.154788423614809,
+              "medianSignedMs": -2.4532805177150294
+            },
+            "review/all/weak": {
+              "count": 41,
+              "matched": 41,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.9512195121951219,
+              "within5msMatched": 0.9512195121951219,
+              "medianAbsMs": 1.139327982236864,
+              "p90AbsMs": 3.3026489099720493,
+              "p95AbsMs": 4.320238561514998,
+              "medianSignedMs": -0.35827173860161565
+            },
+            "review/dense/all": {
+              "count": 18,
+              "matched": 18,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.9444444444444444,
+              "within5msMatched": 0.9444444444444444,
+              "medianAbsMs": 1.1812044008111116,
+              "p90AbsMs": 2.8218150877306476,
+              "p95AbsMs": 3.875764465906826,
+              "medianSignedMs": 0.46545316229457967
+            },
+            "review/dense/weak": {
+              "count": 18,
+              "matched": 18,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.9444444444444444,
+              "within5msMatched": 0.9444444444444444,
+              "medianAbsMs": 1.1812044008111116,
+              "p90AbsMs": 2.8218150877306476,
+              "p95AbsMs": 3.875764465906826,
+              "medianSignedMs": 0.46545316229457967
+            },
+            "review/stable/all": {
+              "count": 25,
+              "matched": 25,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.92,
+              "within5msMatched": 0.92,
+              "medianAbsMs": 0.9723806825641077,
+              "p90AbsMs": 4.3085730360529855,
+              "p95AbsMs": 5.037666213192276,
+              "medianSignedMs": -0.4004900336731225
+            },
+            "review/stable/strong": {
+              "count": 2,
+              "matched": 2,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.5,
+              "within5msMatched": 0.5,
+              "medianAbsMs": 2.946835957671283,
+              "p90AbsMs": 4.9094603718433065,
+              "p95AbsMs": 5.154788423614809,
+              "medianSignedMs": -2.4532805177150294
+            },
+            "review/stable/weak": {
+              "count": 23,
+              "matched": 23,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.9565217391304348,
+              "within5msMatched": 0.9565217391304348,
+              "medianAbsMs": 0.9723806825641077,
+              "p90AbsMs": 4.015277070482263,
+              "p95AbsMs": 4.317322180149495,
+              "medianSignedMs": -0.4004900336731225
+            }
+          },
+          "redline": {
+            "full/all/all": {
+              "count": 18,
+              "matched": 18,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.9444444444444444,
+              "within5msMatched": 0.9444444444444444,
+              "medianAbsMs": 1.4492325803948916,
+              "p90AbsMs": 3.8588646486175047,
+              "p95AbsMs": 5.296292653565214,
+              "medianSignedMs": 0.5398019437416224
+            },
+            "full/all/strong": {
+              "count": 8,
+              "matched": 8,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.875,
+              "within5msMatched": 0.875,
+              "medianAbsMs": 1.4492325803948916,
+              "p90AbsMs": 5.928441621294786,
+              "p95AbsMs": 7.403455879330437,
+              "medianSignedMs": 1.293897864765313
+            },
+            "full/all/weak": {
+              "count": 10,
+              "matched": 10,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 1,
+              "within5msMatched": 1,
+              "medianAbsMs": 1.2698094465740724,
+              "p90AbsMs": 2.494231648975983,
+              "p95AbsMs": 3.003988355107139,
+              "medianSignedMs": 0.07770447527582292
+            },
+            "full/dense/all": {
+              "count": 14,
+              "matched": 14,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.9285714285714286,
+              "within5msMatched": 0.9285714285714286,
+              "medianAbsMs": 1.499423296918394,
+              "p90AbsMs": 3.17390725715086,
+              "p95AbsMs": 5.391398837883024,
+              "medianSignedMs": 0.3507512060023146
+            },
+            "full/dense/strong": {
+              "count": 5,
+              "matched": 5,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.8,
+              "within5msMatched": 0.8,
+              "medianAbsMs": 1.4747762321203481,
+              "p90AbsMs": 5.977449185715523,
+              "p95AbsMs": 7.427959661540807,
+              "medianSignedMs": 1.164106800861191
+            },
+            "full/dense/weak": {
+              "count": 9,
+              "matched": 9,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 1,
+              "within5msMatched": 1,
+              "medianAbsMs": 1.52407036171644,
+              "p90AbsMs": 2.607510917005129,
+              "p95AbsMs": 3.0606279891217123,
+              "medianSignedMs": 0.3382288015272934
+            },
+            "full/stable/all": {
+              "count": 4,
+              "matched": 4,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 1,
+              "within5msMatched": 1,
+              "medianAbsMs": 1.070009602837672,
+              "p90AbsMs": 3.692007258685789,
+              "p95AbsMs": 4.17807547226072,
+              "medianSignedMs": 1.070009602837672
+            },
+            "full/stable/strong": {
+              "count": 3,
+              "matched": 3,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 1,
+              "within5msMatched": 1,
+              "medianAbsMs": 1.423688928669435,
+              "p90AbsMs": 4.01605273440241,
+              "p95AbsMs": 4.340098210119032,
+              "medianSignedMs": 1.423688928669435
+            },
+            "full/stable/weak": {
+              "count": 1,
+              "matched": 1,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 1,
+              "within5msMatched": 1,
+              "medianAbsMs": 0.18281985097564757,
+              "p90AbsMs": 0.18281985097564757,
+              "p95AbsMs": 0.18281985097564757,
+              "medianSignedMs": -0.18281985097564757
+            },
+            "review/all/all": {
+              "count": 8,
+              "matched": 8,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 1,
+              "within5msMatched": 1,
+              "medianAbsMs": 1.3440885812888155,
+              "p90AbsMs": 2.0307250737736466,
+              "p95AbsMs": 2.205838727360242,
+              "medianSignedMs": 0.94021853893355
+            },
+            "review/all/strong": {
+              "count": 3,
+              "matched": 3,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 1,
+              "within5msMatched": 1,
+              "medianAbsMs": 1.164106800861191,
+              "p90AbsMs": 1.533555566763971,
+              "p95AbsMs": 1.5797366625018183,
+              "medianSignedMs": 1.164106800861191
+            },
+            "review/all/weak": {
+              "count": 5,
+              "matched": 5,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 1,
+              "within5msMatched": 1,
+              "medianAbsMs": 1.52407036171644,
+              "p90AbsMs": 2.1808224911335854,
+              "p95AbsMs": 2.2808874360402114,
+              "medianSignedMs": 0.36327361047733575
+            },
+            "review/dense/all": {
+              "count": 7,
+              "matched": 7,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 1,
+              "within5msMatched": 1,
+              "medianAbsMs": 1.52407036171644,
+              "p90AbsMs": 2.08075754622696,
+              "p95AbsMs": 2.230854963586898,
+              "medianSignedMs": 1.164106800861191
+            },
+            "review/dense/strong": {
+              "count": 2,
+              "matched": 2,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 1,
+              "within5msMatched": 1,
+              "medianAbsMs": 1.3950122795504285,
+              "p90AbsMs": 1.5797366625018185,
+              "p95AbsMs": 1.6028272103707422,
+              "medianSignedMs": 1.3950122795504285
+            },
+            "review/dense/weak": {
+              "count": 5,
+              "matched": 5,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 1,
+              "within5msMatched": 1,
+              "medianAbsMs": 1.52407036171644,
+              "p90AbsMs": 2.1808224911335854,
+              "p95AbsMs": 2.2808874360402114,
+              "medianSignedMs": 0.36327361047733575
+            },
+            "review/stable/all": {
+              "count": 1,
+              "matched": 1,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 1,
+              "within5msMatched": 1,
+              "medianAbsMs": 0.716330277005909,
+              "p90AbsMs": 0.716330277005909,
+              "p95AbsMs": 0.716330277005909,
+              "medianSignedMs": 0.716330277005909
+            },
+            "review/stable/strong": {
+              "count": 1,
+              "matched": 1,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 1,
+              "within5msMatched": 1,
+              "medianAbsMs": 0.716330277005909,
+              "p90AbsMs": 0.716330277005909,
+              "p95AbsMs": 0.716330277005909,
+              "medianSignedMs": 0.716330277005909
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "sample-058",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\1820368 Natsu - Regression",
+      "originalAudioPath": "F:\\Backup\\D\\osu!\\Songs\\1820368 Natsu - Regression\\audio.ogg",
+      "beatmapFile": "Natsu - Regression -HARDCORE- (Schopfer) [Pristine Lunacy].osu",
+      "reviewRangeMs": [
+        31950,
+        45935
+      ],
+      "reviewExcludedFromGlobalDelayCalibration": true,
+      "audioDurationMs": 362176.0544217687,
+      "redLineCount": 21,
+      "denseRedLineCount": 7,
+      "redLineDurationMs": {
+        "median": 1458,
+        "p10": 666,
+        "p90": 18940,
+        "minimum": 526,
+        "maximum": 277889
+      },
+      "uniqueHitobjectTimeCount": 3367,
+      "calibrationHitCount": 3256,
+      "redLines": [
+        {
+          "timeMs": 3355,
+          "beatLengthMs": 631.578947368421,
+          "bpm": 95,
+          "endMs": 12197,
+          "durationMs": 8842
+        },
+        {
+          "timeMs": 12197,
+          "beatLengthMs": 666.666666666667,
+          "bpm": 89.99999999999996,
+          "endMs": 12863,
+          "durationMs": 666
+        },
+        {
+          "timeMs": 12863,
+          "beatLengthMs": 600,
+          "bpm": 100,
+          "endMs": 13460,
+          "durationMs": 597
+        },
+        {
+          "timeMs": 13460,
+          "beatLengthMs": 315.789473684211,
+          "bpm": 189.99999999999974,
+          "endMs": 32400,
+          "durationMs": 18940
+        },
+        {
+          "timeMs": 32400,
+          "beatLengthMs": 428.571428571429,
+          "bpm": 139.99999999999986,
+          "endMs": 33688,
+          "durationMs": 1288
+        },
+        {
+          "timeMs": 33688,
+          "beatLengthMs": 421.052631578947,
+          "bpm": 142.5000000000001,
+          "endMs": 53884,
+          "durationMs": 20196
+        },
+        {
+          "timeMs": 53884,
+          "beatLengthMs": 315.789473684211,
+          "bpm": 189.99999999999974,
+          "endMs": 331773,
+          "durationMs": 277889
+        },
+        {
+          "timeMs": 331773,
+          "beatLengthMs": 631.578947368421,
+          "bpm": 95,
+          "endMs": 336825,
+          "durationMs": 5052
+        },
+        {
+          "timeMs": 336825,
+          "beatLengthMs": 625,
+          "bpm": 96,
+          "endMs": 341825,
+          "durationMs": 5000
+        },
+        {
+          "timeMs": 341825,
+          "beatLengthMs": 666.666666666666,
+          "bpm": 90.0000000000001,
+          "endMs": 343158,
+          "durationMs": 1333
+        },
+        {
+          "timeMs": 343158,
+          "beatLengthMs": 674.157303370787,
+          "bpm": 88.99999999999994,
+          "endMs": 343832,
+          "durationMs": 674
+        },
+        {
+          "timeMs": 343832,
+          "beatLengthMs": 705.882352941176,
+          "bpm": 85.00000000000006,
+          "endMs": 344537,
+          "durationMs": 705
+        },
+        {
+          "timeMs": 344537,
+          "beatLengthMs": 749.999999999999,
+          "bpm": 80.00000000000011,
+          "endMs": 346266,
+          "durationMs": 1729
+        },
+        {
+          "timeMs": 346266,
+          "beatLengthMs": 833.333333333332,
+          "bpm": 72.00000000000011,
+          "endMs": 347724,
+          "durationMs": 1458
+        },
+        {
+          "timeMs": 347724,
+          "beatLengthMs": 895.522388059701,
+          "bpm": 67.00000000000003,
+          "endMs": 348619,
+          "durationMs": 895
+        },
+        {
+          "timeMs": 348619,
+          "beatLengthMs": 937.5,
+          "bpm": 64,
+          "endMs": 349556,
+          "durationMs": 937
+        },
+        {
+          "timeMs": 349556,
+          "beatLengthMs": 1000,
+          "bpm": 60,
+          "endMs": 351056,
+          "durationMs": 1500
+        },
+        {
+          "timeMs": 351056,
+          "beatLengthMs": 1052.63157894737,
+          "bpm": 56.99999999999992,
+          "endMs": 351582,
+          "durationMs": 526
+        },
+        {
+          "timeMs": 351582,
+          "beatLengthMs": 1090.90909090909,
+          "bpm": 55.00000000000004,
+          "endMs": 352987,
+          "durationMs": 1405
+        },
+        {
+          "timeMs": 352987,
+          "beatLengthMs": 1200,
+          "bpm": 50,
+          "endMs": 354508,
+          "durationMs": 1521
+        },
+        {
+          "timeMs": 354508,
+          "beatLengthMs": 3157.89473684211,
+          "bpm": 18.99999999999997,
+          "endMs": 362176.0544217687,
+          "durationMs": 7668.054421768698
+        }
+      ],
+      "features": {
+        "energy": {
+          "globalDelay": {
+            "delayMs": 25.5,
+            "score": 0.029377332643025625,
+            "zeroDelayScore": 0.012062785904361944,
+            "separatedRunnerUpDelayMs": 30.5,
+            "separatedRunnerUpScore": 0.027433499339079404,
+            "calibrationHitCount": 3256
+          },
+          "significantPeakCount": 54825,
+          "significantPeaksPerSecond": 151.37665599546807,
+          "hitobject": {
+            "full/all/all": {
+              "count": 3367,
+              "matched": 3367,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.9168399168399168,
+              "within5msMatched": 0.9168399168399168,
+              "medianAbsMs": 1.045119710805011,
+              "p90AbsMs": 4.558304689609213,
+              "p95AbsMs": 5.77427590104198,
+              "medianSignedMs": 0.02606493839994073
+            },
+            "full/all/strong": {
+              "count": 754,
+              "matched": 754,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.9283819628647215,
+              "within5msMatched": 0.9283819628647215,
+              "medianAbsMs": 0.9311685250722803,
+              "p90AbsMs": 3.9193406487043845,
+              "p95AbsMs": 5.541572074859869,
+              "medianSignedMs": 0.19171100796665996
+            },
+            "full/all/weak": {
+              "count": 2613,
+              "matched": 2613,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.9135093761959434,
+              "within5msMatched": 0.9135093761959434,
+              "medianAbsMs": 1.0990432574471924,
+              "p90AbsMs": 4.646114432661853,
+              "p95AbsMs": 5.876371727144578,
+              "medianSignedMs": -0.012347501069598366
+            },
+            "full/dense/all": {
+              "count": 27,
+              "matched": 27,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 1,
+              "within5msMatched": 1,
+              "medianAbsMs": 0.9935740120126866,
+              "p90AbsMs": 2.3014811844095675,
+              "p95AbsMs": 2.585578008487755,
+              "medianSignedMs": 0.005722369642171543
+            },
+            "full/dense/strong": {
+              "count": 8,
+              "matched": 8,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 1,
+              "within5msMatched": 1,
+              "medianAbsMs": 0.8667480797157623,
+              "p90AbsMs": 2.184224729781272,
+              "p95AbsMs": 2.1924612267204795,
+              "medianSignedMs": -0.31475658164708875
+            },
+            "full/dense/weak": {
+              "count": 19,
+              "matched": 19,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 1,
+              "within5msMatched": 1,
+              "medianAbsMs": 1.0921854803455062,
+              "p90AbsMs": 2.403189126190409,
+              "p95AbsMs": 2.8994780652832515,
+              "medianSignedMs": 0.15986394562060013
+            },
+            "full/stable/all": {
+              "count": 3340,
+              "matched": 3340,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.9161676646706587,
+              "within5msMatched": 0.9161676646706587,
+              "medianAbsMs": 1.0453158503587474,
+              "p90AbsMs": 4.582865362564917,
+              "p95AbsMs": 5.785353842016037,
+              "medianSignedMs": 0.026967440979206003
+            },
+            "full/stable/strong": {
+              "count": 746,
+              "matched": 746,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.9276139410187667,
+              "within5msMatched": 0.9276139410187667,
+              "medianAbsMs": 0.9311685250722803,
+              "p90AbsMs": 3.93729616310884,
+              "p95AbsMs": 5.543774132791441,
+              "medianSignedMs": 0.19734795360272983
+            },
+            "full/stable/weak": {
+              "count": 2594,
+              "matched": 2594,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.912875867386276,
+              "within5msMatched": 0.912875867386276,
+              "medianAbsMs": 1.1000174865475856,
+              "p90AbsMs": 4.653443955973492,
+              "p95AbsMs": 5.879912590193999,
+              "medianSignedMs": -0.014537378145178081
+            },
+            "review/all/all": {
+              "count": 84,
+              "matched": 84,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.9285714285714286,
+              "within5msMatched": 0.9285714285714286,
+              "medianAbsMs": 1.2801494545874448,
+              "p90AbsMs": 4.268021593763843,
+              "p95AbsMs": 5.825779514253187,
+              "medianSignedMs": -0.45073480267092236
+            },
+            "review/all/strong": {
+              "count": 11,
+              "matched": 11,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.8181818181818182,
+              "within5msMatched": 0.8181818181818182,
+              "medianAbsMs": 0.7783576416550204,
+              "p90AbsMs": 5.356815026822005,
+              "p95AbsMs": 5.63267649001682,
+              "medianSignedMs": 0.5249433106582728
+            },
+            "review/all/weak": {
+              "count": 73,
+              "matched": 73,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.9452054794520548,
+              "within5msMatched": 0.9452054794520548,
+              "medianAbsMs": 1.341269841272151,
+              "p90AbsMs": 4.017913832201157,
+              "p95AbsMs": 5.716191601393778,
+              "medianSignedMs": -0.8356994126879727
+            },
+            "review/stable/all": {
+              "count": 84,
+              "matched": 84,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.9285714285714286,
+              "within5msMatched": 0.9285714285714286,
+              "medianAbsMs": 1.2801494545874448,
+              "p90AbsMs": 4.268021593763843,
+              "p95AbsMs": 5.825779514253187,
+              "medianSignedMs": -0.45073480267092236
+            },
+            "review/stable/strong": {
+              "count": 11,
+              "matched": 11,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.8181818181818182,
+              "within5msMatched": 0.8181818181818182,
+              "medianAbsMs": 0.7783576416550204,
+              "p90AbsMs": 5.356815026822005,
+              "p95AbsMs": 5.63267649001682,
+              "medianSignedMs": 0.5249433106582728
+            },
+            "review/stable/weak": {
+              "count": 73,
+              "matched": 73,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.9452054794520548,
+              "within5msMatched": 0.9452054794520548,
+              "medianAbsMs": 1.341269841272151,
+              "p90AbsMs": 4.017913832201157,
+              "p95AbsMs": 5.716191601393778,
+              "medianSignedMs": -0.8356994126879727
+            }
+          },
+          "hitobjectJitterNull": {
+            "full/all/all": {
+              "count": 3367,
+              "matched": 3364,
+              "unmatched": 3,
+              "matchCoverage": 0.9991089991089991,
+              "within5msAll": 0.8755568755568756,
+              "within5msMatched": 0.8763376932223543,
+              "medianAbsMs": 1.7981386477331398,
+              "p90AbsMs": 5.445514238651964,
+              "p95AbsMs": 6.886394386611936,
+              "medianSignedMs": 0.06376706570154056
+            },
+            "full/all/strong": {
+              "count": 466,
+              "matched": 466,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.8626609442060086,
+              "within5msMatched": 0.8626609442060086,
+              "medianAbsMs": 1.7577136597537901,
+              "p90AbsMs": 5.528739518955263,
+              "p95AbsMs": 6.94622038732291,
+              "medianSignedMs": 0.4239623745015706
+            },
+            "full/all/weak": {
+              "count": 2901,
+              "matched": 2898,
+              "unmatched": 3,
+              "matchCoverage": 0.9989658738366081,
+              "within5msAll": 0.8776284039986212,
+              "within5msMatched": 0.8785369220151829,
+              "medianAbsMs": 1.8106575963665819,
+              "p90AbsMs": 5.378419238902282,
+              "p95AbsMs": 6.871062867258843,
+              "medianSignedMs": 0.01607384027010994
+            },
+            "full/dense/all": {
+              "count": 27,
+              "matched": 26,
+              "unmatched": 1,
+              "matchCoverage": 0.9629629629629629,
+              "within5msAll": 0.8518518518518519,
+              "within5msMatched": 0.8846153846153846,
+              "medianAbsMs": 1.6893424036279612,
+              "p90AbsMs": 5.363314936479583,
+              "p95AbsMs": 10.81657810312754,
+              "medianSignedMs": -0.871191904268926
+            },
+            "full/dense/strong": {
+              "count": 2,
+              "matched": 2,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 1,
+              "within5msMatched": 1,
+              "medianAbsMs": 1.367790543724368,
+              "p90AbsMs": 1.5316079953647206,
+              "p95AbsMs": 1.5520851768197645,
+              "medianSignedMs": -1.367790543724368
+            },
+            "full/dense/weak": {
+              "count": 25,
+              "matched": 24,
+              "unmatched": 1,
+              "matchCoverage": 0.96,
+              "within5msAll": 0.84,
+              "within5msMatched": 0.875,
+              "medianAbsMs": 1.848072562359448,
+              "p90AbsMs": 5.660568348713422,
+              "p95AbsMs": 11.444595387935975,
+              "medianSignedMs": -0.3446712018130711
+            },
+            "full/stable/all": {
+              "count": 3340,
+              "matched": 3338,
+              "unmatched": 2,
+              "matchCoverage": 0.9994011976047904,
+              "within5msAll": 0.875748502994012,
+              "within5msMatched": 0.8762732174955062,
+              "medianAbsMs": 1.7981386477331398,
+              "p90AbsMs": 5.436340925624249,
+              "p95AbsMs": 6.8819127348877345,
+              "medianSignedMs": 0.06598976156965364
+            },
+            "full/stable/strong": {
+              "count": 464,
+              "matched": 464,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.8620689655172413,
+              "within5msMatched": 0.8620689655172413,
+              "medianAbsMs": 1.762248807150172,
+              "p90AbsMs": 5.541970317629602,
+              "p95AbsMs": 6.946947244975808,
+              "medianSignedMs": 0.4333308908098843
+            },
+            "full/stable/weak": {
+              "count": 2876,
+              "matched": 2874,
+              "unmatched": 2,
+              "matchCoverage": 0.9993045897079277,
+              "within5msAll": 0.8779554937413073,
+              "within5msMatched": 0.8785664578983995,
+              "medianAbsMs": 1.8106575963665819,
+              "p90AbsMs": 5.37090560513607,
+              "p95AbsMs": 6.8683256166421405,
+              "medianSignedMs": 0.017493868494057097
+            },
+            "review/all/all": {
+              "count": 84,
+              "matched": 84,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.8452380952380952,
+              "within5msMatched": 0.8452380952380952,
+              "medianAbsMs": 1.796543410880986,
+              "p90AbsMs": 5.630523616114079,
+              "p95AbsMs": 6.730490342787378,
+              "medianSignedMs": 0.2849452563932573
+            },
+            "review/all/strong": {
+              "count": 12,
+              "matched": 12,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.8333333333333334,
+              "within5msMatched": 0.8333333333333334,
+              "medianAbsMs": 1.8358232598657196,
+              "p90AbsMs": 5.1446712018143455,
+              "p95AbsMs": 5.3906292234220015,
+              "medianSignedMs": 1.38830321207206
+            },
+            "review/all/weak": {
+              "count": 72,
+              "matched": 72,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.8472222222222222,
+              "within5msMatched": 0.8472222222222222,
+              "medianAbsMs": 1.796543410880986,
+              "p90AbsMs": 5.743421651692915,
+              "p95AbsMs": 6.777677978227075,
+              "medianSignedMs": 0.12018140589498216
+            },
+            "review/stable/all": {
+              "count": 84,
+              "matched": 84,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.8452380952380952,
+              "within5msMatched": 0.8452380952380952,
+              "medianAbsMs": 1.796543410880986,
+              "p90AbsMs": 5.630523616114079,
+              "p95AbsMs": 6.730490342787378,
+              "medianSignedMs": 0.2849452563932573
+            },
+            "review/stable/strong": {
+              "count": 12,
+              "matched": 12,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.8333333333333334,
+              "within5msMatched": 0.8333333333333334,
+              "medianAbsMs": 1.8358232598657196,
+              "p90AbsMs": 5.1446712018143455,
+              "p95AbsMs": 5.3906292234220015,
+              "medianSignedMs": 1.38830321207206
+            },
+            "review/stable/weak": {
+              "count": 72,
+              "matched": 72,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.8472222222222222,
+              "within5msMatched": 0.8472222222222222,
+              "medianAbsMs": 1.796543410880986,
+              "p90AbsMs": 5.743421651692915,
+              "p95AbsMs": 6.777677978227075,
+              "medianSignedMs": 0.12018140589498216
+            }
+          },
+          "redline": {
+            "full/all/all": {
+              "count": 21,
+              "matched": 21,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.9047619047619048,
+              "within5msMatched": 0.9047619047619048,
+              "medianAbsMs": 1.5551475977990776,
+              "p90AbsMs": 4.739678612037096,
+              "p95AbsMs": 10.282547783048358,
+              "medianSignedMs": 0.15986394562060013
+            },
+            "full/all/strong": {
+              "count": 5,
+              "matched": 5,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.8,
+              "within5msMatched": 0.8,
+              "medianAbsMs": 0.9363933639833704,
+              "p90AbsMs": 6.791587708948647,
+              "p95AbsMs": 8.537067745998499,
+              "medianSignedMs": 0.9363933639833704
+            },
+            "full/all/weak": {
+              "count": 16,
+              "matched": 16,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.9375,
+              "within5msMatched": 0.9375,
+              "medianAbsMs": 2.0848138352484966,
+              "p90AbsMs": 4.48354352923343,
+              "p95AbsMs": 8.076017462444725,
+              "medianSignedMs": -0.11457610112120165
+            },
+            "full/dense/all": {
+              "count": 7,
+              "matched": 7,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.8571428571428571,
+              "within5msMatched": 0.8571428571428571,
+              "medianAbsMs": 1.5551475977990776,
+              "p90AbsMs": 10.077820772689305,
+              "p95AbsMs": 14.081427393178448,
+              "medianSignedMs": 1.5551475977990776
+            },
+            "full/dense/strong": {
+              "count": 1,
+              "matched": 1,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 1,
+              "within5msMatched": 1,
+              "medianAbsMs": 1.5551475977990776,
+              "p90AbsMs": 1.5551475977990776,
+              "p95AbsMs": 1.5551475977990776,
+              "medianSignedMs": 1.5551475977990776
+            },
+            "full/dense/weak": {
+              "count": 6,
+              "matched": 6,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.8333333333333334,
+              "within5msMatched": 0.8333333333333334,
+              "medianAbsMs": 1.5836350908539316,
+              "p90AbsMs": 11.412356312852353,
+              "p95AbsMs": 14.748695163259981,
+              "medianSignedMs": 1.546837073899951
+            },
+            "full/stable/all": {
+              "count": 14,
+              "matched": 14,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.9285714285714286,
+              "within5msMatched": 0.9285714285714286,
+              "medianAbsMs": 1.5750078418350313,
+              "p90AbsMs": 3.9749176771380017,
+              "p95AbsMs": 6.346707214246269,
+              "medianSignedMs": -0.5673131369330804
+            },
+            "full/stable/strong": {
+              "count": 4,
+              "matched": 4,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.75,
+              "within5msMatched": 0.75,
+              "medianAbsMs": 0.8410017449932639,
+              "p90AbsMs": 7.478701457328863,
+              "p95AbsMs": 8.880624620188607,
+              "medianSignedMs": 0.3486435975355562
+            },
+            "full/stable/weak": {
+              "count": 10,
+              "matched": 10,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 1,
+              "within5msMatched": 1,
+              "medianAbsMs": 2.0969004398557445,
+              "p90AbsMs": 3.469936138554476,
+              "p95AbsMs": 3.8486722924921186,
+              "medianSignedMs": -1.5750078418350313
+            },
+            "review/all/all": {
+              "count": 2,
+              "matched": 2,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 1,
+              "within5msMatched": 1,
+              "medianAbsMs": 2.6708167633387347,
+              "p90AbsMs": 3.0257733299931715,
+              "p95AbsMs": 3.070142900824976,
+              "medianSignedMs": -2.6708167633387347
+            },
+            "review/all/weak": {
+              "count": 2,
+              "matched": 2,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 1,
+              "within5msMatched": 1,
+              "medianAbsMs": 2.6708167633387347,
+              "p90AbsMs": 3.0257733299931715,
+              "p95AbsMs": 3.070142900824976,
+              "medianSignedMs": -2.6708167633387347
+            },
+            "review/stable/all": {
+              "count": 2,
+              "matched": 2,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 1,
+              "within5msMatched": 1,
+              "medianAbsMs": 2.6708167633387347,
+              "p90AbsMs": 3.0257733299931715,
+              "p95AbsMs": 3.070142900824976,
+              "medianSignedMs": -2.6708167633387347
+            },
+            "review/stable/weak": {
+              "count": 2,
+              "matched": 2,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 1,
+              "within5msMatched": 1,
+              "medianAbsMs": 2.6708167633387347,
+              "p90AbsMs": 3.0257733299931715,
+              "p95AbsMs": 3.070142900824976,
+              "medianSignedMs": -2.6708167633387347
+            }
+          }
+        },
+        "spectral-flux": {
+          "globalDelay": {
+            "delayMs": 30.5,
+            "score": 0.16172063030775194,
+            "zeroDelayScore": 0.06271199432832533,
+            "separatedRunnerUpDelayMs": -48.75,
+            "separatedRunnerUpScore": 0.13284830346046764,
+            "calibrationHitCount": 3256
+          },
+          "significantPeakCount": 86599,
+          "significantPeaksPerSecond": 239.10746981398157,
+          "hitobject": {
+            "full/all/all": {
+              "count": 3367,
+              "matched": 3367,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.9931689931689932,
+              "within5msMatched": 0.9931689931689932,
+              "medianAbsMs": 0.9167105209053261,
+              "p90AbsMs": 2.2949489497346804,
+              "p95AbsMs": 2.874491957540158,
+              "medianSignedMs": 0.0016998729552142322
+            },
+            "full/all/strong": {
+              "count": 2715,
+              "matched": 2715,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.9941068139963167,
+              "within5msMatched": 0.9941068139963167,
+              "medianAbsMs": 0.8862432325113332,
+              "p90AbsMs": 2.2295412522275,
+              "p95AbsMs": 2.8538797262459408,
+              "medianSignedMs": -0.0025342261942569166
+            },
+            "full/all/weak": {
+              "count": 652,
+              "matched": 652,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.9892638036809815,
+              "within5msMatched": 0.9892638036809815,
+              "medianAbsMs": 1.0214100583170875,
+              "p90AbsMs": 2.42960801217705,
+              "p95AbsMs": 3.224955167873709,
+              "medianSignedMs": 0.03484002803452313
+            },
+            "full/dense/all": {
+              "count": 27,
+              "matched": 27,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.9259259259259259,
+              "within5msMatched": 0.9259259259259259,
+              "medianAbsMs": 0.9298155487631448,
+              "p90AbsMs": 4.198289319973631,
+              "p95AbsMs": 6.810425708210094,
+              "medianSignedMs": 0.07794579351320863
+            },
+            "full/dense/strong": {
+              "count": 13,
+              "matched": 13,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.8461538461538461,
+              "within5msMatched": 0.8461538461538461,
+              "medianAbsMs": 1.2225825535715558,
+              "p90AbsMs": 7.077357273758391,
+              "p95AbsMs": 7.704393787565641,
+              "medianSignedMs": 0.07794579351320863
+            },
+            "full/dense/weak": {
+              "count": 14,
+              "matched": 14,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 1,
+              "within5msMatched": 1,
+              "medianAbsMs": 0.9125856139598909,
+              "p90AbsMs": 1.773640768283804,
+              "p95AbsMs": 2.535620136014676,
+              "medianSignedMs": -0.03520432542427443
+            },
+            "full/stable/all": {
+              "count": 3340,
+              "matched": 3340,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.9937125748502994,
+              "within5msMatched": 0.9937125748502994,
+              "medianAbsMs": 0.9165881813605665,
+              "p90AbsMs": 2.288089715313981,
+              "p95AbsMs": 2.863562710069527,
+              "medianSignedMs": 0.0015587530069751665
+            },
+            "full/stable/strong": {
+              "count": 2702,
+              "matched": 2702,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.9948186528497409,
+              "within5msMatched": 0.9948186528497409,
+              "medianAbsMs": 0.886212952893402,
+              "p90AbsMs": 2.2227600771402654,
+              "p95AbsMs": 2.807235920063248,
+              "medianSignedMs": -0.0037902673029748257
+            },
+            "full/stable/weak": {
+              "count": 638,
+              "matched": 638,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.9890282131661442,
+              "within5msMatched": 0.9890282131661442,
+              "medianAbsMs": 1.0417745605045639,
+              "p90AbsMs": 2.4357088330260024,
+              "p95AbsMs": 3.205407679553126,
+              "medianSignedMs": 0.03484002803452313
+            },
+            "review/all/all": {
+              "count": 84,
+              "matched": 84,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.9761904761904762,
+              "within5msMatched": 0.9761904761904762,
+              "medianAbsMs": 0.9434115407566424,
+              "p90AbsMs": 2.9021973365590394,
+              "p95AbsMs": 3.3348345101197987,
+              "medianSignedMs": -0.19157491684381966
+            },
+            "review/all/strong": {
+              "count": 60,
+              "matched": 60,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.9833333333333333,
+              "within5msMatched": 0.9833333333333333,
+              "medianAbsMs": 0.8942830624109774,
+              "p90AbsMs": 2.6540751310800266,
+              "p95AbsMs": 3.278128455969272,
+              "medianSignedMs": -0.2391925420415646
+            },
+            "review/all/weak": {
+              "count": 24,
+              "matched": 24,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.9583333333333334,
+              "within5msMatched": 0.9583333333333334,
+              "medianAbsMs": 1.2571575024849153,
+              "p90AbsMs": 2.9844833019109496,
+              "p95AbsMs": 3.3339410260387012,
+              "medianSignedMs": -0.06388804267771775
+            },
+            "review/stable/all": {
+              "count": 84,
+              "matched": 84,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.9761904761904762,
+              "within5msMatched": 0.9761904761904762,
+              "medianAbsMs": 0.9434115407566424,
+              "p90AbsMs": 2.9021973365590394,
+              "p95AbsMs": 3.3348345101197987,
+              "medianSignedMs": -0.19157491684381966
+            },
+            "review/stable/strong": {
+              "count": 60,
+              "matched": 60,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.9833333333333333,
+              "within5msMatched": 0.9833333333333333,
+              "medianAbsMs": 0.8942830624109774,
+              "p90AbsMs": 2.6540751310800266,
+              "p95AbsMs": 3.278128455969272,
+              "medianSignedMs": -0.2391925420415646
+            },
+            "review/stable/weak": {
+              "count": 24,
+              "matched": 24,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.9583333333333334,
+              "within5msMatched": 0.9583333333333334,
+              "medianAbsMs": 1.2571575024849153,
+              "p90AbsMs": 2.9844833019109496,
+              "p95AbsMs": 3.3339410260387012,
+              "medianSignedMs": -0.06388804267771775
+            }
+          },
+          "hitobjectJitterNull": {
+            "full/all/all": {
+              "count": 3367,
+              "matched": 3361,
+              "unmatched": 6,
+              "matchCoverage": 0.9982179982179982,
+              "within5msAll": 0.9872289872289872,
+              "within5msMatched": 0.9889913716155906,
+              "medianAbsMs": 0.9850658509822097,
+              "p90AbsMs": 2.6208248755865498,
+              "p95AbsMs": 3.2472218965958746,
+              "medianSignedMs": 0.01765415194677189
+            },
+            "full/all/strong": {
+              "count": 1942,
+              "matched": 1942,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.9897013388259527,
+              "within5msMatched": 0.9897013388259527,
+              "medianAbsMs": 1.0127205246826634,
+              "p90AbsMs": 2.643632071627508,
+              "p95AbsMs": 3.2884154499217346,
+              "medianSignedMs": -0.020007721876027063
+            },
+            "full/all/weak": {
+              "count": 1425,
+              "matched": 1419,
+              "unmatched": 6,
+              "matchCoverage": 0.9957894736842106,
+              "within5msAll": 0.983859649122807,
+              "within5msMatched": 0.9880197322057788,
+              "medianAbsMs": 0.9526534482138231,
+              "p90AbsMs": 2.541293159528869,
+              "p95AbsMs": 3.1843691624177115,
+              "medianSignedMs": 0.05202533358533401
+            },
+            "full/dense/all": {
+              "count": 27,
+              "matched": 25,
+              "unmatched": 2,
+              "matchCoverage": 0.9259259259259259,
+              "within5msAll": 0.7407407407407407,
+              "within5msMatched": 0.8,
+              "medianAbsMs": 0.9116838973714039,
+              "p90AbsMs": 8.525555141258522,
+              "p95AbsMs": 12.346118318999642,
+              "medianSignedMs": -0.7478990318886645
+            },
+            "full/dense/strong": {
+              "count": 11,
+              "matched": 11,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.9090909090909091,
+              "within5msMatched": 0.9090909090909091,
+              "medianAbsMs": 1.4267859243118437,
+              "p90AbsMs": 3.172347580713904,
+              "p95AbsMs": 8.11522141567093,
+              "medianSignedMs": 0.42786660619640315
+            },
+            "full/dense/weak": {
+              "count": 16,
+              "matched": 14,
+              "unmatched": 2,
+              "matchCoverage": 0.875,
+              "within5msAll": 0.625,
+              "within5msMatched": 0.7142857142857143,
+              "medianAbsMs": 0.9038703346159309,
+              "p90AbsMs": 8.768719004065499,
+              "p95AbsMs": 11.518938133859772,
+              "medianSignedMs": -0.8806896787928054
+            },
+            "full/stable/all": {
+              "count": 3340,
+              "matched": 3336,
+              "unmatched": 4,
+              "matchCoverage": 0.9988023952095808,
+              "within5msAll": 0.9892215568862276,
+              "within5msMatched": 0.9904076738609112,
+              "medianAbsMs": 0.9852565741166472,
+              "p90AbsMs": 2.6045998997578863,
+              "p95AbsMs": 3.2274408458324615,
+              "medianSignedMs": 0.026597732132358942
+            },
+            "full/stable/strong": {
+              "count": 1931,
+              "matched": 1931,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.9901605385810461,
+              "within5msMatched": 0.9901605385810461,
+              "medianAbsMs": 1.0118818013870623,
+              "p90AbsMs": 2.633973915828392,
+              "p95AbsMs": 3.2750207222125027,
+              "medianSignedMs": -0.021316902887519973
+            },
+            "full/stable/weak": {
+              "count": 1409,
+              "matched": 1405,
+              "unmatched": 4,
+              "matchCoverage": 0.9971611071682044,
+              "within5msAll": 0.9879347054648687,
+              "within5msMatched": 0.9907473309608541,
+              "medianAbsMs": 0.9528785914299078,
+              "p90AbsMs": 2.522684653912439,
+              "p95AbsMs": 3.1336794824921506,
+              "medianSignedMs": 0.07168988150078803
+            },
+            "review/all/all": {
+              "count": 84,
+              "matched": 84,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.9880952380952381,
+              "within5msMatched": 0.9880952380952381,
+              "medianAbsMs": 0.8841718471085187,
+              "p90AbsMs": 2.5480691793934973,
+              "p95AbsMs": 3.2869164611256556,
+              "medianSignedMs": -0.06683590259126504
+            },
+            "review/all/strong": {
+              "count": 49,
+              "matched": 49,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.9795918367346939,
+              "within5msMatched": 0.9795918367346939,
+              "medianAbsMs": 0.9243255066539859,
+              "p90AbsMs": 2.889800526668843,
+              "p95AbsMs": 3.573855252102657,
+              "medianSignedMs": -0.034533642217866145
+            },
+            "review/all/weak": {
+              "count": 35,
+              "matched": 35,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 1,
+              "within5msMatched": 1,
+              "medianAbsMs": 0.8605809887012583,
+              "p90AbsMs": 1.9567484312137822,
+              "p95AbsMs": 2.4373046422617324,
+              "medianSignedMs": -0.1443605295935413
+            },
+            "review/stable/all": {
+              "count": 84,
+              "matched": 84,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.9880952380952381,
+              "within5msMatched": 0.9880952380952381,
+              "medianAbsMs": 0.8841718471085187,
+              "p90AbsMs": 2.5480691793934973,
+              "p95AbsMs": 3.2869164611256556,
+              "medianSignedMs": -0.06683590259126504
+            },
+            "review/stable/strong": {
+              "count": 49,
+              "matched": 49,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 0.9795918367346939,
+              "within5msMatched": 0.9795918367346939,
+              "medianAbsMs": 0.9243255066539859,
+              "p90AbsMs": 2.889800526668843,
+              "p95AbsMs": 3.573855252102657,
+              "medianSignedMs": -0.034533642217866145
+            },
+            "review/stable/weak": {
+              "count": 35,
+              "matched": 35,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 1,
+              "within5msMatched": 1,
+              "medianAbsMs": 0.8605809887012583,
+              "p90AbsMs": 1.9567484312137822,
+              "p95AbsMs": 2.4373046422617324,
+              "medianSignedMs": -0.1443605295935413
+            }
+          },
+          "redline": {
+            "full/all/all": {
+              "count": 21,
+              "matched": 20,
+              "unmatched": 1,
+              "matchCoverage": 0.9523809523809523,
+              "within5msAll": 0.9523809523809523,
+              "within5msMatched": 1,
+              "medianAbsMs": 1.3319400264881551,
+              "p90AbsMs": 3.6983870849087914,
+              "p95AbsMs": 3.9759929264469065,
+              "medianSignedMs": 0.32050168767455034
+            },
+            "full/all/strong": {
+              "count": 12,
+              "matched": 12,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 1,
+              "within5msMatched": 1,
+              "medianAbsMs": 2.1748802728720875,
+              "p90AbsMs": 3.9365772867315174,
+              "p95AbsMs": 4.053127842347294,
+              "medianSignedMs": -0.24586431689749588
+            },
+            "full/all/weak": {
+              "count": 9,
+              "matched": 8,
+              "unmatched": 1,
+              "matchCoverage": 0.8888888888888888,
+              "within5msAll": 0.8888888888888888,
+              "within5msMatched": 1,
+              "medianAbsMs": 1.2037124928028788,
+              "p90AbsMs": 2.4284895731248977,
+              "p95AbsMs": 2.887076367312874,
+              "medianSignedMs": 1.1416733602818567
+            },
+            "full/dense/all": {
+              "count": 7,
+              "matched": 6,
+              "unmatched": 1,
+              "matchCoverage": 0.8571428571428571,
+              "within5msAll": 0.8571428571428571,
+              "within5msMatched": 1,
+              "medianAbsMs": 0.7922704147313198,
+              "p90AbsMs": 2.426318904123036,
+              "p95AbsMs": 3.047466106901993,
+              "medianSignedMs": 0.32050168767455034
+            },
+            "full/dense/strong": {
+              "count": 3,
+              "matched": 3,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 1,
+              "within5msMatched": 1,
+              "medianAbsMs": 0.563057581835892,
+              "p90AbsMs": 3.047502164111939,
+              "p95AbsMs": 3.358057736896444,
+              "medianSignedMs": 0.07794579351320863
+            },
+            "full/dense/weak": {
+              "count": 4,
+              "matched": 3,
+              "unmatched": 1,
+              "matchCoverage": 0.75,
+              "within5msAll": 0.75,
+              "within5msMatched": 1,
+              "medianAbsMs": 1.0147407316580939,
+              "p90AbsMs": 1.1501677451837167,
+              "p95AbsMs": 1.1670961218744196,
+              "medianSignedMs": 1.0147407316580939
+            },
+            "full/stable/all": {
+              "count": 14,
+              "matched": 14,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 1,
+              "within5msMatched": 1,
+              "medianAbsMs": 2.075461447937414,
+              "p90AbsMs": 3.780144691821807,
+              "p95AbsMs": 4.033844113372197,
+              "medianSignedMs": 0.4968123185390141
+            },
+            "full/stable/strong": {
+              "count": 9,
+              "matched": 9,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 1,
+              "within5msMatched": 1,
+              "medianAbsMs": 2.234252827975979,
+              "p90AbsMs": 4.004918519909552,
+              "p95AbsMs": 4.082053435809939,
+              "medianSignedMs": -0.38603104887442896
+            },
+            "full/stable/weak": {
+              "count": 5,
+              "matched": 5,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 1,
+              "within5msMatched": 1,
+              "medianAbsMs": 1.440479565935675,
+              "p90AbsMs": 2.821563968143164,
+              "p95AbsMs": 3.0836135648220075,
+              "medianSignedMs": 1.2234004870406352
+            },
+            "review/all/all": {
+              "count": 2,
+              "matched": 2,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 1,
+              "within5msMatched": 1,
+              "medianAbsMs": 1.8658471051876404,
+              "p90AbsMs": 3.04969995023821,
+              "p95AbsMs": 3.1976815558695306,
+              "medianSignedMs": 1.4798160563132114
+            },
+            "review/all/strong": {
+              "count": 1,
+              "matched": 1,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 1,
+              "within5msMatched": 1,
+              "medianAbsMs": 0.38603104887442896,
+              "p90AbsMs": 0.38603104887442896,
+              "p95AbsMs": 0.38603104887442896,
+              "medianSignedMs": -0.38603104887442896
+            },
+            "review/all/weak": {
+              "count": 1,
+              "matched": 1,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 1,
+              "within5msMatched": 1,
+              "medianAbsMs": 3.345663161500852,
+              "p90AbsMs": 3.345663161500852,
+              "p95AbsMs": 3.345663161500852,
+              "medianSignedMs": 3.345663161500852
+            },
+            "review/stable/all": {
+              "count": 2,
+              "matched": 2,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 1,
+              "within5msMatched": 1,
+              "medianAbsMs": 1.8658471051876404,
+              "p90AbsMs": 3.04969995023821,
+              "p95AbsMs": 3.1976815558695306,
+              "medianSignedMs": 1.4798160563132114
+            },
+            "review/stable/strong": {
+              "count": 1,
+              "matched": 1,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 1,
+              "within5msMatched": 1,
+              "medianAbsMs": 0.38603104887442896,
+              "p90AbsMs": 0.38603104887442896,
+              "p95AbsMs": 0.38603104887442896,
+              "medianSignedMs": -0.38603104887442896
+            },
+            "review/stable/weak": {
+              "count": 1,
+              "matched": 1,
+              "unmatched": 0,
+              "matchCoverage": 1,
+              "within5msAll": 1,
+              "within5msMatched": 1,
+              "medianAbsMs": 3.345663161500852,
+              "p90AbsMs": 3.345663161500852,
+              "p95AbsMs": 3.345663161500852,
+              "medianSignedMs": 3.345663161500852
+            }
+          }
+        }
+      }
+    }
+  ]
+}

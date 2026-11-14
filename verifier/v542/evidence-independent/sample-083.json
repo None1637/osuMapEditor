@@ -1,0 +1,612 @@
+{
+  "id": "sample-083",
+  "directoryName": "845720 OSU! - PACK 9",
+  "beatmapFile": "OSU! - PACK 9 (Spinner) [Justability (Amamiya Nathan's Shooting Star) 1.4x - mapped by Skystar].osu",
+  "referenceBpm": 252.00004032000643,
+  "predictedBpm": 63,
+  "frozenBpm": 63,
+  "deterministicEvidence": true,
+  "evidence": [
+    {
+      "startMs": 7987,
+      "endMs": 13984,
+      "bpm": 126.048,
+      "points": 3,
+      "maxSupport": 0.15082994447682355,
+      "index": 0,
+      "ratioToPredictedMain": 2.0007619047619047,
+      "ratioToAnnotatedMain": 0.50019039616,
+      "boundary": "start",
+      "localBpmMin": 123.047,
+      "localBpmMax": 126.048,
+      "medianSupport": 0.15082994447682355,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 95.23809523809524,
+          "first": null,
+          "second": null,
+          "combined": null
+        },
+        "annotatedMain": {
+          "lag": 23.80952,
+          "first": null,
+          "second": null,
+          "combined": null
+        },
+        "evidenceBpm": {
+          "lag": 47.6009139375476,
+          "first": null,
+          "second": null,
+          "combined": null
+        }
+      },
+      "objectCount": 10,
+      "objectGrid": {
+        "predictedMainHalf": 0.7,
+        "annotatedMainHalf": 1,
+        "evidenceHalf": 1
+      }
+    },
+    {
+      "startMs": 67895,
+      "endMs": 73892,
+      "bpm": 72.027,
+      "points": 3,
+      "maxSupport": 0.13556727314346423,
+      "index": 1,
+      "ratioToPredictedMain": 1.1432857142857142,
+      "ratioToAnnotatedMain": 0.28582138284,
+      "boundary": "interior",
+      "localBpmMin": 72.027,
+      "localBpmMax": 72.027,
+      "medianSupport": 0.12545121591521202,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 95.23809523809524,
+          "first": null,
+          "second": null,
+          "combined": null
+        },
+        "annotatedMain": {
+          "lag": 23.80952,
+          "first": null,
+          "second": null,
+          "combined": null
+        },
+        "evidenceBpm": {
+          "lag": 83.30209504769044,
+          "first": null,
+          "second": null,
+          "combined": null
+        }
+      },
+      "objectCount": 50,
+      "objectGrid": {
+        "predictedMainHalf": 0.24,
+        "annotatedMainHalf": 0.78,
+        "evidenceHalf": 0.18
+      }
+    },
+    {
+      "startMs": 131796,
+      "endMs": 137793,
+      "bpm": 127.604,
+      "points": 3,
+      "maxSupport": 0.15825481385293524,
+      "index": 2,
+      "ratioToPredictedMain": 2.0254603174603174,
+      "ratioToAnnotatedMain": 0.5063649983466667,
+      "boundary": "interior",
+      "localBpmMin": 126.048,
+      "localBpmMax": 127.604,
+      "medianSupport": 0.15825481385293524,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 95.23809523809524,
+          "first": null,
+          "second": null,
+          "combined": null
+        },
+        "annotatedMain": {
+          "lag": 23.80952,
+          "first": null,
+          "second": null,
+          "combined": null
+        },
+        "evidenceBpm": {
+          "lag": 47.02046957775618,
+          "first": null,
+          "second": null,
+          "combined": null
+        }
+      },
+      "objectCount": 23,
+      "objectGrid": {
+        "predictedMainHalf": 0.391304347826087,
+        "annotatedMainHalf": 1,
+        "evidenceHalf": 0.2608695652173913
+      }
+    },
+    {
+      "startMs": 137787,
+      "endMs": 143784,
+      "bpm": 73.565,
+      "points": 3,
+      "maxSupport": 0.1892217794224613,
+      "index": 3,
+      "ratioToPredictedMain": 1.1676984126984127,
+      "ratioToAnnotatedMain": 0.29192455646666665,
+      "boundary": "interior",
+      "localBpmMin": 72.027,
+      "localBpmMax": 75.225,
+      "medianSupport": 0.10230127135676392,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 95.23809523809524,
+          "first": null,
+          "second": null,
+          "combined": null
+        },
+        "annotatedMain": {
+          "lag": 23.80952,
+          "first": null,
+          "second": null,
+          "combined": null
+        },
+        "evidenceBpm": {
+          "lag": 81.56052470604229,
+          "first": null,
+          "second": null,
+          "combined": null
+        }
+      },
+      "objectCount": 29,
+      "objectGrid": {
+        "predictedMainHalf": 0.3793103448275862,
+        "annotatedMainHalf": 1,
+        "evidenceHalf": 0.13793103448275862
+      }
+    },
+    {
+      "startMs": 151765,
+      "endMs": 158761,
+      "bpm": 126.048,
+      "points": 4,
+      "maxSupport": 0.12977553356337668,
+      "index": 4,
+      "ratioToPredictedMain": 2.0007619047619047,
+      "ratioToAnnotatedMain": 0.50019039616,
+      "boundary": "interior",
+      "localBpmMin": 124.83,
+      "localBpmMax": 126.048,
+      "medianSupport": 0.12342032311340084,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 95.23809523809524,
+          "first": null,
+          "second": null,
+          "combined": null
+        },
+        "annotatedMain": {
+          "lag": 23.80952,
+          "first": null,
+          "second": null,
+          "combined": null
+        },
+        "evidenceBpm": {
+          "lag": 47.6009139375476,
+          "first": null,
+          "second": null,
+          "combined": null
+        }
+      },
+      "objectCount": 57,
+      "objectGrid": {
+        "predictedMainHalf": 0.24561403508771928,
+        "annotatedMainHalf": 0.8070175438596491,
+        "evidenceHalf": 0.47368421052631576
+      }
+    },
+    {
+      "startMs": 168739,
+      "endMs": 174736,
+      "bpm": 121.599,
+      "points": 3,
+      "maxSupport": 0.11756215894210378,
+      "index": 5,
+      "ratioToPredictedMain": 1.9301428571428572,
+      "ratioToAnnotatedMain": 0.48253563708,
+      "boundary": "interior",
+      "localBpmMin": 121.599,
+      "localBpmMax": 121.599,
+      "medianSupport": 0.11756215894210378,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 95.23809523809524,
+          "first": null,
+          "second": null,
+          "combined": null
+        },
+        "annotatedMain": {
+          "lag": 23.80952,
+          "first": null,
+          "second": null,
+          "combined": null
+        },
+        "evidenceBpm": {
+          "lag": 49.34251104038684,
+          "first": null,
+          "second": null,
+          "combined": null
+        }
+      },
+      "objectCount": 50,
+      "objectGrid": {
+        "predictedMainHalf": 0.26,
+        "annotatedMainHalf": 0.86,
+        "evidenceHalf": 0.18
+      }
+    },
+    {
+      "startMs": 206681,
+      "endMs": 213676,
+      "bpm": 126.048,
+      "points": 4,
+      "maxSupport": 0.10166355770137882,
+      "index": 6,
+      "ratioToPredictedMain": 2.0007619047619047,
+      "ratioToAnnotatedMain": 0.50019039616,
+      "boundary": "interior",
+      "localBpmMin": 126.048,
+      "localBpmMax": 126.048,
+      "medianSupport": 0.10166355770137882,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 95.23809523809524,
+          "first": null,
+          "second": null,
+          "combined": null
+        },
+        "annotatedMain": {
+          "lag": 23.80952,
+          "first": null,
+          "second": null,
+          "combined": null
+        },
+        "evidenceBpm": {
+          "lag": 47.6009139375476,
+          "first": null,
+          "second": null,
+          "combined": null
+        }
+      },
+      "objectCount": 33,
+      "objectGrid": {
+        "predictedMainHalf": 0.30303030303030304,
+        "annotatedMainHalf": 0.9696969696969697,
+        "evidenceHalf": 0.5454545454545454
+      }
+    },
+    {
+      "startMs": 235636,
+      "endMs": 242631,
+      "bpm": 84.032,
+      "points": 4,
+      "maxSupport": 0.1725426592718349,
+      "index": 7,
+      "ratioToPredictedMain": 1.3338412698412698,
+      "ratioToAnnotatedMain": 0.3334602641066667,
+      "boundary": "interior",
+      "localBpmMin": 84.032,
+      "localBpmMax": 84.032,
+      "medianSupport": 0.1725426592718349,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 95.23809523809524,
+          "first": null,
+          "second": null,
+          "combined": null
+        },
+        "annotatedMain": {
+          "lag": 23.80952,
+          "first": null,
+          "second": null,
+          "combined": null
+        },
+        "evidenceBpm": {
+          "lag": 71.4013709063214,
+          "first": null,
+          "second": null,
+          "combined": null
+        }
+      },
+      "objectCount": 56,
+      "objectGrid": {
+        "predictedMainHalf": 0.23214285714285715,
+        "annotatedMainHalf": 0.8035714285714286,
+        "evidenceHalf": 0.3392857142857143
+      }
+    },
+    {
+      "startMs": 256604,
+      "endMs": 262600,
+      "bpm": 126.048,
+      "points": 3,
+      "maxSupport": 0.1227168382120187,
+      "index": 8,
+      "ratioToPredictedMain": 2.0007619047619047,
+      "ratioToAnnotatedMain": 0.50019039616,
+      "boundary": "interior",
+      "localBpmMin": 126.048,
+      "localBpmMax": 126.048,
+      "medianSupport": 0.07969007633340695,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 95.23809523809524,
+          "first": null,
+          "second": null,
+          "combined": null
+        },
+        "annotatedMain": {
+          "lag": 23.80952,
+          "first": null,
+          "second": null,
+          "combined": null
+        },
+        "evidenceBpm": {
+          "lag": 47.6009139375476,
+          "first": null,
+          "second": null,
+          "combined": null
+        }
+      },
+      "objectCount": 33,
+      "objectGrid": {
+        "predictedMainHalf": 0.2727272727272727,
+        "annotatedMainHalf": 0.9696969696969697,
+        "evidenceHalf": 0.5151515151515151
+      }
+    },
+    {
+      "startMs": 278570,
+      "endMs": 284567,
+      "bpm": 72.279,
+      "points": 3,
+      "maxSupport": 0.1176100187877779,
+      "index": 9,
+      "ratioToPredictedMain": 1.1472857142857142,
+      "ratioToAnnotatedMain": 0.28682138268,
+      "boundary": "interior",
+      "localBpmMin": 72.279,
+      "localBpmMax": 72.33,
+      "medianSupport": 0.11712037641324709,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 95.23809523809524,
+          "first": -0.0024326489182793297,
+          "second": null,
+          "combined": -0.0024326489182793297
+        },
+        "annotatedMain": {
+          "lag": 23.80952,
+          "first": -0.0020923218010632724,
+          "second": -0.0024872977201773495,
+          "combined": -0.002222663854370918
+        },
+        "evidenceBpm": {
+          "lag": 83.01166313867098,
+          "first": -0.0019296080214056593,
+          "second": null,
+          "combined": -0.0019296080214056591
+        }
+      },
+      "objectCount": 46,
+      "objectGrid": {
+        "predictedMainHalf": 0.2826086956521739,
+        "annotatedMainHalf": 0.8913043478260869,
+        "evidenceHalf": 0.17391304347826086
+      }
+    },
+    {
+      "startMs": 291550,
+      "endMs": 297546,
+      "bpm": 123.047,
+      "points": 3,
+      "maxSupport": 0.10833139412414758,
+      "index": 10,
+      "ratioToPredictedMain": 1.953126984126984,
+      "ratioToAnnotatedMain": 0.48828166790666666,
+      "boundary": "interior",
+      "localBpmMin": 123.047,
+      "localBpmMax": 123.047,
+      "medianSupport": 0.10651911407611671,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 95.23809523809524,
+          "first": null,
+          "second": null,
+          "combined": null
+        },
+        "annotatedMain": {
+          "lag": 23.80952,
+          "first": null,
+          "second": null,
+          "combined": null
+        },
+        "evidenceBpm": {
+          "lag": 48.761855226051836,
+          "first": null,
+          "second": null,
+          "combined": null
+        }
+      },
+      "objectCount": 42,
+      "objectGrid": {
+        "predictedMainHalf": 0.2619047619047619,
+        "annotatedMainHalf": 0.9523809523809523,
+        "evidenceHalf": 0.19047619047619047
+      }
+    },
+    {
+      "startMs": 301534,
+      "endMs": 307531,
+      "bpm": 72.027,
+      "points": 3,
+      "maxSupport": 0.16251278720120058,
+      "index": 11,
+      "ratioToPredictedMain": 1.1432857142857142,
+      "ratioToAnnotatedMain": 0.28582138284,
+      "boundary": "interior",
+      "localBpmMin": 72.027,
+      "localBpmMax": 72.027,
+      "medianSupport": 0.16251278720120058,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 95.23809523809524,
+          "first": null,
+          "second": null,
+          "combined": null
+        },
+        "annotatedMain": {
+          "lag": 23.80952,
+          "first": null,
+          "second": null,
+          "combined": null
+        },
+        "evidenceBpm": {
+          "lag": 83.30209504769044,
+          "first": null,
+          "second": null,
+          "combined": null
+        }
+      },
+      "objectCount": 47,
+      "objectGrid": {
+        "predictedMainHalf": 0.23404255319148937,
+        "annotatedMainHalf": 0.8085106382978723,
+        "evidenceHalf": 0.19148936170212766
+      }
+    },
+    {
+      "startMs": 306526,
+      "endMs": 312523,
+      "bpm": 168.064,
+      "points": 3,
+      "maxSupport": 0.11051910644130732,
+      "index": 12,
+      "ratioToPredictedMain": 2.6676825396825397,
+      "ratioToAnnotatedMain": 0.6669205282133334,
+      "boundary": "interior",
+      "localBpmMin": 168.064,
+      "localBpmMax": 168.064,
+      "medianSupport": 0.11051910644130732,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 95.23809523809524,
+          "first": null,
+          "second": null,
+          "combined": null
+        },
+        "annotatedMain": {
+          "lag": 23.80952,
+          "first": null,
+          "second": null,
+          "combined": null
+        },
+        "evidenceBpm": {
+          "lag": 35.7006854531607,
+          "first": null,
+          "second": null,
+          "combined": null
+        }
+      },
+      "objectCount": 51,
+      "objectGrid": {
+        "predictedMainHalf": 0.21568627450980393,
+        "annotatedMainHalf": 0.7843137254901961,
+        "evidenceHalf": 0.37254901960784315
+      }
+    },
+    {
+      "startMs": 309522,
+      "endMs": 316517,
+      "bpm": 129.199,
+      "points": 4,
+      "maxSupport": 0.09913431322214353,
+      "index": 13,
+      "ratioToPredictedMain": 2.050777777777778,
+      "ratioToAnnotatedMain": 0.5126943624133334,
+      "boundary": "interior",
+      "localBpmMin": 123.047,
+      "localBpmMax": 129.199,
+      "medianSupport": 0.09913431322214353,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 95.23809523809524,
+          "first": null,
+          "second": null,
+          "combined": null
+        },
+        "annotatedMain": {
+          "lag": 23.80952,
+          "first": null,
+          "second": null,
+          "combined": null
+        },
+        "evidenceBpm": {
+          "lag": 46.439987925603134,
+          "first": null,
+          "second": null,
+          "combined": null
+        }
+      },
+      "objectCount": 49,
+      "objectGrid": {
+        "predictedMainHalf": 0.2857142857142857,
+        "annotatedMainHalf": 0.8571428571428571,
+        "evidenceHalf": 0.22448979591836735
+      }
+    },
+    {
+      "startMs": 322502,
+      "endMs": 328499,
+      "bpm": 84.1,
+      "points": 3,
+      "maxSupport": 0.17551689692285216,
+      "index": 14,
+      "ratioToPredictedMain": 1.3349206349206348,
+      "ratioToAnnotatedMain": 0.33373010533333336,
+      "boundary": "end",
+      "localBpmMin": 84.032,
+      "localBpmMax": 84.1,
+      "medianSupport": 0.09390389595230511,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 95.23809523809524,
+          "first": null,
+          "second": null,
+          "combined": null
+        },
+        "annotatedMain": {
+          "lag": 23.80952,
+          "first": null,
+          "second": null,
+          "combined": null
+        },
+        "evidenceBpm": {
+          "lag": 71.34363852556481,
+          "first": null,
+          "second": null,
+          "combined": null
+        }
+      },
+      "objectCount": 24,
+      "objectGrid": {
+        "predictedMainHalf": 0.3333333333333333,
+        "annotatedMainHalf": 1,
+        "evidenceHalf": 0.4166666666666667
+      }
+    }
+  ],
+  "analysisMs": 3957
+}

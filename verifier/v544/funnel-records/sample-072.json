@@ -1,0 +1,89 @@
+{
+  "id": "sample-072",
+  "directoryName": "20125 Demetori - Solar Sect of Mystic Wisdom ~ Nuclear Fusion",
+  "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\20125 Demetori - Solar Sect of Mystic Wisdom ~ Nuclear Fusion",
+  "status": "ok",
+  "referenceBpm": 172.99999999999994,
+  "referenceVariable": true,
+  "predictedBpm": 173,
+  "predictedVariable": false,
+  "variableLines": [
+    {
+      "time": 231,
+      "beatLength": 324.324324324324,
+      "bpm": 185.0000000000002,
+      "durationMs": 2432
+    }
+  ],
+  "trueVariableMs": 2432,
+  "flaggedWindowCount": 46,
+  "flaggedWindowsOnVariable": 1,
+  "rawCandidateCount": 2,
+  "rawCandidatesOnVariable": 0,
+  "finalEvidenceCount": 0,
+  "finalEvidenceOnVariable": 0,
+  "candidates": [
+    {
+      "startMs": 197695,
+      "endMs": 203691,
+      "bpm": 76.847,
+      "points": 3,
+      "maxSupport": 0.09127902977597745,
+      "localGridCoverage": 0.055900621118012424,
+      "rejection": "insufficient_margin",
+      "independentMainScore": 0.5791136650411977,
+      "independentLocalScore": 0.5264704179601496,
+      "variableOverlapMs": 0,
+      "overlapsVariable": false,
+      "tripletVotes": [
+        {
+          "timeMs": 200692.97052154195,
+          "bpm": 76.904,
+          "localGridCoverage": 0.055900621118012424,
+          "tripletGridCoverage": 0.5341614906832298,
+          "tripletGridHalfCoverage": 0.2919254658385093,
+          "tripletGridDoubleCoverage": 0.5962732919254659
+        }
+      ]
+    },
+    {
+      "startMs": 233639,
+      "endMs": 239636,
+      "bpm": 76.847,
+      "points": 3,
+      "maxSupport": 0.08561013479815802,
+      "localGridCoverage": 0.06451612903225806,
+      "rejection": "insufficient_margin",
+      "independentMainScore": 0.4061191498116169,
+      "independentLocalScore": 0.40418483312193276,
+      "variableOverlapMs": 0,
+      "overlapsVariable": false,
+      "tripletVotes": [
+        {
+          "timeMs": 235639.0022675737,
+          "bpm": 76.847,
+          "localGridCoverage": 0.06451612903225806,
+          "tripletGridCoverage": 0.5887096774193549,
+          "tripletGridHalfCoverage": 0.3064516129032258,
+          "tripletGridDoubleCoverage": 0.6290322580645161
+        },
+        {
+          "timeMs": 236637.46031746033,
+          "bpm": 76.847,
+          "localGridCoverage": 0.0625,
+          "tripletGridCoverage": 0.5625,
+          "tripletGridHalfCoverage": 0.3046875,
+          "tripletGridDoubleCoverage": 0.640625
+        },
+        {
+          "timeMs": 237635.91836734692,
+          "bpm": 76.904,
+          "localGridCoverage": 0.06766917293233082,
+          "tripletGridCoverage": 0.5338345864661654,
+          "tripletGridHalfCoverage": 0.2932330827067669,
+          "tripletGridDoubleCoverage": 0.6917293233082706
+        }
+      ]
+    }
+  ]
+}

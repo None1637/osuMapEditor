@@ -1,0 +1,19 @@
+{
+  "id": "sample-056",
+  "directoryName": "952619 Stonebank - The Pressure",
+  "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\952619 Stonebank - The Pressure",
+  "status": "ok",
+  "referenceBpm": 170.0000000000001,
+  "referenceVariable": false,
+  "predictedBpm": 170,
+  "predictedVariable": false,
+  "variableLines": [],
+  "trueVariableMs": 0,
+  "flaggedWindowCount": 8,
+  "flaggedWindowsOnVariable": 0,
+  "rawCandidateCount": 0,
+  "rawCandidatesOnVariable": 0,
+  "finalEvidenceCount": 0,
+  "finalEvidenceOnVariable": 0,
+  "candidates": []
+}

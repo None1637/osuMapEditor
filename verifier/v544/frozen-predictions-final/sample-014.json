@@ -1,0 +1,42 @@
+{
+  "id": "sample-014",
+  "directoryName": "828088 DJ Seven - Charon",
+  "beatmapFile": "DJ Seven - Charon (Momi) [DT for no notelock].osu",
+  "metadata": {
+    "Title": "Charon",
+    "TitleUnicode": "Charon",
+    "Artist": "DJ Seven",
+    "ArtistUnicode": "DJ Seven",
+    "Creator": "Momi",
+    "Version": "DT for no notelock",
+    "Source": "",
+    "Tags": "",
+    "BeatmapID": "1778578",
+    "BeatmapSetID": "828088",
+    "Mode": "0"
+  },
+  "audioDurationMs": 367425.85034013604,
+  "redLines": [
+    {
+      "time": 32997,
+      "beatLength": 514.2857,
+      "bpm": 116.6666699074075,
+      "durationMs": 334428.85034013604
+    }
+  ],
+  "referenceBpm": 116.6666699074075,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 334428.85034013604,
+  "status": "ok",
+  "prediction": {
+    "bpm": 232.7,
+    "offsetMs": 102,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 362,
+    "rawBpm": 232.7,
+    "rawSegmentCount": 241
+  },
+  "evaluationMs": 3393
+}

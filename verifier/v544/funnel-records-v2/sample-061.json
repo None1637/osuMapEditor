@@ -1,0 +1,19 @@
+{
+  "id": "sample-061",
+  "directoryName": "1223565 Niko - Made of Fire",
+  "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\1223565 Niko - Made of Fire",
+  "status": "ok",
+  "referenceBpm": 162.00000000000017,
+  "referenceVariable": false,
+  "predictedBpm": 161.95,
+  "predictedVariable": false,
+  "variableLines": [],
+  "trueVariableMs": 0,
+  "flaggedWindowCount": 13,
+  "flaggedWindowsOnVariable": 0,
+  "rawCandidateCount": 0,
+  "rawCandidatesOnVariable": 0,
+  "finalEvidenceCount": 0,
+  "finalEvidenceOnVariable": 0,
+  "candidates": []
+}

@@ -1,0 +1,51 @@
+{
+  "id": "sample-024",
+  "directoryName": "205022 Ryu_ - Sakura Mirage",
+  "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\205022 Ryu_ - Sakura Mirage",
+  "status": "ok",
+  "referenceBpm": 187.00000000000003,
+  "referenceVariable": false,
+  "predictedBpm": 187,
+  "predictedVariable": false,
+  "variableLines": [],
+  "trueVariableMs": 0,
+  "flaggedWindowCount": 17,
+  "flaggedWindowsOnVariable": 0,
+  "rawCandidateCount": 1,
+  "rawCandidatesOnVariable": 0,
+  "finalEvidenceCount": 0,
+  "finalEvidenceOnVariable": 0,
+  "candidates": [
+    {
+      "startMs": 32949,
+      "endMs": 38946,
+      "bpm": 74.898,
+      "points": 3,
+      "maxSupport": 0.472069247359516,
+      "localGridCoverage": 0.125,
+      "rejection": "weak_short",
+      "independentMainScore": 0.2591504959881823,
+      "independentLocalScore": 0.17753378813592288,
+      "variableOverlapMs": 0,
+      "overlapsVariable": false,
+      "tripletVotes": [
+        {
+          "timeMs": 35947.39229024943,
+          "bpm": 74.898,
+          "localGridCoverage": 0.13157894736842105,
+          "tripletGridCoverage": 0.6578947368421053,
+          "tripletGridHalfCoverage": 0.39473684210526316,
+          "tripletGridDoubleCoverage": 0.9473684210526315
+        },
+        {
+          "timeMs": 36945.85034013605,
+          "bpm": 74.898,
+          "localGridCoverage": 0.125,
+          "tripletGridCoverage": 0.65,
+          "tripletGridHalfCoverage": 0.4,
+          "tripletGridDoubleCoverage": 0.9
+        }
+      ]
+    }
+  ]
+}

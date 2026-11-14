@@ -1,0 +1,42 @@
+{
+  "id": "sample-076",
+  "directoryName": "1536884 M2U - Felis",
+  "beatmapFile": "M2U - Felis (IOException) [Future].osu",
+  "metadata": {
+    "Title": "Felis",
+    "TitleUnicode": "Felis",
+    "Artist": "M2U",
+    "ArtistUnicode": "M2U",
+    "Creator": "IOException",
+    "Version": "Future",
+    "Source": "Arcaea",
+    "Tags": "corsace open 2021 co2021 qualifiers ql hd1 deadcode ceo_of_osu ceo of osu video game electronic instrumental ethnic electronica",
+    "BeatmapID": "3148305",
+    "BeatmapSetID": "1536884",
+    "Mode": "0"
+  },
+  "audioDurationMs": 140903.21995464852,
+  "redLines": [
+    {
+      "time": 1527,
+      "beatLength": 387.096774193548,
+      "bpm": 155.00000000000014,
+      "durationMs": 139376.21995464852
+    }
+  ],
+  "referenceBpm": 155.00000000000014,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 139376.21995464852,
+  "status": "ok",
+  "prediction": {
+    "bpm": 155,
+    "offsetMs": 395,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 134,
+    "rawBpm": 310,
+    "rawSegmentCount": 26
+  },
+  "evaluationMs": 1301
+}

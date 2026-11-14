@@ -1,0 +1,70 @@
+{
+  "id": "sample-077",
+  "directoryName": "967321 Tokyo Jihen - Sounan",
+  "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\967321 Tokyo Jihen - Sounan",
+  "status": "ok",
+  "referenceBpm": 155.99999999999986,
+  "referenceVariable": true,
+  "predictedBpm": 155.4,
+  "predictedVariable": false,
+  "variableLines": [
+    {
+      "time": 18468,
+      "beatLength": 365.853658536585,
+      "bpm": 164.00000000000017,
+      "durationMs": 393
+    },
+    {
+      "time": 30015,
+      "beatLength": 408.163265306122,
+      "bpm": 147.00000000000017,
+      "durationMs": 408
+    },
+    {
+      "time": 171161,
+      "beatLength": 363.636363636364,
+      "bpm": 164.99999999999983,
+      "durationMs": 755
+    }
+  ],
+  "trueVariableMs": 1556,
+  "flaggedWindowCount": 24,
+  "flaggedWindowsOnVariable": 0,
+  "rawCandidateCount": 1,
+  "rawCandidatesOnVariable": 0,
+  "finalEvidenceCount": 0,
+  "finalEvidenceOnVariable": 0,
+  "candidates": [
+    {
+      "startMs": 70890,
+      "endMs": 76887,
+      "bpm": 68.495,
+      "points": 3,
+      "maxSupport": 0.07167218869179848,
+      "localGridCoverage": 0.053763440860215055,
+      "rejection": "weak_short",
+      "independentMainScore": 0.36884120396083275,
+      "independentLocalScore": 0.044693070509900665,
+      "variableOverlapMs": 0,
+      "overlapsVariable": false,
+      "tripletVotes": [
+        {
+          "timeMs": 72890.34013605442,
+          "bpm": 63.024,
+          "localGridCoverage": 0.05263157894736842,
+          "tripletGridCoverage": 0.5157894736842106,
+          "tripletGridHalfCoverage": 0.28421052631578947,
+          "tripletGridDoubleCoverage": 0.5578947368421052
+        },
+        {
+          "timeMs": 73888.79818594104,
+          "bpm": 68.495,
+          "localGridCoverage": 0.053763440860215055,
+          "tripletGridCoverage": 0.5161290322580645,
+          "tripletGridHalfCoverage": 0.27956989247311825,
+          "tripletGridDoubleCoverage": 0.5806451612903226
+        }
+      ]
+    }
+  ]
+}

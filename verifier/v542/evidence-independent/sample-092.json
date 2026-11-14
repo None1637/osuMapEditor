@@ -1,0 +1,132 @@
+{
+  "id": "sample-092",
+  "directoryName": "Lindwurm",
+  "beatmapFile": "Kuroneko Dungeon - Ryoushi no Umi no Lindwurm (None1637) [Extra Jump].osu",
+  "referenceBpm": 280.0000000000004,
+  "predictedBpm": 139.95,
+  "frozenBpm": 139.95,
+  "deterministicEvidence": true,
+  "evidence": [
+    {
+      "startMs": 28955,
+      "endMs": 34952,
+      "bpm": 80.124,
+      "points": 3,
+      "maxSupport": 0.1605252618081465,
+      "index": 0,
+      "ratioToPredictedMain": 0.572518756698821,
+      "ratioToAnnotatedMain": 0.28615714285714244,
+      "boundary": "interior",
+      "localBpmMin": 80.124,
+      "localBpmMax": 80.124,
+      "medianSupport": 0.1605252618081465,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 42.87245444801715,
+          "first": 0.031450061888745454,
+          "second": 0.04074416377814353,
+          "combined": 0.03451711551224682
+        },
+        "annotatedMain": {
+          "lag": 21.4285714285714,
+          "first": -0.005011159815346797,
+          "second": 0.0311800711793288,
+          "combined": 0.006931946412896149
+        },
+        "evidenceBpm": {
+          "lag": 74.8839299086416,
+          "first": 0.02300096772575189,
+          "second": null,
+          "combined": 0.02300096772575189
+        }
+      },
+      "objectCount": 28,
+      "objectGrid": {
+        "predictedMainHalf": 0.5714285714285714,
+        "annotatedMainHalf": 1,
+        "evidenceHalf": 0.17857142857142858
+      }
+    },
+    {
+      "startMs": 62903,
+      "endMs": 72893,
+      "bpm": 62.265,
+      "points": 7,
+      "maxSupport": 0.21348271000808924,
+      "index": 1,
+      "ratioToPredictedMain": 0.444908896034298,
+      "ratioToAnnotatedMain": 0.22237499999999968,
+      "boundary": "interior",
+      "localBpmMin": 62.265,
+      "localBpmMax": 62.265,
+      "medianSupport": 0.10116966055624098,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 42.87245444801715,
+          "first": 0.036037979671225795,
+          "second": 0.09968505029393189,
+          "combined": 0.057041512976718806
+        },
+        "annotatedMain": {
+          "lag": 21.4285714285714,
+          "first": 0.05582621339976542,
+          "second": 0.03581605457980645,
+          "combined": 0.04922286098917897
+        },
+        "evidenceBpm": {
+          "lag": 96.3623223319682,
+          "first": 0.00022962330549059477,
+          "second": -0.004526717013154271,
+          "combined": -0.0013399689996622108
+        }
+      },
+      "objectCount": 90,
+      "objectGrid": {
+        "predictedMainHalf": 0.5222222222222223,
+        "annotatedMainHalf": 1,
+        "evidenceHalf": 0.12222222222222222
+      }
+    },
+    {
+      "startMs": 85867,
+      "endMs": 91864,
+      "bpm": 80.124,
+      "points": 3,
+      "maxSupport": 0.2763440222892677,
+      "index": 2,
+      "ratioToPredictedMain": 0.572518756698821,
+      "ratioToAnnotatedMain": 0.28615714285714244,
+      "boundary": "interior",
+      "localBpmMin": 80.124,
+      "localBpmMax": 80.124,
+      "medianSupport": 0.2763440222892677,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 42.87245444801715,
+          "first": -0.01048725345427724,
+          "second": -0.01067557734446266,
+          "combined": -0.01054940033803843
+        },
+        "annotatedMain": {
+          "lag": 21.4285714285714,
+          "first": -0.012525416351200993,
+          "second": -0.010641735841548781,
+          "combined": -0.011903801783015765
+        },
+        "evidenceBpm": {
+          "lag": 74.8839299086416,
+          "first": -0.010169535944886387,
+          "second": null,
+          "combined": -0.010169535944886387
+        }
+      },
+      "objectCount": 0,
+      "objectGrid": {
+        "predictedMainHalf": null,
+        "annotatedMainHalf": null,
+        "evidenceHalf": null
+      }
+    }
+  ],
+  "analysisMs": 1143
+}

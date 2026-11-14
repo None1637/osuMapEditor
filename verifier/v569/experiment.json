@@ -1,0 +1,35 @@
+{
+  "version": "v569-label-free-song-gate-e10-v1",
+  "status": "frozen_before_candidate_evaluation",
+  "datasetRole": "development_crossfit_provisional_visual_blind_labels_not_independent_confirmation",
+  "sampleIds": ["sample-044", "sample-032", "sample-002"],
+  "rawCandidateSource": "../v560/candidates.json",
+  "candidateAndCalibrationSource": "../v567/ddc-calibrated-candidates.json",
+  "gate": {
+    "feature": "Count of non-null ddcParabolicResidualMs among the frozen targets in each song/fold",
+    "allowedFields": ["segmentId", "sampleId", "fold", "ddcParabolicResidualMs"],
+    "forbiddenFeatures": ["confidence", "actualOnsetMs", "actualRelativeMs", "any candidate error", "stratum", "weight", "calibration pairCount", "usedFallback", "correctionMs"],
+    "minimumRawCandidatesPerFold": 10,
+    "targetsPerSong": 30,
+    "foldTargetCountPolicy": "Use actual frozen fold sizes; no equal-size assumption. The absolute threshold remains 10 raw candidates in each fold",
+    "rule": "Enable the E9 hierarchical method for the whole song only when both odd and even folds each have at least 10 raw DDC candidates; otherwise use E5 for every object in that song",
+    "timing": "Freeze threshold and rule before reading gate counts or E10 metrics"
+  },
+  "enabledSongMethod": "Reuse E9 exactly: DDC raw candidate with its opposite-fold DDC correction when supported, E5 correction fallback otherwise; E5 full candidate when DDC is missing",
+  "disabledSongMethod": "Reuse E5 calibrated candidate and error unchanged for every object",
+  "selectionPolicy": "One deterministic label-free whole-song gate; no sample-id whitelist, error threshold, post-hoc override or per-object method selection beyond the frozen E9 fallback",
+  "methods": ["e5Calibrated", "e10Gated"],
+  "primaryComparator": "e5Calibrated",
+  "primaryMetric": "Population-weighted clear+approximate +/-5 ms correct rate using absolute candidate time, missing candidates incorrect",
+  "guardrails": ["sample-044 audible correct rate at least 80%", "noClearCandidateOutputRate no greater than E5", "positive net fixed weight", "gate uses no labels, errors, weights or calibration-support records"],
+  "toleranceMs": 5,
+  "targetAudibleCorrectRate": 0.8,
+  "hypotheses": {
+    "H1": "E10 improves weighted audible +/-5 ms correct rate over E5",
+    "H2": "E10 has positive net fixed weight, preserves sample-044 at least 80%, and does not increase no-clear output rate",
+    "H3": "Every whole-song gate can be reconstructed using only segmentId/sampleId/fold/raw DDC candidate availability, without current-fold or opposite-fold labels"
+  },
+  "testPolicy": "Exactly one minimum-10-raw-candidates-per-fold whole-song gate using actual fold sizes; no threshold sweep, direct-DDC alternative, rematching, new inference or per-song override",
+  "confirmationSetPolicy": "Do not read confirmation audio, candidates or labels",
+  "productionCodeChanged": false
+}

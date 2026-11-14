@@ -1,0 +1,42 @@
+{
+  "id": "sample-079",
+  "directoryName": "2222231 Daibaku Hashin - Noda feat Zundamon, Hatsune Miku, Kasane Teto [no video]",
+  "beatmapFile": "Daibaku Hashin - Noda feat. Zundamon, Hatsune Miku, Kasane Teto (TXJ123) [Chordjack].osu",
+  "metadata": {
+    "Title": "Noda feat. Zundamon, Hatsune Miku, Kasane Teto",
+    "TitleUnicode": "のだ feat. ずんだもん・初音ミク・重音テト",
+    "Artist": "Daibaku Hashin",
+    "ArtistUnicode": "大漠波新",
+    "Creator": "TXJ123",
+    "Version": "Chordjack",
+    "Source": "",
+    "Tags": "",
+    "BeatmapID": "4711937",
+    "BeatmapSetID": "2222231",
+    "Mode": "3"
+  },
+  "audioDurationMs": 178368.07256235825,
+  "redLines": [
+    {
+      "time": 1088,
+      "beatLength": 422.535211267606,
+      "bpm": 141.9999999999999,
+      "durationMs": 177280.07256235825
+    }
+  ],
+  "referenceBpm": 141.9999999999999,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 177280.07256235825,
+  "status": "ok",
+  "prediction": {
+    "bpm": 142,
+    "offsetMs": 682,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 175,
+    "rawBpm": 284,
+    "rawSegmentCount": 55
+  },
+  "evaluationMs": 1734
+}

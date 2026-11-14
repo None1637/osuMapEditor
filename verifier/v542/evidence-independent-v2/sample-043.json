@@ -1,0 +1,52 @@
+{
+  "id": "sample-043",
+  "directoryName": "157896 Meg & Dia - Monster (DotEXE Remix)",
+  "beatmapFile": "Meg & Dia - Monster (DotEXE Remix) (nold_1702) [Chewin's Extra].osu",
+  "referenceBpm": 139.99999999999986,
+  "predictedBpm": 62.4,
+  "frozenBpm": 62.4,
+  "deterministicEvidence": true,
+  "evidence": [
+    {
+      "startMs": 22964,
+      "endMs": 28961,
+      "bpm": 70.074,
+      "points": 3,
+      "maxSupport": 0.35249206914459685,
+      "index": 0,
+      "ratioToPredictedMain": 1.1229807692307692,
+      "ratioToAnnotatedMain": 0.5005285714285719,
+      "boundary": "interior",
+      "localBpmMin": 70.074,
+      "localBpmMax": 70.074,
+      "medianSupport": 0.2981454580279052,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 96.15384615384616,
+          "first": -0.015558612824431411,
+          "second": null,
+          "combined": -0.01555861282443141
+        },
+        "annotatedMain": {
+          "lag": 42.857142857142904,
+          "first": 0.6216323424404135,
+          "second": 0.4570408142151467,
+          "combined": 0.5673171381260755
+        },
+        "evidenceBpm": {
+          "lag": 85.62376915831835,
+          "first": 0.4494798729273466,
+          "second": null,
+          "combined": 0.4494798729273466
+        }
+      },
+      "objectCount": 21,
+      "objectGrid": {
+        "predictedMainHalf": 0.19047619047619047,
+        "annotatedMainHalf": 0.9047619047619048,
+        "evidenceHalf": 0.6190476190476191
+      }
+    }
+  ],
+  "analysisMs": 1466
+}

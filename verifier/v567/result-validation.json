@@ -1,0 +1,29 @@
+{
+  "version": "v567-ddc-parabolic-independent-recheck-v1",
+  "passed": true,
+  "comparisonRows": 90,
+  "calibrationRecords": 6,
+  "frozenDdcCandidatesVerified": true,
+  "officialParityVerified": true,
+  "oppositeFoldIsolationVerified": true,
+  "csvVerified": true,
+  "groupsVerified": [
+    "overall",
+    "perSample",
+    "perStratum",
+    "perFold"
+  ],
+  "candidateAvailabilityUnchangedByCalibration": true,
+  "hypotheses": {
+    "H1": false,
+    "H2": false,
+    "H3": true
+  },
+  "targetAchieved": false,
+  "sample044AtLeast80Preserved": true,
+  "audibleCorrectRate": 0.14709346804454212,
+  "candidateCoverage": 0.34855183903626813,
+  "deltaFromE5": -0.5576449015774326,
+  "netFixedWeightFromE5": -1020.4777777777778,
+  "failures": []
+}

@@ -1,0 +1,19 @@
+{
+  "id": "sample-033",
+  "directoryName": "444632 MYTH & ROID - STYX HELIX",
+  "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\444632 MYTH & ROID - STYX HELIX",
+  "status": "ok",
+  "referenceBpm": 123.00000000000013,
+  "referenceVariable": false,
+  "predictedBpm": 123,
+  "predictedVariable": false,
+  "variableLines": [],
+  "trueVariableMs": 0,
+  "flaggedWindowCount": 12,
+  "flaggedWindowsOnVariable": 0,
+  "rawCandidateCount": 0,
+  "rawCandidatesOnVariable": 0,
+  "finalEvidenceCount": 0,
+  "finalEvidenceOnVariable": 0,
+  "candidates": []
+}

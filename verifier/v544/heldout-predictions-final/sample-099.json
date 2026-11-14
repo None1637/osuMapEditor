@@ -1,0 +1,42 @@
+{
+  "id": "sample-099",
+  "directoryName": "44222 Mr Funky - Break!",
+  "beatmapFile": "Mr. Funky - Break! (PROGUY) [SS].osu",
+  "metadata": {
+    "Title": "Break!",
+    "TitleUnicode": "Break!",
+    "Artist": "Mr. Funky",
+    "ArtistUnicode": "Mr. Funky",
+    "Creator": "PROGUY",
+    "Version": "SS",
+    "Source": "DJMax Portable 3",
+    "Tags": "synth pop rock juna entia j rubystar rickyboi",
+    "BeatmapID": "138697",
+    "BeatmapSetID": "44222",
+    "Mode": "0"
+  },
+  "audioDurationMs": 112509.38775510204,
+  "redLines": [
+    {
+      "time": 3012,
+      "beatLength": 359.281437125748,
+      "bpm": 167.00000000000023,
+      "durationMs": 109497.38775510204
+    }
+  ],
+  "referenceBpm": 167.00000000000023,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 109497.38775510204,
+  "status": "ok",
+  "prediction": {
+    "bpm": 167.5,
+    "offsetMs": 302,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 109,
+    "rawBpm": 335,
+    "rawSegmentCount": 106
+  },
+  "evaluationMs": 949
+}

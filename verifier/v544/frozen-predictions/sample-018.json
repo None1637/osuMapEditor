@@ -1,0 +1,60 @@
+{
+  "id": "sample-018",
+  "directoryName": "1962727 Aiobahn feat KOTOKO - INTERNET YAMERO",
+  "beatmapFile": "Aiobahn feat. KOTOKO - INTERNET YAMERO (FLeVI) [Insane].osu",
+  "metadata": {
+    "Title": "INTERNET YAMERO",
+    "TitleUnicode": "INTERNET YAMERO",
+    "Artist": "Aiobahn feat. KOTOKO",
+    "ArtistUnicode": "Aiobahn feat. KOTOKO",
+    "Creator": "FLeVI",
+    "Version": "Insane",
+    "Source": "NEEDY GIRL OVERDOSE",
+    "Tags": "streamer ame KAngel OMGkawaiiAngel p-chan tenshi overload video game japanese electronic female vocal muse dash にゃるら nyalra nyarura angel WSS playground xemono visual novel cute",
+    "BeatmapID": "4073587",
+    "BeatmapSetID": "1962727",
+    "Mode": "3"
+  },
+  "audioDurationMs": 244153.56009070293,
+  "redLines": [
+    {
+      "time": 1920,
+      "beatLength": 324.324324324324,
+      "bpm": 185.0000000000002,
+      "durationMs": 2594
+    },
+    {
+      "time": 4514,
+      "beatLength": 324.324324324324,
+      "bpm": 185.0000000000002,
+      "durationMs": 154378
+    },
+    {
+      "time": 158892,
+      "beatLength": 324.324324324324,
+      "bpm": 185.0000000000002,
+      "durationMs": 41523
+    },
+    {
+      "time": 200415,
+      "beatLength": 324.324324324324,
+      "bpm": 185.0000000000002,
+      "durationMs": 43738.56009070293
+    }
+  ],
+  "referenceBpm": 185.0000000000002,
+  "referenceVariable": false,
+  "referenceRedLineCount": 4,
+  "referenceCoverageMs": 242233.56009070293,
+  "status": "ok",
+  "prediction": {
+    "bpm": 185,
+    "offsetMs": 338,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 104,
+    "rawBpm": 370,
+    "rawSegmentCount": 155
+  },
+  "evaluationMs": 2210
+}

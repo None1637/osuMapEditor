@@ -1,0 +1,31 @@
+﻿segmentId,sampleId,originalAudioPath,clipStartClock,clipEndClock,referenceClock,confidence,actualRelativeMs,currentResidualMs,currentErrorMs,currentWithin5,sup5ResidualMs,sup5ErrorMs,sup5Within5,comment
+sample-003_h183140,sample-003,F:\Backup\D\osu!\Songs\606995 False Noise - Skyshards\audio.mp3,03:02.640,03:03.640,03:03.140,clear,8,,,,1.6678004535206128,-6.332199546479387,False,约+8ms从近静音进入明显宽带音头
+sample-003_h265989,sample-003,F:\Backup\D\osu!\Songs\606995 False Noise - Skyshards\audio.mp3,04:25.489,04:26.489,04:25.989,clear,8,,,,0.8752834467450157,-7.124716553254984,False,约+8ms出现新高频纹理与大幅谱通量上升
+sample-003_h280117,sample-003,F:\Backup\D\osu!\Songs\606995 False Noise - Skyshards\audio.mp3,04:39.617,04:40.617,04:40.117,clear,5,,,,3.025180511700455,-1.974819488299545,True,约+5ms开始出现新高频纹理随后形成大谱通量峰
+sample-003_h311774,sample-003,F:\Backup\D\osu!\Songs\606995 False Noise - Skyshards\audio.mp3,05:11.274,05:12.274,05:11.774,clear,2,,,,-4.784040162281599,-6.784040162281599,False,约+2ms出现短噪声攻击和局部谱通量峰
+sample-003_h180436,sample-003,F:\Backup\D\osu!\Songs\606995 False Noise - Skyshards\audio.mp3,02:59.936,03:00.936,03:00.436,no_clear_onset,,,,,3.9337307086971123,,,参考点附近主要是音色由高频转低频而非清晰正向音头
+sample-003_h18139,sample-003,F:\Backup\D\osu!\Songs\606995 False Noise - Skyshards\audio.mp3,00:17.639,00:18.639,00:18.139,no_clear_onset,,-6.148458564723114,,,0.6908625131072768,,,持续噪声纹理中小谱通量波动不足以确定音头
+sample-003_h264507,sample-003,F:\Backup\D\osu!\Songs\606995 False Noise - Skyshards\audio.mp3,04:24.007,04:25.007,04:24.507,no_clear_onset,,,,,2.580252249899786,,,参考点附近仅持续周期波形没有独立攻击
+sample-003_h309594,sample-003,F:\Backup\D\osu!\Songs\606995 False Noise - Skyshards\audio.mp3,05:09.094,05:10.094,05:09.594,no_clear_onset,,,,,-0.3145975331426598,,,参考点附近为连续音色变化不能确定独立音头
+sample-003_h55462,sample-003,F:\Backup\D\osu!\Songs\606995 False Noise - Skyshards\audio.mp3,00:54.962,00:55.962,00:55.462,no_clear_onset,,,,,4.049148179030453,,,持续周期波形没有独立音头
+sample-003_h59474,sample-003,F:\Backup\D\osu!\Songs\606995 False Noise - Skyshards\audio.mp3,00:58.974,00:59.974,00:59.474,no_clear_onset,,7.73095891988487,,,-0.980289558043296,,,持续周期音色没有独立攻击点
+sample-042_h75756,sample-042,F:\Backup\D\osu!\Songs\1100768 Kanoguti - How to Destroy Humans [no video]\audio.mp3,01:15.256,01:16.256,01:15.756,approximate,0,,,,-1.0121940900571644,-1.0121940900571644,True,参考处有小幅谱通量上升但波形攻击不清只能近似标记
+sample-042_h27328,sample-042,F:\Backup\D\osu!\Songs\1100768 Kanoguti - How to Destroy Humans [no video]\audio.mp3,00:26.828,00:27.828,00:27.328,clear,1,,,,2.1835019407371874,1.1835019407371874,True,约+1ms波形阶跃与窄谱通量峰一致
+sample-042_h42864,sample-042,F:\Backup\D\osu!\Songs\1100768 Kanoguti - How to Destroy Humans [no video]\audio.mp3,00:42.364,00:43.364,00:42.864,clear,1,,,,-1.4303285094720195,-2.4303285094720195,True,约+1ms窄谱通量攻击与波形瞬变一致
+sample-042_h137140,sample-042,F:\Backup\D\osu!\Songs\1100768 Kanoguti - How to Destroy Humans [no video]\audio.mp3,02:16.640,02:17.640,02:17.140,no_clear_onset,,,,,-0.6757479812076781,,,持续噪声纹理没有可辨认独立音头
+sample-042_h53471,sample-042,F:\Backup\D\osu!\Songs\1100768 Kanoguti - How to Destroy Humans [no video]\audio.mp3,00:52.971,00:53.971,00:53.471,no_clear_onset,,,,,-2.0104383671059622,,,参考处无独立攻击后续约+8ms峰不能可靠归属于该物件
+sample-042_h57756,sample-042,F:\Backup\D\osu!\Songs\1100768 Kanoguti - How to Destroy Humans [no video]\audio.mp3,00:57.256,00:58.256,00:57.756,no_clear_onset,,,,,0.5011828345523099,,,参考附近持续噪声纹理无清晰独立攻击
+sample-042_h64024,sample-042,F:\Backup\D\osu!\Songs\1100768 Kanoguti - How to Destroy Humans [no video]\audio.mp3,01:03.524,01:04.524,01:04.024,no_clear_onset,,,,,-3.3974319611515966,,,参考处仅低幅噪声波动无清晰音头
+sample-042_h64453,sample-042,F:\Backup\D\osu!\Songs\1100768 Kanoguti - How to Destroy Humans [no video]\audio.mp3,01:03.953,01:04.953,01:04.453,no_clear_onset,,,,,-1.426530547942093,,,参考点附近持续纹理没有可独立确认的攻击
+sample-042_h96273,sample-042,F:\Backup\D\osu!\Songs\1100768 Kanoguti - How to Destroy Humans [no video]\audio.mp3,01:35.773,01:36.773,01:36.273,no_clear_onset,,-9.398329458461376,,,1.7742287152505014,,,参考处无清晰音头主要攻击位于约+15ms
+sample-042_h97404,sample-042,F:\Backup\D\osu!\Songs\1100768 Kanoguti - How to Destroy Humans [no video]\audio.mp3,01:36.904,01:37.904,01:37.404,no_clear_onset,,,,,-1.0083572630246636,,,持续低幅纹理没有独立音头
+sample-095_h232830,sample-095,F:\Backup\D\osu!\Songs\530360 Peter Lambert - osu! tutorial v2\audio.mp3,03:52.330,03:53.330,03:52.830,approximate,3,,,,-3.3761251590040047,-6.376125159004005,False,低幅背景中约+3ms有局部谱通量峰但缺乏清楚波形攻击
+sample-095_h267550,sample-095,F:\Backup\D\osu!\Songs\530360 Peter Lambert - osu! tutorial v2\audio.mp3,04:27.050,04:28.050,04:27.550,clear,2,,,,1.659470320213586,-0.3405296797864139,True,约+2ms谱通量快速上升并伴随波形纹理改变
+sample-095_h39373,sample-095,F:\Backup\D\osu!\Songs\530360 Peter Lambert - osu! tutorial v2\audio.mp3,00:38.873,00:39.873,00:39.373,clear,0,,,,-2.5723068810548284,-2.5723068810548284,True,参考处窄谱通量峰和波形瞬变一致
+sample-095_h178054,sample-095,F:\Backup\D\osu!\Songs\530360 Peter Lambert - osu! tutorial v2\audio.mp3,02:57.554,02:58.554,02:58.054,no_clear_onset,,,,,3.251681081863353,,,持续音色变化不能确定独立音头
+sample-095_h183687,sample-095,F:\Backup\D\osu!\Songs\530360 Peter Lambert - osu! tutorial v2\audio.mp3,03:03.187,03:04.187,03:03.687,no_clear_onset,,,,,1.741984256048454,,,持续周期与噪声混合纹理无清晰独立攻击
+sample-095_h188002,sample-095,F:\Backup\D\osu!\Songs\530360 Peter Lambert - osu! tutorial v2\audio.mp3,03:07.502,03:08.502,03:08.002,no_clear_onset,,-7.125989749125438,,,-0.8962459811882582,,,持续周期波形与噪声纹理无独立音头
+sample-095_h199423,sample-095,F:\Backup\D\osu!\Songs\530360 Peter Lambert - osu! tutorial v2\audio.mp3,03:18.923,03:19.923,03:19.423,no_clear_onset,,,,,-0.6693151522486005,,,参考处为连续周期变化无清晰独立音头
+sample-095_h281883,sample-095,F:\Backup\D\osu!\Songs\530360 Peter Lambert - osu! tutorial v2\audio.mp3,04:41.383,04:42.383,04:41.883,no_clear_onset,,,,,-4.990551965485793,,,参考附近持续噪声纹理无独立音头
+sample-095_h310944,sample-095,F:\Backup\D\osu!\Songs\530360 Peter Lambert - osu! tutorial v2\audio.mp3,05:10.444,05:11.444,05:10.944,no_clear_onset,,,,,0.14126843539997935,,,持续高幅纹理中不能辨认参考物件音头
+sample-095_h382350,sample-095,F:\Backup\D\osu!\Songs\530360 Peter Lambert - osu! tutorial v2\audio.mp3,06:21.850,06:22.850,06:22.350,no_clear_onset,,,,,-3.251362008450087,,,持续高幅噪声纹理无独立音头

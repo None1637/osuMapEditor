@@ -1,0 +1,42 @@
+{
+  "id": "sample-040",
+  "directoryName": "1557840 PSYQUI - Endless feat Mameyudoufu (Mameyudoufu Remix)",
+  "beatmapFile": "PSYQUI - Endless feat. Mameyudoufu (Mameyudoufu Remix) (HowToPlayLN) [Divergence].osu",
+  "metadata": {
+    "Title": "Endless feat. Mameyudoufu (Mameyudoufu Remix)",
+    "TitleUnicode": "Endless feat. Mameyudoufu (Mameyudoufu Remix)",
+    "Artist": "PSYQUI",
+    "ArtistUnicode": "PSYQUI",
+    "Creator": "HowToPlayLN",
+    "Version": "Divergence",
+    "Source": "",
+    "Tags": "mwc2021 osu mania world cup quarterfinals flashlight 4k tournament qualifiers stage 4 hybrid future core psytrance j-core jcore japanese electronic techcore MEGAREX FUTURE EVANGELIX 01 epoqc2025 MRX-050 MRX-053 mwc21 豆湯豆腐 HTPLN LoliNote Media-Mix Market 2019秋 M3-44 M3 2019 Fall Comic Market 96 C96 Comiket96 コミケ96 コミックマーケット96",
+    "BeatmapID": "3182324",
+    "BeatmapSetID": "1557840",
+    "Mode": "3"
+  },
+  "audioDurationMs": 218586.6666666667,
+  "redLines": [
+    {
+      "time": 1242,
+      "beatLength": 342.857142857143,
+      "bpm": 174.99999999999991,
+      "durationMs": 217344.6666666667
+    }
+  ],
+  "referenceBpm": 174.99999999999991,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 217344.6666666667,
+  "status": "ok",
+  "prediction": {
+    "bpm": 175,
+    "offsetMs": 245,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 194,
+    "rawBpm": 350,
+    "rawSegmentCount": 87
+  },
+  "evaluationMs": 1790
+}

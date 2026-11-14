@@ -11,6 +11,7 @@ import { useSyncExternalStore } from 'react';
 import { s2t, applyTwPhrases } from './s2t';
 import { ZH_CN } from './zhCN';
 import { ZH_TW } from './zhTW';
+import { UI_CONTROLS, getUiOverride } from '../osu/uiLayout'; // v524: 控件文本覆盖
 
 export type Lang = 'zh-CN' | 'zh-TW' | 'en' | 'debug';
 
@@ -80,6 +81,10 @@ function interp(s: string, vars?: Vars): string {
 
 export function translate(l: Lang, key: string, enDefault: string, vars?: Vars): string {
   if (l === 'debug') return `[[${key}]]`;
+  // v524: 已注册控件的文本覆盖优先于词典; 空文本 = 回退默认, 插值仍走原模板变量
+  const control = UI_CONTROLS.find(c => c.defaultTextKey === key);
+  const custom = control ? getUiOverride(control.id).text?.[l] : undefined;
+  if (custom) return interp(custom, vars);
   let s: string;
   if (l === 'en') s = enDefault;
   else if (l === 'zh-CN') s = ZH_CN[key] ?? enDefault;

@@ -1,0 +1,42 @@
+{
+  "id": "sample-096",
+  "directoryName": "708836 Nogizaka46 - Yubi Bouenkyou",
+  "beatmapFile": "Nogizaka46 - Yubi Bouenkyou (Werhakon) [~Werhakon' s End my life~].osu",
+  "metadata": {
+    "Title": "Yubi Bouenkyou",
+    "TitleUnicode": "指望遠鏡",
+    "Artist": "Nogizaka46",
+    "ArtistUnicode": "Nogizaka46",
+    "Creator": "Werhakon",
+    "Version": "~Werhakon' s End my life~",
+    "Source": "",
+    "Tags": "",
+    "BeatmapID": "1498592",
+    "BeatmapSetID": "708836",
+    "Mode": "0"
+  },
+  "audioDurationMs": 91115.10204081633,
+  "redLines": [
+    {
+      "time": 456,
+      "beatLength": 333.333333333333,
+      "bpm": 180.0000000000002,
+      "durationMs": 90659.10204081633
+    }
+  ],
+  "referenceBpm": 180.0000000000002,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 90659.10204081633,
+  "status": "ok",
+  "prediction": {
+    "bpm": 180,
+    "offsetMs": 490,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 86,
+    "rawBpm": 180,
+    "rawSegmentCount": 15
+  },
+  "evaluationMs": 829
+}

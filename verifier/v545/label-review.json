@@ -1,0 +1,25 @@
+{
+  "reviewedAt": "2026-11-09T21:32:00+08:00",
+  "reviewer": "owner",
+  "scope": "v544 两个 1.5x 歧义样本的人工复核；不覆盖 v541/v542/v544 的原始标签或历史记录",
+  "globalRule": "所有三连音（osu! 1/3、1/6 网格）均分类为没有变速；真实 tempo 阶跃仍须另测，不能只按 BPM 比值封杀。",
+  "reviews": [
+    {
+      "id": "sample-001",
+      "originalLabel": { "variable": true },
+      "reviewedLabel": { "variable": true, "redLinesTrusted": true, "density": "几乎一个音变一次速" },
+      "evidenceRangeMs": [175728, 185719],
+      "originalAudioPath": "F:\\Backup\\D\\osu!\\Songs\\673574 Camellia - Shun no Shifudo o Ikashita Kare Fumi Paeria\\audio.mp3",
+      "ownerResponse": "真实变速，谱面中的红线是对的。而且这段几乎是一个音变一次速"
+    },
+    {
+      "id": "sample-058",
+      "originalLabel": { "variable": true },
+      "reviewedLabel": { "variable": true, "redLinesTrusted": true },
+      "evidenceRangeMs": [31950, 45935],
+      "originalAudioPath": "F:\\Backup\\D\\osu!\\Songs\\1820368 Natsu - Regression\\audio.ogg",
+      "ownerResponse": "真实变速，谱面中的红线是对的。"
+    }
+  ],
+  "interpretation": "001/058 是已确认的真实变速；032/034 的恒速三连音标签不变。不能由 1.5x 比值单独判定任一类别。"
+}

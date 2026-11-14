@@ -1,0 +1,66 @@
+{
+  "id": "sample-038",
+  "directoryName": "76048 ZUN - The Youkai Mountain ~ Mysterious Mountain",
+  "beatmapFile": "ZUN - The Youkai Mountain ~ Mysterious Mountain (BCI) [L18's Hard].osu",
+  "metadata": {
+    "Title": "The Youkai Mountain ~ Mysterious Mountain",
+    "TitleUnicode": "妖怪の山 ～ Mysterious Mountain",
+    "Artist": "ZUN",
+    "ArtistUnicode": "ZUN",
+    "Creator": "BCI",
+    "Version": "L18's Hard",
+    "Source": "Touhou",
+    "Tags": "aya shameimaru mof mountain of faith th10 Black_Cherry_Ita Leyko _LRJ_ LRJulien Kokatsu Flask Loneight l1106188 collab collaboration",
+    "BeatmapID": "240064",
+    "BeatmapSetID": "76048",
+    "Mode": "0"
+  },
+  "audioDurationMs": 161515.1020408163,
+  "redLines": [
+    {
+      "time": 629,
+      "beatLength": 357.142857142857,
+      "bpm": 168.00000000000006,
+      "durationMs": 51428
+    },
+    {
+      "time": 52057,
+      "beatLength": 357.142857142857,
+      "bpm": 168.00000000000006,
+      "durationMs": 22857
+    },
+    {
+      "time": 74914,
+      "beatLength": 357.142857142857,
+      "bpm": 168.00000000000006,
+      "durationMs": 51428
+    },
+    {
+      "time": 126342,
+      "beatLength": 357.142857142857,
+      "bpm": 168.00000000000006,
+      "durationMs": 22857
+    },
+    {
+      "time": 149199,
+      "beatLength": 357.142857142857,
+      "bpm": 168.00000000000006,
+      "durationMs": 12316.102040816302
+    }
+  ],
+  "referenceBpm": 168.00000000000006,
+  "referenceVariable": false,
+  "referenceRedLineCount": 5,
+  "referenceCoverageMs": 160886.1020408163,
+  "status": "ok",
+  "prediction": {
+    "bpm": 168,
+    "offsetMs": 657,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 158,
+    "rawBpm": 168,
+    "rawSegmentCount": 1
+  },
+  "evaluationMs": 1471
+}

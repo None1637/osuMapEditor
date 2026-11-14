@@ -1,0 +1,42 @@
+{
+  "id": "sample-034",
+  "directoryName": "1011935 Lil Boom - Already Dead instrumental",
+  "beatmapFile": "3L - Tiny Little Adiantum (deadman's Omae Wa Mou remix) (Antori) [Omae Wa Mou 1,2x].osu",
+  "metadata": {
+    "Title": "Tiny Little Adiantum (deadman's \"Omae Wa Mou\" remix)",
+    "TitleUnicode": "タイニーリトル・アジアンタム (deadman's \"Omae Wa Mou\" remix)",
+    "Artist": "3L",
+    "ArtistUnicode": "3L",
+    "Creator": "Antori",
+    "Version": "Omae Wa Mou 1,2x",
+    "Source": "東方花映塚　～ Phantasmagoria of Flower View.",
+    "Tags": "jack chordjack already dead instrumental prod. lil boom お前はもう死んでいる shindeiru shibayanrecords shibayan records milka 東方project tōhō toho touhou shrine maiden project 今昔幻想郷 kaeidzuka gensokyo past and present land ZUN 太田順也 Ōta jun'ya ota junya bossa nova 2 reitaisai 10 country trap rap japanese electronic instrumental fist of the north star hokuto no ken 北斗の拳 Antori",
+    "BeatmapID": "2117901",
+    "BeatmapSetID": "1011935",
+    "Mode": "3"
+  },
+  "audioDurationMs": 94667.75510204081,
+  "redLines": [
+    {
+      "time": 88,
+      "beatLength": 537.634408602151,
+      "bpm": 111.59999999999991,
+      "durationMs": 94579.75510204081
+    }
+  ],
+  "referenceBpm": 111.59999999999991,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 94579.75510204081,
+  "status": "ok",
+  "prediction": {
+    "bpm": 223.2,
+    "offsetMs": 108,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 89,
+    "rawBpm": 223.2,
+    "rawSegmentCount": 9
+  },
+  "evaluationMs": 870
+}

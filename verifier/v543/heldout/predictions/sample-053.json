@@ -1,0 +1,42 @@
+{
+  "id": "sample-053",
+  "directoryName": "1725797 Omoi - Teo",
+  "beatmapFile": "Omoi - Teo (keksikosu) [Hard].osu",
+  "metadata": {
+    "Title": "Teo",
+    "TitleUnicode": "テオ",
+    "Artist": "Omoi",
+    "ArtistUnicode": "Omoi",
+    "Creator": "keksikosu",
+    "Version": "Hard",
+    "Source": "",
+    "Tags": "vocaloid hatsune miku synth rock the first waltz japanese jrock PROJECT DIVA MEGA39'S 10TH ANNIVERSARY COLLECTION SEGA fa featured artist Mirsaaa ML-ysg 123ysg Drum-Hitnormal dudehacker 初音ミク j-rock ボーカロイド ファーストワルツ Kagamine Rin 鏡音リン GUMI グミ IA イア Video Game",
+    "BeatmapID": "3526977",
+    "BeatmapSetID": "1725797",
+    "Mode": "3"
+  },
+  "audioDurationMs": 210025.57823129251,
+  "redLines": [
+    {
+      "time": 2562,
+      "beatLength": 324.324324324324,
+      "bpm": 185.0000000000002,
+      "durationMs": 207463.57823129251
+    }
+  ],
+  "referenceBpm": 185.0000000000002,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 207463.57823129251,
+  "status": "ok",
+  "prediction": {
+    "bpm": 185.1,
+    "offsetMs": 246,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 204,
+    "rawBpm": 370.2,
+    "rawSegmentCount": 190
+  },
+  "evaluationMs": 2067
+}

@@ -1,0 +1,42 @@
+{
+  "id": "sample-098",
+  "directoryName": "1454773 Calliope Mori - Excuse My Rudeness, But Could You Please RIP 3 (t+pazolite Remix)",
+  "beatmapFile": "Calliope Mori - Excuse My Rudeness, But Could You Please RIP3 (t+pazolite Remix) (quantumvortex) [Sanctus Mortem].osu",
+  "metadata": {
+    "Title": "Excuse My Rudeness, But Could You Please RIP?<3 (t+pazolite Remix)",
+    "TitleUnicode": "失礼しますが、RIP♡(t+pazolite Remix)",
+    "Artist": "Calliope Mori",
+    "ArtistUnicode": "Calliope Mori",
+    "Creator": "quantumvortex",
+    "Version": "Sanctus Mortem",
+    "Source": "",
+    "Tags": "vtuber virtual youtuber ホロライブ hololive english holoen en holomyth 森 カリオペ dead beats reaper rap japanese electronic speedcore tpz tpazolite shitsureishimasuga sitsureisimasuga",
+    "BeatmapID": "2990619",
+    "BeatmapSetID": "1454773",
+    "Mode": "0"
+  },
+  "audioDurationMs": 180302.947845805,
+  "redLines": [
+    {
+      "time": 267.194805194805,
+      "beatLength": 230.769230769231,
+      "bpm": 259.9999999999997,
+      "durationMs": 180035.7530406102
+    }
+  ],
+  "referenceBpm": 259.9999999999997,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 180035.7530406102,
+  "status": "ok",
+  "prediction": {
+    "bpm": 130,
+    "offsetMs": 307,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 171,
+    "rawBpm": 260,
+    "rawSegmentCount": 57
+  },
+  "evaluationMs": 1692
+}

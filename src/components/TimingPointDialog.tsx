@@ -2,7 +2,8 @@
 // (时间/BPM或SV/拍号/音效集/自定义序号/音量/kiai/省略小节线)
 import { useState } from 'react';
 import { store, useEditor } from '@/osu/store';
-import { DraggableDialog, DraftNum } from './DraggableDialog';
+import { DialogButton, DraggableDialog, DraftNum } from './DraggableDialog';
+import { UiAutoControl, UiAutoText } from './uiLayout/UiControl'; // v535
 import { setEffectBit, EFFECT_KIAI, EFFECT_OMIT_BARLINE } from '@/osu/timingEdit';
 import { useT } from '@/i18n';
 
@@ -44,13 +45,13 @@ export function TimingPointDialog() {
           <DraftNum value={draft.meter} set={v => patch({ meter: Math.round(v) })} min={1} max={8} testid="meter" />
         </Row>
         <Row label={t('timing.sample_set', 'Sample Set')}>
-          <select value={draft.sampleSet} data-tpdlg="sampleSet"
+          <UiAutoControl localId="sample-set"><select value={draft.sampleSet} data-tpdlg="sampleSet"
             onChange={e => patch({ sampleSet: parseInt(e.target.value) })}
             className="bg-black/40 border border-white/15 rounded px-1 py-0.5 text-white">
             <option value={1}>Normal</option>
             <option value={2}>Soft</option>
             <option value={3}>Drum</option>
-          </select>
+          </select></UiAutoControl>
         </Row>
         <Row label={t('timing.custom_index', 'Custom Index')}>
           <DraftNum value={draft.sampleIndex} set={v => patch({ sampleIndex: Math.round(v) })} min={0} max={99} testid="sampleIndex" />
@@ -60,28 +61,26 @@ export function TimingPointDialog() {
         </Row>
         <Row label={t('timing.effects', 'Effects')}>
           <label className="flex items-center gap-1" title="kiai (effects bit0)">
-            <input type="checkbox" checked={(draft.effects & EFFECT_KIAI) !== 0} data-tpdlg="kiai"
-              onChange={e => patch({ effects: setEffectBit(draft.effects, EFFECT_KIAI, e.target.checked) })} />
-            kiai
+            <UiAutoControl localId="kiai"><input type="checkbox" checked={(draft.effects & EFFECT_KIAI) !== 0} data-tpdlg="kiai"
+              onChange={e => patch({ effects: setEffectBit(draft.effects, EFFECT_KIAI, e.target.checked) })} /></UiAutoControl>
+            <UiAutoText localId="kiai">kiai</UiAutoText>
           </label>
           {red && (
             <label className="flex items-center gap-1" title={t('timing.omit_barline_title', 'Omit first bar line (effects bit3, lazer OmitFirstBarLine)')}>
-              <input type="checkbox" checked={(draft.effects & EFFECT_OMIT_BARLINE) !== 0} data-tpdlg="omitBar"
-                onChange={e => patch({ effects: setEffectBit(draft.effects, EFFECT_OMIT_BARLINE, e.target.checked) })} />
-              {t('timing.omit_barline', 'Omit Bar Line')}
+              <UiAutoControl localId="omit-bar"><input type="checkbox" checked={(draft.effects & EFFECT_OMIT_BARLINE) !== 0} data-tpdlg="omitBar"
+                onChange={e => patch({ effects: setEffectBit(draft.effects, EFFECT_OMIT_BARLINE, e.target.checked) })} /></UiAutoControl>
+              <UiAutoText localId="omit-bar" textKey="timing.omit_barline">Omit Bar Line</UiAutoText>
             </label>
           )}
         </Row>
         <div className="flex gap-2 pt-1">
-          <button onClick={() => store.applyTimingPointDialog(draft)} data-tpdlg="ok"
-            className="px-3 py-1 rounded bg-pink-500 hover:bg-pink-400 text-white font-bold">
-            {dlg.mode === 'add' ? t('timing.insert', 'Insert') : t('timing.apply', 'Apply')}
-          </button>
-          <button onClick={() => store.closeTimingPointDialog()} data-tpdlg="cancel"
-            className="px-3 py-1 rounded bg-white/10 hover:bg-white/20">{t('timing.cancel', 'Cancel')}</button>
+          <DialogButton uiId="apply" textKey={dlg.mode === 'add' ? 'timing.insert' : 'timing.apply'} onClick={() => store.applyTimingPointDialog(draft)} data-tpdlg="ok"
+            className="px-3 py-1 rounded bg-pink-500 hover:bg-pink-400 text-white font-bold">{dlg.mode === 'add' ? 'Insert' : 'Apply'}</DialogButton>
+          <DialogButton uiId="cancel" textKey="timing.cancel" onClick={() => store.closeTimingPointDialog()} data-tpdlg="cancel"
+            className="px-3 py-1 rounded bg-white/10 hover:bg-white/20">Cancel</DialogButton>
           {dlg.mode === 'edit' && (
-            <button onClick={() => store.removeTimingPointAt(dlg.index)} data-tpdlg="delete"
-              className="px-3 py-1 rounded bg-red-500/30 hover:bg-red-500/50 border border-red-400/40 ml-auto">{t('timing.delete', 'Delete')}</button>
+            <DialogButton uiId="delete" textKey="timing.delete" onClick={() => store.removeTimingPointAt(dlg.index)} data-tpdlg="delete"
+              className="px-3 py-1 rounded bg-red-500/30 hover:bg-red-500/50 border border-red-400/40 ml-auto">Delete</DialogButton>
           )}
         </div>
       </div>

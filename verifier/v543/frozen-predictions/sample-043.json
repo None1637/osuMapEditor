@@ -1,0 +1,53 @@
+{
+  "id": "sample-043",
+  "directoryName": "157896 Meg & Dia - Monster (DotEXE Remix)",
+  "beatmapFile": "Meg & Dia - Monster (DotEXE Remix) (nold_1702) [Chewin's Extra].osu",
+  "metadata": {
+    "Title": "Monster (DotEXE Remix)",
+    "TitleUnicode": "Monster (DotEXE Remix)",
+    "Artist": "Meg & Dia",
+    "ArtistUnicode": "Meg & Dia",
+    "Creator": "nold_1702",
+    "Version": "Chewin's Extra",
+    "Source": "",
+    "Tags": "NCL NewibornCLivee Nold Chewin Kloyd IamKwaN Zillah Irreversible _Gezo_ mingmichael ursa Ami Kyshiro happy623 dinka0403 dubstep",
+    "BeatmapID": "386940",
+    "BeatmapSetID": "157896",
+    "Mode": "0"
+  },
+  "audioDurationMs": 127085.71428571429,
+  "redLines": [
+    {
+      "time": 186,
+      "beatLength": 428.571428571429,
+      "bpm": 139.99999999999986,
+      "durationMs": 126899.71428571429
+    }
+  ],
+  "referenceBpm": 139.99999999999986,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 126899.71428571429,
+  "status": "ok",
+  "prediction": {
+    "bpm": 62.4,
+    "offsetMs": 362,
+    "variable": true,
+    "evidence": [
+      {
+        "startMs": 22964,
+        "endMs": 28961,
+        "bpm": 70.074,
+        "points": 3,
+        "maxSupport": 0.35249206914459685,
+        "localGridCoverage": 0.23809523809523808,
+        "independentMainScore": -0.01555861282443141,
+        "independentLocalScore": 0.4494798729273466
+      }
+    ],
+    "localPointCount": 113,
+    "rawBpm": 62.4,
+    "rawSegmentCount": 28
+  },
+  "evaluationMs": 1462
+}

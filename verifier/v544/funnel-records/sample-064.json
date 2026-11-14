@@ -1,0 +1,19 @@
+{
+  "id": "sample-064",
+  "directoryName": "558041 Kanae Asaba - Endless Starlight ~Inochi no Kirameki~ (OP ver)",
+  "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\558041 Kanae Asaba - Endless Starlight ~Inochi no Kirameki~ (OP ver)",
+  "status": "ok",
+  "referenceBpm": 181.00000000000017,
+  "referenceVariable": false,
+  "predictedBpm": 179.6,
+  "predictedVariable": false,
+  "variableLines": [],
+  "trueVariableMs": 0,
+  "flaggedWindowCount": 26,
+  "flaggedWindowsOnVariable": 0,
+  "rawCandidateCount": 0,
+  "rawCandidatesOnVariable": 0,
+  "finalEvidenceCount": 0,
+  "finalEvidenceOnVariable": 0,
+  "candidates": []
+}

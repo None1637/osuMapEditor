@@ -1,0 +1,52 @@
+{
+  "id": "sample-024",
+  "directoryName": "205022 Ryu_ - Sakura Mirage",
+  "beatmapFile": "Ryu - Sakura Mirage (Priti) [ADVANCED].osu",
+  "referenceBpm": 187.00000000000003,
+  "predictedBpm": 187,
+  "frozenBpm": 187,
+  "deterministicEvidence": true,
+  "evidence": [
+    {
+      "startMs": 32949,
+      "endMs": 38946,
+      "bpm": 74.898,
+      "points": 3,
+      "maxSupport": 0.472069247359516,
+      "index": 0,
+      "ratioToPredictedMain": 0.40052406417112296,
+      "ratioToAnnotatedMain": 0.4005240641711229,
+      "boundary": "interior",
+      "localBpmMin": 74.898,
+      "localBpmMax": 74.898,
+      "medianSupport": 0.24879108123121058,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 32.0855614973262,
+          "first": 0.19820429598195774,
+          "second": 0.019625849895408602,
+          "combined": 0.13927340877339656
+        },
+        "annotatedMain": {
+          "lag": 32.085561497326196,
+          "first": 0.19820429598195746,
+          "second": 0.0196258498954082,
+          "combined": 0.13927340877339622
+        },
+        "evidenceBpm": {
+          "lag": 80.10894816951054,
+          "first": 0.05419297287489648,
+          "second": null,
+          "combined": 0.05419297287489648
+        }
+      },
+      "objectCount": 20,
+      "objectGrid": {
+        "predictedMainHalf": 0.85,
+        "annotatedMainHalf": 0.85,
+        "evidenceHalf": 0.3
+      }
+    }
+  ],
+  "analysisMs": 935
+}

@@ -1,0 +1,347 @@
+{
+  "id": "sample-058",
+  "directoryName": "1820368 Natsu - Regression",
+  "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\1820368 Natsu - Regression",
+  "status": "ok",
+  "referenceBpm": 189.99999999999974,
+  "referenceVariable": true,
+  "predictedBpm": 190,
+  "predictedVariable": false,
+  "variableLines": [
+    {
+      "time": 3355,
+      "beatLength": 631.578947368421,
+      "bpm": 95,
+      "durationMs": 8842
+    },
+    {
+      "time": 12197,
+      "beatLength": 666.666666666667,
+      "bpm": 89.99999999999996,
+      "durationMs": 666
+    },
+    {
+      "time": 12863,
+      "beatLength": 600,
+      "bpm": 100,
+      "durationMs": 597
+    },
+    {
+      "time": 32400,
+      "beatLength": 428.571428571429,
+      "bpm": 139.99999999999986,
+      "durationMs": 1288
+    },
+    {
+      "time": 33688,
+      "beatLength": 421.052631578947,
+      "bpm": 142.5000000000001,
+      "durationMs": 20196
+    },
+    {
+      "time": 331773,
+      "beatLength": 631.578947368421,
+      "bpm": 95,
+      "durationMs": 5052
+    },
+    {
+      "time": 336825,
+      "beatLength": 625,
+      "bpm": 96,
+      "durationMs": 5000
+    },
+    {
+      "time": 341825,
+      "beatLength": 666.666666666666,
+      "bpm": 90.0000000000001,
+      "durationMs": 1333
+    },
+    {
+      "time": 343158,
+      "beatLength": 674.157303370787,
+      "bpm": 88.99999999999994,
+      "durationMs": 674
+    },
+    {
+      "time": 343832,
+      "beatLength": 705.882352941176,
+      "bpm": 85.00000000000006,
+      "durationMs": 705
+    },
+    {
+      "time": 344537,
+      "beatLength": 749.999999999999,
+      "bpm": 80.00000000000011,
+      "durationMs": 1729
+    },
+    {
+      "time": 346266,
+      "beatLength": 833.333333333332,
+      "bpm": 72.00000000000011,
+      "durationMs": 1458
+    },
+    {
+      "time": 347724,
+      "beatLength": 895.522388059701,
+      "bpm": 67.00000000000003,
+      "durationMs": 895
+    },
+    {
+      "time": 348619,
+      "beatLength": 937.5,
+      "bpm": 64,
+      "durationMs": 937
+    },
+    {
+      "time": 349556,
+      "beatLength": 1000,
+      "bpm": 60,
+      "durationMs": 1500
+    },
+    {
+      "time": 351056,
+      "beatLength": 1052.63157894737,
+      "bpm": 56.99999999999992,
+      "durationMs": 526
+    },
+    {
+      "time": 351582,
+      "beatLength": 1090.90909090909,
+      "bpm": 55.00000000000004,
+      "durationMs": 1405
+    },
+    {
+      "time": 352987,
+      "beatLength": 1200,
+      "bpm": 50,
+      "durationMs": 1521
+    },
+    {
+      "time": 354508,
+      "beatLength": 3157.89473684211,
+      "bpm": 18.99999999999997,
+      "durationMs": 7668.054421768698
+    }
+  ],
+  "trueVariableMs": 61992.0544217687,
+  "flaggedWindowCount": 60,
+  "flaggedWindowsOnVariable": 24,
+  "rawCandidateCount": 4,
+  "rawCandidatesOnVariable": 2,
+  "finalEvidenceCount": 0,
+  "finalEvidenceOnVariable": 0,
+  "candidates": [
+    {
+      "startMs": 31950,
+      "endMs": 45935,
+      "bpm": 143.555,
+      "points": 11,
+      "maxSupport": 0.22729584588485074,
+      "localGridCoverage": 0.09826589595375723,
+      "rejection": "triplet",
+      "independentMainScore": 0.09710787734400653,
+      "independentLocalScore": 0.4224658108848742,
+      "variableOverlapMs": 13535,
+      "overlapsVariable": true,
+      "tripletVotes": [
+        {
+          "timeMs": 33950.47619047619,
+          "bpm": 141.977,
+          "localGridCoverage": 0.09497206703910614,
+          "tripletGridCoverage": 0.5418994413407822,
+          "tripletGridHalfCoverage": 0.33519553072625696,
+          "tripletGridDoubleCoverage": 0.6089385474860335
+        },
+        {
+          "timeMs": 34948.93424036281,
+          "bpm": 143.555,
+          "localGridCoverage": 0.09444444444444444,
+          "tripletGridCoverage": 0.5555555555555556,
+          "tripletGridHalfCoverage": 0.3277777777777778,
+          "tripletGridDoubleCoverage": 0.6166666666666667
+        },
+        {
+          "timeMs": 35947.39229024943,
+          "bpm": 142.565,
+          "localGridCoverage": 0.09944751381215469,
+          "tripletGridCoverage": 0.56353591160221,
+          "tripletGridHalfCoverage": 0.3259668508287293,
+          "tripletGridDoubleCoverage": 0.6022099447513812
+        },
+        {
+          "timeMs": 36945.85034013605,
+          "bpm": 143.555,
+          "localGridCoverage": 0.09826589595375723,
+          "tripletGridCoverage": 0.5780346820809249,
+          "tripletGridHalfCoverage": 0.3352601156069364,
+          "tripletGridDoubleCoverage": 0.6011560693641619
+        },
+        {
+          "timeMs": 37944.30839002268,
+          "bpm": 143.555,
+          "localGridCoverage": 0.08620689655172414,
+          "tripletGridCoverage": 0.5862068965517241,
+          "tripletGridHalfCoverage": 0.3275862068965517,
+          "tripletGridDoubleCoverage": 0.603448275862069
+        },
+        {
+          "timeMs": 38942.7664399093,
+          "bpm": 143.555,
+          "localGridCoverage": 0.0898876404494382,
+          "tripletGridCoverage": 0.5786516853932584,
+          "tripletGridHalfCoverage": 0.33146067415730335,
+          "tripletGridDoubleCoverage": 0.6292134831460674
+        },
+        {
+          "timeMs": 39941.22448979592,
+          "bpm": 143.555,
+          "localGridCoverage": 0.10404624277456648,
+          "tripletGridCoverage": 0.5606936416184971,
+          "tripletGridHalfCoverage": 0.34104046242774566,
+          "tripletGridDoubleCoverage": 0.653179190751445
+        },
+        {
+          "timeMs": 40939.68253968254,
+          "bpm": 143.555,
+          "localGridCoverage": 0.09883720930232558,
+          "tripletGridCoverage": 0.5755813953488372,
+          "tripletGridHalfCoverage": 0.3488372093023256,
+          "tripletGridDoubleCoverage": 0.6511627906976745
+        },
+        {
+          "timeMs": 41938.14058956916,
+          "bpm": 142.565,
+          "localGridCoverage": 0.09696969696969697,
+          "tripletGridCoverage": 0.5757575757575758,
+          "tripletGridHalfCoverage": 0.34545454545454546,
+          "tripletGridDoubleCoverage": 0.6666666666666666
+        },
+        {
+          "timeMs": 42936.598639455784,
+          "bpm": 142.565,
+          "localGridCoverage": 0.10625,
+          "tripletGridCoverage": 0.59375,
+          "tripletGridHalfCoverage": 0.3625,
+          "tripletGridDoubleCoverage": 0.64375
+        }
+      ]
+    },
+    {
+      "startMs": 44930,
+      "endMs": 50927,
+      "bpm": 143.555,
+      "points": 3,
+      "maxSupport": 0.27398673556240494,
+      "localGridCoverage": 0.10227272727272728,
+      "rejection": "triplet",
+      "independentMainScore": -0.06721343443470584,
+      "independentLocalScore": 0.45069781756396565,
+      "variableOverlapMs": 5997,
+      "overlapsVariable": true,
+      "tripletVotes": [
+        {
+          "timeMs": 46930.43083900226,
+          "bpm": 142.565,
+          "localGridCoverage": 0.10227272727272728,
+          "tripletGridCoverage": 0.5568181818181818,
+          "tripletGridHalfCoverage": 0.32954545454545453,
+          "tripletGridDoubleCoverage": 0.6022727272727273
+        },
+        {
+          "timeMs": 47928.88888888889,
+          "bpm": 143.555,
+          "localGridCoverage": 0.10344827586206896,
+          "tripletGridCoverage": 0.5402298850574713,
+          "tripletGridHalfCoverage": 0.3160919540229885,
+          "tripletGridDoubleCoverage": 0.632183908045977
+        }
+      ]
+    },
+    {
+      "startMs": 194699,
+      "endMs": 201695,
+      "bpm": 63.217,
+      "points": 4,
+      "maxSupport": 0.0925458879492016,
+      "localGridCoverage": 0.049723756906077346,
+      "rejection": "triplet",
+      "independentMainScore": 0.5181522818507851,
+      "independentLocalScore": 0.5390264253031429,
+      "variableOverlapMs": 0,
+      "overlapsVariable": false,
+      "tripletVotes": [
+        {
+          "timeMs": 196699.13832199547,
+          "bpm": 63.024,
+          "localGridCoverage": 0.044444444444444446,
+          "tripletGridCoverage": 0.5222222222222223,
+          "tripletGridHalfCoverage": 0.32222222222222224,
+          "tripletGridDoubleCoverage": 0.5888888888888889
+        },
+        {
+          "timeMs": 197697.59637188207,
+          "bpm": 63.062,
+          "localGridCoverage": 0.049723756906077346,
+          "tripletGridCoverage": 0.5303867403314917,
+          "tripletGridHalfCoverage": 0.3149171270718232,
+          "tripletGridDoubleCoverage": 0.5580110497237569
+        },
+        {
+          "timeMs": 198696.0544217687,
+          "bpm": 63.217,
+          "localGridCoverage": 0.04395604395604396,
+          "tripletGridCoverage": 0.5384615384615384,
+          "tripletGridHalfCoverage": 0.3241758241758242,
+          "tripletGridDoubleCoverage": 0.5494505494505495
+        },
+        {
+          "timeMs": 199694.51247165533,
+          "bpm": 63.411,
+          "localGridCoverage": 0.05952380952380952,
+          "tripletGridCoverage": 0.5714285714285714,
+          "tripletGridHalfCoverage": 0.3333333333333333,
+          "tripletGridDoubleCoverage": 0.5714285714285714
+        }
+      ]
+    },
+    {
+      "startMs": 209676,
+      "endMs": 215673,
+      "bpm": 63.411,
+      "points": 3,
+      "maxSupport": 0.12341734364529941,
+      "localGridCoverage": 0.05056179775280899,
+      "rejection": "triplet",
+      "independentMainScore": 0.10962831764168332,
+      "independentLocalScore": 0.08112282711429462,
+      "variableOverlapMs": 0,
+      "overlapsVariable": false,
+      "tripletVotes": [
+        {
+          "timeMs": 211676.0090702948,
+          "bpm": 63.411,
+          "localGridCoverage": 0.05232558139534884,
+          "tripletGridCoverage": 0.5581395348837209,
+          "tripletGridHalfCoverage": 0.3430232558139535,
+          "tripletGridDoubleCoverage": 0.6511627906976745
+        },
+        {
+          "timeMs": 212674.4671201814,
+          "bpm": 63.411,
+          "localGridCoverage": 0.047058823529411764,
+          "tripletGridCoverage": 0.5705882352941176,
+          "tripletGridHalfCoverage": 0.3352941176470588,
+          "tripletGridDoubleCoverage": 0.6176470588235294
+        },
+        {
+          "timeMs": 213672.92517006802,
+          "bpm": 63.411,
+          "localGridCoverage": 0.05056179775280899,
+          "tripletGridCoverage": 0.5561797752808989,
+          "tripletGridHalfCoverage": 0.33707865168539325,
+          "tripletGridDoubleCoverage": 0.601123595505618
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "id": "sample-040",
+  "directoryName": "29183 ZUN - Night Sakura of Dead Spirits",
+  "beatmapFile": "ZUN - Night Sakura of Dead Spirits (Elly-chan) [Secluded Child].osu",
+  "metadata": {
+    "Title": "Night Sakura of Dead Spirits",
+    "Artist": "ZUN",
+    "Creator": "Elly-chan",
+    "Version": "Secluded Child",
+    "Source": "Touhou",
+    "Tags": "Ten Desires Yuyuko Saigyouji Saigyouzi Pereira006 Rikers Kite _LRJ_",
+    "Mode": "0"
+  },
+  "audioDurationMs": 118308.57142857142,
+  "redLines": [
+    {
+      "time": 20,
+      "beatLength": 425.531914893617,
+      "bpm": 141,
+      "durationMs": 11702
+    },
+    {
+      "time": 11722,
+      "beatLength": 410.958904109589,
+      "bpm": 146,
+      "durationMs": 1849
+    },
+    {
+      "time": 13571,
+      "beatLength": 408.163265306122,
+      "bpm": 147.00000000000017,
+      "durationMs": 104737.57142857142
+    }
+  ],
+  "referenceBpm": 147.00000000000017,
+  "referenceVariable": true,
+  "referenceRedLineCount": 3,
+  "referenceCoverageMs": 104737.57142857142,
+  "status": "ok",
+  "prediction": {
+    "bpm": 147,
+    "offsetMs": 545,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 112,
+    "rawBpm": 294,
+    "rawSegmentCount": 21
+  },
+  "evaluationMs": 1158
+}

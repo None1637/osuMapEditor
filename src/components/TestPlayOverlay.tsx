@@ -40,6 +40,7 @@ import { matchesHotkey, matchesHotkeyMouse, effectiveBindings, formatCombo } fro
 import { zoomRect, zoomClientX, zoomClientY, fitCanvas } from '@/osu/uiZoom';
 import { useT } from '@/i18n';
 import { viewTransform } from './EditorCanvas'; // v300: 游玩区大小与编辑器一致 (同一适配变换)
+import { UiControl, UiText } from './uiLayout/UiControl'; // v536
 
 /** v288: 事件是否命中游玩击打键 (test-hit-1/test-hit-2 任一; v289: 默认含鼠标左键, 可改) */
 function isHitKey(e: KeyboardEvent): boolean {
@@ -459,12 +460,11 @@ export function TestPlayOverlay({ onClose }: { onClose: () => void }) {
       //   游玩中左/右键不再能选中/拖动物件与滑条锚点 (此前实测可拖节点); 击打输入由本覆盖层自处理不受影响
       style={{ WebkitAppRegion: 'no-drag' } as CSSProperties} // v448: 覆盖层自身也禁拖 (hideTitleBar 拖拽区双保险)
       onContextMenu={(e) => e.preventDefault()}>
-      <canvas ref={canvasRef} className="w-full h-full block cursor-none" /> {/* v416 */}
+      <UiControl id="testplay.canvas"><canvas ref={canvasRef} className="w-full h-full block cursor-none" /></UiControl> {/* v416 */}
       {/* v294: mod 栏 (左上角; 切换即重开会话) */}
       <div className="absolute top-2 left-3 flex gap-1" data-mods-bar>
         {TEST_MODS.map(m => (
-          <button
-            key={m}
+          <UiControl key={m} id={`testplay.mod.${m}`}><button
             className={`px-1.5 py-0.5 rounded text-[11px] font-mono cursor-pointer ${mods.includes(m)
               ? 'bg-[#e6437d] text-white'
               : 'bg-white/10 text-white/50 hover:bg-white/20 hover:text-white/80'}`}
@@ -472,34 +472,34 @@ export function TestPlayOverlay({ onClose }: { onClose: () => void }) {
             data-testid={`testplay-mod-${m}`}
             onClick={() => setMods(prev => { const next = toggleMod(prev, m); saveTestMods(next); return next; })}
           >
-            {m}
-          </button>
+            <UiText id={`testplay.mod.${m}`}>{m}</UiText>
+          </button></UiControl>
         ))}
       </div>
-      <div className="absolute top-2 left-1/2 -translate-x-1/2 text-white/50 text-xs pointer-events-none select-none">
+      <UiControl id="testplay.hint"><div className="absolute top-2 left-1/2 -translate-x-1/2 text-white/50 text-xs pointer-events-none select-none">
         {t('testplay.hint', 'Test Play · {hit1}/{hit2} to hit (mouse bindings included) · {exit} to return to editor', {
           hit1: formatCombo(effectiveBindings('test-hit-1')[0]),
           hit2: formatCombo(effectiveBindings('test-hit-2')[0]),
           exit: formatCombo(effectiveBindings('test-exit')[0]),
         })} {/* v289 */}
-      </div>
-      <button
+      </div></UiControl>
+      <UiControl id="testplay.exit"><button
         className="absolute top-2 right-3 px-2 py-1 rounded bg-white/10 hover:bg-white/20 text-white/70 text-xs cursor-pointer"
         data-testid="testplay-exit"
         onClick={() => exitRef.current()}
       >
-        {t('testplay.exit', 'Exit (Esc)')}
-      </button>
+        <UiText id="testplay.exit" textKey="testplay.exit">Exit (Esc)</UiText>
+      </button></UiControl>
       {/* v419: 跳过按钮 (首物件前 >3s; 样式参照 mod 栏; data-skip-btn 防触发击打判定; v416 恢复 cursor) */}
       {showSkip && (
-        <button
+        <UiControl id="testplay.skip"><button
           className="absolute bottom-16 left-1/2 -translate-x-1/2 px-5 py-1.5 rounded bg-white/10 hover:bg-white/20 text-white/80 text-sm font-mono cursor-pointer"
           data-testid="testplay-skip"
           data-skip-btn
           onClick={() => store.seek(skipTarget(firstTimeRef.current))}
         >
-          {t('testplay.skip', 'Skip')}
-        </button>
+          <UiText id="testplay.skip" textKey="testplay.skip">Skip</UiText>
+        </button></UiControl>
       )}
     </div>
   );

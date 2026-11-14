@@ -1,0 +1,66 @@
+{
+  "id": "sample-061",
+  "directoryName": "1223565 Niko - Made of Fire",
+  "beatmapFile": "Niko - Made of Fire (Darklord3288) [Hard].osu",
+  "metadata": {
+    "Title": "Made of Fire",
+    "TitleUnicode": "Made of Fire",
+    "Artist": "Niko",
+    "ArtistUnicode": "Niko",
+    "Creator": "Darklord3288",
+    "Version": "Hard",
+    "Source": "Stepmania",
+    "Tags": "stepmania niko 4k",
+    "BeatmapID": "2544931",
+    "BeatmapSetID": "1223565",
+    "Mode": "3"
+  },
+  "audioDurationMs": 80300.4081632653,
+  "redLines": [
+    {
+      "time": 368,
+      "beatLength": 368.098159509202,
+      "bpm": 163.0000000000002,
+      "durationMs": 3310
+    },
+    {
+      "time": 3678,
+      "beatLength": 370.37037037037,
+      "bpm": 162.00000000000017,
+      "durationMs": 11840
+    },
+    {
+      "time": 15518,
+      "beatLength": 370.37037037037,
+      "bpm": 162.00000000000017,
+      "durationMs": 25200
+    },
+    {
+      "time": 40718,
+      "beatLength": 370.37037037037,
+      "bpm": 162.00000000000017,
+      "durationMs": 23680
+    },
+    {
+      "time": 64398,
+      "beatLength": 370.37037037037,
+      "bpm": 162.00000000000017,
+      "durationMs": 15902.408163265296
+    }
+  ],
+  "referenceBpm": 162.00000000000017,
+  "referenceVariable": false,
+  "referenceRedLineCount": 5,
+  "referenceCoverageMs": 76622.4081632653,
+  "status": "ok",
+  "prediction": {
+    "bpm": 161.95,
+    "offsetMs": 351,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 77,
+    "rawBpm": 323.9,
+    "rawSegmentCount": 25
+  },
+  "evaluationMs": 764
+}

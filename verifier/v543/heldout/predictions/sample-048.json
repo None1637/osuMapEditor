@@ -1,0 +1,48 @@
+{
+  "id": "sample-048",
+  "directoryName": "809090 ak+q - Axium Crisis",
+  "beatmapFile": "ak+q - Axium Crisis (Lundlerol) [Future 9+].osu",
+  "metadata": {
+    "Title": "Axium Crisis",
+    "TitleUnicode": "Axium Crisis",
+    "Artist": "ak+q",
+    "ArtistUnicode": "ak+q",
+    "Creator": "Lundlerol",
+    "Version": "Future 9+",
+    "Source": "Arcaea",
+    "Tags": "",
+    "BeatmapID": "1697768",
+    "BeatmapSetID": "809090",
+    "Mode": "1"
+  },
+  "audioDurationMs": 150480.99773242633,
+  "redLines": [
+    {
+      "time": 544,
+      "beatLength": 352.941176470588,
+      "bpm": 170.0000000000001,
+      "durationMs": 88003
+    },
+    {
+      "time": 88547,
+      "beatLength": 352.941176470588,
+      "bpm": 170.0000000000001,
+      "durationMs": 61933.99773242633
+    }
+  ],
+  "referenceBpm": 170.0000000000001,
+  "referenceVariable": false,
+  "referenceRedLineCount": 2,
+  "referenceCoverageMs": 149936.99773242633,
+  "status": "ok",
+  "prediction": {
+    "bpm": 170,
+    "offsetMs": 343,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 144,
+    "rawBpm": 340,
+    "rawSegmentCount": 56
+  },
+  "evaluationMs": 1534
+}

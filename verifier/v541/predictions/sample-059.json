@@ -1,0 +1,63 @@
+{
+  "id": "sample-059",
+  "directoryName": "820771 C&K - Nirv lucE",
+  "beatmapFile": "C&K - Nirv lucE (Enzie) [Solace].osu",
+  "metadata": {
+    "Title": "Nirv lucE",
+    "TitleUnicode": "Nirv lucE",
+    "Artist": "C&K",
+    "ArtistUnicode": "しーけー",
+    "Creator": "Enzie",
+    "Version": "Solace",
+    "Source": "",
+    "Mode": "0"
+  },
+  "audioDurationMs": 122122.44897959183,
+  "redLines": [
+    {
+      "time": 0,
+      "beatLength": 230.769230769231,
+      "bpm": 259.9999999999997,
+      "durationMs": 7384
+    },
+    {
+      "time": 7384,
+      "beatLength": 461.538461538462,
+      "bpm": 129.99999999999986,
+      "durationMs": 14769
+    },
+    {
+      "time": 22153,
+      "beatLength": 230.769230769231,
+      "bpm": 259.9999999999997,
+      "durationMs": 29538
+    },
+    {
+      "time": 51691,
+      "beatLength": 461.538461538462,
+      "bpm": 129.99999999999986,
+      "durationMs": 3692
+    },
+    {
+      "time": 55383,
+      "beatLength": 230.769230769231,
+      "bpm": 259.9999999999997,
+      "durationMs": 66739.44897959183
+    }
+  ],
+  "referenceBpm": 259.9999999999997,
+  "referenceVariable": true,
+  "referenceRedLineCount": 5,
+  "referenceCoverageMs": 103661.44897959183,
+  "status": "ok",
+  "prediction": {
+    "bpm": 130,
+    "offsetMs": 492,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 119,
+    "rawBpm": 260,
+    "rawSegmentCount": 49
+  },
+  "evaluationMs": 1064
+}

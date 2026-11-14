@@ -1,0 +1,19 @@
+{
+  "id": "sample-074",
+  "directoryName": "40056 sakuzyo - VALLISTA",
+  "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\40056 sakuzyo - VALLISTA",
+  "status": "ok",
+  "referenceBpm": 180.0000000000002,
+  "referenceVariable": false,
+  "predictedBpm": 180,
+  "predictedVariable": false,
+  "variableLines": [],
+  "trueVariableMs": 0,
+  "flaggedWindowCount": 27,
+  "flaggedWindowsOnVariable": 0,
+  "rawCandidateCount": 0,
+  "rawCandidatesOnVariable": 0,
+  "finalEvidenceCount": 0,
+  "finalEvidenceOnVariable": 0,
+  "candidates": []
+}

@@ -1,0 +1,132 @@
+{
+  "id": "sample-088",
+  "directoryName": "1159269 Zekk - SUMMER",
+  "beatmapFile": "Zekk - SUMMER (Shima Rin) [Ichigo].osu",
+  "referenceBpm": 174.99999999999991,
+  "predictedBpm": 175,
+  "frozenBpm": 175,
+  "deterministicEvidence": true,
+  "evidence": [
+    {
+      "startMs": 102841,
+      "endMs": 108838,
+      "bpm": 63.645,
+      "points": 3,
+      "maxSupport": 0.3028203655494974,
+      "index": 0,
+      "ratioToPredictedMain": 0.3636857142857143,
+      "ratioToAnnotatedMain": 0.3636857142857145,
+      "boundary": "interior",
+      "localBpmMin": 63.645,
+      "localBpmMax": 69.837,
+      "medianSupport": 0.3028203655494974,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 34.285714285714285,
+          "first": 0.08961249610031093,
+          "second": 0.32845106029297405,
+          "combined": 0.16842922228388976
+        },
+        "annotatedMain": {
+          "lag": 34.2857142857143,
+          "first": 0.08961249610031144,
+          "second": 0.328451060292976,
+          "combined": 0.16842922228389076
+        },
+        "evidenceBpm": {
+          "lag": 94.27292010370022,
+          "first": 0.36374846225906843,
+          "second": null,
+          "combined": 0.36374846225906843
+        }
+      },
+      "objectCount": 82,
+      "objectGrid": {
+        "predictedMainHalf": 0.6341463414634146,
+        "annotatedMainHalf": 0.6341463414634146,
+        "evidenceHalf": 0.12195121951219512
+      }
+    },
+    {
+      "startMs": 112826,
+      "endMs": 119821,
+      "bpm": 99.864,
+      "points": 4,
+      "maxSupport": 0.16300545588377335,
+      "index": 1,
+      "ratioToPredictedMain": 0.5706514285714286,
+      "ratioToAnnotatedMain": 0.5706514285714289,
+      "boundary": "interior",
+      "localBpmMin": 99.864,
+      "localBpmMax": 99.864,
+      "medianSupport": 0.12137145274214967,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 34.285714285714285,
+          "first": 0.26203457484916093,
+          "second": 0.3437570390884616,
+          "combined": 0.2890029880481302
+        },
+        "annotatedMain": {
+          "lag": 34.2857142857143,
+          "first": 0.2620345748491608,
+          "second": 0.34375703908846533,
+          "combined": 0.2890029880481313
+        },
+        "evidenceBpm": {
+          "lag": 60.08171112713289,
+          "first": 0.24036134267353762,
+          "second": 0.3240733312576105,
+          "combined": 0.2679862989062817
+        }
+      },
+      "objectCount": 96,
+      "objectGrid": {
+        "predictedMainHalf": 0.65625,
+        "annotatedMainHalf": 0.65625,
+        "evidenceHalf": 0.16666666666666666
+      }
+    },
+    {
+      "startMs": 116819,
+      "endMs": 122816,
+      "bpm": 63.645,
+      "points": 3,
+      "maxSupport": 0.21243105764224454,
+      "index": 2,
+      "ratioToPredictedMain": 0.3636857142857143,
+      "ratioToAnnotatedMain": 0.3636857142857145,
+      "boundary": "interior",
+      "localBpmMin": 63.606,
+      "localBpmMax": 63.645,
+      "medianSupport": 0.21243105764224454,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 34.285714285714285,
+          "first": 0.35153437234719354,
+          "second": 0.5466686394650749,
+          "combined": 0.41592868049609444
+        },
+        "annotatedMain": {
+          "lag": 34.2857142857143,
+          "first": 0.3515343723471941,
+          "second": 0.5466686394650769,
+          "combined": 0.41592868049609544
+        },
+        "evidenceBpm": {
+          "lag": 94.27292010370022,
+          "first": 0.3183365578591562,
+          "second": null,
+          "combined": 0.3183365578591562
+        }
+      },
+      "objectCount": 85,
+      "objectGrid": {
+        "predictedMainHalf": 0.6588235294117647,
+        "annotatedMainHalf": 0.6588235294117647,
+        "evidenceHalf": 0.11764705882352941
+      }
+    }
+  ],
+  "analysisMs": 2087
+}

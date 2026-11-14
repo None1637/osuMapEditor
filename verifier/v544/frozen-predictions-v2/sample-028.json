@@ -1,0 +1,34 @@
+{
+  "id": "sample-028",
+  "directoryName": "1408765 Synth Monsters_Senri_SADRECORDS - GAMER",
+  "beatmapFile": "Synth MonstersSenriSADRECORDS - GAMER (HirSayuri) [RELOADING ... ...].osu",
+  "metadata": {
+    "Title": "GAMER",
+    "TitleUnicode": "GAMER",
+    "Artist": "Synth Monsters/Senri/SADRECORDS",
+    "ArtistUnicode": "Synth Monsters/千璃Senri/SADRECORDS",
+    "Creator": "HirSayuri",
+    "Version": "RELOADING ... ...",
+    "Source": "GAMER",
+    "Tags": "",
+    "BeatmapID": "2904854",
+    "BeatmapSetID": "1408765",
+    "Mode": "0"
+  },
+  "audioDurationMs": null,
+  "redLines": [
+    {
+      "time": 927,
+      "beatLength": 234.375,
+      "bpm": 256,
+      "durationMs": 937.5
+    }
+  ],
+  "referenceBpm": 256,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 937.5,
+  "status": "decode_unavailable",
+  "prediction": null,
+  "evaluationMs": 0
+}

@@ -1,0 +1,114 @@
+{
+  "id": "sample-005",
+  "directoryName": "1193063 BAND-MAID - RINNE",
+  "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\1193063 BAND-MAID - RINNE",
+  "status": "ok",
+  "referenceBpm": 189.99999999999974,
+  "referenceVariable": false,
+  "predictedBpm": 190,
+  "predictedVariable": false,
+  "variableLines": [],
+  "trueVariableMs": 0,
+  "flaggedWindowCount": 43,
+  "flaggedWindowsOnVariable": 0,
+  "rawCandidateCount": 2,
+  "rawCandidatesOnVariable": 0,
+  "finalEvidenceCount": 0,
+  "finalEvidenceOnVariable": 0,
+  "candidates": [
+    {
+      "startMs": 133793,
+      "endMs": 140789,
+      "bpm": 63.024,
+      "points": 4,
+      "maxSupport": 0.2306443813715454,
+      "localGridCoverage": 0.04819277108433735,
+      "rejection": "triplet",
+      "independentMainScore": null,
+      "independentLocalScore": null,
+      "variableOverlapMs": 0,
+      "overlapsVariable": false,
+      "tripletVotes": [
+        {
+          "timeMs": 135793.19727891157,
+          "bpm": 63.217,
+          "localGridCoverage": 0.04519774011299435,
+          "tripletGridCoverage": 0.5480225988700564,
+          "tripletGridHalfCoverage": 0.3107344632768362,
+          "tripletGridDoubleCoverage": 0.5932203389830508
+        },
+        {
+          "timeMs": 136791.6553287982,
+          "bpm": 63.024,
+          "localGridCoverage": 0.04819277108433735,
+          "tripletGridCoverage": 0.5542168674698795,
+          "tripletGridHalfCoverage": 0.3373493975903614,
+          "tripletGridDoubleCoverage": 0.5903614457831325
+        },
+        {
+          "timeMs": 137790.1133786848,
+          "bpm": 63.024,
+          "localGridCoverage": 0.047337278106508875,
+          "tripletGridCoverage": 0.5562130177514792,
+          "tripletGridHalfCoverage": 0.33136094674556216,
+          "tripletGridDoubleCoverage": 0.5562130177514792
+        },
+        {
+          "timeMs": 138788.57142857142,
+          "bpm": 63.024,
+          "localGridCoverage": 0.05389221556886228,
+          "tripletGridCoverage": 0.562874251497006,
+          "tripletGridHalfCoverage": 0.3532934131736527,
+          "tripletGridDoubleCoverage": 0.5389221556886228
+        }
+      ]
+    },
+    {
+      "startMs": 144776,
+      "endMs": 151772,
+      "bpm": 63.255,
+      "points": 4,
+      "maxSupport": 0.12384831876085675,
+      "localGridCoverage": 0.04678362573099415,
+      "rejection": "triplet",
+      "independentMainScore": null,
+      "independentLocalScore": null,
+      "variableOverlapMs": 0,
+      "overlapsVariable": false,
+      "tripletVotes": [
+        {
+          "timeMs": 146776.2358276644,
+          "bpm": 63.411,
+          "localGridCoverage": 0.046242774566473986,
+          "tripletGridCoverage": 0.5838150289017341,
+          "tripletGridHalfCoverage": 0.3468208092485549,
+          "tripletGridDoubleCoverage": 0.5953757225433526
+        },
+        {
+          "timeMs": 147774.693877551,
+          "bpm": 63.255,
+          "localGridCoverage": 0.06321839080459771,
+          "tripletGridCoverage": 0.6091954022988506,
+          "tripletGridHalfCoverage": 0.3563218390804598,
+          "tripletGridDoubleCoverage": 0.5574712643678161
+        },
+        {
+          "timeMs": 148773.15192743763,
+          "bpm": 63.217,
+          "localGridCoverage": 0.04678362573099415,
+          "tripletGridCoverage": 0.6081871345029239,
+          "tripletGridHalfCoverage": 0.3567251461988304,
+          "tripletGridDoubleCoverage": 0.5380116959064327
+        },
+        {
+          "timeMs": 149771.60997732426,
+          "bpm": 63.217,
+          "localGridCoverage": 0.041176470588235294,
+          "tripletGridCoverage": 0.6,
+          "tripletGridHalfCoverage": 0.32941176470588235,
+          "tripletGridDoubleCoverage": 0.5470588235294118
+        }
+      ]
+    }
+  ]
+}

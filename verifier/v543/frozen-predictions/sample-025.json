@@ -1,0 +1,84 @@
+{
+  "id": "sample-025",
+  "directoryName": "1817787 SOUND HOLIC feat Nana Takahashi - Chinmoku ~Cercueil no Shoujo~",
+  "beatmapFile": "SOUND HOLIC feat. Nana Takahashi - Chinmoku ~Cercueil no Shoujo~ (Schopfer) [Midnight Symphony].osu",
+  "metadata": {
+    "Title": "Chinmoku ~Cercueil no Shoujo~",
+    "TitleUnicode": "沈黙 ～セルクイユの少女～",
+    "Artist": "SOUND HOLIC feat. Nana Takahashi",
+    "ArtistUnicode": "SOUND HOLIC feat. Nana Takahashi",
+    "Creator": "Schopfer",
+    "Version": "Midnight Symphony",
+    "Source": "東方紅魔郷　～ the Embodiment of Scarlet Devil.",
+    "Tags": "FAMoss 高橋菜々 Touhou Project 東方Project Silence ~The Coffin Girl~ Remilia Scarlet レミリア・スカーレット th6 th06 stage 6 boss theme ZUN Ōta jun'ya ota junya 太田順也 zikeez zikee 十六夜 -IZAYOI- 亡き王女の為のセプテット Septette for the Dead Princess Doujin Comic Market 91 Comiket c91 コミケッ Video Game Japanese Electronic Eurobeat Trance Team Shanghai Alice 上海アリス幻樂団",
+    "BeatmapID": "3729442",
+    "BeatmapSetID": "1817787",
+    "Mode": "3"
+  },
+  "audioDurationMs": 292093.3333333333,
+  "redLines": [
+    {
+      "time": 1013,
+      "beatLength": 428.571428571429,
+      "bpm": 139.99999999999986,
+      "durationMs": 17142
+    },
+    {
+      "time": 18155,
+      "beatLength": 806.451612903226,
+      "bpm": 74.39999999999999,
+      "durationMs": 3225
+    },
+    {
+      "time": 21380,
+      "beatLength": 465.116279069768,
+      "bpm": 128.99999999999986,
+      "durationMs": 697
+    },
+    {
+      "time": 22077,
+      "beatLength": 465.116279069768,
+      "bpm": 128.99999999999986,
+      "durationMs": 24186
+    },
+    {
+      "time": 46263,
+      "beatLength": 454.545454545455,
+      "bpm": 131.99999999999986,
+      "durationMs": 1818
+    },
+    {
+      "time": 48081,
+      "beatLength": 428.571428571429,
+      "bpm": 139.99999999999986,
+      "durationMs": 217714
+    },
+    {
+      "time": 265795,
+      "beatLength": 468.75,
+      "bpm": 128,
+      "durationMs": 13125
+    },
+    {
+      "time": 278920,
+      "beatLength": 500,
+      "bpm": 120,
+      "durationMs": 13173.333333333314
+    }
+  ],
+  "referenceBpm": 139.99999999999986,
+  "referenceVariable": true,
+  "referenceRedLineCount": 8,
+  "referenceCoverageMs": 234856,
+  "status": "ok",
+  "prediction": {
+    "bpm": 140,
+    "offsetMs": 321,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 279,
+    "rawBpm": 280,
+    "rawSegmentCount": 90
+  },
+  "evaluationMs": 2746
+}

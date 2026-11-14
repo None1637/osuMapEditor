@@ -4,29 +4,30 @@
 // v519: 子滑条在窗口内直接编辑; 捕获只覆盖模板快照, params 变化 → 重算 → 预览实时更新。
 import { useEffect, useMemo, useState } from 'react';
 import { store, useEditor } from '@/osu/store';
-import { DraggableDialog, DraftNum, loadParams, saveParams, useSaveParamsOnClose } from '../DraggableDialog';
+import { DialogButton, DraggableDialog, DraftNum, loadParams, saveParams, useSaveParamsOnClose } from '../DraggableDialog';
+import { UiAutoControl, UiAutoIcon, UiAutoText } from '../uiLayout/UiControl'; // v533
 import {
   captureTemplate, computeAnchorStamp, DEFAULT_ANCHOR_STAMP_PARAMS, newRule, normalizeAnchorStampParams,
   STAMP_DENOMINATORS, type AnchorStampParams,
 } from '@/osu/convert/anchorStamp';
 import { AnchorStampTemplateCanvas } from './AnchorStampTemplateCanvas';
-import { ChevronDown, ChevronRight } from 'lucide-react'; // v523: 单规则折叠
+import { ChevronDown, ChevronRight, X } from 'lucide-react'; // v523: 单规则折叠; v533: 删除图标
 import { useT } from '@/i18n';
 
 /** a×1/b 拍 (分子 DraftNum + 分母 select, 到 1/128; DuplicateDialog 同款模式)
  *  v489: 分子框 w-10 (原 w-20 太大); minNum 供偏移允许 0 */
-const BeatFrac = ({ num, den, setNum, setDen, idNum, idDen, minNum = 1 }: {
-  num: number; den: number; setNum: (v: number) => void; setDen: (v: number) => void; idNum: string; idDen: string;
+const BeatFrac = ({ uid, num, den, setNum, setDen, idNum, idDen, minNum = 1 }: {
+  uid: string; num: number; den: number; setNum: (v: number) => void; setDen: (v: number) => void; idNum: string; idDen: string;
   minNum?: number;
 }) => (
   <span className="flex items-center gap-1">
-    <DraftNum value={num} testid={idNum} min={minNum} max={99} w="w-10" set={v => setNum(Math.round(v))} />
+    <DraftNum value={num} testid={idNum} uiId={`rule.${uid}.${idNum.replace(/-\d+$/, '')}`} min={minNum} max={99} w="w-10" set={v => setNum(Math.round(v))} />
     <span className="text-white/40">×1/</span>
-    <select value={den} data-conv={idDen} onChange={e => setDen(parseInt(e.target.value))}
+    <UiAutoControl localId={`rule.${uid}.${idDen.replace(/-\d+$/, '')}`}><select value={den} data-conv={idDen} onChange={e => setDen(parseInt(e.target.value))}
       className="bg-black/40 border border-white/15 rounded px-1 py-0.5 text-white">
       {STAMP_DENOMINATORS.map(d => <option key={d} value={d}>{d}</option>)}
       {!STAMP_DENOMINATORS.includes(den) && <option value={den}>{den}</option>}
-    </select>
+    </select></UiAutoControl>
   </span>
 );
 
@@ -103,20 +104,19 @@ export function AnchorStampDialog() {
         return (
           <div key={r.uid} className="rounded border border-white/10 p-2 space-y-1.5" data-conv={`rule-${i}`}>
             <div className="flex items-center gap-2">
-              <button data-conv={`collapse-${i}`} aria-expanded={!collapsed.has(r.uid)}
+              <UiAutoControl localId={`rule.${r.uid}.collapse`} kind="button"><button data-conv={`collapse-${i}`} aria-expanded={!collapsed.has(r.uid)}
                 title={collapsed.has(r.uid) ? t('convert.stamp_expand', 'Expand') : t('convert.stamp_collapse', 'Collapse')}
                 onClick={() => toggleCollapsed(r.uid)} className="px-1 py-0.5 rounded hover:bg-white/15 text-white/60">
-                {collapsed.has(r.uid) ? <ChevronRight className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-              </button>
+                <UiAutoIcon localId={`rule.${r.uid}.collapse`} state={collapsed.has(r.uid) ? 'active' : 'default'}>{collapsed.has(r.uid) ? <ChevronRight className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}</UiAutoIcon>
+              </button></UiAutoControl>
               <span className="text-white/50">{t('convert.stamp_priority', 'Priority')}</span>
-              <DraftNum value={r.priority} testid={`priority-${i}`} min={1} max={99} set={v => updRule(i, { priority: Math.round(v) })} />
-              <button data-conv={`capture-${i}`} onClick={() => capture(i)}
+              <DraftNum value={r.priority} testid={`priority-${i}`} uiId={`rule.${r.uid}.priority`} min={1} max={99} set={v => updRule(i, { priority: Math.round(v) })} />
+              <DialogButton uiId={`rule.${r.uid}.capture`} textKey="convert.stamp_capture" data-conv={`capture-${i}`} onClick={() => capture(i)}
                 className="px-2 py-0.5 rounded bg-cyan-600/70 hover:bg-cyan-500 text-white font-semibold whitespace-nowrap">
                 {/* v520: 始终显示动作文案, 模板类型/点数只作后缀, 避免按钮看起来只是状态标签 */}
-                {t('convert.stamp_capture', 'Capture selected slider')}{tplLabel ? ` (${tplLabel})` : ''}
-              </button>
-              <button data-conv={`del-${i}`} onClick={() => setParams(p => ({ ...p, rules: p.rules.filter((_, k) => k !== i) }))}
-                className="ml-auto px-1.5 rounded hover:bg-white/15 text-white/60">✕</button>
+                {`Capture selected slider${tplLabel ? ` (${tplLabel})` : ''}`}</DialogButton>
+              <UiAutoControl localId={`rule.${r.uid}.delete`} kind="button" defaultIcon="lucide:X"><button data-conv={`del-${i}`} onClick={() => setParams(p => ({ ...p, rules: p.rules.filter((_, k) => k !== i) }))}
+                className="ml-auto px-1.5 rounded hover:bg-white/15 text-white/60"><UiAutoIcon localId={`rule.${r.uid}.delete`}><X className="w-3.5 h-3.5" /></UiAutoIcon></button></UiAutoControl>
             </div>
             {/* v523: hidden 仅隐藏配置, 不卸载画布, 保留选区/undo/编辑会话 */}
             <div hidden={collapsed.has(r.uid)} className="space-y-1.5" data-conv={`config-${i}`}>
@@ -125,20 +125,20 @@ export function AnchorStampDialog() {
                 onChange={next => updRule(i, { template: next })} />}
               <div className="flex items-center gap-3">
                 <span className="text-white/50">{t('convert.stamp_interval', 'Interval')}</span>
-                <BeatFrac num={r.intervalNum} den={r.intervalDen} idNum={`interval-num-${i}`} idDen={`interval-den-${i}`}
+                <BeatFrac uid={r.uid} num={r.intervalNum} den={r.intervalDen} idNum={`interval-num-${i}`} idDen={`interval-den-${i}`}
                   setNum={v => updRule(i, { intervalNum: v })} setDen={v => updRule(i, { intervalDen: v })} />
                 <span className="text-white/50">{t('convert.stamp_erase', 'Erase')}</span>
-                <BeatFrac num={r.eraseNum} den={r.eraseDen} idNum={`erase-num-${i}`} idDen={`erase-den-${i}`}
+                <BeatFrac uid={r.uid} num={r.eraseNum} den={r.eraseDen} idNum={`erase-num-${i}`} idDen={`erase-den-${i}`}
                   setNum={v => updRule(i, { eraseNum: v })} setDen={v => updRule(i, { eraseDen: v })} />
               </div>
               <div className="flex items-center gap-3">
                 <span className="text-white/50">{t('convert.stamp_offset', 'Offset')}</span>
-                <BeatFrac num={r.offsetNum} den={r.offsetDen} idNum={`offset-num-${i}`} idDen={`offset-den-${i}`} minNum={0}
+                <BeatFrac uid={r.uid} num={r.offsetNum} den={r.offsetDen} idNum={`offset-num-${i}`} idDen={`offset-den-${i}`} minNum={0}
                   setNum={v => updRule(i, { offsetNum: v })} setDen={v => updRule(i, { offsetDen: v })} />
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-white/50">{t('convert.stamp_rotate', 'Rotate')}</span>
-                <DraftNum value={r.rotate} testid={`rotate-${i}`} min={-360} max={360} step={1} set={v => updRule(i, { rotate: v })} />
+                <DraftNum value={r.rotate} testid={`rotate-${i}`} uiId={`rule.${r.uid}.rotate`} min={-360} max={360} step={1} set={v => updRule(i, { rotate: v })} />
                 <span className="text-white/40">°</span>
                 <span className="text-white/30 text-xs">{t('convert.stamp_rotate_hint', '(90 = perpendicular to main slider, 0 = along tangent)')}</span>
               </div>
@@ -147,12 +147,12 @@ export function AnchorStampDialog() {
         );
       })}
       <div>
-        <button data-conv="add-rule" onClick={() => setParams(p => ({ ...p, rules: [...p.rules, newRule(p.rules.length + 1)] }))}
-          className="px-2 py-1 rounded bg-white/10 hover:bg-white/20">{t('convert.stamp_add_rule', '+ Add rule')}</button>
+        <DialogButton uiId="add-rule" textKey="convert.stamp_add_rule" data-conv="add-rule" onClick={() => setParams(p => ({ ...p, rules: [...p.rules, newRule(p.rules.length + 1)] }))}
+          className="px-2 py-1 rounded bg-white/10 hover:bg-white/20">+ Add rule</DialogButton>
       </div>
       <label className="flex items-center gap-2 text-white/70">
-        <input type="checkbox" checked={params.keepDuration} data-conv="keep-duration" onChange={e => upd({ keepDuration: e.target.checked })} />
-        {t('convert.stamp_keep_duration', 'Keep main slider duration (adjust SV)')}
+        <UiAutoControl localId="keep-duration"><input type="checkbox" checked={params.keepDuration} data-conv="keep-duration" onChange={e => upd({ keepDuration: e.target.checked })} /></UiAutoControl>
+        <UiAutoText localId="keep-duration" textKey="convert.stamp_keep_duration">Keep main slider duration (adjust SV)</UiAutoText>
       </label>
       {params.keepDuration && result?.svPreview && (
         <div className="text-white/60" data-conv="sv-preview">
@@ -164,17 +164,15 @@ export function AnchorStampDialog() {
       )}
       {result?.warnings.map((w, i) => <div key={i} className="text-amber-300/90">{w}</div>)}
       <div className="flex gap-2 pt-1">
-        <button data-conv="apply"
+        <DialogButton uiId="apply" textKey="convert.apply" data-conv="apply"
           onClick={() => {
             if (!main || !result?.object) return;
             saveParams('anchorStamp', params);
             store.applyConversion([main.id], [result.object], [], result.applyTiming);
           }}
           disabled={!main || !result?.object}
-          className="px-3 py-1 rounded bg-pink-500 hover:bg-pink-400 disabled:opacity-40 text-white font-bold">
-          {t('convert.apply', 'Apply')}
-        </button>
-        <button onClick={() => store.closeConversion()} className="px-3 py-1 rounded bg-white/10 hover:bg-white/20">{t('convert.cancel', 'Cancel')}</button>
+          className="px-3 py-1 rounded bg-pink-500 hover:bg-pink-400 disabled:opacity-40 text-white font-bold">Apply</DialogButton>
+        <DialogButton uiId="cancel" textKey="convert.cancel" onClick={() => store.closeConversion()} className="px-3 py-1 rounded bg-white/10 hover:bg-white/20">Cancel</DialogButton>
       </div>
     </DraggableDialog>
   );

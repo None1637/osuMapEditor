@@ -1,0 +1,229 @@
+{
+  "id": "sample-042",
+  "directoryName": "1100768 Kanoguti - How to Destroy Humans [no video]",
+  "beatmapFile": "Kanoguti - How to Destroy Humans (EJ__) [how to set SV].osu",
+  "metadata": {
+    "Title": "How to Destroy Humans",
+    "TitleUnicode": "How to Destroy Humans",
+    "Artist": "Kanoguti",
+    "ArtistUnicode": "Kanoguti",
+    "Creator": "EJ__",
+    "Version": "how to set SV",
+    "Source": "",
+    "Tags": "7_7",
+    "BeatmapID": "2300771",
+    "BeatmapSetID": "1100768",
+    "Mode": "1"
+  },
+  "audioDurationMs": 228389.6598639456,
+  "redLines": [
+    {
+      "time": 7614,
+      "beatLength": 428.571428571429,
+      "bpm": 139.99999999999986,
+      "durationMs": 41571
+    },
+    {
+      "time": 49185,
+      "beatLength": 214.285714285714,
+      "bpm": 280.0000000000004,
+      "durationMs": 40929
+    },
+    {
+      "time": 90114,
+      "beatLength": 428.571428571429,
+      "bpm": 139.99999999999986,
+      "durationMs": 1071
+    },
+    {
+      "time": 91185,
+      "beatLength": 416.666666666667,
+      "bpm": 143.9999999999999,
+      "durationMs": 1250
+    },
+    {
+      "time": 92435,
+      "beatLength": 413.793103448276,
+      "bpm": 144.99999999999994,
+      "durationMs": 1241
+    },
+    {
+      "time": 93676,
+      "beatLength": 402.68456375839,
+      "bpm": 148.99999999999972,
+      "durationMs": 1208
+    },
+    {
+      "time": 94884,
+      "beatLength": 397.350993377484,
+      "bpm": 150.9999999999998,
+      "durationMs": 1192
+    },
+    {
+      "time": 96076,
+      "beatLength": 394.736842105264,
+      "bpm": 151.9999999999997,
+      "durationMs": 1184
+    },
+    {
+      "time": 97260,
+      "beatLength": 384.615384615385,
+      "bpm": 155.99999999999986,
+      "durationMs": 1153
+    },
+    {
+      "time": 98413,
+      "beatLength": 379.746835443038,
+      "bpm": 158,
+      "durationMs": 1139
+    },
+    {
+      "time": 99552,
+      "beatLength": 372.670807453417,
+      "bpm": 160.99999999999963,
+      "durationMs": 1118
+    },
+    {
+      "time": 100670,
+      "beatLength": 370.370370370371,
+      "bpm": 161.99999999999972,
+      "durationMs": 1111
+    },
+    {
+      "time": 101781,
+      "beatLength": 361.44578313253,
+      "bpm": 166.00000000000006,
+      "durationMs": 1084
+    },
+    {
+      "time": 102865,
+      "beatLength": 352.941176470589,
+      "bpm": 169.99999999999963,
+      "durationMs": 1058
+    },
+    {
+      "time": 103923,
+      "beatLength": 352.941176470589,
+      "bpm": 169.99999999999963,
+      "durationMs": 1058
+    },
+    {
+      "time": 104981,
+      "beatLength": 350.877192982456,
+      "bpm": 171.00000000000006,
+      "durationMs": 1052
+    },
+    {
+      "time": 106033,
+      "beatLength": 342.857142857143,
+      "bpm": 174.99999999999991,
+      "durationMs": 1028
+    },
+    {
+      "time": 107061,
+      "beatLength": 333.333333333334,
+      "bpm": 179.99999999999963,
+      "durationMs": 996
+    },
+    {
+      "time": 108057,
+      "beatLength": 333.333333333334,
+      "bpm": 179.99999999999963,
+      "durationMs": 30000
+    },
+    {
+      "time": 138057,
+      "beatLength": 352.941176470589,
+      "bpm": 169.99999999999963,
+      "durationMs": 352
+    },
+    {
+      "time": 138409,
+      "beatLength": 387.096774193549,
+      "bpm": 154.99999999999977,
+      "durationMs": 387
+    },
+    {
+      "time": 138796,
+      "beatLength": 444.444444444445,
+      "bpm": 134.99999999999983,
+      "durationMs": 444
+    },
+    {
+      "time": 139240,
+      "beatLength": 480.000000000001,
+      "bpm": 124.99999999999973,
+      "durationMs": 480
+    },
+    {
+      "time": 139720,
+      "beatLength": 588.235294117648,
+      "bpm": 101.99999999999984,
+      "durationMs": 588
+    },
+    {
+      "time": 140308,
+      "beatLength": 681.818181818183,
+      "bpm": 87.99999999999984,
+      "durationMs": 681
+    },
+    {
+      "time": 140989,
+      "beatLength": 428.571428571429,
+      "bpm": 139.99999999999986,
+      "durationMs": 87400.65986394559
+    }
+  ],
+  "referenceBpm": 139.99999999999986,
+  "referenceVariable": true,
+  "referenceRedLineCount": 26,
+  "referenceCoverageMs": 130042.65986394559,
+  "status": "ok",
+  "prediction": {
+    "bpm": 140,
+    "offsetMs": 442,
+    "variable": true,
+    "evidence": [
+      {
+        "startMs": 100844,
+        "endMs": 109836,
+        "bpm": 172.266,
+        "points": 6,
+        "maxSupport": 0.3930082309999824,
+        "localGridCoverage": 0.2857142857142857,
+        "tripletLike": false,
+        "independentMainScore": -0.058010651801806354,
+        "independentMainBpm": 140,
+        "independentLocalScore": 0.22335593305136936
+      },
+      {
+        "startMs": 114822,
+        "endMs": 125812,
+        "bpm": 178.206,
+        "points": 8,
+        "maxSupport": 0.16813581456699947,
+        "localGridCoverage": 0.11764705882352941,
+        "tripletLike": false,
+        "independentMainScore": 0.020274850900278585,
+        "independentMainBpm": 140,
+        "independentLocalScore": 0.6528141621322243
+      },
+      {
+        "startMs": 128801,
+        "endMs": 136795,
+        "bpm": 178.206,
+        "points": 5,
+        "maxSupport": 0.12137113317389694,
+        "localGridCoverage": 0.11486486486486487,
+        "tripletLike": false,
+        "independentMainScore": 0.014486206060746652,
+        "independentMainBpm": 140,
+        "independentLocalScore": 0.5416933063870124
+      }
+    ],
+    "localPointCount": 219,
+    "rawBpm": 280,
+    "rawSegmentCount": 79
+  },
+  "evaluationMs": 2433
+}

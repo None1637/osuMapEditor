@@ -1,0 +1,42 @@
+{
+  "id": "sample-016",
+  "directoryName": "333823 My Chemical Romance - You Know What They Do To Guys Like Us In Prison",
+  "beatmapFile": "My Chemical Romance - You Know What They Do To Guys Like Us In Prison (pishifat) [Insane].osu",
+  "metadata": {
+    "Title": "You Know What They Do To Guys Like Us In Prison",
+    "TitleUnicode": "You Know What They Do To Guys Like Us In Prison",
+    "Artist": "My Chemical Romance",
+    "ArtistUnicode": "My Chemical Romance",
+    "Creator": "pishifat",
+    "Version": "Insane",
+    "Source": "",
+    "Tags": "three cheers for sweet revenge mcr metal alternative punk post hardcore",
+    "BeatmapID": "741851",
+    "BeatmapSetID": "333823",
+    "Mode": "0"
+  },
+  "audioDurationMs": 174236.73469387754,
+  "redLines": [
+    {
+      "time": 1289,
+      "beatLength": 322.58064516129,
+      "bpm": 186.00000000000017,
+      "durationMs": 172947.73469387754
+    }
+  ],
+  "referenceBpm": 186.00000000000017,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 172947.73469387754,
+  "status": "ok",
+  "prediction": {
+    "bpm": 186,
+    "offsetMs": 344,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 171,
+    "rawBpm": 186,
+    "rawSegmentCount": 203
+  },
+  "evaluationMs": 1781
+}

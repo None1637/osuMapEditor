@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FolderOpen, Star, TriangleAlert, X } from 'lucide-react'; // v181: 📁/⚠/✕/★ → lucide
 import { store } from '../osu/store';
 import { fetchServerDirs, serverDir } from '../osu/serverFs';
+import { scanServerFileManifest, scanServerLibraryIndex, serverDirectories, serverSkeletons } from '../osu/serverLibraryIndex'; // v575/v576
 import {
   asDirLike, dirHandleFromDropEx, getDirBackgroundUrl,
   getLastPersistError, getLastRestoreReason, getRememberedSongsDir, idbLibraryIndexGet, idbLibraryIndexPut,
@@ -12,6 +13,7 @@ import {
 import { buildLibraryIndexAuto, enumerateDifficultySkeletons, parseIndexEntry, type LibraryIndexEntry } from '../osu/libraryIndex'; // v290/v297 (worker 索引)/v299 (文件名骨架); v296: runStarQueue 移除 (全局星数计算太慢, 已屏蔽); v403: parseIndexEntry (选中谱面插队解析)
 import { matchLibraryEntry, matchLibraryEntryPartial, partialQueryNeedsIndex, parseLibraryQuery } from '../osu/librarySearch'; // v290; v403: 骨架条目文件名可搜
 import { tNow, useT } from '@/i18n'; // v346: 曲库面板 i18n
+import { UiControl, UiIcon, UiText } from './uiLayout/UiControl'; // v537
 
 type DirEntry = { name: string; handle: FsDirLike };
 
@@ -24,13 +26,14 @@ type SortBy = 'dir' | 'title' | 'artist' | 'creator' | 'bpm' | 'star' | 'length'
 // v128: 曲库会话缓存 — 第二次打开免重新扫描, 并记住上次位置 (滚动/搜索词/选中难度)。
 // v290: 缓存结构换为索引条目 (扁平难度列表), 规则不变:
 // 仅在用户显式刷新时失效: 「重新扫描」/「更换目录」/拖拽导入/授权后首扫 (都会走 startScan → 顶部清缓存);
-// 扫描中途关闭面板不写缓存 (scanDone=false), 下次打开重扫, 避免把残缺列表当成完整结果。
+// v575: 扫描中途关闭也保存骨架/进度, 重开保留视图并后台续扫, 不再每次清空重来。
 interface LibraryCache {
   rootName: string;                    // 与恢复出的目录名一致才生效 (防换了 Songs 目录还用旧列表)
   entries: LibraryIndexEntry[];
   filter: string;
   selKey: string | null;
   scrollTop: number;
+  complete?: boolean;                  // 旧缓存缺省视为完整 (旧版本只在完成后写缓存)
 }
 let libraryCache: LibraryCache | null = null;
 
@@ -100,27 +103,31 @@ export function SongLibrary({ onClose }: { onClose: () => void }) {
   // v290: 扫描 = 构建/增量校验难度索引, 边扫边显示 (按批 yield, 让出主线程)
   // v297: native 句柄直传 worker (枚举/读文件/解析全在 worker); thorough=true 逐文件 stat
   // 彻底校验 (手动「重新扫描」), 否则 trustNames 快路径 (文件名集合一致即整目录复用缓存)
-  const startScan = useCallback(async (h: FsDirLike, native: FileSystemDirectoryHandle | null = null, thorough = false) => {
+  const startScan = useCallback(async (h: FsDirLike, native: FileSystemDirectoryHandle | null = null, thorough = false, preserveView = false) => {
     const myGen = ++scanGenRef.current;
-    libraryCache = null; // v128: 任何显式扫描 (重新扫描/换目录/拖拽/授权) 都使会话缓存失效
+    if (!preserveView) libraryCache = null; // v575: 续扫保留会话视图; 显式扫描仍失效旧缓存
     scanDoneRef.current = false;
     // v297: 清掉上一次扫描遗留的节流 flush (防过期列表覆盖新扫描)
     if (flushTimerRef.current) { clearTimeout(flushTimerRef.current); flushTimerRef.current = null; }
     pendingEntriesRef.current = null;
     upgradesRef.current.clear(); demandParsedRef.current.clear(); setUpgradeTick(0); // v403: 新扫描清空插队升级层
     setIndexing(true); setScanError(null);
-    setEntries([]);
-    // v291: 重扫后选中回退到当前打开的谱面, 并重置自动定位 (条目出现后滚动到位)
-    const ck = (() => { const s = store.mapSource; return s ? `${s.dir.name}/${s.fileName}` : null; })();
-    setSelKey(ck); selKeyRef.current = ck; scrollToSelRef.current = true;
+    if (!preserveView) {
+      setEntries([]);
+      // v291: 重扫后选中回退到当前打开的谱面, 并重置自动定位 (条目出现后滚动到位)
+      const ck = (() => { const s = store.mapSource; return s ? `${s.dir.name}/${s.fileName}` : null; })();
+      setSelKey(ck); selKeyRef.current = ck; scrollToSelRef.current = true;
+    }
     say(tNow('library.scan_started', 'Scan started…'));
     try {
-      const ds = await collectDirs(h, myGen);
+      // v575: 服务器模式改走 manifest, 不再串行逐目录 /list
+      const ds = h.serverRel === undefined ? await collectDirs(h, myGen) : [];
       if (ds === null) return;
       dirsRef.current = ds;
       // v290: 索引缓存立即可搜 → 后台 reconcile (只读 size+lastModified 比对, 新增/变更才重解析)
-      let cached: LibraryIndexEntry[] | null = null;
-      try { cached = await idbLibraryIndexGet<LibraryIndexEntry>(h.name); } catch { /* 无缓存/读取失败则全量 */ }
+      // v576: 缓存读取与服务器清单并行, IDB 挂起也不能阻塞首批骨架; 最多再等 2s 后按无缓存继续
+      const cachedPromise = idbLibraryIndexGet<LibraryIndexEntry>(h.name).catch(() => null);
+      let cached: LibraryIndexEntry[] | null = h.serverRel === undefined ? await cachedPromise : null;
       if (scanGenRef.current !== myGen) return;
       // v293: 优先为当前选中的谱面建索引 (回调取最新选中, 索引途中改选立即插队)
       const prioDir = () => { const k = selKeyRef.current; return k ? k.slice(0, k.lastIndexOf('/')) : null; };
@@ -138,6 +145,37 @@ export function SongLibrary({ onClose }: { onClose: () => void }) {
         pendingEntriesRef.current = null;
         setEntries(list);
       };
+      if (h.serverRel !== undefined) {
+        const manifest = [];
+        const all: LibraryIndexEntry[] = [];
+        // v576: 真实曲库可有上万目录; 每页立即显示, 不再等完整 /tree 响应一直卡在 0
+        for await (const files of scanServerFileManifest(() => scanGenRef.current !== myGen)) {
+          manifest.push(...files);
+          all.push(...serverSkeletons(files));
+          dirsRef.current = serverDirectories(manifest);
+          flushNow([...all]);
+        }
+        if (scanGenRef.current !== myGen) return;
+        cached = await Promise.race([cachedPromise, new Promise<null>(resolve => setTimeout(() => resolve(null), 2000))]);
+        if (scanGenRef.current !== myGen) return;
+        say(tNow('library.listed_skeletons', 'Listed {n} difficulties (parsed from file names), parsing details in background…', { n: all.length }));
+        const idxByKey = new Map<string, number>();
+        all.forEach((e, i) => idxByKey.set(entryKey(e), i));
+        for await (const batch of scanServerLibraryIndex(manifest, cached, () => scanGenRef.current !== myGen)) {
+          if (scanGenRef.current !== myGen) return;
+          for (const e of batch) {
+            const i = idxByKey.get(entryKey(e));
+            if (i != null) all[i] = e; else { idxByKey.set(entryKey(e), all.length); all.push(e); }
+          }
+          pendingEntriesRef.current = [...all];
+          scheduleFlush();
+        }
+        flushNow([...all]);
+        scanDoneRef.current = true;
+        say(tNow('library.index_done', 'Indexing complete: {diffs} difficulties / {dirs} directories', { diffs: all.length, dirs: dirsRef.current.length }));
+        try { await idbLibraryIndexPut(h.name, all.filter(e => !e.partial)); } catch { say(tNow('library.index_cache_write_failed', 'Failed to write index cache (does not affect this session)')); }
+        return;
+      }
       const all: LibraryIndexEntry[] = [];
       if (cached?.length) {
         setEntries(cached);
@@ -219,20 +257,31 @@ export function SongLibrary({ onClose }: { onClose: () => void }) {
         say(tNow('library.restored_from_session', 'Restored "{name}" from session memory', { name: mem.dir.name }));
         setRootNative(mem.native);
         setRoot(mem.dir);
-        // v128: 会话缓存命中 (同目录) → 免重扫, 列表/位置直接用挂载时的缓存初值
+        // v128/v575: 会话缓存命中 → 完整缓存免重扫; 未完成缓存保留视图并续扫
         if (libraryCache && libraryCache.rootName === mem.dir.name) {
+          const complete = libraryCache.complete ?? true;
           say(tNow('library.restored_list_from_cache', 'Restored list from session cache (no rescan)'));
-          const myGen = ++scanGenRef.current;
-          scanDoneRef.current = true;
-          // 句柄不入缓存, 轻量重建目录表 + 补取选中难度背景
-          void collectDirs(mem.dir, myGen).then(ds => {
-            if (!ds || cancelled) return;
-            dirsRef.current = ds;
-            if (selKeyRef.current) {
-              const entry = libraryCache?.entries.find(x => entryKey(x) === selKeyRef.current);
-              if (entry) fetchBg(entry.dirName);
-            }
-          });
+          scanDoneRef.current = complete;
+          if (!complete) {
+            startScan(mem.dir, mem.native, false, true);
+          } else if (mem.dir.serverRel !== undefined) {
+            // exe 完整缓存直接由条目恢复目录句柄, 不再为打开背景而串行 /list 全部目录
+            dirsRef.current = [...new Set(libraryCache.entries.map(e => e.dirName))].sort()
+              .map(name => ({ name, handle: serverDir('songs', name, name) }));
+            const entry = libraryCache.entries.find(x => entryKey(x) === selKeyRef.current);
+            if (entry) fetchBg(entry.dirName);
+          } else {
+            const myGen = ++scanGenRef.current;
+            // 原生模式仅重建目录表; 服务器模式上方已零请求恢复
+            void collectDirs(mem.dir, myGen).then(ds => {
+              if (!ds || cancelled) return;
+              dirsRef.current = ds;
+              if (selKeyRef.current) {
+                const entry = libraryCache?.entries.find(x => entryKey(x) === selKeyRef.current);
+                if (entry) fetchBg(entry.dirName);
+              }
+            });
+          }
         } else {
           libraryCache = null;
           setFilter(''); setSelKey(null); selKeyRef.current = null; setEntries([]); // 清掉按旧缓存初始化的状态
@@ -299,8 +348,9 @@ export function SongLibrary({ onClose }: { onClose: () => void }) {
     scanGenRef.current++;
     if (flushTimerRef.current) { clearTimeout(flushTimerRef.current); flushTimerRef.current = null; } // v297
     const s = snapRef.current;
-    if (!s.rootName || !scanDoneRef.current) return;
-    libraryCache = { rootName: s.rootName, entries: s.entries, filter: s.filter, selKey: s.selKey, scrollTop: s.scrollTop };
+    if (!s.rootName) return;
+    // v575: 扫描未完成也保存当前骨架/进度; 重开后台续扫而非从头清空
+    libraryCache = { rootName: s.rootName, entries: s.entries, filter: s.filter, selKey: s.selKey, scrollTop: s.scrollTop, complete: scanDoneRef.current };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -507,13 +557,13 @@ export function SongLibrary({ onClose }: { onClose: () => void }) {
     <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center" data-dialog="song-library" // v431: 弹窗层级高于物件/锚点 (含 backdrop)
          onMouseDown={e => { backdropDownRef.current = e.target === e.currentTarget; }}
          onMouseUp={e => { if (e.target === e.currentTarget && backdropDownRef.current) onClose(); backdropDownRef.current = false; }}>
-      <div className="w-[1380px] max-w-[94vw] h-[78vh] bg-[#16161d] border border-[#333] rounded-lg flex flex-col overflow-hidden" // v291: 宽度 +50%
+      <UiControl id="library.panel"><div className="w-[1380px] max-w-[94vw] h-[78vh] bg-[#16161d] border border-[#333] rounded-lg flex flex-col overflow-hidden" // v291: 宽度 +50%
            onClick={e => e.stopPropagation()}
            onDragOver={e => { e.preventDefault(); e.stopPropagation(); setDropActive(true); }}
            onDragLeave={e => { e.stopPropagation(); setDropActive(false); }}
            onDrop={onDropDir}>
         <div className="flex items-center gap-3 px-4 py-2.5 border-b border-[#2c2c38] shrink-0">
-          <span className="text-sm font-semibold flex items-center gap-1.5"><FolderOpen className="w-4 h-4" />{t('library.title', 'Song Library')}</span>
+          <UiControl id="library.title"><span className="text-sm font-semibold flex items-center gap-1.5"><UiIcon id="library.title"><FolderOpen className="w-4 h-4" /></UiIcon><UiText id="library.title" textKey="library.title">Song Library</UiText></span></UiControl>
           {root && (
             <span className="text-sm text-slate-500 truncate">
               {t('library.header_stats', '{root} · {diffs} difficulties / {dirs} directories', { root: root.name, diffs: entries.length, dirs: dirCount })}
@@ -522,16 +572,16 @@ export function SongLibrary({ onClose }: { onClose: () => void }) {
             </span>
           )}
           <div className="flex-1" />
-          <button className="text-sm px-2 py-1 rounded bg-[#2c2c38] hover:bg-[#3c3c4c]" onClick={chooseDir}>
-            {root ? t('library.change_dir', 'Change Folder') : t('library.choose_songs_dir', 'Choose Songs Folder')}
-          </button>
+          <UiControl id="library.choose-dir"><button className="text-sm px-2 py-1 rounded bg-[#2c2c38] hover:bg-[#3c3c4c]" onClick={chooseDir}>
+            <UiText id="library.choose-dir" textKey={root ? 'library.change_dir' : 'library.choose_songs_dir'}>{root ? 'Change Folder' : 'Choose Songs Folder'}</UiText>
+          </button></UiControl>
           {root && (
-            <button className="text-sm px-2 py-1 rounded bg-[#2c2c38] hover:bg-[#3c3c4c] disabled:opacity-40"
+            <UiControl id="library.rescan"><button className="text-sm px-2 py-1 rounded bg-[#2c2c38] hover:bg-[#3c3c4c] disabled:opacity-40"
                     disabled={indexing} onClick={() => startScan(root, rootNative, true)}> {/* v297: 手动重扫 = 逐文件 stat 彻底校验 */}
-              {t('library.rescan', 'Rescan')}
-            </button>
+              <UiText id="library.rescan" textKey="library.rescan">Rescan</UiText>
+            </button></UiControl>
           )}
-          <button className="text-sm px-2 py-1 rounded bg-[#2c2c38] hover:bg-[#3c3c4c] flex items-center" onClick={onClose}><X className="w-3.5 h-3.5" /></button>
+          <UiControl id="library.close"><button className="text-sm px-2 py-1 rounded bg-[#2c2c38] hover:bg-[#3c3c4c] flex items-center" onClick={onClose}><UiIcon id="library.close"><X className="w-3.5 h-3.5" /></UiIcon></button></UiControl>
         </div>
 
         {uiError && (
@@ -553,9 +603,9 @@ export function SongLibrary({ onClose }: { onClose: () => void }) {
         ) : !root ? (
           <div className="flex-1 flex flex-col items-center justify-center gap-3 p-8">
             <div className="text-sm text-slate-400">{t('library.choose_dir_hint', "Choose osu!'s Songs folder to browse all songs and difficulties")}</div>
-            <button className="px-4 py-2 rounded bg-[#e6437d] hover:bg-[#f0558e] text-sm font-medium" onClick={chooseDir}>
-              {t('library.choose_songs_dir_ellipsis', 'Choose Songs Folder…')}
-            </button>
+            <UiControl id="library.choose-initial"><button className="px-4 py-2 rounded bg-[#e6437d] hover:bg-[#f0558e] text-sm font-medium" onClick={chooseDir}>
+              <UiText id="library.choose-initial" textKey="library.choose_songs_dir_ellipsis">Choose Songs Folder…</UiText>
+            </button></UiControl>
             <div className="text-sm text-slate-600 text-center">
               {t('library.dir_location_hint', 'Usually the Songs folder inside the osu! installation directory; it will be remembered and restored automatically next time')}
               <br />{t('library.no_response_hint', 'If clicking does nothing, you can also ')}<strong className="text-pink-300">{t('library.drag_into_window', 'drag the Songs folder directly into this window')}</strong>
@@ -564,17 +614,17 @@ export function SongLibrary({ onClose }: { onClose: () => void }) {
         ) : permNeeded ? (
           <div className="flex-1 flex flex-col items-center justify-center gap-3">
             <div className="text-sm text-slate-400">{t('library.reauth_needed', 'Directory "{name}" remembered; read permission must be granted again', { name: rootNative?.name ?? root.name })}</div>
-            <button className="px-4 py-2 rounded bg-[#e6437d] hover:bg-[#f0558e] text-sm font-medium" onClick={grantPerm}>{t('library.grant_access', 'Grant Access')}</button>
+            <UiControl id="library.grant"><button className="px-4 py-2 rounded bg-[#e6437d] hover:bg-[#f0558e] text-sm font-medium" onClick={grantPerm}><UiText id="library.grant" textKey="library.grant_access">Grant Access</UiText></button></UiControl>
           </div>
         ) : (
           <div className="flex-1 flex min-h-0">
             {/* left: 扁平难度列表 (v290, 虚拟化; v291: 弹性宽度) */}
             <div className="flex-1 min-w-0 border-r border-[#2c2c38] flex flex-col min-h-0">
               <div className="p-2 border-b border-[#2c2c38] shrink-0 flex items-center gap-2">
-                <input value={filter} onChange={e => { setFilter(e.target.value); listRef.current?.scrollTo({ top: 0 }); setView(v => ({ ...v, top: 0 })); }}
+                <UiControl id="library.search"><input value={filter} onChange={e => { setFilter(e.target.value); listRef.current?.scrollTo({ top: 0 }); setView(v => ({ ...v, top: 0 })); }}
                        placeholder={t('library.search_placeholder', 'Search (supports ar>8 bpm<180 creator="phrase")…')}
-                       className="flex-1 bg-[#0d0d12] border border-[#333] rounded px-2 py-1.5 text-sm outline-none focus:border-[#e6437d]" />
-                <select value={sortBy} onChange={e => setSortBy(e.target.value as SortBy)}
+                       className="flex-1 bg-[#0d0d12] border border-[#333] rounded px-2 py-1.5 text-sm outline-none focus:border-[#e6437d]" /></UiControl>
+                <UiControl id="library.sort"><select value={sortBy} onChange={e => setSortBy(e.target.value as SortBy)}
                         className="bg-[#0d0d12] border border-[#333] rounded px-1 py-1.5 text-sm outline-none shrink-0">
                   <option value="dir">{t('library.sort_dir', 'Directory')}</option>
                   <option value="title">{t('library.sort_title', 'Title')}</option>
@@ -584,7 +634,7 @@ export function SongLibrary({ onClose }: { onClose: () => void }) {
                   <option value="star">{t('library.sort_star', 'Star Rating')}</option>
                   <option value="length">{t('library.sort_length', 'Length')}</option>
                   <option value="diffs">{t('library.sort_diffs', 'Difficulties')}</option>
-                </select>
+                </select></UiControl>
                 {indexing && <span className="text-xs text-slate-500 shrink-0 animate-pulse">{t('library.indexing_count', 'Indexing {n}', { n: entries.length })}</span>}
               </div>
               {needsIndexHint && ( // v291: 含条件的搜索依赖索引 — 建立中提示等待
@@ -595,10 +645,10 @@ export function SongLibrary({ onClose }: { onClose: () => void }) {
               {scanError ? (
                 <div className="flex-1 flex flex-col items-center justify-center gap-3 p-6 text-center">
                   <div className="text-sm text-red-400">{t('library.scan_failed', 'Scan failed: {error}', { error: scanError })}</div>
-                  <button className="text-sm px-3 py-1.5 rounded bg-[#2c2c38] hover:bg-[#3c3c4c]" onClick={() => startScan(root, rootNative, true)}>{t('library.retry', 'Retry')}</button>
+                  <UiControl id="library.retry"><button className="text-sm px-3 py-1.5 rounded bg-[#2c2c38] hover:bg-[#3c3c4c]" onClick={() => startScan(root, rootNative, true)}><UiText id="library.retry" textKey="library.retry">Retry</UiText></button></UiControl>
                 </div>
               ) : (
-                <div ref={listRef} className="flex-1 min-h-0 overflow-y-auto"
+                <UiControl id="library.list"><div ref={listRef} className="flex-1 min-h-0 overflow-y-auto"
                      onScroll={e => {
                        setView({ top: e.currentTarget.scrollTop, height: e.currentTarget.clientHeight });
                        // v296: 用户手动滚动 → 脱离选中跟随; 程序 scrollTo 触发的 onScroll 不算
@@ -610,7 +660,7 @@ export function SongLibrary({ onClose }: { onClose: () => void }) {
                       const k = entryKey(e);
                       // v299: 骨架条目与索引后条目同 key 同外观 (文件名已解析出 artist/title/creator/version)
                       return (
-                        <div key={k}
+                        <UiControl key={k} id="library.entry"><div
                              style={{ position: 'absolute', top: (winStart + i) * ROW_H, height: ROW_H, left: 0, right: 0 }}
                              className={`px-3 flex items-center gap-2 text-sm cursor-pointer ${selKey === k ? 'bg-[#e6437d]/25 text-white' : 'text-slate-300 hover:bg-[#22222c]'} ${loadingBeatmap ? 'pointer-events-none' : ''}`}
                              title={k}
@@ -628,7 +678,7 @@ export function SongLibrary({ onClose }: { onClose: () => void }) {
                             <div>{e.creator || '?'}{e.bpm > 0 ? ` · ${Math.round(e.bpm)} BPM` : ''}</div>
                             {e.star != null && <div className="text-amber-300/80"><Star className="inline w-3 h-3 -mt-0.5 fill-current" />{e.star.toFixed(2)}</div>}
                           </div>
-                        </div>
+                        </div></UiControl>
                       );
                     })}
                   </div>
@@ -636,11 +686,11 @@ export function SongLibrary({ onClose }: { onClose: () => void }) {
                     <div className="px-3 py-2 text-sm text-slate-500">{t('library.no_match', 'No matching difficulties')}</div>}
                   {!indexing && entries.length === 0 &&
                     <div className="px-3 py-2 text-sm text-slate-500">{t('library.no_song_dirs', 'No song folders found (each subfolder under Songs corresponds to one song)')}</div>}
-                </div>
+                </div></UiControl>
               )}
             </div>
             {/* right: 详情/预览 (v290: 选中难度的完整元数据 + 打开按钮) */}
-            <div className="w-[380px] shrink-0 flex flex-col min-h-0"> {/* v291: 固定宽度, 不随谱面内容变化 */}
+            <UiControl id="library.details"><div className="w-[380px] shrink-0 flex flex-col min-h-0"> {/* v291: 固定宽度, 不随谱面内容变化 */}
               {selBg && selEntry && (
                 <div className="shrink-0 h-24 border-b border-[#2c2c38] bg-cover bg-center" style={{ backgroundImage: `url(${selBg})` }}>
                   <div className="h-full w-full bg-gradient-to-t from-[#16161d] via-transparent to-transparent flex items-end px-3 pb-1">
@@ -684,16 +734,16 @@ export function SongLibrary({ onClose }: { onClose: () => void }) {
                       </div>
                     </>
                   )}
-                  <button className="mt-3 px-4 py-1.5 rounded bg-[#e6437d] hover:bg-[#f0558e] text-sm font-medium disabled:opacity-40"
+                  <UiControl id="library.open"><button className="mt-3 px-4 py-1.5 rounded bg-[#e6437d] hover:bg-[#f0558e] text-sm font-medium disabled:opacity-40"
                           disabled={loadingBeatmap}
                           onClick={() => void openDiff(selEntry.fileName)}>
-                    {loadingBeatmap ? t('library.loading', 'Loading…') : t('library.open', 'Open')}
-                  </button>
+                    <UiText id="library.open" textKey={loadingBeatmap ? 'library.loading' : 'library.open'}>{loadingBeatmap ? 'Loading…' : 'Open'}</UiText>
+                  </button></UiControl>
                 </div>
               ) : (
                 <div className="px-3 py-2 text-sm text-slate-500">{t('library.click_hint', 'Single-click a row to select; double-click the row or press "Open" to load it into the editor')}</div>
               )}
-            </div>
+            </div></UiControl>
           </div>
         )}
         </div>
@@ -704,7 +754,7 @@ export function SongLibrary({ onClose }: { onClose: () => void }) {
             ? <div className="text-xs text-slate-600">{t('library.diagnostic_log', 'Diagnostic Log')}</div>
             : log.map((l, i) => <div key={i} className="text-xs text-slate-500 font-mono truncate">{l}</div>)}
         </div>
-      </div>
+      </div></UiControl>
     </div>
   );
 }

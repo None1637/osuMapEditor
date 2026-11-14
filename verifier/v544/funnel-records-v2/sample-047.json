@@ -1,0 +1,51 @@
+{
+  "id": "sample-047",
+  "directoryName": "260551 t+pazolite - Rumble Kung-fu Showdown",
+  "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\260551 t+pazolite - Rumble Kung-fu Showdown",
+  "status": "ok",
+  "referenceBpm": 240,
+  "referenceVariable": false,
+  "predictedBpm": 240,
+  "predictedVariable": false,
+  "variableLines": [],
+  "trueVariableMs": 0,
+  "flaggedWindowCount": 41,
+  "flaggedWindowsOnVariable": 0,
+  "rawCandidateCount": 1,
+  "rawCandidatesOnVariable": 0,
+  "finalEvidenceCount": 0,
+  "finalEvidenceOnVariable": 0,
+  "candidates": [
+    {
+      "startMs": 128801,
+      "endMs": 134798,
+      "bpm": 60.093,
+      "points": 3,
+      "maxSupport": 0.1303373695663276,
+      "localGridCoverage": 0.075,
+      "rejection": "weak_short",
+      "independentMainScore": 0.25589555261896113,
+      "independentLocalScore": 0.1013108044609592,
+      "variableOverlapMs": 0,
+      "overlapsVariable": false,
+      "tripletVotes": [
+        {
+          "timeMs": 131799.3650793651,
+          "bpm": 60.093,
+          "localGridCoverage": 0.075,
+          "tripletGridCoverage": 0.7,
+          "tripletGridHalfCoverage": 0.4625,
+          "tripletGridDoubleCoverage": 0.6375
+        },
+        {
+          "timeMs": 132797.8231292517,
+          "bpm": 60.093,
+          "localGridCoverage": 0.0759493670886076,
+          "tripletGridCoverage": 0.6582278481012658,
+          "tripletGridHalfCoverage": 0.45569620253164556,
+          "tripletGridDoubleCoverage": 0.6075949367088608
+        }
+      ]
+    }
+  ]
+}

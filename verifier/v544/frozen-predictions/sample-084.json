@@ -1,0 +1,42 @@
+{
+  "id": "sample-084",
+  "directoryName": "64839 Misato Aki - DESIRE (Short Ver)",
+  "beatmapFile": "Misato Aki - DESIRE (Short Ver.) (Nichiyouki) [Sekai's Easy].osu",
+  "metadata": {
+    "Title": "DESIRE (Short Ver.)",
+    "TitleUnicode": "DESIRE (Short Ver.)",
+    "Artist": "Misato Aki",
+    "ArtistUnicode": "美郷あき",
+    "Creator": "Nichiyouki",
+    "Version": "Sekai's Easy",
+    "Source": "Tsuki ni Yorisou Otome no Sahou",
+    "Tags": "nich95 Navel opening eroge visual novel Sekai -Sekai- Sekai-nyan alacat BeatofIke CakiP",
+    "BeatmapID": "194569",
+    "BeatmapSetID": "64839",
+    "Mode": "0"
+  },
+  "audioDurationMs": 122331.42857142858,
+  "redLines": [
+    {
+      "time": 2546,
+      "beatLength": 504.201680672269,
+      "bpm": 118.99999999999999,
+      "durationMs": 119785.42857142858
+    }
+  ],
+  "referenceBpm": 118.99999999999999,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 119785.42857142858,
+  "status": "ok",
+  "prediction": {
+    "bpm": 238,
+    "offsetMs": 310,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 116,
+    "rawBpm": 238,
+    "rawSegmentCount": 45
+  },
+  "evaluationMs": 1215
+}

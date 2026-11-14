@@ -1,0 +1,52 @@
+{
+  "id": "sample-008",
+  "directoryName": "333015 Nakae Mitsuki Shimotsuki Haruka - collage",
+  "beatmapFile": "Nakae Mitsuki. Shimotsuki Haruka - collage (TT Mouse) [Hard].osu",
+  "referenceBpm": 178.0000000000001,
+  "predictedBpm": 178,
+  "frozenBpm": 178,
+  "deterministicEvidence": true,
+  "evidence": [
+    {
+      "startMs": 17972,
+      "endMs": 23969,
+      "bpm": 79.203,
+      "points": 3,
+      "maxSupport": 0.19898931180945348,
+      "index": 0,
+      "ratioToPredictedMain": 0.4449606741573034,
+      "ratioToAnnotatedMain": 0.4449606741573031,
+      "boundary": "interior",
+      "localBpmMin": 78.961,
+      "localBpmMax": 79.203,
+      "medianSupport": 0.18675058410376233,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 33.70786516853933,
+          "first": -0.003298509753826958,
+          "second": -0.0031786483890365006,
+          "combined": -0.0032589555034461073
+        },
+        "annotatedMain": {
+          "lag": 33.7078651685393,
+          "first": -0.003298509753827025,
+          "second": -0.003178648389036442,
+          "combined": -0.003258955503446133
+        },
+        "evidenceBpm": {
+          "lag": 75.75470626112647,
+          "first": -0.0029122389770401694,
+          "second": null,
+          "combined": -0.0019512001146169136
+        }
+      },
+      "objectCount": 15,
+      "objectGrid": {
+        "predictedMainHalf": 1,
+        "annotatedMainHalf": 1,
+        "evidenceHalf": 0.2
+      }
+    }
+  ],
+  "analysisMs": 997
+}

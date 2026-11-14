@@ -1,0 +1,42 @@
+{
+  "id": "sample-014",
+  "directoryName": "1428278 THE ORAL CIGARETTES - Shine Holder (Cut Ver)",
+  "beatmapFile": "THE ORAL CIGARETTES - Shine Holder (Cut Ver.) (Klee_fs) [Eternity].osu",
+  "metadata": {
+    "Title": "Shine Holder (Cut Ver.)",
+    "TitleUnicode": "Shine Holder (Cut Ver.)",
+    "Artist": "THE ORAL CIGARETTES",
+    "ArtistUnicode": "THE ORAL CIGARETTES",
+    "Creator": "Klee_fs",
+    "Version": "Eternity",
+    "Source": "",
+    "Tags": "japanese rock jrock suck my world みふる Takuya Yamanaka A-Sketch short version toc yuiazu- pairoxd lita- stelar",
+    "BeatmapID": "2940641",
+    "BeatmapSetID": "1428278",
+    "Mode": "3"
+  },
+  "audioDurationMs": 92831.83673469388,
+  "redLines": [
+    {
+      "time": 466,
+      "beatLength": 444.444444444444,
+      "bpm": 135.00000000000014,
+      "durationMs": 92365.83673469388
+    }
+  ],
+  "referenceBpm": 135.00000000000014,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 92365.83673469388,
+  "status": "ok",
+  "prediction": {
+    "bpm": 135,
+    "offsetMs": 493,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 89,
+    "rawBpm": 270,
+    "rawSegmentCount": 23
+  },
+  "evaluationMs": 744
+}

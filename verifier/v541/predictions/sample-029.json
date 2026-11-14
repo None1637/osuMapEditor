@@ -1,0 +1,42 @@
+{
+  "id": "sample-029",
+  "directoryName": "690594 Jakarta Funk Brothers - INSOMNIA [no video]",
+  "beatmapFile": "Jakarta Funk Brothers - INSOMNIA (None1637) [].osu",
+  "metadata": {
+    "Title": "INSOMNIA",
+    "TitleUnicode": "INSOMNIA",
+    "Artist": "Jakarta Funk Brothers",
+    "ArtistUnicode": "ジャカルタファンクブラザーズ",
+    "Creator": "None1637",
+    "Version": "???",
+    "Source": "beatmania IIDX 21 SPADA",
+    "Tags": "FUNKOT Nekomata Master DJ TOTTO",
+    "BeatmapID": "1461529",
+    "BeatmapSetID": "690594",
+    "Mode": "0"
+  },
+  "audioDurationMs": 124421.22448979592,
+  "redLines": [
+    {
+      "time": 4048,
+      "beatLength": 307.692307692308,
+      "bpm": 194.9999999999998,
+      "durationMs": 120373.22448979592
+    }
+  ],
+  "referenceBpm": 194.9999999999998,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 120373.22448979592,
+  "status": "ok",
+  "prediction": {
+    "bpm": 195,
+    "offsetMs": 685,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 119,
+    "rawBpm": 195,
+    "rawSegmentCount": 6
+  },
+  "evaluationMs": 1142
+}

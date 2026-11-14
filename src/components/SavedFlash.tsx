@@ -7,13 +7,12 @@
 // 连续保存: store.saveFlashSeq 自增 → key 重挂载, 动画重新播放。
 import { useEffect, useState } from 'react';
 import { useEditor } from '@/osu/store';
-import { useT } from '@/i18n';
+import { UiControl, UiText } from './uiLayout/UiControl'; // v536
 
 const DURATION_MS = 1600; // 与下方 keyframes 总时长一致: 0.1s 展开 + 停留 + 0.3s 淡出
 
 export function SavedFlash() {
   const store = useEditor();
-  const t = useT();
   const seq = store.saveFlashSeq;
   const [shownSeq, setShownSeq] = useState(0);
   useEffect(() => {
@@ -34,11 +33,11 @@ export function SavedFlash() {
   81% { opacity: 1; transform: scaleY(1); }
   100% { opacity: 0; transform: scaleY(1); }
 }`}</style>
-      <div key={shownSeq} data-saved-flash
+      <UiControl id="saved-flash"><div key={shownSeq} data-saved-flash
         className="w-full h-16 bg-black/70 flex items-center justify-center text-white tracking-widest"
         style={{ animation: `saved-flash-bar ${DURATION_MS}ms linear both`, fontSize: 28 }}>
-        {t('app.saved_flash', 'Map saved')}
-      </div>
+        <UiText id="saved-flash" textKey="app.saved_flash">Map saved</UiText>
+      </div></UiControl>
     </div>
   );
 }

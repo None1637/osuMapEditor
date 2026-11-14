@@ -1,0 +1,132 @@
+{
+  "id": "sample-085",
+  "directoryName": "135070 DragonForce - Fury Of The Storm",
+  "beatmapFile": "DragonForce - Fury Of The Storm (T o u c h e) [Legend 210BPM AR10].osu",
+  "referenceBpm": 209.99999999999977,
+  "predictedBpm": 210.25,
+  "frozenBpm": 210.25,
+  "deterministicEvidence": true,
+  "evidence": [
+    {
+      "startMs": 24961,
+      "endMs": 30958,
+      "bpm": 68.677,
+      "points": 3,
+      "maxSupport": 0.08184464985556972,
+      "index": 0,
+      "ratioToPredictedMain": 0.3266444708680143,
+      "ratioToAnnotatedMain": 0.32703333333333373,
+      "boundary": "interior",
+      "localBpmMin": 68.45,
+      "localBpmMax": 68.677,
+      "medianSupport": 0.08184464985556972,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 28.53745541022592,
+          "first": null,
+          "second": null,
+          "combined": null
+        },
+        "annotatedMain": {
+          "lag": 28.5714285714286,
+          "first": null,
+          "second": null,
+          "combined": null
+        },
+        "evidenceBpm": {
+          "lag": 87.36549354223392,
+          "first": null,
+          "second": null,
+          "combined": null
+        }
+      },
+      "objectCount": 31,
+      "objectGrid": {
+        "predictedMainHalf": 0.6774193548387096,
+        "annotatedMainHalf": 0.6774193548387096,
+        "evidenceHalf": 0.25806451612903225
+      }
+    },
+    {
+      "startMs": 45929,
+      "endMs": 52924,
+      "bpm": 119.837,
+      "points": 4,
+      "maxSupport": 0.13723627899346813,
+      "index": 1,
+      "ratioToPredictedMain": 0.569973840665874,
+      "ratioToAnnotatedMain": 0.5706523809523816,
+      "boundary": "interior",
+      "localBpmMin": 119.491,
+      "localBpmMax": 119.837,
+      "medianSupport": 0.11372131279251615,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 28.53745541022592,
+          "first": -0.002105935642023934,
+          "second": -0.0016721155713452702,
+          "combined": -0.001962775018699975
+        },
+        "annotatedMain": {
+          "lag": 28.5714285714286,
+          "first": -0.002090566170398705,
+          "second": -0.001786164275994759,
+          "combined": -0.001990113545245403
+        },
+        "evidenceBpm": {
+          "lag": 50.0680090456203,
+          "first": -0.0016453474365492463,
+          "second": -0.0018755807945733019,
+          "combined": -0.0017213244446971847
+        }
+      },
+      "objectCount": 38,
+      "objectGrid": {
+        "predictedMainHalf": 0.7368421052631579,
+        "annotatedMainHalf": 0.7368421052631579,
+        "evidenceHalf": 0.18421052631578946
+      }
+    },
+    {
+      "startMs": 338477,
+      "endMs": 344474,
+      "bpm": 69.602,
+      "points": 3,
+      "maxSupport": 0.1251800898909789,
+      "index": 2,
+      "ratioToPredictedMain": 0.33104399524375744,
+      "ratioToAnnotatedMain": 0.33143809523809564,
+      "boundary": "interior",
+      "localBpmMin": 69.369,
+      "localBpmMax": 69.602,
+      "medianSupport": 0.08512189776445987,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 28.53745541022592,
+          "first": null,
+          "second": null,
+          "combined": null
+        },
+        "annotatedMain": {
+          "lag": 28.5714285714286,
+          "first": null,
+          "second": null,
+          "combined": null
+        },
+        "evidenceBpm": {
+          "lag": 86.20441941323524,
+          "first": null,
+          "second": null,
+          "combined": null
+        }
+      },
+      "objectCount": 43,
+      "objectGrid": {
+        "predictedMainHalf": 0.5348837209302325,
+        "annotatedMainHalf": 0.5348837209302325,
+        "evidenceHalf": 0.18604651162790697
+      }
+    }
+  ],
+  "analysisMs": 3575
+}

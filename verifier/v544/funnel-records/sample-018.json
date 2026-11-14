@@ -1,0 +1,19 @@
+{
+  "id": "sample-018",
+  "directoryName": "1962727 Aiobahn feat KOTOKO - INTERNET YAMERO",
+  "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\1962727 Aiobahn feat KOTOKO - INTERNET YAMERO",
+  "status": "ok",
+  "referenceBpm": 185.0000000000002,
+  "referenceVariable": false,
+  "predictedBpm": 185,
+  "predictedVariable": false,
+  "variableLines": [],
+  "trueVariableMs": 0,
+  "flaggedWindowCount": 14,
+  "flaggedWindowsOnVariable": 0,
+  "rawCandidateCount": 0,
+  "rawCandidatesOnVariable": 0,
+  "finalEvidenceCount": 0,
+  "finalEvidenceOnVariable": 0,
+  "candidates": []
+}

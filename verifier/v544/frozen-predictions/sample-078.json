@@ -1,0 +1,42 @@
+{
+  "id": "sample-078",
+  "directoryName": "516824 Umeboshi Chazuke - Owari to Hajimari no Oto",
+  "beatmapFile": "Umeboshi Chazuke - Owari to Hajimari no Oto (Interlude-) [leqek's Hard].osu",
+  "metadata": {
+    "Title": "Owari to Hajimari no Oto",
+    "TitleUnicode": "おわりとはじまりのおと",
+    "Artist": "Umeboshi Chazuke",
+    "ArtistUnicode": "梅干茶漬け",
+    "Creator": "Interlude-",
+    "Version": "leqek's Hard",
+    "Source": "VOEZ",
+    "Tags": "leqek wonki",
+    "BeatmapID": "1106109",
+    "BeatmapSetID": "516824",
+    "Mode": "3"
+  },
+  "audioDurationMs": 144352.6530612245,
+  "redLines": [
+    {
+      "time": 1221,
+      "beatLength": 298.507462686567,
+      "bpm": 201.0000000000001,
+      "durationMs": 143131.6530612245
+    }
+  ],
+  "referenceBpm": 201.0000000000001,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 143131.6530612245,
+  "status": "ok",
+  "prediction": {
+    "bpm": 201.05,
+    "offsetMs": 345,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 137,
+    "rawBpm": 402.1,
+    "rawSegmentCount": 44
+  },
+  "evaluationMs": 1378
+}

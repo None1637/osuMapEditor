@@ -1,0 +1,162 @@
+{
+  "version": "v543-heldout",
+  "sampleCount": 100,
+  "seed": 543,
+  "algorithmFrozen": false,
+  "algorithmHashBasis": "verifier/v543/heldout/manifest.json",
+  "validReference": 100,
+  "evaluatedWithReference": 98,
+  "statusCounts": {
+    "ok": 98,
+    "decode_unavailable": 2
+  },
+  "categoryCounts": {
+    "correct": 72,
+    "decode_unavailable": 2,
+    "bpm_and_classification_error": 6,
+    "octave_error": 9,
+    "variable_false_negative": 6,
+    "bpm_error": 5
+  },
+  "reference": {
+    "constant": 83,
+    "variable": 17,
+    "invalid": 0,
+    "bpmBelow60": 0,
+    "bpmAbove240": 6
+  },
+  "byReferenceClass": {
+    "constant": {
+      "total": 83,
+      "decoded": 82,
+      "strictMainBpm": {
+        "numerator": 70,
+        "denominator": 83,
+        "percent": 84.3
+      },
+      "variableClassification": {
+        "numerator": 81,
+        "denominator": 83,
+        "percent": 97.6
+      },
+      "bothCorrect": {
+        "numerator": 70,
+        "denominator": 83,
+        "percent": 84.3
+      },
+      "decodedStrictMainBpm": {
+        "numerator": 70,
+        "denominator": 82,
+        "percent": 85.4
+      }
+    },
+    "variable": {
+      "total": 17,
+      "decoded": 16,
+      "strictMainBpm": {
+        "numerator": 8,
+        "denominator": 17,
+        "percent": 47.1
+      },
+      "variableClassification": {
+        "numerator": 5,
+        "denominator": 17,
+        "percent": 29.4
+      },
+      "bothCorrect": {
+        "numerator": 2,
+        "denominator": 17,
+        "percent": 11.8
+      },
+      "decodedStrictMainBpm": {
+        "numerator": 8,
+        "denominator": 16,
+        "percent": 50
+      }
+    }
+  },
+  "allSamples": {
+    "strictMainBpm": {
+      "numerator": 78,
+      "denominator": 100,
+      "percent": 78
+    },
+    "octaveOnlyAmongAll": {
+      "numerator": 12,
+      "denominator": 100,
+      "percent": 12
+    },
+    "variableClassification": {
+      "numerator": 86,
+      "denominator": 100,
+      "percent": 86
+    },
+    "bothCorrect": {
+      "numerator": 72,
+      "denominator": 100,
+      "percent": 72
+    }
+  },
+  "evaluatedSubset": {
+    "strictMainBpm": {
+      "numerator": 78,
+      "denominator": 98,
+      "percent": 79.6
+    },
+    "variableClassification": {
+      "numerator": 86,
+      "denominator": 98,
+      "percent": 87.8
+    },
+    "bothCorrect": {
+      "numerator": 72,
+      "denominator": 98,
+      "percent": 73.5
+    }
+  },
+  "confusion": {
+    "constant": {
+      "constant": 81,
+      "variable": 1,
+      "unavailable": 1
+    },
+    "variable": {
+      "constant": 11,
+      "variable": 5,
+      "unavailable": 1
+    },
+    "invalid_reference": {
+      "constant": 0,
+      "variable": 0,
+      "unavailable": 0
+    }
+  },
+  "complete": true,
+  "developmentOverlap": {
+    "count": 1,
+    "overlap": [
+      {
+        "id": "sample-006",
+        "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\860236 Ice vs Morimori Atushi - REUNION - Duo Blade Against -"
+      }
+    ]
+  },
+  "disjointSensitivity": {
+    "sampleCount": 99,
+    "strictMainBpm": {
+      "numerator": 77,
+      "denominator": 99,
+      "percent": 77.8
+    },
+    "variableClassification": {
+      "numerator": 85,
+      "denominator": 99,
+      "percent": 85.9
+    },
+    "bothCorrect": {
+      "numerator": 71,
+      "denominator": 99,
+      "percent": 71.7
+    }
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "id": "sample-037",
+  "directoryName": "285722 paraoka - REAL210",
+  "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\285722 paraoka - REAL210",
+  "status": "ok",
+  "referenceBpm": 209.99999999999977,
+  "referenceVariable": false,
+  "predictedBpm": 210,
+  "predictedVariable": false,
+  "variableLines": [],
+  "trueVariableMs": 0,
+  "flaggedWindowCount": 45,
+  "flaggedWindowsOnVariable": 0,
+  "rawCandidateCount": 0,
+  "rawCandidatesOnVariable": 0,
+  "finalEvidenceCount": 0,
+  "finalEvidenceOnVariable": 0,
+  "candidates": []
+}

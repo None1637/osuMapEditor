@@ -1,0 +1,42 @@
+{
+  "id": "sample-049",
+  "directoryName": "190529 Junk - Aihana (Love+ Edit)",
+  "beatmapFile": "Junk - Aihana (Love+ Edit) (richardfeder) [Another].osu",
+  "metadata": {
+    "Title": "Aihana (Love+ Edit)",
+    "TitleUnicode": "Aihana (Love+ Edit)",
+    "Artist": "Junk",
+    "ArtistUnicode": "高嶺 愛花",
+    "Creator": "richardfeder",
+    "Version": "Another",
+    "Source": "BMS",
+    "Tags": "Uplifting Trance BOF2009 LOVEPLUS Takane Manaka Simple_Star",
+    "BeatmapID": "453646",
+    "BeatmapSetID": "190529",
+    "Mode": "3"
+  },
+  "audioDurationMs": 145723.26530612246,
+  "redLines": [
+    {
+      "time": 1692,
+      "beatLength": 428.571428571429,
+      "bpm": 139.99999999999986,
+      "durationMs": 144031.26530612246
+    }
+  ],
+  "referenceBpm": 139.99999999999986,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 144031.26530612246,
+  "status": "ok",
+  "prediction": {
+    "bpm": 140,
+    "offsetMs": 652,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 142,
+    "rawBpm": 280,
+    "rawSegmentCount": 11
+  },
+  "evaluationMs": 1398
+}

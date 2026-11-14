@@ -1,0 +1,42 @@
+{
+  "id": "sample-013",
+  "directoryName": "1210416 Camellia - Maboroshi",
+  "beatmapFile": "Camellia - Maboroshi (-mint-) [Hard].osu",
+  "metadata": {
+    "Title": "Maboroshi",
+    "TitleUnicode": "Maboroshi",
+    "Artist": "Camellia",
+    "ArtistUnicode": "かめりあ",
+    "Creator": "-mint-",
+    "Version": "Hard",
+    "Source": "Cytus II",
+    "Tags": "cametek かめるかめりあ kamelcamellia 大箭将也 大箭マサヤ masaya oya edp 幻 まぼろし neko#ΦωΦ neko#owo game disc vol.2 volume 2 maimaiでらっくす+ maimai dx+ maimai deluxe plus cytus 2 rayark inc. mwc 2020 mwc20 mania world cup 2020 quarterfinals hybrid qqqant oriental hardcore electronic instrumental",
+    "BeatmapID": "2541097",
+    "BeatmapSetID": "1210416",
+    "Mode": "3"
+  },
+  "audioDurationMs": 178722.5396825397,
+  "redLines": [
+    {
+      "time": 5195,
+      "beatLength": 315.789473684211,
+      "bpm": 189.99999999999974,
+      "durationMs": 173527.5396825397
+    }
+  ],
+  "referenceBpm": 189.99999999999974,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 173527.5396825397,
+  "status": "ok",
+  "prediction": {
+    "bpm": 190,
+    "offsetMs": 481,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 170,
+    "rawBpm": 380,
+    "rawSegmentCount": 49
+  },
+  "evaluationMs": 1706
+}

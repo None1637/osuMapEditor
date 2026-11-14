@@ -1,0 +1,1903 @@
+{
+  "version": "v541",
+  "seed": 540,
+  "requestedCount": 100,
+  "sampleUnit": "song-directory; one uniformly selected .osu difficulty per directory",
+  "eligibility": "directory containing at least one .osu file; missing/unsupported audio remains in the sample",
+  "sourceRoot": "F:\\Backup\\D\\osu!\\Songs",
+  "sourceDirectoryCount": 12829,
+  "skippedWithoutBeatmap": 0,
+  "copyErrors": [],
+  "evaluationRules": {
+    "mainBpm": "duration-weighted dominant positive uninherited timing point; strict relative error <= 0.002",
+    "octaveOnly": "reported separately; never counted as strict correct",
+    "annotatedVariable": "any positive uninherited red-line BPM differs from dominant BPM by > 2%",
+    "denominator": 100,
+    "offset": "not evaluated"
+  },
+  "algorithm": {
+    "src/osu/bpmResearch.ts": {
+      "sha256": "0780dd8d433e4ae0e484a79425997250d78a6e8cbe4610dd10c94b666bf841f9",
+      "bytes": 7697
+    },
+    "src/osu/bpmDetect.ts": {
+      "sha256": "65a2220b622c958c814f557fb8c183b2a276e80303b2541efc6294c485a9d626",
+      "bytes": 35605
+    },
+    "src/osu/fft.ts": {
+      "sha256": "26a3a04d65017084f484a7b0bcf795ffd43743576ae6d2088a3292b64c5fc029",
+      "bytes": 1758
+    }
+  },
+  "samples": [
+    {
+      "id": "sample-001",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\673574 Camellia - Shun no Shifudo o Ikashita Kare Fumi Paeria",
+      "directoryName": "673574 Camellia - Shun no Shifudo o Ikashita Kare Fumi Paeria",
+      "beatmapFile": "Camellia - Shun no Shifudo o Ikashita Kare Fumi Paeria (SparkinG) [DOWN SLOW!].osu",
+      "allBeatmapFiles": [
+        "Camellia - Shun no Shifudo o Ikashita Kare Fumi Paeria (SparkinG) [DOWN SLOW!].osu"
+      ],
+      "originalAudioFilename": "audio.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-002",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\2242341 TRUE - Blast!",
+      "directoryName": "2242341 TRUE - Blast!",
+      "beatmapFile": "TRUE - Blast! (Aurorance) [Hinae's Insane!].osu",
+      "allBeatmapFiles": [
+        "TRUE - Blast! (Aurorance) [Hibike!].osu",
+        "TRUE - Blast! (Aurorance) [Hinae's Insane!].osu"
+      ],
+      "originalAudioFilename": "audio.ogg",
+      "localAudioFile": "audio.ogg",
+      "audioExtension": ".ogg",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-003",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\606995 False Noise - Skyshards",
+      "directoryName": "606995 False Noise - Skyshards",
+      "beatmapFile": "False Noise - Skyshards (Shiirn) [Shroud].osu",
+      "allBeatmapFiles": [
+        "False Noise - Skyshards (Shiirn) [Shroud].osu"
+      ],
+      "originalAudioFilename": "audio.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-004",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\1256680 Mori Calliope - Excuse My Rudeness, But Could You Please RIP",
+      "directoryName": "1256680 Mori Calliope - Excuse My Rudeness, But Could You Please RIP",
+      "beatmapFile": "Mori Calliope - Excuse My Rudeness, But Could You Please RIP (arcwinolivirus) [Normal Beats].osu",
+      "allBeatmapFiles": [
+        "Mori Calliope - Excuse My Rudeness, But Could You Please RIP (arcwinolivirus) [DEADBEATS (SV)].osu",
+        "Mori Calliope - Excuse My Rudeness, But Could You Please RIP (arcwinolivirus) [DEADBEATS].osu",
+        "Mori Calliope - Excuse My Rudeness, But Could You Please RIP (arcwinolivirus) [Hard Beats (SV)].osu",
+        "Mori Calliope - Excuse My Rudeness, But Could You Please RIP (arcwinolivirus) [Hard Beats].osu",
+        "Mori Calliope - Excuse My Rudeness, But Could You Please RIP (arcwinolivirus) [Maximum Beats (SV)].osu",
+        "Mori Calliope - Excuse My Rudeness, But Could You Please RIP (arcwinolivirus) [Maximum Beats].osu",
+        "Mori Calliope - Excuse My Rudeness, But Could You Please RIP (arcwinolivirus) [Normal Beats (SV)].osu",
+        "Mori Calliope - Excuse My Rudeness, But Could You Please RIP (arcwinolivirus) [Normal Beats].osu"
+      ],
+      "originalAudioFilename": "audio.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-005",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\1193063 BAND-MAID - RINNE",
+      "directoryName": "1193063 BAND-MAID - RINNE",
+      "beatmapFile": "BAND-MAID - RINNE (ShirohaMyMommy) [INSANE].osu",
+      "allBeatmapFiles": [
+        "BAND-MAID - RINNE (ShirohaMyMommy) [EASY].osu",
+        "BAND-MAID - RINNE (ShirohaMyMommy) [HARD].osu",
+        "BAND-MAID - RINNE (ShirohaMyMommy) [INSANE].osu",
+        "BAND-MAID - RINNE (ShirohaMyMommy) [MIRASH'S EXTRA].osu",
+        "BAND-MAID - RINNE (ShirohaMyMommy) [NORMAL].osu",
+        "BAND-MAID - RINNE (ShirohaMyMommy) [REINCARNATION].osu"
+      ],
+      "originalAudioFilename": "audio.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-006",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\886126 Brandy - Cross Time",
+      "directoryName": "886126 Brandy - Cross Time",
+      "beatmapFile": "Brandy - Cross Time (ababab0306) [HD].osu",
+      "allBeatmapFiles": [
+        "Brandy - Cross Time (ababab0306) [EZ].osu",
+        "Brandy - Cross Time (ababab0306) [HD].osu",
+        "Brandy - Cross Time (ababab0306) [MX].osu",
+        "Brandy - Cross Time (ababab0306) [NM].osu"
+      ],
+      "originalAudioFilename": "audio.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-007",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\7158 Liverne - Necrofantasia",
+      "directoryName": "7158 Liverne - Necrofantasia",
+      "beatmapFile": "Liverne - Necrofantasia (lesjuh) [Lesjuh].osu",
+      "allBeatmapFiles": [
+        "Liverne - Necrofantasia (lesjuh) [Crazy30].osu",
+        "Liverne - Necrofantasia (lesjuh) [Lesjuh].osu"
+      ],
+      "originalAudioFilename": "Liverne - Necrofantasia.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-008",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\333015 Nakae Mitsuki Shimotsuki Haruka - collage",
+      "directoryName": "333015 Nakae Mitsuki Shimotsuki Haruka - collage",
+      "beatmapFile": "Nakae Mitsuki. Shimotsuki Haruka - collage (TT Mouse) [Hard].osu",
+      "allBeatmapFiles": [
+        "Nakae Mitsuki. Shimotsuki Haruka - collage (TT Mouse) [Advanced].osu",
+        "Nakae Mitsuki. Shimotsuki Haruka - collage (TT Mouse) [Extra].osu",
+        "Nakae Mitsuki. Shimotsuki Haruka - collage (TT Mouse) [Hard].osu",
+        "Nakae Mitsuki. Shimotsuki Haruka - collage (TT Mouse) [Insane].osu",
+        "Nakae Mitsuki. Shimotsuki Haruka - collage (TT Mouse) [Normal].osu"
+      ],
+      "originalAudioFilename": "collage.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-009",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\623665 Hommarju - HYENA",
+      "directoryName": "623665 Hommarju - HYENA",
+      "beatmapFile": "Hommarju - HYENA (rustbell) [].osu",
+      "allBeatmapFiles": [
+        "Hommarju - HYENA (rustbell) [ OD10].osu",
+        "Hommarju - HYENA (rustbell) [].osu",
+        "Hommarju - HYENA (rustbell) [caonimenquanbu].osu",
+        "Hommarju - HYENA (rustbell) [thinking].osu"
+      ],
+      "originalAudioFilename": "audio.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-010",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\1220647 osu!mania 7K Dan Course - LN Dan Phase III",
+      "directoryName": "1220647 osu!mania 7K Dan Course - LN Dan Phase III",
+      "beatmapFile": "osu!mania 7K Dan Course - LN Dan Phase III (Jinjin) [Zenith Dan].osu",
+      "allBeatmapFiles": [
+        "osu!mania 7K Dan Course - LN Dan Phase III (Jinjin) [10th Dan].osu",
+        "osu!mania 7K Dan Course - LN Dan Phase III (Jinjin) [9th Dan].osu",
+        "osu!mania 7K Dan Course - LN Dan Phase III (Jinjin) [Azimuth Dan].osu",
+        "osu!mania 7K Dan Course - LN Dan Phase III (Jinjin) [Gamma Dan].osu",
+        "osu!mania 7K Dan Course - LN Dan Phase III (Jinjin) [Zenith Dan].osu"
+      ],
+      "originalAudioFilename": "LN_Zenith.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-011",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\352570 beatMARIO - Night of Knights",
+      "directoryName": "352570 beatMARIO - Night of Knights",
+      "beatmapFile": "beatMARIO - Night of Knights (alacat) [Kotori's Extreme].osu",
+      "allBeatmapFiles": [
+        "beatMARIO - Night of Knights (alacat) [Easy].osu",
+        "beatMARIO - Night of Knights (alacat) [Guy's Extra].osu",
+        "beatMARIO - Night of Knights (alacat) [Hard].osu",
+        "beatMARIO - Night of Knights (alacat) [iyasine's Lunatic].osu",
+        "beatMARIO - Night of Knights (alacat) [Kotori's Extreme].osu",
+        "beatMARIO - Night of Knights (alacat) [N a s y a's Insane].osu",
+        "beatMARIO - Night of Knights (alacat) [Normal].osu",
+        "beatMARIO - Night of Knights (alacat) [The World].osu"
+      ],
+      "originalAudioFilename": "no.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-012",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\1822924 Unknown Artist - Yatsume Ana (33 mins)",
+      "directoryName": "1822924 Unknown Artist - Yatsume Ana (33 mins)",
+      "beatmapFile": "Unknown Artist - Yatsume Ana (33 mins) (-Shiraishi-) [!].osu",
+      "allBeatmapFiles": [
+        "Unknown Artist - Yatsume Ana (33 mins) (-Shiraishi-) [!].osu"
+      ],
+      "originalAudioFilename": "audio.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-013",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\749327 MY FIRST STORY - Shissou FLAME",
+      "directoryName": "749327 MY FIRST STORY - Shissou FLAME",
+      "beatmapFile": "MY FIRST STORY - Shissou FLAME (A r M i N) [Extreme].osu",
+      "allBeatmapFiles": [
+        "MY FIRST STORY - Shissou FLAME (A r M i N) [Extreme].osu",
+        "MY FIRST STORY - Shissou FLAME (A r M i N) [Hitsounds diff].osu"
+      ],
+      "originalAudioFilename": "audio.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-014",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\828088 DJ Seven - Charon",
+      "directoryName": "828088 DJ Seven - Charon",
+      "beatmapFile": "DJ Seven - Charon (Momi) [DT for no notelock].osu",
+      "allBeatmapFiles": [
+        "DJ Seven - Charon (Momi) [DnSomething].osu",
+        "DJ Seven - Charon (Momi) [DT for no notelock].osu"
+      ],
+      "originalAudioFilename": "audioDnSomething116.66667175293BPM.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-015",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\1780278 DJ Myosuke & Laur - Break Through Myself feat Risa Yuzuki (Short Ver)",
+      "directoryName": "1780278 DJ Myosuke & Laur - Break Through Myself feat Risa Yuzuki (Short Ver)",
+      "beatmapFile": "DJ Myosuke & Laur - Break Through Myself feat. Risa Yuzuki (Short Ver.) (keksikosu) [keksikosu vs. AlexDunk Apocalypse].osu",
+      "allBeatmapFiles": [
+        "DJ Myosuke & Laur - Break Through Myself feat. Risa Yuzuki (Short Ver.) (keksikosu) [Aix's Insane].osu",
+        "DJ Myosuke & Laur - Break Through Myself feat. Risa Yuzuki (Short Ver.) (keksikosu) [Hard].osu",
+        "DJ Myosuke & Laur - Break Through Myself feat. Risa Yuzuki (Short Ver.) (keksikosu) [Hikari's Normal].osu",
+        "DJ Myosuke & Laur - Break Through Myself feat. Risa Yuzuki (Short Ver.) (keksikosu) [keksikosu vs. AlexDunk Apocalypse].osu"
+      ],
+      "originalAudioFilename": "audio.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-016",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\333823 My Chemical Romance - You Know What They Do To Guys Like Us In Prison",
+      "directoryName": "333823 My Chemical Romance - You Know What They Do To Guys Like Us In Prison",
+      "beatmapFile": "My Chemical Romance - You Know What They Do To Guys Like Us In Prison (pishifat) [Insane].osu",
+      "allBeatmapFiles": [
+        "My Chemical Romance - You Know What They Do To Guys Like Us In Prison (pishifat) [Easy].osu",
+        "My Chemical Romance - You Know What They Do To Guys Like Us In Prison (pishifat) [Extra].osu",
+        "My Chemical Romance - You Know What They Do To Guys Like Us In Prison (pishifat) [Hard].osu",
+        "My Chemical Romance - You Know What They Do To Guys Like Us In Prison (pishifat) [Insane].osu",
+        "My Chemical Romance - You Know What They Do To Guys Like Us In Prison (pishifat) [Normal].osu"
+      ],
+      "originalAudioFilename": "prison.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-017",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\1510535 65daysofstatic - Retreat! Retreat! (Cut Ver)",
+      "directoryName": "1510535 65daysofstatic - Retreat! Retreat! (Cut Ver)",
+      "beatmapFile": "Stars Hollow - as you were before. (Cut Ver.) (quantumvortex) [Extreme].osu",
+      "allBeatmapFiles": [
+        "65daysofstatic - Retreat! Retreat! (Cut Ver.) (quantumvortex) [Unstoppable].osu",
+        "METRIC - Lost Kitten (Cut Ver.) (quantumvortex) [Give It Away].osu",
+        "Modern Baseball - Your Graduation (quantumvortex) [Letting Go].osu",
+        "My Chemical Romance - Helena (quantumvortex) [Ignition].osu",
+        "Pierce The Veil - King For A Day (feat. Kellin Quinn) (Cut Ver.) (quantumvortex) [Tyrannical].osu",
+        "Stars Hollow - as you were before. (Cut Ver.) (quantumvortex) [Extreme].osu",
+        "Task Horizon & Magnetude - Immortality Protocol (Cut Ver.) (quantumvortex) [IMMORTAL].osu",
+        "The Gentle Men - 2004 Breakup (quantumvortex) [Undeserving].osu",
+        "The Killers - Mr. Brightside (Cut Ver.) (quantumvortex) [Jealousy].osu",
+        "Various Artists - Jump Pack 7 (quantumvortex) [Difficulty for Uploading].osu"
+      ],
+      "originalAudioFilename": "audio3.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-018",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\1962727 Aiobahn feat KOTOKO - INTERNET YAMERO",
+      "directoryName": "1962727 Aiobahn feat KOTOKO - INTERNET YAMERO",
+      "beatmapFile": "Aiobahn feat. KOTOKO - INTERNET YAMERO (FLeVI) [Insane].osu",
+      "allBeatmapFiles": [
+        "Aiobahn feat. KOTOKO - INTERNET YAMERO (FLeVI) [Carpihat's Easy].osu",
+        "Aiobahn feat. KOTOKO - INTERNET YAMERO (FLeVI) [ExNeko's Expert].osu",
+        "Aiobahn feat. KOTOKO - INTERNET YAMERO (FLeVI) [Hidden's Normal].osu",
+        "Aiobahn feat. KOTOKO - INTERNET YAMERO (FLeVI) [hyahya's Extra].osu",
+        "Aiobahn feat. KOTOKO - INTERNET YAMERO (FLeVI) [Insane].osu",
+        "Aiobahn feat. KOTOKO - INTERNET YAMERO (FLeVI) [Intermediate].osu",
+        "Aiobahn feat. KOTOKO - INTERNET YAMERO (FLeVI) [Natro's Hard].osu",
+        "Aiobahn feat. KOTOKO - INTERNET YAMERO (FLeVI) [Nicknem's Insane].osu",
+        "Aiobahn feat. KOTOKO - INTERNET YAMERO (FLeVI) [YAMERO].osu"
+      ],
+      "originalAudioFilename": "audio.ogg",
+      "localAudioFile": "audio.ogg",
+      "audioExtension": ".ogg",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-019",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\83572 ani feat moco - Light up My Love",
+      "directoryName": "83572 ani feat moco - Light up My Love",
+      "beatmapFile": "ani feat. moco - Light up My Love (popner) [Hyper].osu",
+      "allBeatmapFiles": [
+        "ani feat. moco - Light up My Love (popner) [Another].osu",
+        "ani feat. moco - Light up My Love (popner) [Flower's Standard].osu",
+        "ani feat. moco - Light up My Love (popner) [Hyper].osu",
+        "ani feat. moco - Light up My Love (popner) [kevin's Beginner].osu",
+        "ani feat. moco - Light up My Love (popner) [Light].osu"
+      ],
+      "originalAudioFilename": "Light up my Love (feat. moco).mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-020",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\42242 senya - Tsuki ni Murakumo Hana ni Kaze (Short Ver)",
+      "directoryName": "42242 senya - Tsuki ni Murakumo Hana ni Kaze (Short Ver)",
+      "beatmapFile": "senya - Tsuki ni Murakumo Hana ni Kaze (Short Ver.) (eikkaleyd) [Easy].osu",
+      "allBeatmapFiles": [
+        "senya - Tsuki ni Murakumo Hana ni Kaze (Short Ver.) (eikkaleyd) [Easy].osu",
+        "senya - Tsuki ni Murakumo Hana ni Kaze (Short Ver.) (eikkaleyd) [Phantasy].osu",
+        "senya - Tsuki ni Murakumo Hana ni Kaze (Short Ver.) (eikkaleyd) [suraimu's Normal].osu",
+        "senya - Tsuki ni Murakumo Hana ni Kaze (Short Ver.) (eikkaleyd) [Toto].osu",
+        "senya - Tsuki ni Murakumo Hana ni Kaze (Short Ver.) (eikkaleyd) [tutuhaha's Hard].osu"
+      ],
+      "originalAudioFilename": "Ver2.0Dark PHOENiX.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-021",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\500905 The Quick Brown Fox - Break",
+      "directoryName": "500905 The Quick Brown Fox - Break",
+      "beatmapFile": "The Quick Brown Fox - Break (beary605) [Smash 0.95x].osu",
+      "allBeatmapFiles": [
+        "The Quick Brown Fox - Break (beary605) [Smash 0.8x].osu",
+        "The Quick Brown Fox - Break (beary605) [Smash 0.95x].osu",
+        "The Quick Brown Fox - Break (beary605) [Smash 0.9x].osu",
+        "The Quick Brown Fox - Break (beary605) [Smash 1.05x].osu",
+        "The Quick Brown Fox - Break (beary605) [Smash 1.15x].osu",
+        "The Quick Brown Fox - Break (beary605) [Smash 1.1x].osu",
+        "The Quick Brown Fox - Break (beary605) [Smash 1.25x].osu",
+        "The Quick Brown Fox - Break (beary605) [Smash 1.2x].osu",
+        "The Quick Brown Fox - Break (beary605) [Smash 1.3x].osu",
+        "The Quick Brown Fox - Break (beary605) [Smash 1.4x].osu",
+        "The Quick Brown Fox - Break (beary605) [Smash].osu"
+      ],
+      "originalAudioFilename": "The Quick Brown Fox - The Quick Brown Fox - 11 Break_0.95.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-022",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\845859 Aoi vs r0y - Coldlapse",
+      "directoryName": "845859 Aoi vs r0y - Coldlapse",
+      "beatmapFile": "Aoi vs. r0y - Coldlapse (Murumoo) [NOVICE].osu",
+      "allBeatmapFiles": [
+        "Aoi vs. r0y - Coldlapse (Murumoo) [-Mystic's MAXIMUM].osu",
+        "Aoi vs. r0y - Coldlapse (Murumoo) [ADVANCED].osu",
+        "Aoi vs. r0y - Coldlapse (Murumoo) [EXHAUST].osu",
+        "Aoi vs. r0y - Coldlapse (Murumoo) [FAMoss' BASIC].osu",
+        "Aoi vs. r0y - Coldlapse (Murumoo) [NOVICE].osu"
+      ],
+      "originalAudioFilename": "audio.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-023",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\11841 Yellow Zebra - Hyouketsu Musume",
+      "directoryName": "11841 Yellow Zebra - Hyouketsu Musume",
+      "beatmapFile": "Yellow Zebra - Hyouketsu Musume (S i R i R u) [Hard].osu",
+      "allBeatmapFiles": [
+        "Yellow Zebra - Hyouketsu Musume (S i R i R u) [Hard].osu",
+        "Yellow Zebra - Hyouketsu Musume (S i R i R u) [Normal].osu"
+      ],
+      "originalAudioFilename": "Yellow Zebra - Hyouketsu Musume.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-024",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\205022 Ryu_ - Sakura Mirage",
+      "directoryName": "205022 Ryu_ - Sakura Mirage",
+      "beatmapFile": "Ryu - Sakura Mirage (Priti) [ADVANCED].osu",
+      "allBeatmapFiles": [
+        "Ryu - Sakura Mirage (Priti) [ADVANCED].osu",
+        "Ryu - Sakura Mirage (Priti) [EXHAUST].osu",
+        "Ryu - Sakura Mirage (Priti) [INTERMEDIATE].osu",
+        "Ryu - Sakura Mirage (Priti) [LEADER'S INFINITE].osu",
+        "Ryu - Sakura Mirage (Priti) [NOVICE].osu",
+        "Ryu - Sakura Mirage (Priti) [PRIZZY'S HYPER].osu",
+        "Ryu - Sakura Mirage (Priti) [ULTRA].osu"
+      ],
+      "originalAudioFilename": "Ryu - Sakura Mirage [EXH].mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-025",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\1817787 SOUND HOLIC feat Nana Takahashi - Chinmoku ~Cercueil no Shoujo~",
+      "directoryName": "1817787 SOUND HOLIC feat Nana Takahashi - Chinmoku ~Cercueil no Shoujo~",
+      "beatmapFile": "SOUND HOLIC feat. Nana Takahashi - Chinmoku ~Cercueil no Shoujo~ (Schopfer) [Midnight Symphony].osu",
+      "allBeatmapFiles": [
+        "SOUND HOLIC feat. Nana Takahashi - Chinmoku ~Cercueil no Shoujo~ (Schopfer) [Midnight Symphony].osu"
+      ],
+      "originalAudioFilename": "audio.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-026",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\847400 CHS - Interlude - teatime",
+      "directoryName": "847400 CHS - Interlude - teatime",
+      "beatmapFile": "C.H.S - Interlude - teatime (wyrio) [BinFhone's Hard].osu",
+      "allBeatmapFiles": [
+        "C.H.S - Interlude - teatime (wyrio) [BinFhone's Hard].osu",
+        "C.H.S - Interlude - teatime (wyrio) [Normal].osu",
+        "C.H.S - Interlude - teatime (wyrio) [Teatime].osu"
+      ],
+      "originalAudioFilename": "audio.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-027",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\76934 SYNCART'S - Innocent doll",
+      "directoryName": "76934 SYNCART'S - Innocent doll",
+      "beatmapFile": "SYNC.ART'S - Innocent doll (Loneight) [Hard].osu",
+      "allBeatmapFiles": [
+        "SYNC.ART'S - Innocent doll (Loneight) [Hard].osu",
+        "SYNC.ART'S - Innocent doll (Loneight) [Normal].osu"
+      ],
+      "originalAudioFilename": "SYNC.ART'S - Inosento doru.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-028",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\1408765 Synth Monsters_Senri_SADRECORDS - GAMER",
+      "directoryName": "1408765 Synth Monsters_Senri_SADRECORDS - GAMER",
+      "beatmapFile": "Synth MonstersSenriSADRECORDS - GAMER (HirSayuri) [RELOADING ... ...].osu",
+      "allBeatmapFiles": [
+        "Synth MonstersSenriSADRECORDS - GAMER (HirSayuri) [RELOADING ... ...].osu"
+      ],
+      "originalAudioFilename": "audio.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copy_failed",
+      "audioCopyError": "Error: ENOENT: no such file or directory, copyfile 'F:\\Backup\\D\\osu!\\Songs\\1408765 Synth Monsters_Senri_SADRECORDS - GAMER\\audio.mp3' -> 'D:\\Projects\\osuMapEditor\\Kimi_Agent_osu!编辑器改进 (1)\\app\\verifier\\v541\\samples\\sample-028\\audio.mp3'",
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-029",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\690594 Jakarta Funk Brothers - INSOMNIA [no video]",
+      "directoryName": "690594 Jakarta Funk Brothers - INSOMNIA [no video]",
+      "beatmapFile": "Jakarta Funk Brothers - INSOMNIA (None1637) [].osu",
+      "allBeatmapFiles": [
+        "Jakarta Funk Brothers - INSOMNIA (None1637) [].osu"
+      ],
+      "originalAudioFilename": "audio.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-030",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\10860 Haru - Children Festival (Instrumental)",
+      "directoryName": "10860 Haru - Children Festival (Instrumental)",
+      "beatmapFile": "Haru - Children Festival (Instrumental) (Hikato) [Hard].osu",
+      "allBeatmapFiles": [
+        "Haru - Children Festival (Instrumental) (Hikato) [Easy].osu",
+        "Haru - Children Festival (Instrumental) (Hikato) [Hard].osu",
+        "Haru - Children Festival (Instrumental) (Hikato) [Normal+].osu"
+      ],
+      "originalAudioFilename": "Haru - Children Festival (Instrumental).mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-031",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\2250663 Yousei Teikoku - Zetsubou plantation",
+      "directoryName": "2250663 Yousei Teikoku - Zetsubou plantation",
+      "beatmapFile": "Yousei Teikoku - Zetsubou plantation (Cut Ver.) (kolman) [PikA's Extra].osu",
+      "allBeatmapFiles": [
+        "Yousei Teikoku - Zetsubou plantation (Cut Ver.) (kolman) [-AzuMi's Extreme].osu",
+        "Yousei Teikoku - Zetsubou plantation (Cut Ver.) (kolman) [Amats' Hard].osu",
+        "Yousei Teikoku - Zetsubou plantation (Cut Ver.) (kolman) [AnnouncerF's Extra].osu",
+        "Yousei Teikoku - Zetsubou plantation (Cut Ver.) (kolman) [Chitose's Extra].osu",
+        "Yousei Teikoku - Zetsubou plantation (Cut Ver.) (kolman) [Collab Extra].osu",
+        "Yousei Teikoku - Zetsubou plantation (Cut Ver.) (kolman) [Despair].osu",
+        "Yousei Teikoku - Zetsubou plantation (Cut Ver.) (kolman) [Extreme].osu",
+        "Yousei Teikoku - Zetsubou plantation (Cut Ver.) (kolman) [Fuxi's Expert].osu",
+        "Yousei Teikoku - Zetsubou plantation (Cut Ver.) (kolman) [Insane].osu",
+        "Yousei Teikoku - Zetsubou plantation (Cut Ver.) (kolman) [Kuki's Extreme].osu",
+        "Yousei Teikoku - Zetsubou plantation (Cut Ver.) (kolman) [Laurier's Insane].osu",
+        "Yousei Teikoku - Zetsubou plantation (Cut Ver.) (kolman) [Normal].osu",
+        "Yousei Teikoku - Zetsubou plantation (Cut Ver.) (kolman) [Not DT Farmer's Extra].osu",
+        "Yousei Teikoku - Zetsubou plantation (Cut Ver.) (kolman) [Parad0xa's Extra].osu",
+        "Yousei Teikoku - Zetsubou plantation (Cut Ver.) (kolman) [PikA's Extra].osu",
+        "Yousei Teikoku - Zetsubou plantation (Cut Ver.) (kolman) [Plasma's Extreme].osu",
+        "Yousei Teikoku - Zetsubou plantation (Cut Ver.) (kolman) [Reform's Extra].osu",
+        "Yousei Teikoku - Zetsubou plantation (Cut Ver.) (kolman) [sayu's Easy].osu",
+        "Yousei Teikoku - Zetsubou plantation (Cut Ver.) (kolman) [shime's Another].osu",
+        "Yousei Teikoku - Zetsubou plantation (Cut Ver.) (kolman) [sstari's Extra].osu"
+      ],
+      "originalAudioFilename": "audio.ogg",
+      "localAudioFile": "audio.ogg",
+      "audioExtension": ".ogg",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-032",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\149527 Ito Kanako - Sky of Twilight",
+      "directoryName": "149527 Ito Kanako - Sky of Twilight",
+      "beatmapFile": "Ito Kanako - Sky of Twilight (Brainpeeler) [Marathon].osu",
+      "allBeatmapFiles": [
+        "Ito Kanako - Sky of Twilight (Brainpeeler) [Marathon].osu"
+      ],
+      "originalAudioFilename": "08_Sky_of_Twilight_converted.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-033",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\444632 MYTH & ROID - STYX HELIX",
+      "directoryName": "444632 MYTH & ROID - STYX HELIX",
+      "beatmapFile": "MYTH & ROID - STYX HELIX (Tsukuyomi) [victorica's Hard].osu",
+      "allBeatmapFiles": [
+        "MYTH & ROID - STYX HELIX (Tsukuyomi) [-Tochi's Insane].osu",
+        "MYTH & ROID - STYX HELIX (Tsukuyomi) [Charlotte's Muzukashii].osu",
+        "MYTH & ROID - STYX HELIX (Tsukuyomi) [Charlotte's Oni].osu",
+        "MYTH & ROID - STYX HELIX (Tsukuyomi) [Dynamix's Insane].osu",
+        "MYTH & ROID - STYX HELIX (Tsukuyomi) [Easy].osu",
+        "MYTH & ROID - STYX HELIX (Tsukuyomi) [Enjoy's Normal].osu",
+        "MYTH & ROID - STYX HELIX (Tsukuyomi) [Hard].osu",
+        "MYTH & ROID - STYX HELIX (Tsukuyomi) [Restart].osu",
+        "MYTH & ROID - STYX HELIX (Tsukuyomi) [victorica's Hard].osu",
+        "MYTH & ROID - STYX HELIX (Tsukuyomi) [victorica's Normal].osu",
+        "MYTH & ROID - STYX HELIX (Tsukuyomi) [wkyik's Insane].osu"
+      ],
+      "originalAudioFilename": "audio.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-034",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\1336953 Various Artists - Julaaaan's Triangle Jump Training",
+      "directoryName": "1336953 Various Artists - Julaaaan's Triangle Jump Training",
+      "beatmapFile": "Various Artists - Julaaaan's Triangle Jump Training (Julaaaan) [Eyes Half Closed].osu",
+      "allBeatmapFiles": [
+        "Various Artists - Julaaaan's Triangle Jump Training (Julaaaan) [Ahh Yes I Did A Jump Training Again].osu",
+        "Various Artists - Julaaaan's Triangle Jump Training (Julaaaan) [Anone].osu",
+        "Various Artists - Julaaaan's Triangle Jump Training (Julaaaan) [Chronoxia].osu",
+        "Various Artists - Julaaaan's Triangle Jump Training (Julaaaan) [DADADADADADADADADADA].osu",
+        "Various Artists - Julaaaan's Triangle Jump Training (Julaaaan) [Euphoria].osu",
+        "Various Artists - Julaaaan's Triangle Jump Training (Julaaaan) [Eyes Half Closed].osu",
+        "Various Artists - Julaaaan's Triangle Jump Training (Julaaaan) [Fingerbang [Fingerdash]].osu",
+        "Various Artists - Julaaaan's Triangle Jump Training (Julaaaan) [Glorious Morning].osu",
+        "Various Artists - Julaaaan's Triangle Jump Training (Julaaaan) [Go Go Go [Hey, Hey, It's Alright]].osu",
+        "Various Artists - Julaaaan's Triangle Jump Training (Julaaaan) [Living For The Moment [First Pog Moment]].osu",
+        "Various Artists - Julaaaan's Triangle Jump Training (Julaaaan) [Monsters].osu",
+        "Various Artists - Julaaaan's Triangle Jump Training (Julaaaan) [Nico Nico Nii [Nico Nico Nii~]].osu",
+        "Various Artists - Julaaaan's Triangle Jump Training (Julaaaan) [Que Tire Pa' 'Lante].osu",
+        "Various Artists - Julaaaan's Triangle Jump Training (Julaaaan) [Summer Night Hiking].osu",
+        "Various Artists - Julaaaan's Triangle Jump Training (Julaaaan) [Yakko's World [The Nations Of The World]].osu"
+      ],
+      "originalAudioFilename": "eyeshalfclosed.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-035",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\1686033 HOYO-MiX - Termination of Desires",
+      "directoryName": "1686033 HOYO-MiX - Termination of Desires",
+      "beatmapFile": "HOYO-MiX - Termination of Desires (Mipha-) [Insane].osu",
+      "allBeatmapFiles": [
+        "HOYO-MiX - Termination of Desires (Mipha-) [Eternity].osu",
+        "HOYO-MiX - Termination of Desires (Mipha-) [Hard].osu",
+        "HOYO-MiX - Termination of Desires (Mipha-) [Insane].osu",
+        "HOYO-MiX - Termination of Desires (Mipha-) [Normal].osu"
+      ],
+      "originalAudioFilename": "21_Termination_of_Desires.ogg",
+      "localAudioFile": "audio.ogg",
+      "audioExtension": ".ogg",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-036",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\194921 Amane - Space Time (Amane Hardcore Remix)",
+      "directoryName": "194921 Amane - Space Time (Amane Hardcore Remix)",
+      "beatmapFile": "Amane - Space Time (Amane Hardcore Remix) (Lieselotte) [Spy's 4K Extra].osu",
+      "allBeatmapFiles": [
+        "Amane - Space Time (Amane Hardcore Remix) (Lieselotte) [7K Lv.40].osu",
+        "Amane - Space Time (Amane Hardcore Remix) (Lieselotte) [Spy's 4K Extra].osu"
+      ],
+      "originalAudioFilename": "Space Time (Amane Hardcore Remix).mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-037",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\285722 paraoka - REAL210",
+      "directoryName": "285722 paraoka - REAL210",
+      "beatmapFile": "paraoka - REAL210 (lahphnya) [AR9.5].osu",
+      "allBeatmapFiles": [
+        "paraoka - REAL210 (lahphnya) [AR9.5].osu",
+        "paraoka - REAL210 (lahphnya) [Arles].osu"
+      ],
+      "originalAudioFilename": "real.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-038",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\76048 ZUN - The Youkai Mountain ~ Mysterious Mountain",
+      "directoryName": "76048 ZUN - The Youkai Mountain ~ Mysterious Mountain",
+      "beatmapFile": "ZUN - The Youkai Mountain ~ Mysterious Mountain (BCI) [L18's Hard].osu",
+      "allBeatmapFiles": [
+        "ZUN - The Youkai Mountain ~ Mysterious Mountain (BCI) [Collab].osu",
+        "ZUN - The Youkai Mountain ~ Mysterious Mountain (BCI) [Easy].osu",
+        "ZUN - The Youkai Mountain ~ Mysterious Mountain (BCI) [Flask's Normal].osu",
+        "ZUN - The Youkai Mountain ~ Mysterious Mountain (BCI) [Koka's Muzukashii].osu",
+        "ZUN - The Youkai Mountain ~ Mysterious Mountain (BCI) [L18's Hard].osu",
+        "ZUN - The Youkai Mountain ~ Mysterious Mountain (BCI) [LRJ's Oni].osu"
+      ],
+      "originalAudioFilename": "909090.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-039",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\770246 Rabbit House - Final Overtake",
+      "directoryName": "770246 Rabbit House - Final Overtake",
+      "beatmapFile": "Rabbit House - Final Overtake (bbu) [Normal].osu",
+      "allBeatmapFiles": [
+        "Rabbit House - Final Overtake (bbu) [Down's Hard].osu",
+        "Rabbit House - Final Overtake (bbu) [Easy].osu",
+        "Rabbit House - Final Overtake (bbu) [FINAL OVERDRIVE].osu",
+        "Rabbit House - Final Overtake (bbu) [Habi's Insane].osu",
+        "Rabbit House - Final Overtake (bbu) [Normal].osu"
+      ],
+      "originalAudioFilename": "audio.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-040",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\29183 ZUN - Night Sakura of Dead Spirits",
+      "directoryName": "29183 ZUN - Night Sakura of Dead Spirits",
+      "beatmapFile": "ZUN - Night Sakura of Dead Spirits (Elly-chan) [Secluded Child].osu",
+      "allBeatmapFiles": [
+        "ZUN - Night Sakura of Dead Spirits (Elly-chan) [Easy].osu",
+        "ZUN - Night Sakura of Dead Spirits (Elly-chan) [Eternal Wandering].osu",
+        "ZUN - Night Sakura of Dead Spirits (Elly-chan) [LRJ's Normal].osu",
+        "ZUN - Night Sakura of Dead Spirits (Elly-chan) [Pereira's Hard].osu",
+        "ZUN - Night Sakura of Dead Spirits (Elly-chan) [Secluded Child].osu",
+        "ZUN - Night Sakura of Dead Spirits (Elly-chan) [Taikers Oni].osu"
+      ],
+      "originalAudioFilename": "Touhou 13 Ten Desires Music - 2 - New.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-041",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\191429 C-Show - UNOwen wa kanojo nanoka (TO-HOlic mix)",
+      "directoryName": "191429 C-Show - UNOwen wa kanojo nanoka (TO-HOlic mix)",
+      "beatmapFile": "C-Show - U.N.Owen wa kanojo nanoka (TO-HOlic mix) (Rugure) [leqek's 4K EXH].osu",
+      "allBeatmapFiles": [
+        "C-Show - U.N.Owen wa kanojo nanoka (TO-HOlic mix) (Rugure) [leqek's 4K EXH].osu",
+        "C-Show - U.N.Owen wa kanojo nanoka (TO-HOlic mix) (Rugure) [Rugure TYPE].osu"
+      ],
+      "originalAudioFilename": "C-Show - U.N.Owen wa kanojo nanoka TO-HOlic mix.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-042",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\1100768 Kanoguti - How to Destroy Humans [no video]",
+      "directoryName": "1100768 Kanoguti - How to Destroy Humans [no video]",
+      "beatmapFile": "Kanoguti - How to Destroy Humans (EJ__) [how to set SV].osu",
+      "allBeatmapFiles": [
+        "Kanoguti - How to Destroy Humans (EJ__) [how to set SV].osu"
+      ],
+      "originalAudioFilename": "audio.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-043",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\157896 Meg & Dia - Monster (DotEXE Remix)",
+      "directoryName": "157896 Meg & Dia - Monster (DotEXE Remix)",
+      "beatmapFile": "Meg & Dia - Monster (DotEXE Remix) (nold_1702) [Chewin's Extra].osu",
+      "allBeatmapFiles": [
+        "Meg & Dia - Monster (DotEXE Remix) (nold_1702) [Chewin's Extra].osu",
+        "Meg & Dia - Monster (DotEXE Remix) (nold_1702) [Easy].osu",
+        "Meg & Dia - Monster (DotEXE Remix) (nold_1702) [Futsuu].osu",
+        "Meg & Dia - Monster (DotEXE Remix) (nold_1702) [Insane].osu",
+        "Meg & Dia - Monster (DotEXE Remix) (nold_1702) [Irre's Insane].osu",
+        "Meg & Dia - Monster (DotEXE Remix) (nold_1702) [KantanZoda].osu",
+        "Meg & Dia - Monster (DotEXE Remix) (nold_1702) [Kloyd's Hard].osu",
+        "Meg & Dia - Monster (DotEXE Remix) (nold_1702) [KwaN's Normal].osu",
+        "Meg & Dia - Monster (DotEXE Remix) (nold_1702) [Kyshiro's &  Ami's Hard].osu",
+        "Meg & Dia - Monster (DotEXE Remix) (nold_1702) [m1ng's Oni].osu",
+        "Meg & Dia - Monster (DotEXE Remix) (nold_1702) [m1ng's Rain].osu",
+        "Meg & Dia - Monster (DotEXE Remix) (nold_1702) [NC's Inner Oni].osu",
+        "Meg & Dia - Monster (DotEXE Remix) (nold_1702) [NC's Muzukashii].osu",
+        "Meg & Dia - Monster (DotEXE Remix) (nold_1702) [Newbie].osu",
+        "Meg & Dia - Monster (DotEXE Remix) (nold_1702) [Taiko Basic].osu",
+        "Meg & Dia - Monster (DotEXE Remix) (nold_1702) [ursa's OverdoZe].osu",
+        "Meg & Dia - Monster (DotEXE Remix) (nold_1702) [Xtra].osu",
+        "Meg & Dia - Monster (DotEXE Remix) (nold_1702) [Zillah's 4K Hard].osu",
+        "Meg & Dia - Monster (DotEXE Remix) (nold_1702) [Zillah's 4K Insane].osu",
+        "Meg & Dia - Monster (DotEXE Remix) (nold_1702) [Zillah's 4K Normal].osu",
+        "Meg & Dia - Monster (DotEXE Remix) (nold_1702) [Zillah's 7K Hard].osu",
+        "Meg & Dia - Monster (DotEXE Remix) (nold_1702) [Zillah's 7K Insane].osu",
+        "Meg & Dia - Monster (DotEXE Remix) (nold_1702) [Zillah's 7K Normal].osu"
+      ],
+      "originalAudioFilename": "Meg & Dia - Monster (DotEXE Dubstep Remix).mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-044",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\895790 Maozon - Stasis",
+      "directoryName": "895790 Maozon - Stasis",
+      "beatmapFile": "Maozon - Stasis (paparwinthai) [Acoustic [WIP]].osu",
+      "allBeatmapFiles": [
+        "Maozon - Stasis (paparwinthai) [Acoustic [WIP]].osu",
+        "Maozon - Stasis (paparwinthai) [Normal].osu",
+        "Maozon - Stasis (paparwinthai) [Ultra_New].osu",
+        "Maozon - Stasis (paparwinthai) [Ultra].osu"
+      ],
+      "originalAudioFilename": "audio.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-045",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\1128596 Silentroom - NULCTRL EX",
+      "directoryName": "1128596 Silentroom - NULCTRL EX",
+      "beatmapFile": "Silentroom - NULCTRL EX (AHHHHHHHHHHHHHH) [Hard].osu",
+      "allBeatmapFiles": [
+        "Silentroom - NULCTRL EX (AHHHHHHHHHHHHHH) [Hard].osu",
+        "Silentroom - NULCTRL EX (AHHHHHHHHHHHHHH) [nl_ctr]].osu"
+      ],
+      "originalAudioFilename": "audio.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-046",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\407447 Amane - Space Time (Amane Hardcore Remix)",
+      "directoryName": "407447 Amane - Space Time (Amane Hardcore Remix)",
+      "beatmapFile": "Amane - Space Time (Amane Hardcore Remix) (FelipeLink) [Rerum Spatium Tempusque].osu",
+      "allBeatmapFiles": [
+        "Amane - Space Time (Amane Hardcore Remix) (FelipeLink) [Rerum Spatium Tempusque].osu"
+      ],
+      "originalAudioFilename": "Space Time (Amane Hardcore Remix).mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-047",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\260551 t+pazolite - Rumble Kung-fu Showdown",
+      "directoryName": "260551 t+pazolite - Rumble Kung-fu Showdown",
+      "beatmapFile": "t+pazolite - Rumble Kung-fu Showdown (L o L i) [Rumble+pazolite].osu",
+      "allBeatmapFiles": [
+        "t+pazolite - Rumble Kung-fu Showdown (L o L i) [Rumble+pazolite].osu"
+      ],
+      "originalAudioFilename": "t+pazolite  Rumble Kung-fu Showdown.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-048",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\226133 Junk - Yellow Smile(bms edit)",
+      "directoryName": "226133 Junk - Yellow Smile(bms edit)",
+      "beatmapFile": "Junk - Yellow Smile(bms edit) (rui) [Beginner].osu",
+      "allBeatmapFiles": [
+        "Junk - Yellow Smile(bms edit) (rui) [Beginner].osu",
+        "Junk - Yellow Smile(bms edit) (rui) [Extra].osu",
+        "Junk - Yellow Smile(bms edit) (rui) [Hyper].osu",
+        "Junk - Yellow Smile(bms edit) (rui) [Normal].osu",
+        "Junk - Yellow Smile(bms edit) (rui) [wring's Another].osu"
+      ],
+      "originalAudioFilename": "Yellow Smile.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-049",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\190529 Junk - Aihana (Love+ Edit)",
+      "directoryName": "190529 Junk - Aihana (Love+ Edit)",
+      "beatmapFile": "Junk - Aihana (Love+ Edit) (richardfeder) [Another].osu",
+      "allBeatmapFiles": [
+        "Junk - Aihana (Love+ Edit) (richardfeder) [Another].osu",
+        "Junk - Aihana (Love+ Edit) (richardfeder) [Hyper].osu",
+        "Junk - Aihana (Love+ Edit) (richardfeder) [Normal].osu",
+        "Junk - Aihana (Love+ Edit) (richardfeder) [S.Star's Another].osu",
+        "Junk - Aihana (Love+ Edit) (richardfeder) [S.Star's Beginner].osu"
+      ],
+      "originalAudioFilename": "aihana.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-050",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\1787128 Chiro, Kotono, Hiyorin - My Dream Kingdom!",
+      "directoryName": "1787128 Chiro, Kotono, Hiyorin - My Dream Kingdom!",
+      "beatmapFile": "Chiro, Kotono, Hiyorin - My Dream Kingdom! (Snow Note) [Snother].osu",
+      "allBeatmapFiles": [
+        "Chiro, Kotono, Hiyorin - My Dream Kingdom! (Snow Note) [Snother AR9.2].osu",
+        "Chiro, Kotono, Hiyorin - My Dream Kingdom! (Snow Note) [Snother].osu"
+      ],
+      "originalAudioFilename": "audio.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-051",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\773330 Nanamori-chu  Goraku-bu - Happy Time wa Owaranai (1)",
+      "directoryName": "773330 Nanamori-chu  Goraku-bu - Happy Time wa Owaranai (1)",
+      "beatmapFile": "Nanamori-chu  Goraku-bu - Happy Time wa Owaranai (eiri-) [Dash's Extra].osu",
+      "allBeatmapFiles": [
+        "Nanamori-chu  Goraku-bu - Happy Time wa Owaranai (eiri-) [Advanced].osu",
+        "Nanamori-chu  Goraku-bu - Happy Time wa Owaranai (eiri-) [AyyLazy's Expert].osu",
+        "Nanamori-chu  Goraku-bu - Happy Time wa Owaranai (eiri-) [byd's Normal].osu",
+        "Nanamori-chu  Goraku-bu - Happy Time wa Owaranai (eiri-) [Dash's Extra].osu",
+        "Nanamori-chu  Goraku-bu - Happy Time wa Owaranai (eiri-) [hyper's Hyper].osu",
+        "Nanamori-chu  Goraku-bu - Happy Time wa Owaranai (eiri-) [lit120's Easy].osu",
+        "Nanamori-chu  Goraku-bu - Happy Time wa Owaranai (eiri-) [Muzukashii].osu",
+        "Nanamori-chu  Goraku-bu - Happy Time wa Owaranai (eiri-) [Nao's Hard].osu",
+        "Nanamori-chu  Goraku-bu - Happy Time wa Owaranai (eiri-) [Oni].osu",
+        "Nanamori-chu  Goraku-bu - Happy Time wa Owaranai (eiri-) [Shiinoha's Insane].osu",
+        "Nanamori-chu  Goraku-bu - Happy Time wa Owaranai (eiri-) [Sotarks' Peace of Mind].osu"
+      ],
+      "originalAudioFilename": "audio.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-052",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\916257 GYARI - Akari ga Yatte Kita Zo (Cut Ver)",
+      "directoryName": "916257 GYARI - Akari ga Yatte Kita Zo (Cut Ver)",
+      "beatmapFile": "GYARI - Akari ga Yatte Kita Zo (Cut Ver.) (LeiN-) [notice me].osu",
+      "allBeatmapFiles": [
+        "GYARI - Akari ga Yatte Kita Zo (Cut Ver.) (LeiN-) [notice me].osu"
+      ],
+      "originalAudioFilename": "gyariJAM.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-053",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\25671 NieN - Leave me Alone",
+      "directoryName": "25671 NieN - Leave me Alone",
+      "beatmapFile": "NieN - Leave me Alone (MoonFragrance) [ykcarrot's Hard].osu",
+      "allBeatmapFiles": [
+        "NieN - Leave me Alone (MoonFragrance) [Maximum].osu",
+        "NieN - Leave me Alone (MoonFragrance) [Normal].osu",
+        "NieN - Leave me Alone (MoonFragrance) [Taiko].osu",
+        "NieN - Leave me Alone (MoonFragrance) [ykcarrot's Hard].osu"
+      ],
+      "originalAudioFilename": "Leave me Alone.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-054",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\osu!droid Daninintei 7th Dan Courses",
+      "directoryName": "osu!droid Daninintei 7th Dan Courses",
+      "beatmapFile": "V.A. - osu!droid Daninintei Courses (Nero Yuki & Kawashiro) [7th dan].osu",
+      "allBeatmapFiles": [
+        "V.A. - osu!droid Daninintei Courses (Nero Yuki & Kawashiro) [7th dan].osu"
+      ],
+      "originalAudioFilename": "audio.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-055",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\1357570 MAKOOTO - Tanukichi no Bouken",
+      "directoryName": "1357570 MAKOOTO - Tanukichi no Bouken",
+      "beatmapFile": "MAKOOTO - Tanukichi no Bouken (Xinely) [Natsuko's Salad].osu",
+      "allBeatmapFiles": [
+        "MAKOOTO - Tanukichi no Bouken (Xinely) [Cup].osu",
+        "MAKOOTO - Tanukichi no Bouken (Xinely) [Leni's Easy].osu",
+        "MAKOOTO - Tanukichi no Bouken (Xinely) [Leni's Normal].osu",
+        "MAKOOTO - Tanukichi no Bouken (Xinely) [Leni's Peko].osu",
+        "MAKOOTO - Tanukichi no Bouken (Xinely) [Natsuko's Salad].osu",
+        "MAKOOTO - Tanukichi no Bouken (Xinely) [Peko].osu",
+        "MAKOOTO - Tanukichi no Bouken (Xinely) [Platter].osu"
+      ],
+      "originalAudioFilename": "audio.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-056",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\952619 Stonebank - The Pressure",
+      "directoryName": "952619 Stonebank - The Pressure",
+      "beatmapFile": "Stonebank - The Pressure (Voxa) [Horizon].osu",
+      "allBeatmapFiles": [
+        "Stonebank - The Pressure (Voxa) [Hard].osu",
+        "Stonebank - The Pressure (Voxa) [Horizon].osu",
+        "Stonebank - The Pressure (Voxa) [Normal].osu"
+      ],
+      "originalAudioFilename": "audio.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-057",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\2976 IOSYS - Tsukiyo wo Kakusanai Teido no Nouryoku",
+      "directoryName": "2976 IOSYS - Tsukiyo wo Kakusanai Teido no Nouryoku",
+      "beatmapFile": "IOSYS - Tsukiyo wo Kakusanai Teido no Nouryoku (Card N'FoRcE) [Insane].osu",
+      "allBeatmapFiles": [
+        "IOSYS - Tsukiyo wo Kakusanai Teido no Nouryoku (Card N'FoRcE) [-SiN-'s Normal].osu",
+        "IOSYS - Tsukiyo wo Kakusanai Teido no Nouryoku (Card N'FoRcE) [Easy].osu",
+        "IOSYS - Tsukiyo wo Kakusanai Teido no Nouryoku (Card N'FoRcE) [Hard].osu",
+        "IOSYS - Tsukiyo wo Kakusanai Teido no Nouryoku (Card N'FoRcE) [Insane].osu"
+      ],
+      "originalAudioFilename": "Waki Miku Reimu - IOSYS.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-058",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\1820368 Natsu - Regression",
+      "directoryName": "1820368 Natsu - Regression",
+      "beatmapFile": "Natsu - Regression -HARDCORE- (Schopfer) [Pristine Lunacy].osu",
+      "allBeatmapFiles": [
+        "Natsu - Regression -HARDCORE- (Schopfer) [Pristine Lunacy].osu"
+      ],
+      "originalAudioFilename": "audio.ogg",
+      "localAudioFile": "audio.ogg",
+      "audioExtension": ".ogg",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-059",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\820771 C&K - Nirv lucE",
+      "directoryName": "820771 C&K - Nirv lucE",
+      "beatmapFile": "C&K - Nirv lucE (Enzie) [Solace].osu",
+      "allBeatmapFiles": [
+        "C&K - Nirv lucE (Enzie) [Solace].osu"
+      ],
+      "originalAudioFilename": "audio.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-060",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\130556 Jeff Williams - This Will Be the Day (feat Casey Lee Williams)",
+      "directoryName": "130556 Jeff Williams - This Will Be the Day (feat Casey Lee Williams)",
+      "beatmapFile": "Jeff Williams - This Will Be the Day (feat. Casey Lee Williams) (arcwinolivirus) [4K Easy].osu",
+      "allBeatmapFiles": [
+        "Jeff Williams - This Will Be the Day (feat. Casey Lee Williams) (arcwinolivirus) [4K Dante's Insane].osu",
+        "Jeff Williams - This Will Be the Day (feat. Casey Lee Williams) (arcwinolivirus) [4K Easy].osu",
+        "Jeff Williams - This Will Be the Day (feat. Casey Lee Williams) (arcwinolivirus) [4K Insane].osu",
+        "Jeff Williams - This Will Be the Day (feat. Casey Lee Williams) (arcwinolivirus) [4K Normal].osu",
+        "Jeff Williams - This Will Be the Day (feat. Casey Lee Williams) (arcwinolivirus) [7K Hard].osu",
+        "Jeff Williams - This Will Be the Day (feat. Casey Lee Williams) (arcwinolivirus) [7K Insane].osu"
+      ],
+      "originalAudioFilename": "RWBY - This will be the day.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-061",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\1223565 Niko - Made of Fire",
+      "directoryName": "1223565 Niko - Made of Fire",
+      "beatmapFile": "Niko - Made of Fire (Darklord3288) [Hard].osu",
+      "allBeatmapFiles": [
+        "Niko - Made of Fire (Darklord3288) [Hard].osu",
+        "Niko - Made of Fire (Darklord3288) [Insane].osu",
+        "Niko - Made of Fire (Darklord3288) [Normal].osu"
+      ],
+      "originalAudioFilename": "audio.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-062",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\293475 Renard vs Kitsune^2 - The Castle",
+      "directoryName": "293475 Renard vs Kitsune^2 - The Castle",
+      "beatmapFile": "Renard vs Kitsune^2 - The Castle (Nivrad00) [Fortress].osu",
+      "allBeatmapFiles": [
+        "Renard vs Kitsune^2 - The Castle (Nivrad00) [Fortress].osu",
+        "Renard vs Kitsune^2 - The Castle (Nivrad00) [Hard].osu",
+        "Renard vs Kitsune^2 - The Castle (Nivrad00) [Insane].osu",
+        "Renard vs Kitsune^2 - The Castle (Nivrad00) [Normal].osu"
+      ],
+      "originalAudioFilename": "ba1392426b10.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-063",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\senya - otogibanashi no karakuri ha,",
+      "directoryName": "senya - otogibanashi no karakuri ha,",
+      "beatmapFile": "senya - Otogibanashi no karakuri ha, (Xzzj) [Karakuri2].osu",
+      "allBeatmapFiles": [
+        "senya - Otogibanashi no karakuri ha, (Xzzj) [edit].osu",
+        "senya - Otogibanashi no karakuri ha, (Xzzj) [Karakuri2].osu"
+      ],
+      "originalAudioFilename": "audio.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-064",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\558041 Kanae Asaba - Endless Starlight ~Inochi no Kirameki~ (OP ver)",
+      "directoryName": "558041 Kanae Asaba - Endless Starlight ~Inochi no Kirameki~ (OP ver)",
+      "beatmapFile": "Kanae Asaba - Endless Starlight ~Inochi no Kirameki~ (OP ver.) (A r M i N) [Bronze].osu",
+      "allBeatmapFiles": [
+        "Kanae Asaba - Endless Starlight ~Inochi no Kirameki~ (OP ver.) (A r M i N) [Bronze].osu",
+        "Kanae Asaba - Endless Starlight ~Inochi no Kirameki~ (OP ver.) (A r M i N) [Challenger].osu",
+        "Kanae Asaba - Endless Starlight ~Inochi no Kirameki~ (OP ver.) (A r M i N) [Diamond].osu"
+      ],
+      "originalAudioFilename": "audio.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-065",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\770829 Roselia - Guren no Yumiya",
+      "directoryName": "770829 Roselia - Guren no Yumiya",
+      "beatmapFile": "Roselia - Guren no Yumiya (- Aries -) [Expert].osu",
+      "allBeatmapFiles": [
+        "Roselia - Guren no Yumiya (- Aries -) [Expert].osu",
+        "Roselia - Guren no Yumiya (- Aries -) [Hard].osu",
+        "Roselia - Guren no Yumiya (- Aries -) [Ly0's Easy].osu",
+        "Roselia - Guren no Yumiya (- Aries -) [Ly0's Normal].osu"
+      ],
+      "originalAudioFilename": "audio.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-066",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\730303 ONE OK ROCK - 2020",
+      "directoryName": "730303 ONE OK ROCK - 2020",
+      "beatmapFile": "ONE OK ROCK - 2020 (A r M i N) [Waku's Advanced].osu",
+      "allBeatmapFiles": [
+        "ONE OK ROCK - 2020 (A r M i N) [Another].osu",
+        "ONE OK ROCK - 2020 (A r M i N) [Easy].osu",
+        "ONE OK ROCK - 2020 (A r M i N) [Hard].osu",
+        "ONE OK ROCK - 2020 (A r M i N) [Insane].osu",
+        "ONE OK ROCK - 2020 (A r M i N) [schoolboy's Extra].osu",
+        "ONE OK ROCK - 2020 (A r M i N) [Turtle's Normal].osu",
+        "ONE OK ROCK - 2020 (A r M i N) [Waku's Advanced].osu"
+      ],
+      "originalAudioFilename": "audio.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-067",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\732851 LeaF - Lyrith",
+      "directoryName": "732851 LeaF - Lyrith",
+      "beatmapFile": "LeaF - Lyrith (aquarus91) [Maximum].osu",
+      "allBeatmapFiles": [
+        "LeaF - Lyrith (aquarus91) [Maximum].osu"
+      ],
+      "originalAudioFilename": "audio.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-068",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\655912 TrySail - Adrenaline!!! -TV Size-",
+      "directoryName": "655912 TrySail - Adrenaline!!! -TV Size-",
+      "beatmapFile": "TrySail - Adrenaline!!! -TV Size- (LuxAzure) [Yeah!!!].osu",
+      "allBeatmapFiles": [
+        "TrySail - Adrenaline!!! -TV Size- (LuxAzure) [Yeah!!!].osu"
+      ],
+      "originalAudioFilename": "audio.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-069",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\186443 Liberatus - Doll's Garden",
+      "directoryName": "186443 Liberatus - Doll's Garden",
+      "beatmapFile": "Liberatus - Doll's Garden (rkddlf00) [4k SC].osu",
+      "allBeatmapFiles": [
+        "Liberatus - Doll's Garden (rkddlf00) [4k SC].osu"
+      ],
+      "originalAudioFilename": "Liberatus - Doll's Garden.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-070",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\1558408 Mori Calliope - Excuse My Rudeness, But Could You Please RIP (Nhato Remix)",
+      "directoryName": "1558408 Mori Calliope - Excuse My Rudeness, But Could You Please RIP (Nhato Remix)",
+      "beatmapFile": "Mori Calliope - Excuse My Rudeness, But Could You Please RIP (Nhato Remix) (AutotelicBrown) [Easy].osu",
+      "allBeatmapFiles": [
+        "Mori Calliope - Excuse My Rudeness, But Could You Please RIP (Nhato Remix) (AutotelicBrown) [Advanced].osu",
+        "Mori Calliope - Excuse My Rudeness, But Could You Please RIP (Nhato Remix) (AutotelicBrown) [Easy].osu",
+        "Mori Calliope - Excuse My Rudeness, But Could You Please RIP (Nhato Remix) (AutotelicBrown) [Hard].osu",
+        "Mori Calliope - Excuse My Rudeness, But Could You Please RIP (Nhato Remix) (AutotelicBrown) [Normal].osu",
+        "Mori Calliope - Excuse My Rudeness, But Could You Please RIP (Nhato Remix) (AutotelicBrown) [RIP in beats].osu"
+      ],
+      "originalAudioFilename": "song.ogg",
+      "localAudioFile": "audio.ogg",
+      "audioExtension": ".ogg",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-071",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\860236 Ice vs Morimori Atushi - REUNION - Duo Blade Against -",
+      "directoryName": "860236 Ice vs Morimori Atushi - REUNION - Duo Blade Against -",
+      "beatmapFile": "Ice vs Morimori Atushi - REUNION - Duo Blade Against - (Astronic) [REAr9.5].osu",
+      "allBeatmapFiles": [
+        "Ice vs Morimori Atushi - REUNION - Duo Blade Against - (Astronic) [REAr9.5].osu",
+        "Ice vs Morimori Atushi - REUNION - Duo Blade Against - (Astronic) [ReAr9].osu",
+        "Ice vs Morimori Atushi - REUNION - Duo Blade Against - (Astronic) [ReArmageddon].osu"
+      ],
+      "originalAudioFilename": "audio.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-072",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\20125 Demetori - Solar Sect of Mystic Wisdom ~ Nuclear Fusion",
+      "directoryName": "20125 Demetori - Solar Sect of Mystic Wisdom ~ Nuclear Fusion",
+      "beatmapFile": "Demetori - Solar Sect of Mystic Wisdom ~ Nuclear Fusion (Louis Cyphre) [Atomic].osu",
+      "allBeatmapFiles": [
+        "Demetori - Solar Sect of Mystic Wisdom ~ Nuclear Fusion (Louis Cyphre) [AC-227].osu",
+        "Demetori - Solar Sect of Mystic Wisdom ~ Nuclear Fusion (Louis Cyphre) [Atomic].osu",
+        "Demetori - Solar Sect of Mystic Wisdom ~ Nuclear Fusion (Louis Cyphre) [Ono's Taiko Oni].osu",
+        "Demetori - Solar Sect of Mystic Wisdom ~ Nuclear Fusion (Louis Cyphre) [Radium].osu"
+      ],
+      "originalAudioFilename": "Demetori - Reichi no Taiyou Shinkou _ Nuclear Fusion.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-073",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\Mutsuhiko Izumi - Snow Goose (13)",
+      "directoryName": "Mutsuhiko Izumi - Snow Goose (13)",
+      "beatmapFile": "Mutsuhiko Izumi - Snow Goose (^) [13].osu",
+      "allBeatmapFiles": [
+        "Mutsuhiko Izumi - Snow Goose (^) [13].osu"
+      ],
+      "originalAudioFilename": "01 Snow Goose.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-074",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\40056 sakuzyo - VALLISTA",
+      "directoryName": "40056 sakuzyo - VALLISTA",
+      "beatmapFile": "sakuzyo - VALLISTA (Shiirn) [Another].osu",
+      "allBeatmapFiles": [
+        "sakuzyo - VALLISTA (Shiirn) [Another].osu",
+        "sakuzyo - VALLISTA (Shiirn) [Odaril's Easy].osu",
+        "sakuzyo - VALLISTA (Shiirn) [Taikocalypse].osu",
+        "sakuzyo - VALLISTA (Shiirn) [Zel's Hyper].osu",
+        "sakuzyo - VALLISTA (Shiirn) [ziin's Normal].osu"
+      ],
+      "originalAudioFilename": "BALLISTA.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-075",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\833927 Weird Al Yankovic - Hardware Store",
+      "directoryName": "833927 Weird Al Yankovic - Hardware Store",
+      "beatmapFile": "Weird Al Yankovic - Hardware Store (Woey) [POG CS0].osu",
+      "allBeatmapFiles": [
+        "Weird Al Yankovic - Hardware Store (Woey) [POG CS0].osu",
+        "Weird Al Yankovic - Hardware Store (Woey) [POG].osu"
+      ],
+      "originalAudioFilename": "audio.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-076",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\283841 S-C-U feat Qrispy Joybox - anemone",
+      "directoryName": "283841 S-C-U feat Qrispy Joybox - anemone",
+      "beatmapFile": "S-C-U feat. Qrispy Joybox - anemone (Julie) [7K Another].osu",
+      "allBeatmapFiles": [
+        "S-C-U feat. Qrispy Joybox - anemone (Julie) [4K Another].osu",
+        "S-C-U feat. Qrispy Joybox - anemone (Julie) [4K Beginner].osu",
+        "S-C-U feat. Qrispy Joybox - anemone (Julie) [4K Hyper].osu",
+        "S-C-U feat. Qrispy Joybox - anemone (Julie) [4K Normal].osu",
+        "S-C-U feat. Qrispy Joybox - anemone (Julie) [5K Another].osu",
+        "S-C-U feat. Qrispy Joybox - anemone (Julie) [5K Beginner].osu",
+        "S-C-U feat. Qrispy Joybox - anemone (Julie) [5K Hyper].osu",
+        "S-C-U feat. Qrispy Joybox - anemone (Julie) [5K Normal].osu",
+        "S-C-U feat. Qrispy Joybox - anemone (Julie) [6K Another].osu",
+        "S-C-U feat. Qrispy Joybox - anemone (Julie) [6K Beginner].osu",
+        "S-C-U feat. Qrispy Joybox - anemone (Julie) [6K Hyper].osu",
+        "S-C-U feat. Qrispy Joybox - anemone (Julie) [6K Normal].osu",
+        "S-C-U feat. Qrispy Joybox - anemone (Julie) [7K Another].osu",
+        "S-C-U feat. Qrispy Joybox - anemone (Julie) [7K Beginner].osu",
+        "S-C-U feat. Qrispy Joybox - anemone (Julie) [7K Hyper].osu",
+        "S-C-U feat. Qrispy Joybox - anemone (Julie) [7K Normal].osu",
+        "S-C-U feat. Qrispy Joybox - anemone (Julie) [8K Another].osu",
+        "S-C-U feat. Qrispy Joybox - anemone (Julie) [8K Beginner].osu",
+        "S-C-U feat. Qrispy Joybox - anemone (Julie) [8K Hyper].osu",
+        "S-C-U feat. Qrispy Joybox - anemone (Julie) [8K Normal].osu",
+        "S-C-U feat. Qrispy Joybox - anemone (Julie) [Kawa & Julie's 7K Extra].osu",
+        "S-C-U feat. Qrispy Joybox - anemone (Julie) [Kawa & Julie's 8K Extra].osu"
+      ],
+      "originalAudioFilename": "mp3.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-077",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\967321 Tokyo Jihen - Sounan",
+      "directoryName": "967321 Tokyo Jihen - Sounan",
+      "beatmapFile": "Tokyo Jihen - Sounan (Uberzolik) [Normal].osu",
+      "allBeatmapFiles": [
+        "Tokyo Jihen - Sounan (Uberzolik) [AIR's Insane].osu",
+        "Tokyo Jihen - Sounan (Uberzolik) [Axaptice's Insane].osu",
+        "Tokyo Jihen - Sounan (Uberzolik) [Axarious' Extra].osu",
+        "Tokyo Jihen - Sounan (Uberzolik) [Ayaya's Extra].osu",
+        "Tokyo Jihen - Sounan (Uberzolik) [Insane].osu",
+        "Tokyo Jihen - Sounan (Uberzolik) [L18's Hard].osu",
+        "Tokyo Jihen - Sounan (Uberzolik) [Normal].osu"
+      ],
+      "originalAudioFilename": "audio.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-078",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\516824 Umeboshi Chazuke - Owari to Hajimari no Oto",
+      "directoryName": "516824 Umeboshi Chazuke - Owari to Hajimari no Oto",
+      "beatmapFile": "Umeboshi Chazuke - Owari to Hajimari no Oto (Interlude-) [leqek's Hard].osu",
+      "allBeatmapFiles": [
+        "Umeboshi Chazuke - Owari to Hajimari no Oto (Interlude-) [leqek's Hard].osu",
+        "Umeboshi Chazuke - Owari to Hajimari no Oto (Interlude-) [Special].osu",
+        "Umeboshi Chazuke - Owari to Hajimari no Oto (Interlude-) [Wonki's Easy].osu"
+      ],
+      "originalAudioFilename": "audio.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-079",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\2222231 Daibaku Hashin - Noda feat Zundamon, Hatsune Miku, Kasane Teto [no video]",
+      "directoryName": "2222231 Daibaku Hashin - Noda feat Zundamon, Hatsune Miku, Kasane Teto [no video]",
+      "beatmapFile": "Daibaku Hashin - Noda feat. Zundamon, Hatsune Miku, Kasane Teto (TXJ123) [Chordjack].osu",
+      "allBeatmapFiles": [
+        "Daibaku Hashin - Noda feat. Zundamon, Hatsune Miku, Kasane Teto (TXJ123) [Chordjack 0.95x].osu",
+        "Daibaku Hashin - Noda feat. Zundamon, Hatsune Miku, Kasane Teto (TXJ123) [Chordjack 0.9x].osu",
+        "Daibaku Hashin - Noda feat. Zundamon, Hatsune Miku, Kasane Teto (TXJ123) [Chordjack 1.05x].osu",
+        "Daibaku Hashin - Noda feat. Zundamon, Hatsune Miku, Kasane Teto (TXJ123) [Chordjack 1.15x].osu",
+        "Daibaku Hashin - Noda feat. Zundamon, Hatsune Miku, Kasane Teto (TXJ123) [Chordjack 1.1x].osu",
+        "Daibaku Hashin - Noda feat. Zundamon, Hatsune Miku, Kasane Teto (TXJ123) [Chordjack 1.25x].osu",
+        "Daibaku Hashin - Noda feat. Zundamon, Hatsune Miku, Kasane Teto (TXJ123) [Chordjack 1.2x].osu",
+        "Daibaku Hashin - Noda feat. Zundamon, Hatsune Miku, Kasane Teto (TXJ123) [Chordjack 1.3x].osu",
+        "Daibaku Hashin - Noda feat. Zundamon, Hatsune Miku, Kasane Teto (TXJ123) [Chordjack].osu",
+        "Daibaku Hashin - Noda feat. Zundamon, Hatsune Miku, Kasane Teto (TXJ123) [delete this].osu"
+      ],
+      "originalAudioFilename": "audio.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-080",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\359426 rest or stay - kageokuri feat. MuryokuP",
+      "directoryName": "359426 rest or stay - kageokuri feat. MuryokuP",
+      "beatmapFile": "rest or stay - kageokuri feat. MuryokuP (NekoLumi) [Hard].osu",
+      "allBeatmapFiles": [
+        "rest or stay - kageokuri feat. MuryokuP (NekoLumi) [Hard].osu",
+        "rest or stay - kageokuri feat. MuryokuP (NekoLumi) [Insane].osu",
+        "rest or stay - kageokuri feat. MuryokuP (NekoLumi) [Normal].osu"
+      ],
+      "originalAudioFilename": "MuryokuP - Kageokuri.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-081",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\506155 Ayalis - Ai o Chikaishi Hime Kazari",
+      "directoryName": "506155 Ayalis - Ai o Chikaishi Hime Kazari",
+      "beatmapFile": "Ayalis - Ai o Chikaishi Hime Kazari (handsome) [captin's Extra].osu",
+      "allBeatmapFiles": [
+        "Ayalis - Ai o Chikaishi Hime Kazari (handsome) [Ascendance's Easy].osu",
+        "Ayalis - Ai o Chikaishi Hime Kazari (handsome) [captin's Extra].osu",
+        "Ayalis - Ai o Chikaishi Hime Kazari (handsome) [Hard].osu",
+        "Ayalis - Ai o Chikaishi Hime Kazari (handsome) [Kyshiro's Extra].osu",
+        "Ayalis - Ai o Chikaishi Hime Kazari (handsome) [Master].osu",
+        "Ayalis - Ai o Chikaishi Hime Kazari (handsome) [Normal].osu",
+        "Ayalis - Ai o Chikaishi Hime Kazari (handsome) [toybot's Insane].osu"
+      ],
+      "originalAudioFilename": "audio.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-082",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\beatmap-637195271310242821-Oomori Seiko - JUSTadICE (TV Size)",
+      "directoryName": "beatmap-637195271310242821-Oomori Seiko - JUSTadICE (TV Size)",
+      "beatmapFile": "Oomori Seiko - JUSTadICE (TV Size) (None1637) [Ki Ki Ki CS4].osu",
+      "allBeatmapFiles": [
+        "Oomori Seiko - JUSTadICE (TV Size) (None1637) [Extra].osu",
+        "Oomori Seiko - JUSTadICE (TV Size) (None1637) [Ki Ki Ki CS4].osu",
+        "Oomori Seiko - JUSTadICE (TV Size) (None1637) [Ki Ki Ki].osu",
+        "Oomori Seiko - JUSTadICE (TV Size) (None1637) [Test For CS NaN].osu",
+        "Oomori Seiko - JUSTadICE (TV Size) (None1637) [Test For Long Slider].osu",
+        "Oomori Seiko - JUSTadICE (TV Size) (None1637) [Test For PP].osu"
+      ],
+      "originalAudioFilename": "audio.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-083",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\845720 OSU! - PACK 9",
+      "directoryName": "845720 OSU! - PACK 9",
+      "beatmapFile": "OSU! - PACK 9 (Spinner) [Justability (Amamiya Nathan's Shooting Star) 1.4x - mapped by Skystar].osu",
+      "allBeatmapFiles": [
+        "OSU! - PACK 9 (Spinner) [9].osu",
+        "OSU! - PACK 9 (Spinner) [a e i u e o ao!! (Extra) 1.4x - mapped by Kashima].osu",
+        "OSU! - PACK 9 (Spinner) [a e i u e o ao!! (Extra) 1.4x (EZ)].osu",
+        "OSU! - PACK 9 (Spinner) [Der Wald (Kors K Remix) (Koa%wer) 1.4x - mapped by Rucker].osu",
+        "OSU! - PACK 9 (Spinner) [Der Wald (Kors K Remix) (Koa%wer) 1.4x (EZ)].osu",
+        "OSU! - PACK 9 (Spinner) [FREEDOM DiVE (Universe) 1.3x - mapped by Pikastar].osu",
+        "OSU! - PACK 9 (Spinner) [FREEDOM DiVE (Universe) 1.3x (EZ)].osu",
+        "OSU! - PACK 9 (Spinner) [honesty (TV SIZE) (BoshyMan's EX-Speed Demon) 1.3x - mapped by Bibbity Bill].osu",
+        "OSU! - PACK 9 (Spinner) [honesty (TV SIZE) (BoshyMan's EX-Speed Demon) 1.3x (EZ)].osu",
+        "OSU! - PACK 9 (Spinner) [Justability (Amamiya Nathan's Shooting Star) 1.4x - mapped by Skystar].osu",
+        "OSU! - PACK 9 (Spinner) [Justability (Amamiya Nathan's Shooting Star) 1.4x (EZ)].osu",
+        "OSU! - PACK 9 (Spinner) [Monsters (I see your pain) 1.3x - mapped by Shifu Touka].osu",
+        "OSU! - PACK 9 (Spinner) [Monsters (I see your pain) 1.3x (EZ)].osu",
+        "OSU! - PACK 9 (Spinner) [Natsu no Owari (Soleily Remix) (Endless) 1.4x - mapped by Sotarks].osu",
+        "OSU! - PACK 9 (Spinner) [Natsu no Owari (Soleily Remix) (Endless) 1.4x (EZ)].osu",
+        "OSU! - PACK 9 (Spinner) [Shoujo no Maisou (Ghost) 1.3x - mapped by Snow Note].osu",
+        "OSU! - PACK 9 (Spinner) [Shoujo no Maisou (Ghost) 1.3x (EZ)].osu",
+        "OSU! - PACK 9 (Spinner) [Sticks and Stones (Madness) 1.4x - mapped by Bikko].osu",
+        "OSU! - PACK 9 (Spinner) [Sticks and Stones (Madness) 1.4x (EZ)].osu",
+        "OSU! - PACK 9 (Spinner) [Sukisuki Zecchoushou (Lovesickness) 1.3x - mapped by Loreley].osu",
+        "OSU! - PACK 9 (Spinner) [Sukisuki Zecchoushou (Lovesickness) 1.3x (EZ)].osu"
+      ],
+      "originalAudioFilename": "Justability (Amamiya Nathan's Shooting Star) 1.4x - mapped by Skystar.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-084",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\64839 Misato Aki - DESIRE (Short Ver)",
+      "directoryName": "64839 Misato Aki - DESIRE (Short Ver)",
+      "beatmapFile": "Misato Aki - DESIRE (Short Ver.) (Nichiyouki) [Sekai's Easy].osu",
+      "allBeatmapFiles": [
+        "Misato Aki - DESIRE (Short Ver.) (Nichiyouki) [alacat's Hard].osu",
+        "Misato Aki - DESIRE (Short Ver.) (Nichiyouki) [BeatofIke's Normal].osu",
+        "Misato Aki - DESIRE (Short Ver.) (Nichiyouki) [CakiP's Hard].osu",
+        "Misato Aki - DESIRE (Short Ver.) (Nichiyouki) [Insane].osu",
+        "Misato Aki - DESIRE (Short Ver.) (Nichiyouki) [Sekai's Easy].osu"
+      ],
+      "originalAudioFilename": "Misato Aki - DESIRE.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-085",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\135070 DragonForce - Fury Of The Storm",
+      "directoryName": "135070 DragonForce - Fury Of The Storm",
+      "beatmapFile": "DragonForce - Fury Of The Storm (T o u c h e) [Legend 210BPM AR10].osu",
+      "allBeatmapFiles": [
+        "DragonForce - Fury Of The Storm (T o u c h e) [Legend 210BPM AR10].osu",
+        "DragonForce - Fury Of The Storm (T o u c h e) [Legend 210BPM AR9].osu",
+        "DragonForce - Fury Of The Storm (T o u c h e) [Legend 210BPM].osu",
+        "DragonForce - Fury Of The Storm (T o u c h e) [Legend 220BPM AR10].osu",
+        "DragonForce - Fury Of The Storm (T o u c h e) [Legend 220BPM AR9].osu",
+        "DragonForce - Fury Of The Storm (T o u c h e) [Legend 220BPM].osu"
+      ],
+      "originalAudioFilename": "Fury of the storm210.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-086",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\638012 cYsmix - Breeze",
+      "directoryName": "638012 cYsmix - Breeze",
+      "beatmapFile": "cYsmix - Breeze (AncuL) [Insane].osu",
+      "allBeatmapFiles": [
+        "cYsmix - Breeze (AncuL) [Extra].osu",
+        "cYsmix - Breeze (AncuL) [Hard].osu",
+        "cYsmix - Breeze (AncuL) [Insane].osu",
+        "cYsmix - Breeze (AncuL) [Normal].osu"
+      ],
+      "originalAudioFilename": "audio.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-087",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\shinra-bansho - itazura sensation",
+      "directoryName": "shinra-bansho - itazura sensation",
+      "beatmapFile": "ShinRa-Bansho - Itazura Sensation (Xzzj) [Scarlet Sisters].osu",
+      "allBeatmapFiles": [
+        "ShinRa-Bansho - Itazura Sensation (Xzzj) [Scarlet Sisters].osu"
+      ],
+      "originalAudioFilename": "audio.ogg",
+      "localAudioFile": "audio.ogg",
+      "audioExtension": ".ogg",
+      "audioCopyStatus": "copy_failed",
+      "audioCopyError": "Error: ENOENT: no such file or directory, copyfile 'F:\\Backup\\D\\osu!\\Songs\\shinra-bansho - itazura sensation\\audio.ogg' -> 'D:\\Projects\\osuMapEditor\\Kimi_Agent_osu!编辑器改进 (1)\\app\\verifier\\v541\\samples\\sample-087\\audio.ogg'",
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-088",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\1159269 Zekk - SUMMER",
+      "directoryName": "1159269 Zekk - SUMMER",
+      "beatmapFile": "Zekk - SUMMER (Shima Rin) [Ichigo].osu",
+      "allBeatmapFiles": [
+        "Zekk - SUMMER (Shima Rin) [FAMoss' Normal].osu",
+        "Zekk - SUMMER (Shima Rin) [Hard].osu",
+        "Zekk - SUMMER (Shima Rin) [Ichigo].osu"
+      ],
+      "originalAudioFilename": "audio.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-089",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\722744 Camellia - put' l'da",
+      "directoryName": "722744 Camellia - put' l'da",
+      "beatmapFile": "Camellia - put' l'da (Rose Pacifica) [Frozen].osu",
+      "allBeatmapFiles": [
+        "Camellia - put' l'da (Rose Pacifica) [Frozen].osu"
+      ],
+      "originalAudioFilename": "audio.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-090",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\1930076 Lime - BEYOND",
+      "directoryName": "1930076 Lime - BEYOND",
+      "beatmapFile": "Lime - BEYOND (FLeVI) [LN Aurora Australis].osu",
+      "allBeatmapFiles": [
+        "Lime - BEYOND (FLeVI) [LN Aurora Australis].osu",
+        "Lime - BEYOND (FLeVI) [LN Easy].osu",
+        "Lime - BEYOND (FLeVI) [LN Extra].osu",
+        "Lime - BEYOND (FLeVI) [LN Hard].osu",
+        "Lime - BEYOND (FLeVI) [LN insane].osu",
+        "Lime - BEYOND (FLeVI) [LN Normal].osu",
+        "Lime - BEYOND (FLeVI) [RC Aurora Borealis].osu",
+        "Lime - BEYOND (FLeVI) [RC Easy].osu",
+        "Lime - BEYOND (FLeVI) [RC Extra].osu",
+        "Lime - BEYOND (FLeVI) [RC Hard].osu",
+        "Lime - BEYOND (FLeVI) [RC Insane].osu",
+        "Lime - BEYOND (FLeVI) [RC Normal].osu"
+      ],
+      "originalAudioFilename": "audio.ogg",
+      "localAudioFile": "audio.ogg",
+      "audioExtension": ".ogg",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-091",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\761046 Dave Rodgers - Deja Vu",
+      "directoryName": "761046 Dave Rodgers - Deja Vu",
+      "beatmapFile": "Dave Rodgers - Deja Vu (Chotebe) [hu4lifefllwer's Hard!taiko].osu",
+      "allBeatmapFiles": [
+        "Dave Rodgers - Deja Vu (Chotebe) [Easy].osu",
+        "Dave Rodgers - Deja Vu (Chotebe) [EZ].osu",
+        "Dave Rodgers - Deja Vu (Chotebe) [HD].osu",
+        "Dave Rodgers - Deja Vu (Chotebe) [hu4lifefllwer's Hard!taiko].osu",
+        "Dave Rodgers - Deja Vu (Chotebe) [hu4lifefllwer's Insane].osu",
+        "Dave Rodgers - Deja Vu (Chotebe) [NM].osu",
+        "Dave Rodgers - Deja Vu (Chotebe) [Ultra Beginner].osu"
+      ],
+      "originalAudioFilename": "audio.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-092",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\Lindwurm",
+      "directoryName": "Lindwurm",
+      "beatmapFile": "Kuroneko Dungeon - Ryoushi no Umi no Lindwurm (None1637) [Extra Jump].osu",
+      "allBeatmapFiles": [
+        "Kuroneko Dungeon - Ryoushi no Umi no Lindwurm (None1637) [Extra Jump].osu",
+        "Kuroneko Dungeon - Ryoushi no Umi no Lindwurm (None1637) [Normal].osu"
+      ],
+      "originalAudioFilename": "audio.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-093",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\29616 NAOKI feat Becky Lucinda - My Only Shining Star (Remix)",
+      "directoryName": "29616 NAOKI feat Becky Lucinda - My Only Shining Star (Remix)",
+      "beatmapFile": "NAOKI feat. Becky Lucinda - My Only Shining Star (Remix) (Natteke) [Hyper].osu",
+      "allBeatmapFiles": [
+        "NAOKI feat. Becky Lucinda - My Only Shining Star (Remix) (Natteke) [Another].osu",
+        "NAOKI feat. Becky Lucinda - My Only Shining Star (Remix) (Natteke) [Beginner].osu",
+        "NAOKI feat. Becky Lucinda - My Only Shining Star (Remix) (Natteke) [Hyper].osu",
+        "NAOKI feat. Becky Lucinda - My Only Shining Star (Remix) (Natteke) [lepidon! - Taiko Oni].osu"
+      ],
+      "originalAudioFilename": "NAOKI feat. Becky Lucinda - My Only Shining Star (Danceforze Dance To Death Mix).mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-094",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\568215 Various Artists - ChronoJigga Season 2",
+      "directoryName": "568215 Various Artists - ChronoJigga Season 2",
+      "beatmapFile": "Various Artists - ChronoJigga Season 2 (ChronoNig) [Los! Los! Los!].osu",
+      "allBeatmapFiles": [
+        "Various Artists - ChronoJigga Season 2 (ChronoNig) [Los! Los! Los!].osu",
+        "Various Artists - ChronoJigga Season 2 (ChronoNig) [Yellow Smile].osu"
+      ],
+      "originalAudioFilename": "audio1.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-095",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\530360 Peter Lambert - osu! tutorial v2",
+      "directoryName": "530360 Peter Lambert - osu! tutorial v2",
+      "beatmapFile": "Peter Lambert - osu! tutorial v2 (The_CJ) [Game Basics].osu",
+      "allBeatmapFiles": [
+        "Peter Lambert - osu! tutorial v2 (The_CJ) [Game Basics].osu"
+      ],
+      "originalAudioFilename": "audio.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-096",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\450885 Aimer - REI AM",
+      "directoryName": "450885 Aimer - REI AM",
+      "beatmapFile": "Aimer - REI AM (spboxer3) [REI AM].osu",
+      "allBeatmapFiles": [
+        "Aimer - REI AM (spboxer3) [REI AM].osu"
+      ],
+      "originalAudioFilename": "audio.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-097",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\RoughSketch Uno さきぴょ - Nyan-Nyan-Nyan!",
+      "directoryName": "RoughSketch Uno さきぴょ - Nyan-Nyan-Nyan!",
+      "beatmapFile": "RoughSketchUno - Nyan-Nyan-Nyan! (None1637) [Extra].osu",
+      "allBeatmapFiles": [
+        "RoughSketchUno - Nyan-Nyan-Nyan! (None1637) [Extra].osu"
+      ],
+      "originalAudioFilename": "RoughSketch Uno  - Nyan-Nyan-Nyan!.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-098",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\14853 COOL&CREATE - Saishoukichiku Imouto Flandre S",
+      "directoryName": "14853 COOL&CREATE - Saishoukichiku Imouto Flandre S",
+      "beatmapFile": "COOL&CREATE - Saishoukichiku Imouto Flandre S (dksslqj) [Easy].osu",
+      "allBeatmapFiles": [
+        "COOL&CREATE - Saishoukichiku Imouto Flandre S (dksslqj) [Easy].osu",
+        "COOL&CREATE - Saishoukichiku Imouto Flandre S (dksslqj) [Hard].osu",
+        "COOL&CREATE - Saishoukichiku Imouto Flandre S (dksslqj) [Lunatic].osu"
+      ],
+      "originalAudioFilename": "1111.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-099",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\30569 Cream puff - Mermaid girl",
+      "directoryName": "30569 Cream puff - Mermaid girl",
+      "beatmapFile": "Cream puff - Mermaid girl (tsuka) [Hyper].osu",
+      "allBeatmapFiles": [
+        "Cream puff - Mermaid girl (tsuka) [Another].osu",
+        "Cream puff - Mermaid girl (tsuka) [Easy].osu",
+        "Cream puff - Mermaid girl (tsuka) [Hyper].osu",
+        "Cream puff - Mermaid girl (tsuka) [Normal].osu",
+        "Cream puff - Mermaid girl (tsuka) [Taiko].osu"
+      ],
+      "originalAudioFilename": "Cream puff - Mermaid girl.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    },
+    {
+      "id": "sample-100",
+      "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\9394 dj TAKA - Absolute",
+      "directoryName": "9394 dj TAKA - Absolute",
+      "beatmapFile": "dj TAKA - Absolute (osu_CN_yaya) [CC's Normal].osu",
+      "allBeatmapFiles": [
+        "dj TAKA - Absolute (osu_CN_yaya) [Another Roko-Don's Taiko].osu",
+        "dj TAKA - Absolute (osu_CN_yaya) [Another].osu",
+        "dj TAKA - Absolute (osu_CN_yaya) [CC's Normal].osu",
+        "dj TAKA - Absolute (osu_CN_yaya) [Hyper].osu"
+      ],
+      "originalAudioFilename": "Dj taka - Absolute.mp3",
+      "localAudioFile": "audio.mp3",
+      "audioExtension": ".mp3",
+      "audioCopyStatus": "copied",
+      "audioCopyError": null,
+      "decodeSupported": true
+    }
+  ]
+}

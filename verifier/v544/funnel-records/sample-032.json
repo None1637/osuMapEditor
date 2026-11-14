@@ -1,0 +1,160 @@
+{
+  "id": "sample-032",
+  "directoryName": "149527 Ito Kanako - Sky of Twilight",
+  "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\149527 Ito Kanako - Sky of Twilight",
+  "status": "ok",
+  "referenceBpm": 107.99999999999991,
+  "referenceVariable": false,
+  "predictedBpm": 216,
+  "predictedVariable": false,
+  "variableLines": [],
+  "trueVariableMs": 0,
+  "flaggedWindowCount": 101,
+  "flaggedWindowsOnVariable": 0,
+  "rawCandidateCount": 4,
+  "rawCandidatesOnVariable": 0,
+  "finalEvidenceCount": 0,
+  "finalEvidenceOnVariable": 0,
+  "candidates": [
+    {
+      "startMs": 128801,
+      "endMs": 134798,
+      "bpm": 145.577,
+      "points": 3,
+      "maxSupport": 0.07879833657611517,
+      "localGridCoverage": 0.10429447852760736,
+      "rejection": "weak_short",
+      "independentMainScore": 0.23877680788728564,
+      "independentLocalScore": 0.08375418138094931,
+      "variableOverlapMs": 0,
+      "overlapsVariable": false,
+      "tripletVotes": [
+        {
+          "timeMs": 131799.3650793651,
+          "bpm": 145.577,
+          "localGridCoverage": 0.11242603550295859,
+          "tripletGridCoverage": 0.5266272189349113,
+          "tripletGridHalfCoverage": 0.38461538461538464,
+          "tripletGridDoubleCoverage": 0.5443786982248521
+        },
+        {
+          "timeMs": 132797.8231292517,
+          "bpm": 145.577,
+          "localGridCoverage": 0.10429447852760736,
+          "tripletGridCoverage": 0.5337423312883436,
+          "tripletGridHalfCoverage": 0.37423312883435583,
+          "tripletGridDoubleCoverage": 0.5460122699386503
+        }
+      ]
+    },
+    {
+      "startMs": 223654,
+      "endMs": 230650,
+      "bpm": 61.892,
+      "points": 4,
+      "maxSupport": 0.10369044748707613,
+      "localGridCoverage": 0.053691275167785234,
+      "rejection": "insufficient_margin",
+      "independentMainScore": 0.09824795038019854,
+      "independentLocalScore": 0.16077579698185224,
+      "variableOverlapMs": 0,
+      "overlapsVariable": false,
+      "tripletVotes": [
+        {
+          "timeMs": 225654.42176870749,
+          "bpm": 61.892,
+          "localGridCoverage": 0.04827586206896552,
+          "tripletGridCoverage": 0.5379310344827586,
+          "tripletGridHalfCoverage": 0.3586206896551724,
+          "tripletGridDoubleCoverage": 0.5448275862068965
+        },
+        {
+          "timeMs": 226652.8798185941,
+          "bpm": 61.892,
+          "localGridCoverage": 0.04895104895104895,
+          "tripletGridCoverage": 0.5524475524475524,
+          "tripletGridHalfCoverage": 0.36363636363636365,
+          "tripletGridDoubleCoverage": 0.5664335664335665
+        },
+        {
+          "timeMs": 227651.3378684807,
+          "bpm": 61.892,
+          "localGridCoverage": 0.053691275167785234,
+          "tripletGridCoverage": 0.5704697986577181,
+          "tripletGridHalfCoverage": 0.3691275167785235,
+          "tripletGridDoubleCoverage": 0.5570469798657718
+        },
+        {
+          "timeMs": 228649.79591836734,
+          "bpm": 61.892,
+          "localGridCoverage": 0.05405405405405406,
+          "tripletGridCoverage": 0.5878378378378378,
+          "tripletGridHalfCoverage": 0.38513513513513514,
+          "tripletGridDoubleCoverage": 0.5540540540540541
+        }
+      ]
+    },
+    {
+      "startMs": 346465,
+      "endMs": 353460,
+      "bpm": 162.771,
+      "points": 4,
+      "maxSupport": 0.17894633993259215,
+      "localGridCoverage": 0.11510791366906475,
+      "rejection": "triplet",
+      "independentMainScore": null,
+      "independentLocalScore": null,
+      "variableOverlapMs": 0,
+      "overlapsVariable": false,
+      "tripletVotes": [
+        {
+          "timeMs": 349463.2199546485,
+          "bpm": 162.771,
+          "localGridCoverage": 0.12318840579710146,
+          "tripletGridCoverage": 0.6014492753623188,
+          "tripletGridHalfCoverage": 0.39855072463768115,
+          "tripletGridDoubleCoverage": 0.5869565217391305
+        },
+        {
+          "timeMs": 350461.67800453515,
+          "bpm": 162.771,
+          "localGridCoverage": 0.11510791366906475,
+          "tripletGridCoverage": 0.5899280575539568,
+          "tripletGridHalfCoverage": 0.39568345323741005,
+          "tripletGridDoubleCoverage": 0.5755395683453237
+        }
+      ]
+    },
+    {
+      "startMs": 355451,
+      "endMs": 361448,
+      "bpm": 61.523,
+      "points": 3,
+      "maxSupport": 0.09891754381908784,
+      "localGridCoverage": 0.058333333333333334,
+      "rejection": "weak_short",
+      "independentMainScore": 0.1939200024764899,
+      "independentLocalScore": -0.06614790468019528,
+      "variableOverlapMs": 0,
+      "overlapsVariable": false,
+      "tripletVotes": [
+        {
+          "timeMs": 358449.3424036281,
+          "bpm": 61.523,
+          "localGridCoverage": 0.058333333333333334,
+          "tripletGridCoverage": 0.6,
+          "tripletGridHalfCoverage": 0.375,
+          "tripletGridDoubleCoverage": 0.55
+        },
+        {
+          "timeMs": 359447.80045351473,
+          "bpm": 61.523,
+          "localGridCoverage": 0.05737704918032787,
+          "tripletGridCoverage": 0.5983606557377049,
+          "tripletGridHalfCoverage": 0.3770491803278688,
+          "tripletGridDoubleCoverage": 0.5983606557377049
+        }
+      ]
+    }
+  ]
+}

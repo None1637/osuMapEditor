@@ -1,0 +1,38 @@
+{
+  "id": "sample-099",
+  "directoryName": "30569 Cream puff - Mermaid girl",
+  "beatmapFile": "Cream puff - Mermaid girl (tsuka) [Hyper].osu",
+  "metadata": {
+    "Title": "Mermaid girl",
+    "Artist": "Cream puff",
+    "Creator": "tsuka",
+    "Version": "Hyper",
+    "Source": "beatmania IIDX 18 Resort Anthem",
+    "Tags": "Ryu Halka moimoi Alace Dr_dy",
+    "Mode": "0"
+  },
+  "audioDurationMs": 121965.71428571429,
+  "redLines": [
+    {
+      "time": 332,
+      "beatLength": 428.571428571429,
+      "bpm": 139.99999999999986,
+      "durationMs": 121633.71428571429
+    }
+  ],
+  "referenceBpm": 139.99999999999986,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 121633.71428571429,
+  "status": "ok",
+  "prediction": {
+    "bpm": 140,
+    "offsetMs": 362,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 117,
+    "rawBpm": 280,
+    "rawSegmentCount": 11
+  },
+  "evaluationMs": 1109
+}

@@ -1,0 +1,88 @@
+{
+  "id": "sample-025",
+  "directoryName": "1817787 SOUND HOLIC feat Nana Takahashi - Chinmoku ~Cercueil no Shoujo~",
+  "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\1817787 SOUND HOLIC feat Nana Takahashi - Chinmoku ~Cercueil no Shoujo~",
+  "status": "ok",
+  "referenceBpm": 139.99999999999986,
+  "referenceVariable": true,
+  "predictedBpm": 140,
+  "predictedVariable": false,
+  "variableLines": [
+    {
+      "time": 18155,
+      "beatLength": 806.451612903226,
+      "bpm": 74.39999999999999,
+      "durationMs": 3225
+    },
+    {
+      "time": 21380,
+      "beatLength": 465.116279069768,
+      "bpm": 128.99999999999986,
+      "durationMs": 697
+    },
+    {
+      "time": 22077,
+      "beatLength": 465.116279069768,
+      "bpm": 128.99999999999986,
+      "durationMs": 24186
+    },
+    {
+      "time": 46263,
+      "beatLength": 454.545454545455,
+      "bpm": 131.99999999999986,
+      "durationMs": 1818
+    },
+    {
+      "time": 265795,
+      "beatLength": 468.75,
+      "bpm": 128,
+      "durationMs": 13125
+    },
+    {
+      "time": 278920,
+      "beatLength": 500,
+      "bpm": 120,
+      "durationMs": 13173.333333333314
+    }
+  ],
+  "trueVariableMs": 56224.333333333314,
+  "flaggedWindowCount": 47,
+  "flaggedWindowsOnVariable": 17,
+  "rawCandidateCount": 1,
+  "rawCandidatesOnVariable": 1,
+  "finalEvidenceCount": 0,
+  "finalEvidenceOnVariable": 0,
+  "candidates": [
+    {
+      "startMs": 277571,
+      "endMs": 283568,
+      "bpm": 60.093,
+      "points": 3,
+      "maxSupport": 0.29408738793515365,
+      "localGridCoverage": 0.10810810810810811,
+      "rejection": "weak_short",
+      "independentMainScore": 0.004231947341579549,
+      "independentLocalScore": 0.2935098893077164,
+      "variableOverlapMs": 5997,
+      "overlapsVariable": true,
+      "tripletVotes": [
+        {
+          "timeMs": 279571.15646258503,
+          "bpm": 60.093,
+          "localGridCoverage": 0.10810810810810811,
+          "tripletGridCoverage": 0.5135135135135135,
+          "tripletGridHalfCoverage": 0.2972972972972973,
+          "tripletGridDoubleCoverage": 0.8378378378378378
+        },
+        {
+          "timeMs": 280569.61451247166,
+          "bpm": 60.093,
+          "localGridCoverage": 0.10810810810810811,
+          "tripletGridCoverage": 0.5405405405405406,
+          "tripletGridHalfCoverage": 0.2702702702702703,
+          "tripletGridDoubleCoverage": 0.918918918918919
+        }
+      ]
+    }
+  ]
+}

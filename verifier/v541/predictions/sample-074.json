@@ -1,0 +1,38 @@
+{
+  "id": "sample-074",
+  "directoryName": "40056 sakuzyo - VALLISTA",
+  "beatmapFile": "sakuzyo - VALLISTA (Shiirn) [Another].osu",
+  "metadata": {
+    "Title": "VALLISTA",
+    "Artist": "sakuzyo",
+    "Creator": "Shiirn",
+    "Version": "Another",
+    "Source": "BMS",
+    "Tags": "BMS of Fighters 2011 zelos ziin odaril backfire",
+    "Mode": "0"
+  },
+  "audioDurationMs": 130638.36734693876,
+  "redLines": [
+    {
+      "time": 166,
+      "beatLength": 333.333333333333,
+      "bpm": 180.0000000000002,
+      "durationMs": 130472.36734693876
+    }
+  ],
+  "referenceBpm": 180.0000000000002,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 130472.36734693876,
+  "status": "ok",
+  "prediction": {
+    "bpm": 180,
+    "offsetMs": 528,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 127,
+    "rawBpm": 360,
+    "rawSegmentCount": 57
+  },
+  "evaluationMs": 1216
+}

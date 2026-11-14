@@ -1,0 +1,94 @@
+{
+  "id": "sample-100",
+  "directoryName": "9394 dj TAKA - Absolute",
+  "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\9394 dj TAKA - Absolute",
+  "status": "ok",
+  "referenceBpm": 143.9999999999999,
+  "referenceVariable": true,
+  "predictedBpm": 144,
+  "predictedVariable": false,
+  "variableLines": [
+    {
+      "time": 111137,
+      "beatLength": 451.127819548872,
+      "bpm": 133.00000000000006,
+      "durationMs": 451
+    },
+    {
+      "time": 111588,
+      "beatLength": 500,
+      "bpm": 120,
+      "durationMs": 500
+    },
+    {
+      "time": 112088,
+      "beatLength": 535.714285714286,
+      "bpm": 111.99999999999994,
+      "durationMs": 535
+    },
+    {
+      "time": 112623,
+      "beatLength": 674.157303370787,
+      "bpm": 88.99999999999994,
+      "durationMs": 674
+    },
+    {
+      "time": 113297,
+      "beatLength": 705.882352941176,
+      "bpm": 85.00000000000006,
+      "durationMs": 705
+    },
+    {
+      "time": 114002,
+      "beatLength": 1000,
+      "bpm": 60,
+      "durationMs": 1000
+    },
+    {
+      "time": 115002,
+      "beatLength": 750,
+      "bpm": 80,
+      "durationMs": 9131.8775510204
+    }
+  ],
+  "trueVariableMs": 12996.8775510204,
+  "flaggedWindowCount": 8,
+  "flaggedWindowsOnVariable": 3,
+  "rawCandidateCount": 1,
+  "rawCandidatesOnVariable": 1,
+  "finalEvidenceCount": 0,
+  "finalEvidenceOnVariable": 0,
+  "candidates": [
+    {
+      "startMs": 110829,
+      "endMs": 116826,
+      "bpm": 87.223,
+      "points": 3,
+      "maxSupport": 0.09666400227763661,
+      "localGridCoverage": 0.0661764705882353,
+      "rejection": "weak_short",
+      "independentMainScore": -0.00044868350919146857,
+      "independentLocalScore": 0.03063558542449194,
+      "variableOverlapMs": 5689,
+      "overlapsVariable": true,
+      "tripletVotes": [
+        {
+          "timeMs": 113827.12018140589,
+          "bpm": 87.223,
+          "localGridCoverage": 0.0661764705882353,
+          "tripletGridCoverage": 0.47794117647058826,
+          "tripletGridHalfCoverage": 0.25735294117647056,
+          "tripletGridDoubleCoverage": 0.5735294117647058
+        },
+        {
+          "timeMs": 114825.57823129251,
+          "bpm": 87.223,
+          "localGridCoverage": 0.06944444444444445,
+          "tripletGridCoverage": 0.4722222222222222,
+          "tripletGridHalfCoverage": 0.2569444444444444,
+          "tripletGridDoubleCoverage": 0.5416666666666666
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "id": "sample-036",
+  "directoryName": "194921 Amane - Space Time (Amane Hardcore Remix)",
+  "beatmapFile": "Amane - Space Time (Amane Hardcore Remix) (Lieselotte) [Spy's 4K Extra].osu",
+  "referenceBpm": 174.99999999999991,
+  "predictedBpm": 175,
+  "frozenBpm": 175,
+  "deterministicEvidence": true,
+  "evidence": [
+    {
+      "startMs": 244622,
+      "endMs": 250619,
+      "bpm": 77.714,
+      "points": 3,
+      "maxSupport": 0.10850477547085381,
+      "index": 0,
+      "ratioToPredictedMain": 0.44408,
+      "ratioToAnnotatedMain": 0.4440800000000002,
+      "boundary": "interior",
+      "localBpmMin": 77.714,
+      "localBpmMax": 78.007,
+      "medianSupport": 0.0907196870797614,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 34.285714285714285,
+          "first": 0.004888710844927641,
+          "second": -0.007640200176243008,
+          "combined": 0.0007541702079413271
+        },
+        "annotatedMain": {
+          "lag": 34.2857142857143,
+          "first": 0.00488871084492745,
+          "second": -0.007640200176242958,
+          "combined": 0.0007541702079412156
+        },
+        "evidenceBpm": {
+          "lag": 77.20616619914044,
+          "first": -0.005829036950042145,
+          "second": null,
+          "combined": -0.005829036950042145
+        }
+      },
+      "objectCount": 12,
+      "objectGrid": {
+        "predictedMainHalf": 1,
+        "annotatedMainHalf": 1,
+        "evidenceHalf": 0.25
+      }
+    }
+  ],
+  "analysisMs": 3430
+}

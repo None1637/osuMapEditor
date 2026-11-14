@@ -372,14 +372,31 @@ ipcMain.handle("open-backup-folder", (_e, p) => {
 let menuActions = new Map() // id → 执行函数 (click 闭包或 role 等价实现)
 let menuSeq = 0
 let lastMenuDef = null
-function serializeMenuItems(items) {
-  return items.map((it) => {
+let menuUiOverrides = {} // v526: 渲染端布局配置 → 原生/自绘菜单同步
+ipcMain.on("ui-menu-overrides", (_e, value) => { menuUiOverrides = value && typeof value === "object" ? value : {}; buildMenu() })
+
+// 结构路径 ID 跨语言/菜单状态重建保持稳定; 后续菜单重排需配套迁移
+function applyMenuUiOverrides(items, prefix = "menu") {
+  items.forEach((it, i) => {
+    const o = menuUiOverrides[`${prefix}.${i}`]
+    if (o) {
+      if (typeof o.text === "string") it.label = o.text
+      if (o.visible === false) it.visible = false
+      if (o.enabled !== undefined) it.enabled = o.enabled
+    }
+    if (it.submenu) applyMenuUiOverrides(it.submenu, `${prefix}.${i}`)
+  })
+}
+
+function serializeMenuItems(items, prefix = "menu") {
+  return items.map((it, i) => {
+    const path = `${prefix}.${i}`
     if (it.type === "separator") return { type: "separator" }
-    const node = { label: it.label ?? "", enabled: it.enabled !== false }
+    const node = { label: it.label ?? "", enabled: it.enabled !== false, uiId: path }
     if (it.type === "radio" || it.type === "checkbox") { node.type = it.type; node.checked = !!it.checked }
     if (it.accelerator) node.accelerator = String(it.accelerator)
     if (it.submenu) {
-      node.submenu = serializeMenuItems(it.submenu)
+      node.submenu = serializeMenuItems(it.submenu, path)
     } else {
       const id = "mi" + (++menuSeq)
       const clickFn = it.click, role = it.role
@@ -669,6 +686,7 @@ function buildMenu() {
     },
     // (v123: v121 的菜单栏指示器已移除 — 原生菜单项无法右对齐, 改为应用内顶栏最右侧浮层)
   ]
+  applyMenuUiOverrides(template) // v526: 原生菜单与自绘菜单共用同一布局覆盖
   const menu = Menu.buildFromTemplate(template)
   Menu.setApplicationMenu(menu)
   // v280: 推送应用内菜单栏定义 (hideTitleBar 模式下渲染端自绘菜单条)

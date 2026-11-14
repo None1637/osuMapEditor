@@ -1,0 +1,132 @@
+{
+  "id": "sample-090",
+  "directoryName": "1930076 Lime - BEYOND",
+  "beatmapFile": "Lime - BEYOND (FLeVI) [LN Aurora Australis].osu",
+  "referenceBpm": 276.0000000000001,
+  "predictedBpm": 138,
+  "frozenBpm": 138,
+  "deterministicEvidence": true,
+  "evidence": [
+    {
+      "startMs": 28955,
+      "endMs": 35950,
+      "bpm": 61.341,
+      "points": 4,
+      "maxSupport": 0.4555418779434543,
+      "index": 0,
+      "ratioToPredictedMain": 0.4445,
+      "ratioToAnnotatedMain": 0.22224999999999992,
+      "boundary": "interior",
+      "localBpmMin": 61.341,
+      "localBpmMax": 61.341,
+      "medianSupport": 0.4468603562606938,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 43.47826086956522,
+          "first": 0.2474667231902211,
+          "second": 0.2012963035015955,
+          "combined": 0.23223048469297464
+        },
+        "annotatedMain": {
+          "lag": 21.739130434782602,
+          "first": 0.09104523715143552,
+          "second": 0.24746672319022184,
+          "combined": 0.14266432754423503
+        },
+        "evidenceBpm": {
+          "lag": 97.81386022399374,
+          "first": 0.08156412755325676,
+          "second": null,
+          "combined": 0.08156412755325676
+        }
+      },
+      "objectCount": 111,
+      "objectGrid": {
+        "predictedMainHalf": 0.6486486486486487,
+        "annotatedMainHalf": 0.963963963963964,
+        "evidenceHalf": 0.14414414414414414
+      }
+    },
+    {
+      "startMs": 36943,
+      "endMs": 42940,
+      "bpm": 61.341,
+      "points": 3,
+      "maxSupport": 0.5260290898399129,
+      "index": 1,
+      "ratioToPredictedMain": 0.4445,
+      "ratioToAnnotatedMain": 0.22224999999999992,
+      "boundary": "interior",
+      "localBpmMin": 61.341,
+      "localBpmMax": 61.341,
+      "medianSupport": 0.5260290898399129,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 43.47826086956522,
+          "first": 0.28113642074814227,
+          "second": 0.20350026403363417,
+          "combined": 0.2555164890323546
+        },
+        "annotatedMain": {
+          "lag": 21.739130434782602,
+          "first": 0.07830633864007898,
+          "second": 0.28113642074814205,
+          "combined": 0.1452402657357398
+        },
+        "evidenceBpm": {
+          "lag": 97.81386022399374,
+          "first": 0.1513485857489706,
+          "second": null,
+          "combined": 0.1513485857489706
+        }
+      },
+      "objectCount": 96,
+      "objectGrid": {
+        "predictedMainHalf": 0.6145833333333334,
+        "annotatedMainHalf": 0.9270833333333334,
+        "evidenceHalf": 0.13541666666666666
+      }
+    },
+    {
+      "startMs": 50921,
+      "endMs": 56918,
+      "bpm": 61.341,
+      "points": 3,
+      "maxSupport": 0.3735084318423716,
+      "index": 2,
+      "ratioToPredictedMain": 0.4445,
+      "ratioToAnnotatedMain": 0.22224999999999992,
+      "boundary": "interior",
+      "localBpmMin": 61.341,
+      "localBpmMax": 61.341,
+      "medianSupport": 0.3735084318423716,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 43.47826086956522,
+          "first": 0.2719205429791172,
+          "second": 0.30321755455247473,
+          "combined": 0.2822485567983252
+        },
+        "annotatedMain": {
+          "lag": 21.739130434782602,
+          "first": 0.30124373026461004,
+          "second": 0.2719205429791159,
+          "combined": 0.291567078460397
+        },
+        "evidenceBpm": {
+          "lag": 97.81386022399374,
+          "first": 0.22464916736132157,
+          "second": null,
+          "combined": 0.22464916736132157
+        }
+      },
+      "objectCount": 101,
+      "objectGrid": {
+        "predictedMainHalf": 0.6039603960396039,
+        "annotatedMainHalf": 0.9603960396039604,
+        "evidenceHalf": 0.12871287128712872
+      }
+    }
+  ],
+  "analysisMs": 1229
+}

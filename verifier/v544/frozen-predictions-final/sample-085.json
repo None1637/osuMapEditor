@@ -1,0 +1,42 @@
+{
+  "id": "sample-085",
+  "directoryName": "135070 DragonForce - Fury Of The Storm",
+  "beatmapFile": "DragonForce - Fury Of The Storm (T o u c h e) [Legend 210BPM AR10].osu",
+  "metadata": {
+    "Title": "Fury Of The Storm",
+    "TitleUnicode": "Fury Of The Storm",
+    "Artist": "DragonForce",
+    "ArtistUnicode": "DragonForce",
+    "Creator": "T o u c h e",
+    "Version": "Legend 210BPM AR10",
+    "Source": "",
+    "Tags": "It's made to Lesjuh's mapping style",
+    "BeatmapID": "339136",
+    "BeatmapSetID": "135070",
+    "Mode": "0"
+  },
+  "audioDurationMs": 384774.60317460314,
+  "redLines": [
+    {
+      "time": 200,
+      "beatLength": 285.714285714286,
+      "bpm": 209.99999999999977,
+      "durationMs": 384574.60317460314
+    }
+  ],
+  "referenceBpm": 209.99999999999977,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 384574.60317460314,
+  "status": "ok",
+  "prediction": {
+    "bpm": 210.25,
+    "offsetMs": 410,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 382,
+    "rawBpm": 420.5,
+    "rawSegmentCount": 537
+  },
+  "evaluationMs": 3488
+}

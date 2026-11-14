@@ -1,0 +1,92 @@
+{
+  "id": "sample-081",
+  "directoryName": "506155 Ayalis - Ai o Chikaishi Hime Kazari",
+  "beatmapFile": "Ayalis - Ai o Chikaishi Hime Kazari (handsome) [captin's Extra].osu",
+  "referenceBpm": 209.99999999999977,
+  "predictedBpm": 209.95,
+  "frozenBpm": 209.95,
+  "deterministicEvidence": true,
+  "evidence": [
+    {
+      "startMs": 33947,
+      "endMs": 39944,
+      "bpm": 60.128,
+      "points": 3,
+      "maxSupport": 0.07874412111962709,
+      "index": 0,
+      "ratioToPredictedMain": 0.2863919980947845,
+      "ratioToAnnotatedMain": 0.2863238095238098,
+      "boundary": "interior",
+      "localBpmMin": 60.128,
+      "localBpmMax": 60.128,
+      "medianSupport": 0.07874412111962709,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 28.578232912598242,
+          "first": null,
+          "second": null,
+          "combined": null
+        },
+        "annotatedMain": {
+          "lag": 28.5714285714286,
+          "first": null,
+          "second": null,
+          "combined": null
+        },
+        "evidenceBpm": {
+          "lag": 99.78712080894093,
+          "first": null,
+          "second": null,
+          "combined": null
+        }
+      },
+      "objectCount": 30,
+      "objectGrid": {
+        "predictedMainHalf": 0.9333333333333333,
+        "annotatedMainHalf": 0.9333333333333333,
+        "evidenceHalf": 0.16666666666666666
+      }
+    },
+    {
+      "startMs": 193701,
+      "endMs": 199698,
+      "bpm": 85.069,
+      "points": 3,
+      "maxSupport": 0.08335825403206754,
+      "index": 1,
+      "ratioToPredictedMain": 0.40518694927363663,
+      "ratioToAnnotatedMain": 0.40509047619047667,
+      "boundary": "interior",
+      "localBpmMin": 85.069,
+      "localBpmMax": 85.421,
+      "medianSupport": 0.07567634793913283,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 28.578232912598242,
+          "first": null,
+          "second": null,
+          "combined": null
+        },
+        "annotatedMain": {
+          "lag": 28.5714285714286,
+          "first": null,
+          "second": null,
+          "combined": null
+        },
+        "evidenceBpm": {
+          "lag": 70.5309807332871,
+          "first": null,
+          "second": null,
+          "combined": null
+        }
+      },
+      "objectCount": 0,
+      "objectGrid": {
+        "predictedMainHalf": null,
+        "annotatedMainHalf": null,
+        "evidenceHalf": null
+      }
+    }
+  ],
+  "analysisMs": 2367
+}

@@ -1,0 +1,1411 @@
+{
+  "version": "v564-e5-residual-diagnostic-v1",
+  "status": "development_residual_diagnostic_not_a_new_estimator",
+  "configuration": {
+    "version": "v564-e5-residual-diagnostic-v1",
+    "status": "frozen_before_diagnostic_evaluation",
+    "datasetRole": "development_diagnostic_only_not_independent_confirmation",
+    "sampleIds": [
+      "sample-044",
+      "sample-032",
+      "sample-002"
+    ],
+    "candidateSource": "../v563/calibrated-candidates.json",
+    "redlineSource": "../v548/per-sample/sample-*.json",
+    "population": "Only clear/approximate labels; missing candidates remain in denominators and are reported separately",
+    "pairedPopulation": "Audible objects with a finite e5CalibratedErrorMs; no imputation for missing candidates",
+    "groupings": [
+      "sample",
+      "sample+fold",
+      "sample+redline",
+      "sample+redline+fold"
+    ],
+    "errorBands": [
+      "within5",
+      "over5Through10",
+      "over10Through20",
+      "over20",
+      "missingCandidate"
+    ],
+    "pairedStatistics": [
+      "medianSignedMs",
+      "medianAbsoluteMs",
+      "medianAbsoluteDeviationMs",
+      "p95AbsoluteMs",
+      "maximumAbsoluteMs"
+    ],
+    "timeDiagnostics": "Spearman correlation of signed residual against referenceMs within each sample and within each redline with at least three pairs; no regression or correction",
+    "foldContrasts": "Report odd/even paired medians within the same redline when each fold has at least two pairs; no additional fitting",
+    "histogram": "5 ms wide signed-error bins centered on multiples of 5 ms, diagnostic only",
+    "interpretationPolicy": "Large residual is not by itself proof of a wrong peak; redline medians, within-group spread, fold contrasts and time order must be considered together",
+    "nextRulePolicy": "Choose at most one E6 mechanism after inspecting this decomposition; do not tune thresholds on confirmation data",
+    "candidateSelectionChanged": false,
+    "calibrationChanged": false,
+    "productionCodeChanged": false,
+    "confirmationSetPolicy": "Do not read confirmation audio, candidates or labels"
+  },
+  "overall": {
+    "audibleCount": 52,
+    "pairedCount": 49,
+    "missingCount": 3,
+    "audibleWeight": 1829.9777777777776,
+    "correctWeight": 1289.6555555555556,
+    "within5RateIncludingMissing": 0.7047383696219748,
+    "bandCounts": {
+      "within5": 36,
+      "over5Through10": 10,
+      "over10Through20": 3,
+      "over20": 0,
+      "missingCandidate": 3
+    },
+    "bandWeights": {
+      "within5": 1289.6555555555556,
+      "over5Through10": 415.4222222222222,
+      "over10Through20": 35.4,
+      "over20": 0,
+      "missingCandidate": 89.5
+    },
+    "medianSignedMs": -0.19145823132566875,
+    "medianAbsoluteMs": 2.7159058611287037,
+    "medianAbsoluteDeviationMs": 2.86707928064061,
+    "p95AbsoluteMs": 10.14626920469599,
+    "maximumAbsoluteMs": 12.684244403626508,
+    "spearmanSignedErrorVsTime": -0.010714285714285714
+  },
+  "perSample": {
+    "sample-044": {
+      "audibleCount": 23,
+      "pairedCount": 23,
+      "missingCount": 0,
+      "audibleWeight": 112.17777777777778,
+      "correctWeight": 103.85555555555555,
+      "within5RateIncludingMissing": 0.9258122028526149,
+      "bandCounts": {
+        "within5": 20,
+        "over5Through10": 2,
+        "over10Through20": 1,
+        "over20": 0,
+        "missingCandidate": 0
+      },
+      "bandWeights": {
+        "within5": 103.85555555555555,
+        "over5Through10": 7.222222222222222,
+        "over10Through20": 1.1,
+        "over20": 0,
+        "missingCandidate": 0
+      },
+      "medianSignedMs": 0.034428077246047906,
+      "medianAbsoluteMs": 0.745365308575856,
+      "medianAbsoluteDeviationMs": 0.7109372313298081,
+      "p95AbsoluteMs": 8.233244161836497,
+      "maximumAbsoluteMs": 10.849224903846334,
+      "spearmanSignedErrorVsTime": -0.12549407114624506
+    },
+    "sample-032": {
+      "audibleCount": 17,
+      "pairedCount": 15,
+      "missingCount": 2,
+      "audibleWeight": 1382.8,
+      "correctWeight": 959.3,
+      "within5RateIncludingMissing": 0.6937373445183685,
+      "bandCounts": {
+        "within5": 9,
+        "over5Through10": 6,
+        "over10Through20": 0,
+        "over20": 0,
+        "missingCandidate": 2
+      },
+      "bandWeights": {
+        "within5": 959.3,
+        "over5Through10": 341.6,
+        "over10Through20": 0,
+        "over20": 0,
+        "missingCandidate": 81.9
+      },
+      "medianSignedMs": -1.9385456987656653,
+      "medianAbsoluteMs": 4.248652601934737,
+      "medianAbsoluteDeviationMs": 2.9207022502669133,
+      "p95AbsoluteMs": 7.773403310123829,
+      "maximumAbsoluteMs": 9.091835655970499,
+      "spearmanSignedErrorVsTime": 0.3107142857142857
+    },
+    "sample-002": {
+      "audibleCount": 12,
+      "pairedCount": 11,
+      "missingCount": 1,
+      "audibleWeight": 335.0,
+      "correctWeight": 226.5,
+      "within5RateIncludingMissing": 0.6761194029850747,
+      "bandCounts": {
+        "within5": 7,
+        "over5Through10": 2,
+        "over10Through20": 2,
+        "over20": 0,
+        "missingCandidate": 1
+      },
+      "bandWeights": {
+        "within5": 226.5,
+        "over5Through10": 66.6,
+        "over10Through20": 34.3,
+        "over20": 0,
+        "missingCandidate": 7.6
+      },
+      "medianSignedMs": 0.2108848450698133,
+      "medianAbsoluteMs": 3.902152266102348,
+      "medianAbsoluteDeviationMs": 3.774207498958276,
+      "p95AbsoluteMs": 12.167294554912587,
+      "maximumAbsoluteMs": 12.684244403626508,
+      "spearmanSignedErrorVsTime": -0.08181818181818182
+    }
+  },
+  "perSampleFold": {
+    "('sample-002', 'even')": {
+      "audibleCount": 6,
+      "pairedCount": 6,
+      "missingCount": 0,
+      "audibleWeight": 199.8,
+      "correctWeight": 125.6,
+      "within5RateIncludingMissing": 0.6286286286286286,
+      "bandCounts": {
+        "within5": 3,
+        "over5Through10": 2,
+        "over10Through20": 1,
+        "over20": 0,
+        "missingCandidate": 0
+      },
+      "bandWeights": {
+        "within5": 125.6,
+        "over5Through10": 66.6,
+        "over10Through20": 7.6,
+        "over20": 0,
+        "missingCandidate": 0
+      },
+      "medianSignedMs": -3.521004495658417,
+      "medianAbsoluteMs": 5.419286424941674,
+      "medianAbsoluteDeviationMs": 4.111351539690077,
+      "p95AbsoluteMs": 10.849392632248055,
+      "maximumAbsoluteMs": 11.650344706198666,
+      "spearmanSignedErrorVsTime": -0.7142857142857143
+    },
+    "('sample-002', 'odd')": {
+      "audibleCount": 6,
+      "pairedCount": 5,
+      "missingCount": 1,
+      "audibleWeight": 135.2,
+      "correctWeight": 100.9,
+      "within5RateIncludingMissing": 0.7463017751479291,
+      "bandCounts": {
+        "within5": 4,
+        "over5Through10": 0,
+        "over10Through20": 1,
+        "over20": 0,
+        "missingCandidate": 1
+      },
+      "bandWeights": {
+        "within5": 100.9,
+        "over5Through10": 0,
+        "over10Through20": 26.7,
+        "over20": 0,
+        "missingCandidate": 7.6
+      },
+      "medianSignedMs": 3.521004495658417,
+      "medianAbsoluteMs": 3.563322653888463,
+      "medianAbsoluteDeviationMs": 3.3101196505886037,
+      "p95AbsoluteMs": 10.927825976121675,
+      "maximumAbsoluteMs": 12.684244403626508,
+      "spearmanSignedErrorVsTime": 0.7
+    },
+    "('sample-032', 'even')": {
+      "audibleCount": 8,
+      "pairedCount": 7,
+      "missingCount": 1,
+      "audibleWeight": 800.1999999999999,
+      "correctWeight": 622.4,
+      "within5RateIncludingMissing": 0.7778055486128468,
+      "bandCounts": {
+        "within5": 6,
+        "over5Through10": 1,
+        "over10Through20": 0,
+        "over20": 0,
+        "missingCandidate": 1
+      },
+      "bandWeights": {
+        "within5": 622.4,
+        "over5Through10": 159.1,
+        "over10Through20": 0,
+        "over20": 0,
+        "missingCandidate": 18.7
+      },
+      "medianSignedMs": -3.254527759505436,
+      "medianAbsoluteMs": 3.254527759505436,
+      "medianAbsoluteDeviationMs": 1.5697611583746038,
+      "p95AbsoluteMs": 5.102620433219999,
+      "maximumAbsoluteMs": 5.221905368365697,
+      "spearmanSignedErrorVsTime": -0.32142857142857145
+    },
+    "('sample-032', 'odd')": {
+      "audibleCount": 9,
+      "pairedCount": 8,
+      "missingCount": 1,
+      "audibleWeight": 582.6,
+      "correctWeight": 336.9,
+      "within5RateIncludingMissing": 0.57826982492276,
+      "bandCounts": {
+        "within5": 3,
+        "over5Through10": 5,
+        "over10Through20": 0,
+        "over20": 0,
+        "missingCandidate": 1
+      },
+      "bandWeights": {
+        "within5": 336.9,
+        "over5Through10": 182.5,
+        "over10Through20": 0,
+        "over20": 0,
+        "missingCandidate": 63.2
+      },
+      "medianSignedMs": 3.254527759505436,
+      "medianAbsoluteMs": 5.529573472071206,
+      "medianAbsoluteDeviationMs": 4.895570506574586,
+      "p95AbsoluteMs": 8.432619483047164,
+      "maximumAbsoluteMs": 9.091835655970499,
+      "spearmanSignedErrorVsTime": 0.38095238095238093
+    },
+    "('sample-044', 'even')": {
+      "audibleCount": 12,
+      "pairedCount": 12,
+      "missingCount": 0,
+      "audibleWeight": 54.077777777777776,
+      "correctWeight": 51.97777777777778,
+      "within5RateIncludingMissing": 0.9611670433531951,
+      "bandCounts": {
+        "within5": 10,
+        "over5Through10": 1,
+        "over10Through20": 1,
+        "over20": 0,
+        "missingCandidate": 0
+      },
+      "bandWeights": {
+        "within5": 51.97777777777778,
+        "over5Through10": 1.0,
+        "over10Through20": 1.1,
+        "over20": 0,
+        "missingCandidate": 0
+      },
+      "medianSignedMs": 0.40837718142938684,
+      "medianAbsoluteMs": 0.8369946066959528,
+      "medianAbsoluteDeviationMs": 0.7067516109482312,
+      "p95AbsoluteMs": 7.983008936593929,
+      "maximumAbsoluteMs": 10.849224903846334,
+      "spearmanSignedErrorVsTime": -0.0979020979020979
+    },
+    "('sample-044', 'odd')": {
+      "audibleCount": 11,
+      "pairedCount": 11,
+      "missingCount": 0,
+      "audibleWeight": 58.1,
+      "correctWeight": 51.87777777777778,
+      "within5RateIncludingMissing": 0.892904953145917,
+      "bandCounts": {
+        "within5": 10,
+        "over5Through10": 1,
+        "over10Through20": 0,
+        "over20": 0,
+        "missingCandidate": 0
+      },
+      "bandWeights": {
+        "within5": 51.87777777777778,
+        "over5Through10": 6.222222222222222,
+        "over10Through20": 0,
+        "over20": 0,
+        "missingCandidate": 0
+      },
+      "medianSignedMs": -0.40837718142938684,
+      "medianAbsoluteMs": 0.7122402438399149,
+      "medianAbsoluteDeviationMs": 0.6243375809390272,
+      "p95AbsoluteMs": 5.59861710649966,
+      "maximumAbsoluteMs": 8.521613163684378,
+      "spearmanSignedErrorVsTime": -0.41818181818181815
+    }
+  },
+  "perSampleRedline": {
+    "('sample-002', 10)": {
+      "audibleCount": 4,
+      "pairedCount": 3,
+      "missingCount": 1,
+      "audibleWeight": 30.4,
+      "correctWeight": 15.2,
+      "within5RateIncludingMissing": 0.5,
+      "bandCounts": {
+        "within5": 2,
+        "over5Through10": 0,
+        "over10Through20": 1,
+        "over20": 0,
+        "missingCandidate": 1
+      },
+      "bandWeights": {
+        "within5": 15.2,
+        "over5Through10": 0,
+        "over10Through20": 7.6,
+        "over20": 0,
+        "missingCandidate": 7.6
+      },
+      "medianSignedMs": 0.2108848450698133,
+      "medianAbsoluteMs": 4.020397189582582,
+      "medianAbsoluteDeviationMs": 4.231282034652395,
+      "p95AbsoluteMs": 10.887349954537058,
+      "maximumAbsoluteMs": 11.650344706198666,
+      "spearmanSignedErrorVsTime": -1.0
+    },
+    "('sample-002', 13)": {
+      "audibleCount": 2,
+      "pairedCount": 2,
+      "missingCount": 0,
+      "audibleWeight": 34.3,
+      "correctWeight": 7.6,
+      "within5RateIncludingMissing": 0.22157434402332363,
+      "bandCounts": {
+        "within5": 1,
+        "over5Through10": 0,
+        "over10Through20": 1,
+        "over20": 0,
+        "missingCandidate": 0
+      },
+      "bandWeights": {
+        "within5": 7.6,
+        "over5Through10": 0,
+        "over10Through20": 26.7,
+        "over20": 0,
+        "missingCandidate": 0
+      },
+      "medianSignedMs": 8.102624449642462,
+      "medianAbsoluteMs": 8.102624449642462,
+      "medianAbsoluteDeviationMs": 4.581619953984045,
+      "p95AbsoluteMs": 12.226082408228104,
+      "maximumAbsoluteMs": 12.684244403626508,
+      "spearmanSignedErrorVsTime": null
+    },
+    "('sample-002', 16)": {
+      "audibleCount": 1,
+      "pairedCount": 1,
+      "missingCount": 0,
+      "audibleWeight": 59.0,
+      "correctWeight": 59.0,
+      "within5RateIncludingMissing": 1.0,
+      "bandCounts": {
+        "within5": 1,
+        "over5Through10": 0,
+        "over10Through20": 0,
+        "over20": 0,
+        "missingCandidate": 0
+      },
+      "bandWeights": {
+        "within5": 59.0,
+        "over5Through10": 0,
+        "over10Through20": 0,
+        "over20": 0,
+        "missingCandidate": 0
+      },
+      "medianSignedMs": 3.1768981729110237,
+      "medianAbsoluteMs": 3.1768981729110237,
+      "medianAbsoluteDeviationMs": 0.0,
+      "p95AbsoluteMs": 3.1768981729110237,
+      "maximumAbsoluteMs": 3.1768981729110237,
+      "spearmanSignedErrorVsTime": null
+    },
+    "('sample-002', 25)": {
+      "audibleCount": 2,
+      "pairedCount": 2,
+      "missingCount": 0,
+      "audibleWeight": 66.6,
+      "correctWeight": 0,
+      "within5RateIncludingMissing": 0.0,
+      "bandCounts": {
+        "within5": 0,
+        "over5Through10": 2,
+        "over10Through20": 0,
+        "over20": 0,
+        "missingCandidate": 0
+      },
+      "bandWeights": {
+        "within5": 0,
+        "over5Through10": 66.6,
+        "over10Through20": 0,
+        "over20": 0,
+        "missingCandidate": 0
+      },
+      "medianSignedMs": -7.632356035348494,
+      "medianAbsoluteMs": 7.632356035348494,
+      "medianAbsoluteDeviationMs": 0.8141803750477266,
+      "p95AbsoluteMs": 8.365118372891446,
+      "maximumAbsoluteMs": 8.44653641039622,
+      "spearmanSignedErrorVsTime": null
+    },
+    "('sample-002', 30)": {
+      "audibleCount": 1,
+      "pairedCount": 1,
+      "missingCount": 0,
+      "audibleWeight": 26.7,
+      "correctWeight": 26.7,
+      "within5RateIncludingMissing": 1.0,
+      "bandCounts": {
+        "within5": 1,
+        "over5Through10": 0,
+        "over10Through20": 0,
+        "over20": 0,
+        "missingCandidate": 0
+      },
+      "bandWeights": {
+        "within5": 26.7,
+        "over5Through10": 0,
+        "over10Through20": 0,
+        "over20": 0,
+        "missingCandidate": 0
+      },
+      "medianSignedMs": 3.902152266102348,
+      "medianAbsoluteMs": 3.902152266102348,
+      "medianAbsoluteDeviationMs": 0.0,
+      "p95AbsoluteMs": 3.902152266102348,
+      "maximumAbsoluteMs": 3.902152266102348,
+      "spearmanSignedErrorVsTime": null
+    },
+    "('sample-002', 5)": {
+      "audibleCount": 2,
+      "pairedCount": 2,
+      "missingCount": 0,
+      "audibleWeight": 118.0,
+      "correctWeight": 118.0,
+      "within5RateIncludingMissing": 1.0,
+      "bandCounts": {
+        "within5": 2,
+        "over5Through10": 0,
+        "over10Through20": 0,
+        "over20": 0,
+        "missingCandidate": 0
+      },
+      "bandWeights": {
+        "within5": 118.0,
+        "over5Through10": 0,
+        "over10Through20": 0,
+        "over20": 0,
+        "missingCandidate": 0
+      },
+      "medianSignedMs": -3.2924672278113576,
+      "medianAbsoluteMs": 3.2924672278113576,
+      "medianAbsoluteDeviationMs": 0.2708554260771052,
+      "p95AbsoluteMs": 3.536237111280752,
+      "maximumAbsoluteMs": 3.563322653888463,
+      "spearmanSignedErrorVsTime": null
+    },
+    "('sample-032', 0)": {
+      "audibleCount": 17,
+      "pairedCount": 15,
+      "missingCount": 2,
+      "audibleWeight": 1382.8,
+      "correctWeight": 959.3,
+      "within5RateIncludingMissing": 0.6937373445183685,
+      "bandCounts": {
+        "within5": 9,
+        "over5Through10": 6,
+        "over10Through20": 0,
+        "over20": 0,
+        "missingCandidate": 2
+      },
+      "bandWeights": {
+        "within5": 959.3,
+        "over5Through10": 341.6,
+        "over10Through20": 0,
+        "over20": 0,
+        "missingCandidate": 81.9
+      },
+      "medianSignedMs": -1.9385456987656653,
+      "medianAbsoluteMs": 4.248652601934737,
+      "medianAbsoluteDeviationMs": 2.9207022502669133,
+      "p95AbsoluteMs": 7.773403310123829,
+      "maximumAbsoluteMs": 9.091835655970499,
+      "spearmanSignedErrorVsTime": 0.3107142857142857
+    },
+    "('sample-044', 0)": {
+      "audibleCount": 23,
+      "pairedCount": 23,
+      "missingCount": 0,
+      "audibleWeight": 112.17777777777778,
+      "correctWeight": 103.85555555555555,
+      "within5RateIncludingMissing": 0.9258122028526149,
+      "bandCounts": {
+        "within5": 20,
+        "over5Through10": 2,
+        "over10Through20": 1,
+        "over20": 0,
+        "missingCandidate": 0
+      },
+      "bandWeights": {
+        "within5": 103.85555555555555,
+        "over5Through10": 7.222222222222222,
+        "over10Through20": 1.1,
+        "over20": 0,
+        "missingCandidate": 0
+      },
+      "medianSignedMs": 0.034428077246047906,
+      "medianAbsoluteMs": 0.745365308575856,
+      "medianAbsoluteDeviationMs": 0.7109372313298081,
+      "p95AbsoluteMs": 8.233244161836497,
+      "maximumAbsoluteMs": 10.849224903846334,
+      "spearmanSignedErrorVsTime": -0.12549407114624506
+    }
+  },
+  "perSampleRedlineFold": {
+    "('sample-002', 10, 'even')": {
+      "audibleCount": 2,
+      "pairedCount": 2,
+      "missingCount": 0,
+      "audibleWeight": 15.2,
+      "correctWeight": 7.6,
+      "within5RateIncludingMissing": 0.5,
+      "bandCounts": {
+        "within5": 1,
+        "over5Through10": 0,
+        "over10Through20": 1,
+        "over20": 0,
+        "missingCandidate": 0
+      },
+      "bandWeights": {
+        "within5": 7.6,
+        "over5Through10": 0,
+        "over10Through20": 7.6,
+        "over20": 0,
+        "missingCandidate": 0
+      },
+      "medianSignedMs": 3.8149737583080423,
+      "medianAbsoluteMs": 7.835370947890624,
+      "medianAbsoluteDeviationMs": 7.835370947890624,
+      "p95AbsoluteMs": 11.268847330367862,
+      "maximumAbsoluteMs": 11.650344706198666,
+      "spearmanSignedErrorVsTime": null
+    },
+    "('sample-002', 10, 'odd')": {
+      "audibleCount": 2,
+      "pairedCount": 1,
+      "missingCount": 1,
+      "audibleWeight": 15.2,
+      "correctWeight": 7.6,
+      "within5RateIncludingMissing": 0.5,
+      "bandCounts": {
+        "within5": 1,
+        "over5Through10": 0,
+        "over10Through20": 0,
+        "over20": 0,
+        "missingCandidate": 1
+      },
+      "bandWeights": {
+        "within5": 7.6,
+        "over5Through10": 0,
+        "over10Through20": 0,
+        "over20": 0,
+        "missingCandidate": 7.6
+      },
+      "medianSignedMs": 0.2108848450698133,
+      "medianAbsoluteMs": 0.2108848450698133,
+      "medianAbsoluteDeviationMs": 0.0,
+      "p95AbsoluteMs": 0.2108848450698133,
+      "maximumAbsoluteMs": 0.2108848450698133,
+      "spearmanSignedErrorVsTime": null
+    },
+    "('sample-002', 13, 'odd')": {
+      "audibleCount": 2,
+      "pairedCount": 2,
+      "missingCount": 0,
+      "audibleWeight": 34.3,
+      "correctWeight": 7.6,
+      "within5RateIncludingMissing": 0.22157434402332363,
+      "bandCounts": {
+        "within5": 1,
+        "over5Through10": 0,
+        "over10Through20": 1,
+        "over20": 0,
+        "missingCandidate": 0
+      },
+      "bandWeights": {
+        "within5": 7.6,
+        "over5Through10": 0,
+        "over10Through20": 26.7,
+        "over20": 0,
+        "missingCandidate": 0
+      },
+      "medianSignedMs": 8.102624449642462,
+      "medianAbsoluteMs": 8.102624449642462,
+      "medianAbsoluteDeviationMs": 4.581619953984045,
+      "p95AbsoluteMs": 12.226082408228104,
+      "maximumAbsoluteMs": 12.684244403626508,
+      "spearmanSignedErrorVsTime": null
+    },
+    "('sample-002', 16, 'even')": {
+      "audibleCount": 1,
+      "pairedCount": 1,
+      "missingCount": 0,
+      "audibleWeight": 59.0,
+      "correctWeight": 59.0,
+      "within5RateIncludingMissing": 1.0,
+      "bandCounts": {
+        "within5": 1,
+        "over5Through10": 0,
+        "over10Through20": 0,
+        "over20": 0,
+        "missingCandidate": 0
+      },
+      "bandWeights": {
+        "within5": 59.0,
+        "over5Through10": 0,
+        "over10Through20": 0,
+        "over20": 0,
+        "missingCandidate": 0
+      },
+      "medianSignedMs": 3.1768981729110237,
+      "medianAbsoluteMs": 3.1768981729110237,
+      "medianAbsoluteDeviationMs": 0.0,
+      "p95AbsoluteMs": 3.1768981729110237,
+      "maximumAbsoluteMs": 3.1768981729110237,
+      "spearmanSignedErrorVsTime": null
+    },
+    "('sample-002', 25, 'even')": {
+      "audibleCount": 2,
+      "pairedCount": 2,
+      "missingCount": 0,
+      "audibleWeight": 66.6,
+      "correctWeight": 0,
+      "within5RateIncludingMissing": 0.0,
+      "bandCounts": {
+        "within5": 0,
+        "over5Through10": 2,
+        "over10Through20": 0,
+        "over20": 0,
+        "missingCandidate": 0
+      },
+      "bandWeights": {
+        "within5": 0,
+        "over5Through10": 66.6,
+        "over10Through20": 0,
+        "over20": 0,
+        "missingCandidate": 0
+      },
+      "medianSignedMs": -7.632356035348494,
+      "medianAbsoluteMs": 7.632356035348494,
+      "medianAbsoluteDeviationMs": 0.8141803750477266,
+      "p95AbsoluteMs": 8.365118372891446,
+      "maximumAbsoluteMs": 8.44653641039622,
+      "spearmanSignedErrorVsTime": null
+    },
+    "('sample-002', 30, 'odd')": {
+      "audibleCount": 1,
+      "pairedCount": 1,
+      "missingCount": 0,
+      "audibleWeight": 26.7,
+      "correctWeight": 26.7,
+      "within5RateIncludingMissing": 1.0,
+      "bandCounts": {
+        "within5": 1,
+        "over5Through10": 0,
+        "over10Through20": 0,
+        "over20": 0,
+        "missingCandidate": 0
+      },
+      "bandWeights": {
+        "within5": 26.7,
+        "over5Through10": 0,
+        "over10Through20": 0,
+        "over20": 0,
+        "missingCandidate": 0
+      },
+      "medianSignedMs": 3.902152266102348,
+      "medianAbsoluteMs": 3.902152266102348,
+      "medianAbsoluteDeviationMs": 0.0,
+      "p95AbsoluteMs": 3.902152266102348,
+      "maximumAbsoluteMs": 3.902152266102348,
+      "spearmanSignedErrorVsTime": null
+    },
+    "('sample-002', 5, 'even')": {
+      "audibleCount": 1,
+      "pairedCount": 1,
+      "missingCount": 0,
+      "audibleWeight": 59.0,
+      "correctWeight": 59.0,
+      "within5RateIncludingMissing": 1.0,
+      "bandCounts": {
+        "within5": 1,
+        "over5Through10": 0,
+        "over10Through20": 0,
+        "over20": 0,
+        "missingCandidate": 0
+      },
+      "bandWeights": {
+        "within5": 59.0,
+        "over5Through10": 0,
+        "over10Through20": 0,
+        "over20": 0,
+        "missingCandidate": 0
+      },
+      "medianSignedMs": -3.0216118017342524,
+      "medianAbsoluteMs": 3.0216118017342524,
+      "medianAbsoluteDeviationMs": 0.0,
+      "p95AbsoluteMs": 3.0216118017342524,
+      "maximumAbsoluteMs": 3.0216118017342524,
+      "spearmanSignedErrorVsTime": null
+    },
+    "('sample-002', 5, 'odd')": {
+      "audibleCount": 1,
+      "pairedCount": 1,
+      "missingCount": 0,
+      "audibleWeight": 59.0,
+      "correctWeight": 59.0,
+      "within5RateIncludingMissing": 1.0,
+      "bandCounts": {
+        "within5": 1,
+        "over5Through10": 0,
+        "over10Through20": 0,
+        "over20": 0,
+        "missingCandidate": 0
+      },
+      "bandWeights": {
+        "within5": 59.0,
+        "over5Through10": 0,
+        "over10Through20": 0,
+        "over20": 0,
+        "missingCandidate": 0
+      },
+      "medianSignedMs": -3.563322653888463,
+      "medianAbsoluteMs": 3.563322653888463,
+      "medianAbsoluteDeviationMs": 0.0,
+      "p95AbsoluteMs": 3.563322653888463,
+      "maximumAbsoluteMs": 3.563322653888463,
+      "spearmanSignedErrorVsTime": null
+    },
+    "('sample-032', 0, 'even')": {
+      "audibleCount": 8,
+      "pairedCount": 7,
+      "missingCount": 1,
+      "audibleWeight": 800.1999999999999,
+      "correctWeight": 622.4,
+      "within5RateIncludingMissing": 0.7778055486128468,
+      "bandCounts": {
+        "within5": 6,
+        "over5Through10": 1,
+        "over10Through20": 0,
+        "over20": 0,
+        "missingCandidate": 1
+      },
+      "bandWeights": {
+        "within5": 622.4,
+        "over5Through10": 159.1,
+        "over10Through20": 0,
+        "over20": 0,
+        "missingCandidate": 18.7
+      },
+      "medianSignedMs": -3.254527759505436,
+      "medianAbsoluteMs": 3.254527759505436,
+      "medianAbsoluteDeviationMs": 1.5697611583746038,
+      "p95AbsoluteMs": 5.102620433219999,
+      "maximumAbsoluteMs": 5.221905368365697,
+      "spearmanSignedErrorVsTime": -0.32142857142857145
+    },
+    "('sample-032', 0, 'odd')": {
+      "audibleCount": 9,
+      "pairedCount": 8,
+      "missingCount": 1,
+      "audibleWeight": 582.6,
+      "correctWeight": 336.9,
+      "within5RateIncludingMissing": 0.57826982492276,
+      "bandCounts": {
+        "within5": 3,
+        "over5Through10": 5,
+        "over10Through20": 0,
+        "over20": 0,
+        "missingCandidate": 1
+      },
+      "bandWeights": {
+        "within5": 336.9,
+        "over5Through10": 182.5,
+        "over10Through20": 0,
+        "over20": 0,
+        "missingCandidate": 63.2
+      },
+      "medianSignedMs": 3.254527759505436,
+      "medianAbsoluteMs": 5.529573472071206,
+      "medianAbsoluteDeviationMs": 4.895570506574586,
+      "p95AbsoluteMs": 8.432619483047164,
+      "maximumAbsoluteMs": 9.091835655970499,
+      "spearmanSignedErrorVsTime": 0.38095238095238093
+    },
+    "('sample-044', 0, 'even')": {
+      "audibleCount": 12,
+      "pairedCount": 12,
+      "missingCount": 0,
+      "audibleWeight": 54.077777777777776,
+      "correctWeight": 51.97777777777778,
+      "within5RateIncludingMissing": 0.9611670433531951,
+      "bandCounts": {
+        "within5": 10,
+        "over5Through10": 1,
+        "over10Through20": 1,
+        "over20": 0,
+        "missingCandidate": 0
+      },
+      "bandWeights": {
+        "within5": 51.97777777777778,
+        "over5Through10": 1.0,
+        "over10Through20": 1.1,
+        "over20": 0,
+        "missingCandidate": 0
+      },
+      "medianSignedMs": 0.40837718142938684,
+      "medianAbsoluteMs": 0.8369946066959528,
+      "medianAbsoluteDeviationMs": 0.7067516109482312,
+      "p95AbsoluteMs": 7.983008936593929,
+      "maximumAbsoluteMs": 10.849224903846334,
+      "spearmanSignedErrorVsTime": -0.0979020979020979
+    },
+    "('sample-044', 0, 'odd')": {
+      "audibleCount": 11,
+      "pairedCount": 11,
+      "missingCount": 0,
+      "audibleWeight": 58.1,
+      "correctWeight": 51.87777777777778,
+      "within5RateIncludingMissing": 0.892904953145917,
+      "bandCounts": {
+        "within5": 10,
+        "over5Through10": 1,
+        "over10Through20": 0,
+        "over20": 0,
+        "missingCandidate": 0
+      },
+      "bandWeights": {
+        "within5": 51.87777777777778,
+        "over5Through10": 6.222222222222222,
+        "over10Through20": 0,
+        "over20": 0,
+        "missingCandidate": 0
+      },
+      "medianSignedMs": -0.40837718142938684,
+      "medianAbsoluteMs": 0.7122402438399149,
+      "medianAbsoluteDeviationMs": 0.6243375809390272,
+      "p95AbsoluteMs": 5.59861710649966,
+      "maximumAbsoluteMs": 8.521613163684378,
+      "spearmanSignedErrorVsTime": -0.41818181818181815
+    }
+  },
+  "foldContrasts": [
+    {
+      "sampleId": "sample-044",
+      "redlineSegment": 0,
+      "oddPairs": 11,
+      "evenPairs": 12,
+      "oddMedianMs": -0.40837718142938684,
+      "evenMedianMs": 0.40837718142938684,
+      "oddMinusEvenMs": -0.8167543628587737
+    },
+    {
+      "sampleId": "sample-032",
+      "redlineSegment": 0,
+      "oddPairs": 8,
+      "evenPairs": 7,
+      "oddMedianMs": 3.254527759505436,
+      "evenMedianMs": -3.254527759505436,
+      "oddMinusEvenMs": 6.509055519010872
+    }
+  ],
+  "signedErrorHistogramMs": {
+    "sample-044": {
+      "-10": 2,
+      "0": 18,
+      "5": 3
+    },
+    "sample-032": {
+      "-5": 7,
+      "0": 4,
+      "5": 3,
+      "10": 1
+    },
+    "sample-002": {
+      "-10": 1,
+      "-5": 4,
+      "0": 1,
+      "5": 3,
+      "10": 1,
+      "15": 1
+    }
+  },
+  "orderedResiduals": [
+    {
+      "segmentId": "sample-002_h34243",
+      "sampleId": "sample-002",
+      "referenceMs": 34243,
+      "fold": "even",
+      "redlineSegment": 5,
+      "e5CalibratedErrorMs": -3.0216118017342524,
+      "errorBand": "within5"
+    },
+    {
+      "segmentId": "sample-002_h42958",
+      "sampleId": "sample-002",
+      "referenceMs": 42958,
+      "fold": "odd",
+      "redlineSegment": 5,
+      "e5CalibratedErrorMs": -3.563322653888463,
+      "errorBand": "within5"
+    },
+    {
+      "segmentId": "sample-002_h85447",
+      "sampleId": "sample-002",
+      "referenceMs": 85447,
+      "fold": "even",
+      "redlineSegment": 10,
+      "e5CalibratedErrorMs": 11.650344706198666,
+      "errorBand": "over10Through20"
+    },
+    {
+      "segmentId": "sample-002_h90894",
+      "sampleId": "sample-002",
+      "referenceMs": 90894,
+      "fold": "odd",
+      "redlineSegment": 10,
+      "e5CalibratedErrorMs": null,
+      "errorBand": "missingCandidate"
+    },
+    {
+      "segmentId": "sample-002_h99106",
+      "sampleId": "sample-002",
+      "referenceMs": 99106,
+      "fold": "odd",
+      "redlineSegment": 10,
+      "e5CalibratedErrorMs": 0.2108848450698133,
+      "errorBand": "within5"
+    },
+    {
+      "segmentId": "sample-002_h118715",
+      "sampleId": "sample-002",
+      "referenceMs": 118715,
+      "fold": "even",
+      "redlineSegment": 10,
+      "e5CalibratedErrorMs": -4.020397189582582,
+      "errorBand": "within5"
+    },
+    {
+      "segmentId": "sample-002_h201760",
+      "sampleId": "sample-002",
+      "referenceMs": 201760,
+      "fold": "odd",
+      "redlineSegment": 13,
+      "e5CalibratedErrorMs": 12.684244403626508,
+      "errorBand": "over10Through20"
+    },
+    {
+      "segmentId": "sample-002_h205028",
+      "sampleId": "sample-002",
+      "referenceMs": 205028,
+      "fold": "odd",
+      "redlineSegment": 13,
+      "e5CalibratedErrorMs": 3.521004495658417,
+      "errorBand": "within5"
+    },
+    {
+      "segmentId": "sample-002_h220770",
+      "sampleId": "sample-002",
+      "referenceMs": 220770,
+      "fold": "even",
+      "redlineSegment": 16,
+      "e5CalibratedErrorMs": 3.1768981729110237,
+      "errorBand": "within5"
+    },
+    {
+      "segmentId": "sample-002_h240570",
+      "sampleId": "sample-002",
+      "referenceMs": 240570,
+      "fold": "even",
+      "redlineSegment": 25,
+      "e5CalibratedErrorMs": -6.818175660300767,
+      "errorBand": "over5Through10"
+    },
+    {
+      "segmentId": "sample-002_h242581",
+      "sampleId": "sample-002",
+      "referenceMs": 242581,
+      "fold": "even",
+      "redlineSegment": 25,
+      "e5CalibratedErrorMs": -8.44653641039622,
+      "errorBand": "over5Through10"
+    },
+    {
+      "segmentId": "sample-002_h257155",
+      "sampleId": "sample-002",
+      "referenceMs": 257155,
+      "fold": "odd",
+      "redlineSegment": 30,
+      "e5CalibratedErrorMs": 3.902152266102348,
+      "errorBand": "within5"
+    },
+    {
+      "segmentId": "sample-032_h24026",
+      "sampleId": "sample-032",
+      "referenceMs": 24026,
+      "fold": "odd",
+      "redlineSegment": 0,
+      "e5CalibratedErrorMs": 5.532247976632789,
+      "errorBand": "over5Through10"
+    },
+    {
+      "segmentId": "sample-032_h75692",
+      "sampleId": "sample-032",
+      "referenceMs": 75692,
+      "fold": "odd",
+      "redlineSegment": 0,
+      "e5CalibratedErrorMs": -6.6830734128452605,
+      "errorBand": "over5Through10"
+    },
+    {
+      "segmentId": "sample-032_h88401",
+      "sampleId": "sample-032",
+      "referenceMs": 88401,
+      "fold": "even",
+      "redlineSegment": 0,
+      "e5CalibratedErrorMs": null,
+      "errorBand": "missingCandidate"
+    },
+    {
+      "segmentId": "sample-032_h93192",
+      "sampleId": "sample-032",
+      "referenceMs": 93192,
+      "fold": "even",
+      "redlineSegment": 0,
+      "e5CalibratedErrorMs": -1.9385456987656653,
+      "errorBand": "within5"
+    },
+    {
+      "segmentId": "sample-032_h97220",
+      "sampleId": "sample-032",
+      "referenceMs": 97220,
+      "fold": "odd",
+      "redlineSegment": 0,
+      "e5CalibratedErrorMs": -3.342272561349091,
+      "errorBand": "within5"
+    },
+    {
+      "segmentId": "sample-032_h117220",
+      "sampleId": "sample-032",
+      "referenceMs": 117220,
+      "fold": "even",
+      "redlineSegment": 0,
+      "e5CalibratedErrorMs": 1.746173900377471,
+      "errorBand": "within5"
+    },
+    {
+      "segmentId": "sample-032_h129997",
+      "sampleId": "sample-032",
+      "referenceMs": 129997,
+      "fold": "even",
+      "redlineSegment": 0,
+      "e5CalibratedErrorMs": -5.221905368365697,
+      "errorBand": "over5Through10"
+    },
+    {
+      "segmentId": "sample-032_h168748",
+      "sampleId": "sample-032",
+      "referenceMs": 168748,
+      "fold": "odd",
+      "redlineSegment": 0,
+      "e5CalibratedErrorMs": -4.234601951757213,
+      "errorBand": "within5"
+    },
+    {
+      "segmentId": "sample-032_h186248",
+      "sampleId": "sample-032",
+      "referenceMs": 186248,
+      "fold": "even",
+      "redlineSegment": 0,
+      "e5CalibratedErrorMs": -3.254527759505436,
+      "errorBand": "within5"
+    },
+    {
+      "segmentId": "sample-032_h218192",
+      "sampleId": "sample-032",
+      "referenceMs": 218192,
+      "fold": "even",
+      "redlineSegment": 0,
+      "e5CalibratedErrorMs": -4.248652601934737,
+      "errorBand": "within5"
+    },
+    {
+      "segmentId": "sample-032_h250970",
+      "sampleId": "sample-032",
+      "referenceMs": 250970,
+      "fold": "even",
+      "redlineSegment": 0,
+      "e5CalibratedErrorMs": -1.542252970422851,
+      "errorBand": "within5"
+    },
+    {
+      "segmentId": "sample-032_h309859",
+      "sampleId": "sample-032",
+      "referenceMs": 309859,
+      "fold": "odd",
+      "redlineSegment": 0,
+      "e5CalibratedErrorMs": null,
+      "errorBand": "missingCandidate"
+    },
+    {
+      "segmentId": "sample-032_h310415",
+      "sampleId": "sample-032",
+      "referenceMs": 310415,
+      "fold": "odd",
+      "redlineSegment": 0,
+      "e5CalibratedErrorMs": 9.091835655970499,
+      "errorBand": "over5Through10"
+    },
+    {
+      "segmentId": "sample-032_h334165",
+      "sampleId": "sample-032",
+      "referenceMs": 334165,
+      "fold": "odd",
+      "redlineSegment": 0,
+      "e5CalibratedErrorMs": 0.982156551501248,
+      "errorBand": "within5"
+    },
+    {
+      "segmentId": "sample-032_h336873",
+      "sampleId": "sample-032",
+      "referenceMs": 336873,
+      "fold": "even",
+      "redlineSegment": 0,
+      "e5CalibratedErrorMs": -4.82428891788004,
+      "errorBand": "within5"
+    },
+    {
+      "segmentId": "sample-032_h354790",
+      "sampleId": "sample-032",
+      "referenceMs": 354790,
+      "fold": "odd",
+      "redlineSegment": 0,
+      "e5CalibratedErrorMs": 7.208360876189545,
+      "errorBand": "over5Through10"
+    },
+    {
+      "segmentId": "sample-032_h355067",
+      "sampleId": "sample-032",
+      "referenceMs": 355067,
+      "fold": "odd",
+      "redlineSegment": 0,
+      "e5CalibratedErrorMs": 5.526898967509624,
+      "errorBand": "over5Through10"
+    },
+    {
+      "segmentId": "sample-044_h4447",
+      "sampleId": "sample-044",
+      "referenceMs": 4447,
+      "fold": "even",
+      "redlineSegment": 0,
+      "e5CalibratedErrorMs": 1.4479312991425104,
+      "errorBand": "within5"
+    },
+    {
+      "segmentId": "sample-044_h5781",
+      "sampleId": "sample-044",
+      "referenceMs": 5781,
+      "fold": "even",
+      "redlineSegment": 0,
+      "e5CalibratedErrorMs": 5.637923145205605,
+      "errorBand": "over5Through10"
+    },
+    {
+      "segmentId": "sample-044_h7281",
+      "sampleId": "sample-044",
+      "referenceMs": 7281,
+      "fold": "even",
+      "redlineSegment": 0,
+      "e5CalibratedErrorMs": -1.5000944881712712,
+      "errorBand": "within5"
+    },
+    {
+      "segmentId": "sample-044_h8947",
+      "sampleId": "sample-044",
+      "referenceMs": 8947,
+      "fold": "odd",
+      "redlineSegment": 0,
+      "e5CalibratedErrorMs": 0.054105771268950775,
+      "errorBand": "within5"
+    },
+    {
+      "segmentId": "sample-044_h9447",
+      "sampleId": "sample-044",
+      "referenceMs": 9447,
+      "fold": "even",
+      "redlineSegment": 0,
+      "e5CalibratedErrorMs": 0.034428077246047906,
+      "errorBand": "within5"
+    },
+    {
+      "segmentId": "sample-044_h14114",
+      "sampleId": "sample-044",
+      "referenceMs": 14114,
+      "fold": "odd",
+      "redlineSegment": 0,
+      "e5CalibratedErrorMs": -1.032714762368414,
+      "errorBand": "within5"
+    },
+    {
+      "segmentId": "sample-044_h18114",
+      "sampleId": "sample-044",
+      "referenceMs": 18114,
+      "fold": "odd",
+      "redlineSegment": 0,
+      "e5CalibratedErrorMs": 0.7122402438399149,
+      "errorBand": "within5"
+    },
+    {
+      "segmentId": "sample-044_h23781",
+      "sampleId": "sample-044",
+      "referenceMs": 23781,
+      "fold": "odd",
+      "redlineSegment": 0,
+      "e5CalibratedErrorMs": -1.4038485824785312,
+      "errorBand": "within5"
+    },
+    {
+      "segmentId": "sample-044_h24614",
+      "sampleId": "sample-044",
+      "referenceMs": 24614,
+      "fold": "odd",
+      "redlineSegment": 0,
+      "e5CalibratedErrorMs": 2.675621049314941,
+      "errorBand": "within5"
+    },
+    {
+      "segmentId": "sample-044_h24947",
+      "sampleId": "sample-044",
+      "referenceMs": 24947,
+      "fold": "odd",
+      "redlineSegment": 0,
+      "e5CalibratedErrorMs": -0.19145823132566875,
+      "errorBand": "within5"
+    },
+    {
+      "segmentId": "sample-044_h25447",
+      "sampleId": "sample-044",
+      "referenceMs": 25447,
+      "fold": "odd",
+      "redlineSegment": 0,
+      "e5CalibratedErrorMs": -0.40837718142938684,
+      "errorBand": "within5"
+    },
+    {
+      "segmentId": "sample-044_h27615",
+      "sampleId": "sample-044",
+      "referenceMs": 27615,
+      "fold": "even",
+      "redlineSegment": 0,
+      "e5CalibratedErrorMs": -10.849224903846334,
+      "errorBand": "over10Through20"
+    },
+    {
+      "segmentId": "sample-044_h28114",
+      "sampleId": "sample-044",
+      "referenceMs": 28114,
+      "fold": "even",
+      "redlineSegment": 0,
+      "e5CalibratedErrorMs": 0.19906608354358468,
+      "errorBand": "within5"
+    },
+    {
+      "segmentId": "sample-044_h29947",
+      "sampleId": "sample-044",
+      "referenceMs": 29947,
+      "fold": "odd",
+      "redlineSegment": 0,
+      "e5CalibratedErrorMs": -0.3999619353126036,
+      "errorBand": "within5"
+    },
+    {
+      "segmentId": "sample-044_h30281",
+      "sampleId": "sample-044",
+      "referenceMs": 30281,
+      "fold": "odd",
+      "redlineSegment": 0,
+      "e5CalibratedErrorMs": -8.521613163684378,
+      "errorBand": "over5Through10"
+    },
+    {
+      "segmentId": "sample-044_h32947",
+      "sampleId": "sample-044",
+      "referenceMs": 32947,
+      "fold": "even",
+      "redlineSegment": 0,
+      "e5CalibratedErrorMs": 0.6656137424652115,
+      "errorBand": "within5"
+    },
+    {
+      "segmentId": "sample-044_h35281",
+      "sampleId": "sample-044",
+      "referenceMs": 35281,
+      "fold": "even",
+      "redlineSegment": 0,
+      "e5CalibratedErrorMs": 2.7159058611287037,
+      "errorBand": "within5"
+    },
+    {
+      "segmentId": "sample-044_h36781",
+      "sampleId": "sample-044",
+      "referenceMs": 36781,
+      "fold": "even",
+      "redlineSegment": 0,
+      "e5CalibratedErrorMs": 0.058928381666191854,
+      "errorBand": "within5"
+    },
+    {
+      "segmentId": "sample-044_h38614",
+      "sampleId": "sample-044",
+      "referenceMs": 38614,
+      "fold": "even",
+      "redlineSegment": 0,
+      "e5CalibratedErrorMs": 0.745365308575856,
+      "errorBand": "within5"
+    },
+    {
+      "segmentId": "sample-044_h39781",
+      "sampleId": "sample-044",
+      "referenceMs": 39781,
+      "fold": "even",
+      "redlineSegment": 0,
+      "e5CalibratedErrorMs": -0.9286239048160496,
+      "errorBand": "within5"
+    },
+    {
+      "segmentId": "sample-044_h42114",
+      "sampleId": "sample-044",
+      "referenceMs": 42114,
+      "fold": "even",
+      "redlineSegment": 0,
+      "e5CalibratedErrorMs": 0.617688279315189,
+      "errorBand": "within5"
+    },
+    {
+      "segmentId": "sample-044_h42447",
+      "sampleId": "sample-044",
+      "referenceMs": 42447,
+      "fold": "odd",
+      "redlineSegment": 0,
+      "e5CalibratedErrorMs": -1.134237087357178,
+      "errorBand": "within5"
+    },
+    {
+      "segmentId": "sample-044_h43614",
+      "sampleId": "sample-044",
+      "referenceMs": 43614,
+      "fold": "odd",
+      "redlineSegment": 0,
+      "e5CalibratedErrorMs": -0.5423994904012943,
+      "errorBand": "within5"
+    }
+  ],
+  "limitations": [
+    "Diagnostic uses the same three-song provisional development labels as E5 and is not independent confirmation",
+    "Residual size alone cannot distinguish wrong peak selection from local timing variation or label error",
+    "No new correction, candidate, threshold or production behavior is introduced"
+  ]
+}

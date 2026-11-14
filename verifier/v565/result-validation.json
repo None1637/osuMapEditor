@@ -1,0 +1,27 @@
+{
+  "version": "v565-leave-one-out-independent-recheck-v1",
+  "passed": true,
+  "comparisonRows": 90,
+  "calibrationRecords": 90,
+  "selfLabelExclusionVerified": true,
+  "fitPopulationVerified": true,
+  "csvVerified": true,
+  "groupsVerified": [
+    "overall",
+    "perSample",
+    "perStratum",
+    "perFold"
+  ],
+  "outputGuardrailsUnchanged": true,
+  "hypotheses": {
+    "H1": false,
+    "H2": false,
+    "H3": true
+  },
+  "targetAchieved": false,
+  "sample044AtLeast80Preserved": true,
+  "audibleCorrectRate": 0.6402567122855166,
+  "deltaFromE5": -0.06448165733645816,
+  "netFixedWeightFromE5": -118.00000000000003,
+  "failures": []
+}

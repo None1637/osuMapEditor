@@ -1,0 +1,42 @@
+{
+  "id": "sample-076",
+  "directoryName": "283841 S-C-U feat Qrispy Joybox - anemone",
+  "beatmapFile": "S-C-U feat. Qrispy Joybox - anemone (Julie) [7K Another].osu",
+  "metadata": {
+    "Title": "anemone",
+    "TitleUnicode": "anemone",
+    "Artist": "S-C-U feat. Qrispy Joybox",
+    "ArtistUnicode": "S-C-U feat. Qrispy Joybox",
+    "Creator": "Julie",
+    "Version": "7K Another",
+    "Source": "REFLEC BEAT colette -Spring-",
+    "Tags": "Kawa KawaEE Happy Shoccho jubeat saucer Konami BEMANI plus Android マラソン！ pack 1 パステルくんとスミス氏のRUNRUNマラソン! Pastel-kun to Smith-shi no RUNRUN Marathon! groovin'!! flowering plants Ranunculaceae",
+    "BeatmapID": "641639",
+    "BeatmapSetID": "283841",
+    "Mode": "3"
+  },
+  "audioDurationMs": 101147.21088435374,
+  "redLines": [
+    {
+      "time": 330,
+      "beatLength": 300,
+      "bpm": 200,
+      "durationMs": 100817.21088435374
+    }
+  ],
+  "referenceBpm": 200,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 100817.21088435374,
+  "status": "ok",
+  "prediction": {
+    "bpm": 200,
+    "offsetMs": 649,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 95,
+    "rawBpm": 400,
+    "rawSegmentCount": 33
+  },
+  "evaluationMs": 924
+}

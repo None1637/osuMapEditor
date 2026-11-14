@@ -1,0 +1,42 @@
+{
+  "id": "sample-058",
+  "directoryName": "1805257 Wonderlands x Showtime x Hatsune Miku - Dance Robot Dance",
+  "beatmapFile": "Wonderlands x Showtime x Hatsune Miku - Dance Robot Dance (SuzumeAyase) [Sya's EASY LV.8].osu",
+  "metadata": {
+    "Title": "Dance Robot Dance",
+    "TitleUnicode": "ダンスロボットダンス",
+    "Artist": "Wonderlands x Showtime x Hatsune Miku",
+    "ArtistUnicode": "ワンダーランズ×ショウタイム × 初音ミク",
+    "Creator": "SuzumeAyase",
+    "Version": "Sya's EASY LV.8",
+    "Source": "プロジェクトセカイ カラフルステージ！ feat. 初音ミク",
+    "Tags": "ML-ysg Pairoxd Syadow- Yuiazu- Onii_ue NayutalieN Nayutan Seijin ナユタン星人 Project SEKAI COLORFUL STAGE! feat. Hatsune Miku Rhythm Mobile Video Game Size Short Ver Version ProSekai Pjsekai Psekai Purosekai Proseka プロセカ SEGA Craft Egg Palette Cover Vocal Japanese Pop Jpop J-pop バーチャル・シンガー Virtual Singer ボーカロイド ボカロ Vocaloid WxS 鳳えむ Otori Emu 草薙寧々 Kusanagi Nene Kino Hina 木野日菜 Machiko まちこ Fujita Saki 藤田咲 Bushiroad BRMM-10492",
+    "BeatmapID": "3702081",
+    "BeatmapSetID": "1805257",
+    "Mode": "3"
+  },
+  "audioDurationMs": 101390.02267573695,
+  "redLines": [
+    {
+      "time": 311,
+      "beatLength": 315.789473684211,
+      "bpm": 189.99999999999974,
+      "durationMs": 101079.02267573695
+    }
+  ],
+  "referenceBpm": 189.99999999999974,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 101079.02267573695,
+  "status": "ok",
+  "prediction": {
+    "bpm": 190,
+    "offsetMs": 341,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 96,
+    "rawBpm": 380,
+    "rawSegmentCount": 71
+  },
+  "evaluationMs": 960
+}

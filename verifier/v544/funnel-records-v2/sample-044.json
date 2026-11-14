@@ -1,0 +1,19 @@
+{
+  "id": "sample-044",
+  "directoryName": "895790 Maozon - Stasis",
+  "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\895790 Maozon - Stasis",
+  "status": "ok",
+  "referenceBpm": 180.0000000000002,
+  "referenceVariable": false,
+  "predictedBpm": 180,
+  "predictedVariable": false,
+  "variableLines": [],
+  "trueVariableMs": 0,
+  "flaggedWindowCount": 18,
+  "flaggedWindowsOnVariable": 0,
+  "rawCandidateCount": 0,
+  "rawCandidatesOnVariable": 0,
+  "finalEvidenceCount": 0,
+  "finalEvidenceOnVariable": 0,
+  "candidates": []
+}

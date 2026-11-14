@@ -1,0 +1,52 @@
+{
+  "id": "sample-093",
+  "directoryName": "29616 NAOKI feat Becky Lucinda - My Only Shining Star (Remix)",
+  "beatmapFile": "NAOKI feat. Becky Lucinda - My Only Shining Star (Remix) (Natteke) [Hyper].osu",
+  "referenceBpm": 144.99999999999994,
+  "predictedBpm": 145,
+  "frozenBpm": 145,
+  "deterministicEvidence": true,
+  "evidence": [
+    {
+      "startMs": 5991,
+      "endMs": 11987,
+      "bpm": 64.6,
+      "points": 3,
+      "maxSupport": 0.7092080406377633,
+      "index": 0,
+      "ratioToPredictedMain": 0.4455172413793103,
+      "ratioToAnnotatedMain": 0.4455172413793105,
+      "boundary": "start",
+      "localBpmMin": 64.6,
+      "localBpmMax": 64.6,
+      "medianSupport": 0.7092080406377633,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 41.37931034482759,
+          "first": -0.0024667223973244066,
+          "second": -0.0023979853039667828,
+          "combined": -0.002444039156516391
+        },
+        "annotatedMain": {
+          "lag": 41.3793103448276,
+          "first": -0.0024667223973244222,
+          "second": -0.002397985303966727,
+          "combined": -0.002444039156516383
+        },
+        "evidenceBpm": {
+          "lag": 92.87925696594428,
+          "first": -0.002182008399500779,
+          "second": null,
+          "combined": -0.002182008399500779
+        }
+      },
+      "objectCount": 11,
+      "objectGrid": {
+        "predictedMainHalf": 0.9090909090909091,
+        "annotatedMainHalf": 0.9090909090909091,
+        "evidenceHalf": 0.18181818181818182
+      }
+    }
+  ],
+  "analysisMs": 1050
+}

@@ -1,0 +1,146 @@
+{
+  "id": "sample-034",
+  "directoryName": "1336953 Various Artists - Julaaaan's Triangle Jump Training",
+  "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\1336953 Various Artists - Julaaaan's Triangle Jump Training",
+  "status": "ok",
+  "referenceBpm": 135.00000000000014,
+  "referenceVariable": false,
+  "predictedBpm": 135,
+  "predictedVariable": false,
+  "variableLines": [],
+  "trueVariableMs": 0,
+  "flaggedWindowCount": 20,
+  "flaggedWindowsOnVariable": 0,
+  "rawCandidateCount": 2,
+  "rawCandidatesOnVariable": 0,
+  "finalEvidenceCount": 0,
+  "finalEvidenceOnVariable": 0,
+  "candidates": [
+    {
+      "startMs": 30952,
+      "endMs": 39944,
+      "bpm": 202.665,
+      "points": 6,
+      "maxSupport": 0.16314421993580566,
+      "localGridCoverage": 0.325,
+      "rejection": "triplet",
+      "independentMainScore": 0.16737466990779393,
+      "independentLocalScore": 0.11622095618753021,
+      "variableOverlapMs": 0,
+      "overlapsVariable": false,
+      "tripletVotes": [
+        {
+          "timeMs": 32952.01814058957,
+          "bpm": 202.665,
+          "localGridCoverage": 0.2653061224489796,
+          "tripletGridCoverage": 0.6938775510204082,
+          "tripletGridHalfCoverage": 0.5306122448979592,
+          "tripletGridDoubleCoverage": 0.7959183673469388
+        },
+        {
+          "timeMs": 33950.47619047619,
+          "bpm": 202.665,
+          "localGridCoverage": 0.325,
+          "tripletGridCoverage": 0.775,
+          "tripletGridHalfCoverage": 0.625,
+          "tripletGridDoubleCoverage": 0.85
+        },
+        {
+          "timeMs": 34948.93424036281,
+          "bpm": 202.665,
+          "localGridCoverage": 0.30952380952380953,
+          "tripletGridCoverage": 0.7380952380952381,
+          "tripletGridHalfCoverage": 0.6190476190476191,
+          "tripletGridDoubleCoverage": 0.8333333333333334
+        },
+        {
+          "timeMs": 35947.39229024943,
+          "bpm": 202.665,
+          "localGridCoverage": 0.2916666666666667,
+          "tripletGridCoverage": 0.6875,
+          "tripletGridHalfCoverage": 0.5416666666666666,
+          "tripletGridDoubleCoverage": 0.7916666666666666
+        },
+        {
+          "timeMs": 36945.85034013605,
+          "bpm": 202.665,
+          "localGridCoverage": 0.4642857142857143,
+          "tripletGridCoverage": 0.9642857142857143,
+          "tripletGridHalfCoverage": 0.8928571428571429,
+          "tripletGridDoubleCoverage": 0.9642857142857143
+        }
+      ]
+    },
+    {
+      "startMs": 42934,
+      "endMs": 53923,
+      "bpm": 202.665,
+      "points": 8,
+      "maxSupport": 0.18478588888926945,
+      "localGridCoverage": 0.34285714285714286,
+      "rejection": "triplet",
+      "independentMainScore": 0.23421968838687784,
+      "independentLocalScore": 0.11922672405193105,
+      "variableOverlapMs": 0,
+      "overlapsVariable": false,
+      "tripletVotes": [
+        {
+          "timeMs": 45931.97278911564,
+          "bpm": 202.665,
+          "localGridCoverage": 0.3611111111111111,
+          "tripletGridCoverage": 0.8055555555555556,
+          "tripletGridHalfCoverage": 0.6944444444444444,
+          "tripletGridDoubleCoverage": 0.8611111111111112
+        },
+        {
+          "timeMs": 46930.43083900226,
+          "bpm": 202.665,
+          "localGridCoverage": 0.30952380952380953,
+          "tripletGridCoverage": 0.7619047619047619,
+          "tripletGridHalfCoverage": 0.6190476190476191,
+          "tripletGridDoubleCoverage": 0.8571428571428571
+        },
+        {
+          "timeMs": 47928.88888888889,
+          "bpm": 202.665,
+          "localGridCoverage": 0.34210526315789475,
+          "tripletGridCoverage": 0.8157894736842105,
+          "tripletGridHalfCoverage": 0.6578947368421053,
+          "tripletGridDoubleCoverage": 0.8947368421052632
+        },
+        {
+          "timeMs": 48927.34693877551,
+          "bpm": 202.665,
+          "localGridCoverage": 0.30952380952380953,
+          "tripletGridCoverage": 0.7619047619047619,
+          "tripletGridHalfCoverage": 0.5952380952380952,
+          "tripletGridDoubleCoverage": 0.8809523809523809
+        },
+        {
+          "timeMs": 49925.80498866213,
+          "bpm": 202.665,
+          "localGridCoverage": 0.2826086956521739,
+          "tripletGridCoverage": 0.7391304347826086,
+          "tripletGridHalfCoverage": 0.5869565217391305,
+          "tripletGridDoubleCoverage": 0.782608695652174
+        },
+        {
+          "timeMs": 50924.26303854875,
+          "bpm": 202.665,
+          "localGridCoverage": 0.4642857142857143,
+          "tripletGridCoverage": 0.9642857142857143,
+          "tripletGridHalfCoverage": 0.8928571428571429,
+          "tripletGridDoubleCoverage": 0.9285714285714286
+        },
+        {
+          "timeMs": 51922.72108843538,
+          "bpm": 202.665,
+          "localGridCoverage": 0.48,
+          "tripletGridCoverage": 1,
+          "tripletGridHalfCoverage": 0.92,
+          "tripletGridDoubleCoverage": 0.92
+        }
+      ]
+    }
+  ]
+}

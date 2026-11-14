@@ -19,6 +19,8 @@ import { displaySettings } from '@/osu/displaySettings'; // v168: 背景图亮�
 import { editorPrefs } from '@/osu/editorPrefs'; // v381: 物件移动死区开关
 import { distanceLockRef, distanceLockDistance } from '@/osu/spacing'; // v145
 import { genId, timingAt, csToRadius, arToPreempt, snapAcrossRedLine, type Beatmap, type HitObject } from '@/osu/parser';
+import { getUiOverride } from '@/osu/uiLayout'; // v527: 时间轴尺寸 → 游玩区预留
+import { UiControl } from './uiLayout/UiControl';
 
 /** v467: 物件可选中时间窗 (单击/框选共用) — 滑条恒按滑条身窗口 [time-preempt, end+HIT_FADE]
  *  (sliderAnchorInteractiveAt 同款): 暂留模式 (点击特效开+打击动画关) 下 isVisibleAt 放到
@@ -48,18 +50,17 @@ const PAD_Y = 40; // 上下留白 (osu px): 摆放在上下边缘的物件 (半�
 // v130: 系数 1.1 → 1.2 (几乎吃满 PAD_Y 留白) — 1.1 时垂直 slack 居中分摊, 实测下间隔达 ~64px;
 //       1.2 后 slack ≈ 0.7% 可用高, 实测间隔 ≈ 10+3 ≈ 13px (用户规格: 原实测 64px 的 1/5), 游玩区同步再放大 ~9%
 // v129: 画布铺满整个主区 (面板改半透明浮层), 游玩区与上时间轴留 18px 间隔, 与下时间轴留 10px 间隔
-//       — 预留 = 面板实际行高 + 间隔 (面板行高改动需同步, 见 App.tsx 浮层注释)
-const PANEL_TOP_H = 93;    // 上时间轴行高: 92 (canvas h-[92px]) + 1 (border-b)
-const PANEL_BOTTOM_H = 82; // 下时间轴行高: 80 (h-20) + 2 (border-t-2)
+//       — 预留 = 面板实际行高 + 间隔; v527 自定义布局高度也进入同一计算
 const GAP_TOP = 18, GAP_BOTTOM = 10; // 用户规格: 上 18px / 下 10px 间隔
-const RESERVED_TOP = PANEL_TOP_H + GAP_TOP;        // 111
-const RESERVED_BOTTOM = PANEL_BOTTOM_H + GAP_BOTTOM; // 92
+const reservedTop = () => (getUiOverride('timeline.top.canvas').layout?.height ?? 92) + 1 + GAP_TOP;
+const reservedBottom = () => (getUiOverride('timeline.bottom.panel').layout?.height ?? 80) + 2 + GAP_BOTTOM;
 // v270 二轮: 用户反馈铺满方向错误, 还原 v129 固定预留 (纯黑底色另有根因, 见 v271)
 // v300: export — 测试游玩复用同一适配变换 (游玩区大小与编辑器一致)
 export function viewTransform(r: { width: number; height: number }) {
-  const availH = Math.max(80, r.height - RESERVED_TOP - RESERVED_BOTTOM);
+  const rt = reservedTop(), rb = reservedBottom();
+  const availH = Math.max(80, r.height - rt - rb);
   const scale = Math.min(r.width / PW, (availH / (PH + PAD_Y * 2)) * 1.2); // v130: 1.1 → 1.2
-  return { scale, ox: (r.width - PW * scale) / 2, oy: RESERVED_TOP + (availH - PH * scale) / 2 };
+  return { scale, ox: (r.width - PW * scale) / 2, oy: rt + (availH - PH * scale) / 2 };
 }
 
 // v223: 游玩区平移/缩放 — 启用时在适配变换上叠加用户偏移 (osu px) 与缩放倍率
@@ -2735,6 +2736,7 @@ export function EditorCanvas() {
   };
 
   return (
+    <UiControl id="playfield.canvas">
     <canvas
       ref={canvasRef}
       className="w-full h-full cursor-crosshair select-none"
@@ -2807,5 +2809,6 @@ export function EditorCanvas() {
         store.wheelSeek(e.deltaY, e.deltaMode);
       }}
     />
+    </UiControl>
   );
 }

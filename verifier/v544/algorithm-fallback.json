@@ -1,0 +1,21 @@
+{
+  "version": "v544-fallback-to-v543-rules",
+  "algorithm": {
+    "src/osu/bpmResearch.ts": {
+      "sha256": "957a534a9ae401ec605130b20a54bab2a0dd76ec903038bee35eff3b0e83b7de",
+      "bytes": 10280
+    },
+    "src/osu/bpmDetect.ts": {
+      "sha256": "65a2220b622c958c814f557fb8c183b2a276e80303b2541efc6294c485a9d626",
+      "bytes": 35605
+    },
+    "src/osu/bpmVariableVerifier.ts": {
+      "sha256": "e4434fb42e70dc5cf92c178b879baea6d18f8d34fba4ea1269777d0840aee90b",
+      "bytes": 5096
+    },
+    "src/osu/fft.ts": {
+      "sha256": "26a3a04d65017084f484a7b0bcf795ffd43743576ae6d2088a3292b64c5fc029",
+      "bytes": 1758
+    }
+  }
+}

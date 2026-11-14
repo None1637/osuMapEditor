@@ -1,0 +1,78 @@
+{
+  "id": "sample-070",
+  "directoryName": "1658451 Mono - ST4RDUST  XABER",
+  "beatmapFile": "Mono. - ST4RDUST  XABER (Crisper) [Insane].osu",
+  "metadata": {
+    "Title": "ST4RDUST * XABER",
+    "TitleUnicode": "ST4RDUST☆XABER",
+    "Artist": "Mono.",
+    "ArtistUnicode": "Mono.",
+    "Creator": "Crisper",
+    "Version": "Insane",
+    "Source": "",
+    "Tags": "Monopowan もの stardust saber J-Happy j-core jcore j core happy hardcore electronic instrumental chiptune arcade kawaiicore m_o_n_0",
+    "BeatmapID": "3385421",
+    "BeatmapSetID": "1658451",
+    "Mode": "3"
+  },
+  "audioDurationMs": 122845.26077097506,
+  "redLines": [
+    {
+      "time": 2936,
+      "beatLength": 279.06976744186,
+      "bpm": 215.00000000000037,
+      "durationMs": 33488
+    },
+    {
+      "time": 36424,
+      "beatLength": 279.06976744186,
+      "bpm": 215.00000000000037,
+      "durationMs": 1953
+    },
+    {
+      "time": 38377,
+      "beatLength": 279.06976744186,
+      "bpm": 215.00000000000037,
+      "durationMs": 2093
+    },
+    {
+      "time": 40470,
+      "beatLength": 279.06976744186,
+      "bpm": 215.00000000000037,
+      "durationMs": 1953
+    },
+    {
+      "time": 42423,
+      "beatLength": 279.06976744186,
+      "bpm": 215.00000000000037,
+      "durationMs": 1116
+    },
+    {
+      "time": 43539,
+      "beatLength": 279.06976744186,
+      "bpm": 215.00000000000037,
+      "durationMs": 1395
+    },
+    {
+      "time": 44934,
+      "beatLength": 279.06976744186,
+      "bpm": 215.00000000000037,
+      "durationMs": 77911.26077097506
+    }
+  ],
+  "referenceBpm": 215.00000000000037,
+  "referenceVariable": false,
+  "referenceRedLineCount": 7,
+  "referenceCoverageMs": 119909.26077097506,
+  "status": "ok",
+  "prediction": {
+    "bpm": 215.05,
+    "offsetMs": 320,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 89,
+    "rawBpm": 430.1,
+    "rawSegmentCount": 108
+  },
+  "evaluationMs": 1029
+}

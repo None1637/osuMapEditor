@@ -33,7 +33,7 @@ try {
 console.log('== B: 源码契约');
 {
   const st = read('src/osu/store.ts');
-  assert(/WHEEL_GESTURE_END_MS = 90/.test(st) && /wheelGestureHadSteps/.test(st), '90ms 手势结束与已出刻度状态');
+  assert(/WHEEL_GESTURE_END_MS = 16/.test(st) && /wheelGestureHadSteps/.test(st), 'v577: 16ms 手势结束与已出刻度状态');
   assert(/!this\.wheelGestureHadSteps && this\.wheelAccum\.acc !== 0/.test(st), '仅未出刻度的短手势补步');
   assert((st.match(/this\.resetWheelGesture\(\); \/\/ v514/g) ?? []).length >= 3, '显式 seek/播放 seek/换谱取消旧补步');
   assert(/this\.resumeFloorMs = null; \/\/ v514: 显式重定位/.test(st), '播放 seek 清旧防闪回下限');

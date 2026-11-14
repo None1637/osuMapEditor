@@ -1,0 +1,66 @@
+{
+  "id": "sample-011",
+  "directoryName": "540175 Miki Sayaka vs Miki Sayaka (fw Miki Sayaka) - squartatrice",
+  "beatmapFile": "Miki Sayaka vs. Miki Sayaka (fw. Miki Sayaka) - squartatrice (Garalulu) [Wonki's Normal].osu",
+  "metadata": {
+    "Title": "squartatrice",
+    "TitleUnicode": "squartatrice",
+    "Artist": "Miki Sayaka vs. Miki Sayaka (fw. Miki Sayaka)",
+    "ArtistUnicode": "美樹さやか vs. 美樹さやか (fw. 美樹さやか)",
+    "Creator": "Garalulu",
+    "Version": "Wonki's Normal",
+    "Source": "BMS",
+    "Tags": "Wonki bms of fighters 2011 BOF2011 HARD RENAISSAYAKA gmtn. kozato LUZE",
+    "BeatmapID": "1145471",
+    "BeatmapSetID": "540175",
+    "Mode": "3"
+  },
+  "audioDurationMs": 137116.73469387757,
+  "redLines": [
+    {
+      "time": 720,
+      "beatLength": 333.333333333333,
+      "bpm": 180.0000000000002,
+      "durationMs": 41999
+    },
+    {
+      "time": 42719,
+      "beatLength": 333.333333333333,
+      "bpm": 180.0000000000002,
+      "durationMs": 15999
+    },
+    {
+      "time": 58718,
+      "beatLength": 333.333333333333,
+      "bpm": 180.0000000000002,
+      "durationMs": 22666
+    },
+    {
+      "time": 81384,
+      "beatLength": 333.333333333333,
+      "bpm": 180.0000000000002,
+      "durationMs": 1666
+    },
+    {
+      "time": 83050,
+      "beatLength": 333.333333333333,
+      "bpm": 180.0000000000002,
+      "durationMs": 54066.73469387757
+    }
+  ],
+  "referenceBpm": 180.0000000000002,
+  "referenceVariable": false,
+  "referenceRedLineCount": 5,
+  "referenceCoverageMs": 136396.73469387757,
+  "status": "ok",
+  "prediction": {
+    "bpm": 180,
+    "offsetMs": 248,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 130,
+    "rawBpm": 360,
+    "rawSegmentCount": 12
+  },
+  "evaluationMs": 1374
+}

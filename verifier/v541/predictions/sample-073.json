@@ -1,0 +1,50 @@
+{
+  "id": "sample-073",
+  "directoryName": "Mutsuhiko Izumi - Snow Goose (13)",
+  "beatmapFile": "Mutsuhiko Izumi - Snow Goose (^) [13].osu",
+  "metadata": {
+    "Title": "Snow Goose",
+    "TitleUnicode": "Snow Goose",
+    "Artist": "Mutsuhiko Izumi",
+    "ArtistUnicode": "Mutsuhiko Izumi",
+    "Creator": "^",
+    "Version": "13",
+    "Source": "",
+    "Tags": "",
+    "BeatmapID": "0",
+    "BeatmapSetID": "-1",
+    "Mode": "3"
+  },
+  "audioDurationMs": 100989.38775510204,
+  "redLines": [
+    {
+      "time": 373,
+      "beatLength": 300,
+      "bpm": 200,
+      "durationMs": 100616.38775510204
+    }
+  ],
+  "referenceBpm": 200,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 100616.38775510204,
+  "status": "ok",
+  "prediction": {
+    "bpm": 200,
+    "offsetMs": 375,
+    "variable": true,
+    "evidence": [
+      {
+        "startMs": 90860,
+        "endMs": 96856,
+        "bpm": 66.683,
+        "points": 3,
+        "maxSupport": 0.16114402562379837
+      }
+    ],
+    "localPointCount": 92,
+    "rawBpm": 200,
+    "rawSegmentCount": 5
+  },
+  "evaluationMs": 920
+}

@@ -12,6 +12,7 @@ import { editorPrefs } from './editorPrefs'; // v386: 设置菜单 editorPrefs �
 import { computeMerge } from './convert/merge'; // v212: 作图菜单「合并滑条」
 import type { Beatmap } from './parser';
 import type { MapSource } from './saveMap';
+import { getUiLayout, subscribeUiLayout } from './uiLayout'; // v526
 
 /** 向主进程上报当前谱面状态 (store.load 中调用; 非 Electron 或无来源时尽力而为) */
 export async function reportMenuState(bm: Beatmap, source: MapSource | null): Promise<void> {
@@ -46,6 +47,23 @@ export function reportDirtyState(b: boolean): void {
   if (api) {
     api.menuLang(getLang());
     onLangChange(() => api.menuLang(getLang()));
+  }
+}
+
+// v526: 布局配置中的菜单项覆盖 → 主进程 (当前语言文本 + visible/enabled); 配置/语言变化均重建菜单
+{
+  const api = getElectronAPI();
+  if (api) {
+    const report = () => {
+      const out: Record<string, { text?: string; visible?: boolean; enabled?: boolean }> = {};
+      const lang = getLang();
+      for (const [id, o] of Object.entries(getUiLayout().controls)) {
+        if (!id.startsWith('menu.')) continue;
+        out[id] = { text: o.text?.[lang === 'debug' ? 'en' : lang], visible: o.visible, enabled: o.enabled };
+      }
+      api.uiMenuOverrides(out);
+    };
+    report(); subscribeUiLayout(report); onLangChange(report);
   }
 }
 

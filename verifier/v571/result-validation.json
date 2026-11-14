@@ -1,0 +1,19 @@
+{
+  "version": "v571-full-recoverability-independent-recheck-v1",
+  "passed": true,
+  "peakParityRows": 90,
+  "mainRows": 29,
+  "nullRows": 58,
+  "completeMutuallyExclusivePartitionVerified": true,
+  "nullControlVerified": true,
+  "hypotheses": {
+    "H1": true,
+    "H2": true,
+    "H3": true
+  },
+  "actualIncorrectCorrectPeakRate": 0.9296992481203008,
+  "nullIncorrectPeakRate": 0.9054511278195488,
+  "oracleUpperBound": 0.9790161386294916,
+  "interpretation": "Oracle H1/H2 are arithmetically true but shifted-center null shows dense-peak selection freedom; not a deployable accuracy claim",
+  "failures": []
+}

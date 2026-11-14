@@ -1,0 +1,2670 @@
+[
+  {
+    "id": "sample-004",
+    "directoryName": "1256680 Mori Calliope - Excuse My Rudeness, But Could You Please RIP",
+    "selectedBeatmap": "Mori Calliope - Excuse My Rudeness, But Could You Please RIP (arcwinolivirus) [Normal Beats].osu",
+    "selectedBpm": 124.00000000000013,
+    "predictedBpm": 124,
+    "sameAudioMapCount": 8,
+    "otherVariableMaps": [],
+    "matchedMaps": [],
+    "evidence": [
+      {
+        "startMs": 0,
+        "endMs": 5997,
+        "bpm": 76,
+        "points": 3,
+        "maxSupport": 0.2626392508423541,
+        "siblingMatches": []
+      },
+      {
+        "startMs": 25960,
+        "endMs": 31957,
+        "bpm": 71.037,
+        "points": 3,
+        "maxSupport": 0.14796211282414184,
+        "siblingMatches": []
+      },
+      {
+        "startMs": 41935,
+        "endMs": 48930,
+        "bpm": 70.794,
+        "points": 4,
+        "maxSupport": 0.12665525696493843,
+        "siblingMatches": []
+      }
+    ],
+    "maps": [
+      {
+        "name": "Mori Calliope - Excuse My Rudeness, But Could You Please RIP (arcwinolivirus) [DEADBEATS (SV)].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 124.00000000000013,
+        "variable": false
+      },
+      {
+        "name": "Mori Calliope - Excuse My Rudeness, But Could You Please RIP (arcwinolivirus) [DEADBEATS].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 124.00000000000013,
+        "variable": false
+      },
+      {
+        "name": "Mori Calliope - Excuse My Rudeness, But Could You Please RIP (arcwinolivirus) [Hard Beats (SV)].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 124.00000000000013,
+        "variable": false
+      },
+      {
+        "name": "Mori Calliope - Excuse My Rudeness, But Could You Please RIP (arcwinolivirus) [Hard Beats].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 124.00000000000013,
+        "variable": false
+      },
+      {
+        "name": "Mori Calliope - Excuse My Rudeness, But Could You Please RIP (arcwinolivirus) [Maximum Beats (SV)].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 124.00000000000013,
+        "variable": false
+      },
+      {
+        "name": "Mori Calliope - Excuse My Rudeness, But Could You Please RIP (arcwinolivirus) [Maximum Beats].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 124.00000000000013,
+        "variable": false
+      },
+      {
+        "name": "Mori Calliope - Excuse My Rudeness, But Could You Please RIP (arcwinolivirus) [Normal Beats (SV)].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 124.00000000000013,
+        "variable": false
+      },
+      {
+        "name": "Mori Calliope - Excuse My Rudeness, But Could You Please RIP (arcwinolivirus) [Normal Beats].osu",
+        "selected": true,
+        "redLineCount": 1,
+        "dominantBpm": 124.00000000000013,
+        "variable": false
+      }
+    ]
+  },
+  {
+    "id": "sample-005",
+    "directoryName": "1193063 BAND-MAID - RINNE",
+    "selectedBeatmap": "BAND-MAID - RINNE (ShirohaMyMommy) [INSANE].osu",
+    "selectedBpm": 189.99999999999974,
+    "predictedBpm": 190,
+    "sameAudioMapCount": 6,
+    "otherVariableMaps": [],
+    "matchedMaps": [],
+    "evidence": [
+      {
+        "startMs": 133793,
+        "endMs": 140789,
+        "bpm": 63.024,
+        "points": 4,
+        "maxSupport": 0.2306443813715454,
+        "siblingMatches": []
+      },
+      {
+        "startMs": 144776,
+        "endMs": 151772,
+        "bpm": 63.255,
+        "points": 4,
+        "maxSupport": 0.12384831876085675,
+        "siblingMatches": []
+      }
+    ],
+    "maps": [
+      {
+        "name": "BAND-MAID - RINNE (ShirohaMyMommy) [EASY].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 189.99999999999974,
+        "variable": false
+      },
+      {
+        "name": "BAND-MAID - RINNE (ShirohaMyMommy) [HARD].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 189.99999999999974,
+        "variable": false
+      },
+      {
+        "name": "BAND-MAID - RINNE (ShirohaMyMommy) [INSANE].osu",
+        "selected": true,
+        "redLineCount": 1,
+        "dominantBpm": 189.99999999999974,
+        "variable": false
+      },
+      {
+        "name": "BAND-MAID - RINNE (ShirohaMyMommy) [MIRASH'S EXTRA].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 189.99999999999974,
+        "variable": false
+      },
+      {
+        "name": "BAND-MAID - RINNE (ShirohaMyMommy) [NORMAL].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 189.99999999999974,
+        "variable": false
+      },
+      {
+        "name": "BAND-MAID - RINNE (ShirohaMyMommy) [REINCARNATION].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 189.99999999999974,
+        "variable": false
+      }
+    ]
+  },
+  {
+    "id": "sample-006",
+    "directoryName": "886126 Brandy - Cross Time",
+    "selectedBeatmap": "Brandy - Cross Time (ababab0306) [HD].osu",
+    "selectedBpm": 160,
+    "predictedBpm": 160,
+    "sameAudioMapCount": 4,
+    "otherVariableMaps": [],
+    "matchedMaps": [],
+    "evidence": [
+      {
+        "startMs": 69892,
+        "endMs": 75889,
+        "bpm": 72.279,
+        "points": 3,
+        "maxSupport": 0.094805511438092,
+        "siblingMatches": []
+      }
+    ],
+    "maps": [
+      {
+        "name": "Brandy - Cross Time (ababab0306) [EZ].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 160,
+        "variable": false
+      },
+      {
+        "name": "Brandy - Cross Time (ababab0306) [HD].osu",
+        "selected": true,
+        "redLineCount": 1,
+        "dominantBpm": 160,
+        "variable": false
+      },
+      {
+        "name": "Brandy - Cross Time (ababab0306) [MX].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 160,
+        "variable": false
+      },
+      {
+        "name": "Brandy - Cross Time (ababab0306) [NM].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 160,
+        "variable": false
+      }
+    ]
+  },
+  {
+    "id": "sample-008",
+    "directoryName": "333015 Nakae Mitsuki Shimotsuki Haruka - collage",
+    "selectedBeatmap": "Nakae Mitsuki. Shimotsuki Haruka - collage (TT Mouse) [Hard].osu",
+    "selectedBpm": 178.0000000000001,
+    "predictedBpm": 178,
+    "sameAudioMapCount": 5,
+    "otherVariableMaps": [],
+    "matchedMaps": [],
+    "evidence": [
+      {
+        "startMs": 17972,
+        "endMs": 23969,
+        "bpm": 79.203,
+        "points": 3,
+        "maxSupport": 0.19898931180945348,
+        "siblingMatches": []
+      }
+    ],
+    "maps": [
+      {
+        "name": "Nakae Mitsuki. Shimotsuki Haruka - collage (TT Mouse) [Advanced].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 178.0000000000001,
+        "variable": false
+      },
+      {
+        "name": "Nakae Mitsuki. Shimotsuki Haruka - collage (TT Mouse) [Extra].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 178.0000000000001,
+        "variable": false
+      },
+      {
+        "name": "Nakae Mitsuki. Shimotsuki Haruka - collage (TT Mouse) [Hard].osu",
+        "selected": true,
+        "redLineCount": 1,
+        "dominantBpm": 178.0000000000001,
+        "variable": false
+      },
+      {
+        "name": "Nakae Mitsuki. Shimotsuki Haruka - collage (TT Mouse) [Insane].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 178.0000000000001,
+        "variable": false
+      },
+      {
+        "name": "Nakae Mitsuki. Shimotsuki Haruka - collage (TT Mouse) [Normal].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 178.0000000000001,
+        "variable": false
+      }
+    ]
+  },
+  {
+    "id": "sample-009",
+    "directoryName": "623665 Hommarju - HYENA",
+    "selectedBeatmap": "Hommarju - HYENA (rustbell) [].osu",
+    "selectedBpm": 178.0000000000001,
+    "predictedBpm": 178,
+    "sameAudioMapCount": 4,
+    "otherVariableMaps": [],
+    "matchedMaps": [],
+    "evidence": [
+      {
+        "startMs": 77880,
+        "endMs": 83876,
+        "bpm": 101.832,
+        "points": 3,
+        "maxSupport": 0.06886276827065459,
+        "siblingMatches": []
+      }
+    ],
+    "maps": [
+      {
+        "name": "Hommarju - HYENA (rustbell) [ OD10].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 178.0000000000001,
+        "variable": false
+      },
+      {
+        "name": "Hommarju - HYENA (rustbell) [].osu",
+        "selected": true,
+        "redLineCount": 1,
+        "dominantBpm": 178.0000000000001,
+        "variable": false
+      },
+      {
+        "name": "Hommarju - HYENA (rustbell) [caonimenquanbu].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 178.0000000000001,
+        "variable": false
+      },
+      {
+        "name": "Hommarju - HYENA (rustbell) [thinking].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 178.0000000000001,
+        "variable": false
+      }
+    ]
+  },
+  {
+    "id": "sample-012",
+    "directoryName": "1822924 Unknown Artist - Yatsume Ana (33 mins)",
+    "selectedBeatmap": "Unknown Artist - Yatsume Ana (33 mins) (-Shiraishi-) [!].osu",
+    "selectedBpm": 129.99999999999986,
+    "predictedBpm": 130,
+    "sameAudioMapCount": 1,
+    "otherVariableMaps": [],
+    "matchedMaps": [],
+    "evidence": [
+      {
+        "startMs": 522193,
+        "endMs": 528190,
+        "bpm": 74.093,
+        "points": 3,
+        "maxSupport": 0.1221514802740654,
+        "siblingMatches": []
+      }
+    ],
+    "maps": [
+      {
+        "name": "Unknown Artist - Yatsume Ana (33 mins) (-Shiraishi-) [!].osu",
+        "selected": true,
+        "redLineCount": 1,
+        "dominantBpm": 129.99999999999986,
+        "variable": false
+      }
+    ]
+  },
+  {
+    "id": "sample-013",
+    "directoryName": "749327 MY FIRST STORY - Shissou FLAME",
+    "selectedBeatmap": "MY FIRST STORY - Shissou FLAME (A r M i N) [Extreme].osu",
+    "selectedBpm": 209.99999999999977,
+    "predictedBpm": 210,
+    "sameAudioMapCount": 2,
+    "otherVariableMaps": [],
+    "matchedMaps": [],
+    "evidence": [
+      {
+        "startMs": 53917,
+        "endMs": 59913,
+        "bpm": 84.032,
+        "points": 3,
+        "maxSupport": 0.1107335140415874,
+        "siblingMatches": []
+      },
+      {
+        "startMs": 143778,
+        "endMs": 149775,
+        "bpm": 69.837,
+        "points": 3,
+        "maxSupport": 0.13131245157849394,
+        "siblingMatches": []
+      }
+    ],
+    "maps": [
+      {
+        "name": "MY FIRST STORY - Shissou FLAME (A r M i N) [Extreme].osu",
+        "selected": true,
+        "redLineCount": 1,
+        "dominantBpm": 209.99999999999977,
+        "variable": false
+      },
+      {
+        "name": "MY FIRST STORY - Shissou FLAME (A r M i N) [Hitsounds diff].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 209.99999999999977,
+        "variable": false
+      }
+    ]
+  },
+  {
+    "id": "sample-014",
+    "directoryName": "828088 DJ Seven - Charon",
+    "selectedBeatmap": "DJ Seven - Charon (Momi) [DT for no notelock].osu",
+    "selectedBpm": 116.6666699074075,
+    "predictedBpm": 232.7,
+    "sameAudioMapCount": 1,
+    "otherVariableMaps": [],
+    "matchedMaps": [],
+    "evidence": [
+      {
+        "startMs": 60906,
+        "endMs": 66903,
+        "bpm": 67.555,
+        "points": 3,
+        "maxSupport": 0.18858329705943586,
+        "siblingMatches": []
+      },
+      {
+        "startMs": 82872,
+        "endMs": 88869,
+        "bpm": 68,
+        "points": 3,
+        "maxSupport": 0.30267549030537655,
+        "siblingMatches": []
+      },
+      {
+        "startMs": 85867,
+        "endMs": 91864,
+        "bpm": 78.303,
+        "points": 3,
+        "maxSupport": 0.23933183128620367,
+        "siblingMatches": []
+      }
+    ],
+    "maps": [
+      {
+        "name": "DJ Seven - Charon (Momi) [DT for no notelock].osu",
+        "selected": true,
+        "redLineCount": 1,
+        "dominantBpm": 116.6666699074075,
+        "variable": false
+      }
+    ]
+  },
+  {
+    "id": "sample-015",
+    "directoryName": "1780278 DJ Myosuke & Laur - Break Through Myself feat Risa Yuzuki (Short Ver)",
+    "selectedBeatmap": "DJ Myosuke & Laur - Break Through Myself feat. Risa Yuzuki (Short Ver.) (keksikosu) [keksikosu vs. AlexDunk Apocalypse].osu",
+    "selectedBpm": 200,
+    "predictedBpm": 200,
+    "sameAudioMapCount": 4,
+    "otherVariableMaps": [],
+    "matchedMaps": [],
+    "evidence": [
+      {
+        "startMs": 127802,
+        "endMs": 133799,
+        "bpm": 89.103,
+        "points": 3,
+        "maxSupport": 0.24286429836411713,
+        "siblingMatches": []
+      }
+    ],
+    "maps": [
+      {
+        "name": "DJ Myosuke & Laur - Break Through Myself feat. Risa Yuzuki (Short Ver.) (keksikosu) [Aix's Insane].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 200,
+        "variable": false
+      },
+      {
+        "name": "DJ Myosuke & Laur - Break Through Myself feat. Risa Yuzuki (Short Ver.) (keksikosu) [Hard].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 200,
+        "variable": false
+      },
+      {
+        "name": "DJ Myosuke & Laur - Break Through Myself feat. Risa Yuzuki (Short Ver.) (keksikosu) [Hikari's Normal].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 200,
+        "variable": false
+      },
+      {
+        "name": "DJ Myosuke & Laur - Break Through Myself feat. Risa Yuzuki (Short Ver.) (keksikosu) [keksikosu vs. AlexDunk Apocalypse].osu",
+        "selected": true,
+        "redLineCount": 1,
+        "dominantBpm": 200,
+        "variable": false
+      }
+    ]
+  },
+  {
+    "id": "sample-016",
+    "directoryName": "333823 My Chemical Romance - You Know What They Do To Guys Like Us In Prison",
+    "selectedBeatmap": "My Chemical Romance - You Know What They Do To Guys Like Us In Prison (pishifat) [Insane].osu",
+    "selectedBpm": 186.00000000000017,
+    "predictedBpm": 186,
+    "sameAudioMapCount": 5,
+    "otherVariableMaps": [],
+    "matchedMaps": [],
+    "evidence": [
+      {
+        "startMs": 0,
+        "endMs": 6995,
+        "bpm": 63.45,
+        "points": 4,
+        "maxSupport": 0.26517608580887253,
+        "siblingMatches": []
+      }
+    ],
+    "maps": [
+      {
+        "name": "My Chemical Romance - You Know What They Do To Guys Like Us In Prison (pishifat) [Easy].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 186.00000000000017,
+        "variable": false
+      },
+      {
+        "name": "My Chemical Romance - You Know What They Do To Guys Like Us In Prison (pishifat) [Extra].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 186.00000000000017,
+        "variable": false
+      },
+      {
+        "name": "My Chemical Romance - You Know What They Do To Guys Like Us In Prison (pishifat) [Hard].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 186.00000000000017,
+        "variable": false
+      },
+      {
+        "name": "My Chemical Romance - You Know What They Do To Guys Like Us In Prison (pishifat) [Insane].osu",
+        "selected": true,
+        "redLineCount": 1,
+        "dominantBpm": 186.00000000000017,
+        "variable": false
+      },
+      {
+        "name": "My Chemical Romance - You Know What They Do To Guys Like Us In Prison (pishifat) [Normal].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 186.00000000000017,
+        "variable": false
+      }
+    ]
+  },
+  {
+    "id": "sample-020",
+    "directoryName": "42242 senya - Tsuki ni Murakumo Hana ni Kaze (Short Ver)",
+    "selectedBeatmap": "senya - Tsuki ni Murakumo Hana ni Kaze (Short Ver.) (eikkaleyd) [Easy].osu",
+    "selectedBpm": 160,
+    "predictedBpm": 160,
+    "sameAudioMapCount": 5,
+    "otherVariableMaps": [],
+    "matchedMaps": [],
+    "evidence": [
+      {
+        "startMs": 88863,
+        "endMs": 94860,
+        "bpm": 91.468,
+        "points": 3,
+        "maxSupport": 0.1982909025172564,
+        "siblingMatches": []
+      }
+    ],
+    "maps": [
+      {
+        "name": "senya - Tsuki ni Murakumo Hana ni Kaze (Short Ver.) (eikkaleyd) [Easy].osu",
+        "selected": true,
+        "redLineCount": 1,
+        "dominantBpm": 160,
+        "variable": false
+      },
+      {
+        "name": "senya - Tsuki ni Murakumo Hana ni Kaze (Short Ver.) (eikkaleyd) [Phantasy].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 160,
+        "variable": false
+      },
+      {
+        "name": "senya - Tsuki ni Murakumo Hana ni Kaze (Short Ver.) (eikkaleyd) [Toto].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 160,
+        "variable": false
+      },
+      {
+        "name": "senya - Tsuki ni Murakumo Hana ni Kaze (Short Ver.) (eikkaleyd) [suraimu's Normal].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 160,
+        "variable": false
+      },
+      {
+        "name": "senya - Tsuki ni Murakumo Hana ni Kaze (Short Ver.) (eikkaleyd) [tutuhaha's Hard].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 160,
+        "variable": false
+      }
+    ]
+  },
+  {
+    "id": "sample-024",
+    "directoryName": "205022 Ryu_ - Sakura Mirage",
+    "selectedBeatmap": "Ryu - Sakura Mirage (Priti) [ADVANCED].osu",
+    "selectedBpm": 187.00000000000003,
+    "predictedBpm": 187,
+    "sameAudioMapCount": 7,
+    "otherVariableMaps": [],
+    "matchedMaps": [],
+    "evidence": [
+      {
+        "startMs": 32949,
+        "endMs": 38946,
+        "bpm": 74.898,
+        "points": 3,
+        "maxSupport": 0.472069247359516,
+        "siblingMatches": []
+      }
+    ],
+    "maps": [
+      {
+        "name": "Ryu - Sakura Mirage (Priti) [ADVANCED].osu",
+        "selected": true,
+        "redLineCount": 1,
+        "dominantBpm": 187.00000000000003,
+        "variable": false
+      },
+      {
+        "name": "Ryu - Sakura Mirage (Priti) [EXHAUST].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 187.00000000000003,
+        "variable": false
+      },
+      {
+        "name": "Ryu - Sakura Mirage (Priti) [INTERMEDIATE].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 187.00000000000003,
+        "variable": false
+      },
+      {
+        "name": "Ryu - Sakura Mirage (Priti) [LEADER'S INFINITE].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 187.00000000000003,
+        "variable": false
+      },
+      {
+        "name": "Ryu - Sakura Mirage (Priti) [NOVICE].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 187.00000000000003,
+        "variable": false
+      },
+      {
+        "name": "Ryu - Sakura Mirage (Priti) [PRIZZY'S HYPER].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 187.00000000000003,
+        "variable": false
+      },
+      {
+        "name": "Ryu - Sakura Mirage (Priti) [ULTRA].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 187.00000000000003,
+        "variable": false
+      }
+    ]
+  },
+  {
+    "id": "sample-030",
+    "directoryName": "10860 Haru - Children Festival (Instrumental)",
+    "selectedBeatmap": "Haru - Children Festival (Instrumental) (Hikato) [Hard].osu",
+    "selectedBpm": 139.99999999999986,
+    "predictedBpm": 140,
+    "sameAudioMapCount": 3,
+    "otherVariableMaps": [],
+    "matchedMaps": [],
+    "evidence": [
+      {
+        "startMs": 196696,
+        "endMs": 202693,
+        "bpm": 79.814,
+        "points": 3,
+        "maxSupport": 0.28680897575215913,
+        "siblingMatches": []
+      }
+    ],
+    "maps": [
+      {
+        "name": "Haru - Children Festival (Instrumental) (Hikato) [Easy].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 139.99999999999986,
+        "variable": false
+      },
+      {
+        "name": "Haru - Children Festival (Instrumental) (Hikato) [Hard].osu",
+        "selected": true,
+        "redLineCount": 1,
+        "dominantBpm": 139.99999999999986,
+        "variable": false
+      },
+      {
+        "name": "Haru - Children Festival (Instrumental) (Hikato) [Normal+].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 139.99999999999986,
+        "variable": false
+      }
+    ]
+  },
+  {
+    "id": "sample-032",
+    "directoryName": "149527 Ito Kanako - Sky of Twilight",
+    "selectedBeatmap": "Ito Kanako - Sky of Twilight (Brainpeeler) [Marathon].osu",
+    "selectedBpm": 107.99999999999991,
+    "predictedBpm": 216,
+    "sameAudioMapCount": 1,
+    "otherVariableMaps": [],
+    "matchedMaps": [],
+    "evidence": [
+      {
+        "startMs": 128801,
+        "endMs": 134798,
+        "bpm": 145.577,
+        "points": 3,
+        "maxSupport": 0.07879833657611517,
+        "siblingMatches": []
+      },
+      {
+        "startMs": 223654,
+        "endMs": 230650,
+        "bpm": 61.892,
+        "points": 4,
+        "maxSupport": 0.10369044748707613,
+        "siblingMatches": []
+      },
+      {
+        "startMs": 346465,
+        "endMs": 353460,
+        "bpm": 162.771,
+        "points": 4,
+        "maxSupport": 0.17894633993259215,
+        "siblingMatches": []
+      },
+      {
+        "startMs": 355451,
+        "endMs": 361448,
+        "bpm": 61.523,
+        "points": 3,
+        "maxSupport": 0.09891754381908784,
+        "siblingMatches": []
+      }
+    ],
+    "maps": [
+      {
+        "name": "Ito Kanako - Sky of Twilight (Brainpeeler) [Marathon].osu",
+        "selected": true,
+        "redLineCount": 1,
+        "dominantBpm": 107.99999999999991,
+        "variable": false
+      }
+    ]
+  },
+  {
+    "id": "sample-034",
+    "directoryName": "1336953 Various Artists - Julaaaan's Triangle Jump Training",
+    "selectedBeatmap": "Various Artists - Julaaaan's Triangle Jump Training (Julaaaan) [Eyes Half Closed].osu",
+    "selectedBpm": 135.00000000000014,
+    "predictedBpm": 135,
+    "sameAudioMapCount": 1,
+    "otherVariableMaps": [],
+    "matchedMaps": [],
+    "evidence": [
+      {
+        "startMs": 30952,
+        "endMs": 39944,
+        "bpm": 202.665,
+        "points": 6,
+        "maxSupport": 0.16314421993580566,
+        "siblingMatches": []
+      },
+      {
+        "startMs": 42934,
+        "endMs": 53923,
+        "bpm": 202.665,
+        "points": 8,
+        "maxSupport": 0.18478588888926945,
+        "siblingMatches": []
+      }
+    ],
+    "maps": [
+      {
+        "name": "Various Artists - Julaaaan's Triangle Jump Training (Julaaaan) [Eyes Half Closed].osu",
+        "selected": true,
+        "redLineCount": 2,
+        "dominantBpm": 135.00000000000014,
+        "variable": false
+      }
+    ]
+  },
+  {
+    "id": "sample-035",
+    "directoryName": "1686033 HOYO-MiX - Termination of Desires",
+    "selectedBeatmap": "HOYO-MiX - Termination of Desires (Mipha-) [Insane].osu",
+    "selectedBpm": 143.9999998848,
+    "predictedBpm": 144,
+    "sameAudioMapCount": 4,
+    "otherVariableMaps": [],
+    "matchedMaps": [],
+    "evidence": [
+      {
+        "startMs": 43932,
+        "endMs": 49929,
+        "bpm": 64.198,
+        "points": 3,
+        "maxSupport": 0.25377981098697805,
+        "siblingMatches": []
+      }
+    ],
+    "maps": [
+      {
+        "name": "HOYO-MiX - Termination of Desires (Mipha-) [Eternity].osu",
+        "selected": false,
+        "redLineCount": 2,
+        "dominantBpm": 143.9999998848,
+        "variable": false
+      },
+      {
+        "name": "HOYO-MiX - Termination of Desires (Mipha-) [Hard].osu",
+        "selected": false,
+        "redLineCount": 2,
+        "dominantBpm": 143.9999998848,
+        "variable": false
+      },
+      {
+        "name": "HOYO-MiX - Termination of Desires (Mipha-) [Insane].osu",
+        "selected": true,
+        "redLineCount": 2,
+        "dominantBpm": 143.9999998848,
+        "variable": false
+      },
+      {
+        "name": "HOYO-MiX - Termination of Desires (Mipha-) [Normal].osu",
+        "selected": false,
+        "redLineCount": 2,
+        "dominantBpm": 143.9999998848,
+        "variable": false
+      }
+    ]
+  },
+  {
+    "id": "sample-036",
+    "directoryName": "194921 Amane - Space Time (Amane Hardcore Remix)",
+    "selectedBeatmap": "Amane - Space Time (Amane Hardcore Remix) (Lieselotte) [Spy's 4K Extra].osu",
+    "selectedBpm": 174.99999999999991,
+    "predictedBpm": 175,
+    "sameAudioMapCount": 2,
+    "otherVariableMaps": [],
+    "matchedMaps": [],
+    "evidence": [
+      {
+        "startMs": 244622,
+        "endMs": 250619,
+        "bpm": 77.714,
+        "points": 3,
+        "maxSupport": 0.10850477547085381,
+        "siblingMatches": []
+      }
+    ],
+    "maps": [
+      {
+        "name": "Amane - Space Time (Amane Hardcore Remix) (Lieselotte) [7K Lv.40].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 174.99999999999991,
+        "variable": false
+      },
+      {
+        "name": "Amane - Space Time (Amane Hardcore Remix) (Lieselotte) [Spy's 4K Extra].osu",
+        "selected": true,
+        "redLineCount": 1,
+        "dominantBpm": 174.99999999999991,
+        "variable": false
+      }
+    ]
+  },
+  {
+    "id": "sample-039",
+    "directoryName": "770246 Rabbit House - Final Overtake",
+    "selectedBeatmap": "Rabbit House - Final Overtake (bbu) [Normal].osu",
+    "selectedBpm": 195.99999999999991,
+    "predictedBpm": 196,
+    "sameAudioMapCount": 5,
+    "otherVariableMaps": [],
+    "matchedMaps": [],
+    "evidence": [
+      {
+        "startMs": 53917,
+        "endMs": 60912,
+        "bpm": 112.347,
+        "points": 4,
+        "maxSupport": 0.13745332962501305,
+        "siblingMatches": []
+      }
+    ],
+    "maps": [
+      {
+        "name": "Rabbit House - Final Overtake (bbu) [Down's Hard].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 195.99999999999991,
+        "variable": false
+      },
+      {
+        "name": "Rabbit House - Final Overtake (bbu) [Easy].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 195.99999999999991,
+        "variable": false
+      },
+      {
+        "name": "Rabbit House - Final Overtake (bbu) [FINAL OVERDRIVE].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 195.99999999999991,
+        "variable": false
+      },
+      {
+        "name": "Rabbit House - Final Overtake (bbu) [Habi's Insane].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 195.99999999999991,
+        "variable": false
+      },
+      {
+        "name": "Rabbit House - Final Overtake (bbu) [Normal].osu",
+        "selected": true,
+        "redLineCount": 1,
+        "dominantBpm": 195.99999999999991,
+        "variable": false
+      }
+    ]
+  },
+  {
+    "id": "sample-041",
+    "directoryName": "191429 C-Show - UNOwen wa kanojo nanoka (TO-HOlic mix)",
+    "selectedBeatmap": "C-Show - U.N.Owen wa kanojo nanoka (TO-HOlic mix) (Rugure) [leqek's 4K EXH].osu",
+    "selectedBpm": 219.9999999999998,
+    "predictedBpm": 220,
+    "sameAudioMapCount": 2,
+    "otherVariableMaps": [
+      {
+        "name": "C-Show - U.N.Owen wa kanojo nanoka (TO-HOlic mix) (Rugure) [Rugure TYPE].osu",
+        "dominantBpm": 219.9999999999998,
+        "redLineCount": 3
+      }
+    ],
+    "matchedMaps": [],
+    "evidence": [
+      {
+        "startMs": 9984,
+        "endMs": 16980,
+        "bpm": 62.832,
+        "points": 4,
+        "maxSupport": 0.16445425078944986,
+        "siblingMatches": []
+      },
+      {
+        "startMs": 35944,
+        "endMs": 41941,
+        "bpm": 62.68,
+        "points": 3,
+        "maxSupport": 0.1716676724553505,
+        "siblingMatches": []
+      }
+    ],
+    "maps": [
+      {
+        "name": "C-Show - U.N.Owen wa kanojo nanoka (TO-HOlic mix) (Rugure) [Rugure TYPE].osu",
+        "selected": false,
+        "redLineCount": 3,
+        "dominantBpm": 219.9999999999998,
+        "variable": true
+      },
+      {
+        "name": "C-Show - U.N.Owen wa kanojo nanoka (TO-HOlic mix) (Rugure) [leqek's 4K EXH].osu",
+        "selected": true,
+        "redLineCount": 1,
+        "dominantBpm": 219.9999999999998,
+        "variable": false
+      }
+    ]
+  },
+  {
+    "id": "sample-043",
+    "directoryName": "157896 Meg & Dia - Monster (DotEXE Remix)",
+    "selectedBeatmap": "Meg & Dia - Monster (DotEXE Remix) (nold_1702) [Chewin's Extra].osu",
+    "selectedBpm": 139.99999999999986,
+    "predictedBpm": 62.4,
+    "sameAudioMapCount": 23,
+    "otherVariableMaps": [],
+    "matchedMaps": [],
+    "evidence": [
+      {
+        "startMs": 22964,
+        "endMs": 28961,
+        "bpm": 70.074,
+        "points": 3,
+        "maxSupport": 0.35249206914459685,
+        "siblingMatches": []
+      }
+    ],
+    "maps": [
+      {
+        "name": "Meg & Dia - Monster (DotEXE Remix) (nold_1702) [Chewin's Extra].osu",
+        "selected": true,
+        "redLineCount": 1,
+        "dominantBpm": 139.99999999999986,
+        "variable": false
+      },
+      {
+        "name": "Meg & Dia - Monster (DotEXE Remix) (nold_1702) [Easy].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 139.99999999999986,
+        "variable": false
+      },
+      {
+        "name": "Meg & Dia - Monster (DotEXE Remix) (nold_1702) [Futsuu].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 139.99999999999986,
+        "variable": false
+      },
+      {
+        "name": "Meg & Dia - Monster (DotEXE Remix) (nold_1702) [Insane].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 139.99999999999986,
+        "variable": false
+      },
+      {
+        "name": "Meg & Dia - Monster (DotEXE Remix) (nold_1702) [Irre's Insane].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 139.99999999999986,
+        "variable": false
+      },
+      {
+        "name": "Meg & Dia - Monster (DotEXE Remix) (nold_1702) [KantanZoda].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 139.99999999999986,
+        "variable": false
+      },
+      {
+        "name": "Meg & Dia - Monster (DotEXE Remix) (nold_1702) [Kloyd's Hard].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 139.99999999999986,
+        "variable": false
+      },
+      {
+        "name": "Meg & Dia - Monster (DotEXE Remix) (nold_1702) [KwaN's Normal].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 139.99999999999986,
+        "variable": false
+      },
+      {
+        "name": "Meg & Dia - Monster (DotEXE Remix) (nold_1702) [Kyshiro's &  Ami's Hard].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 139.99999999999986,
+        "variable": false
+      },
+      {
+        "name": "Meg & Dia - Monster (DotEXE Remix) (nold_1702) [NC's Inner Oni].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 139.99999999999986,
+        "variable": false
+      },
+      {
+        "name": "Meg & Dia - Monster (DotEXE Remix) (nold_1702) [NC's Muzukashii].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 139.99999999999986,
+        "variable": false
+      },
+      {
+        "name": "Meg & Dia - Monster (DotEXE Remix) (nold_1702) [Newbie].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 139.99999999999986,
+        "variable": false
+      },
+      {
+        "name": "Meg & Dia - Monster (DotEXE Remix) (nold_1702) [Taiko Basic].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 139.99999999999986,
+        "variable": false
+      },
+      {
+        "name": "Meg & Dia - Monster (DotEXE Remix) (nold_1702) [Xtra].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 139.99999999999986,
+        "variable": false
+      },
+      {
+        "name": "Meg & Dia - Monster (DotEXE Remix) (nold_1702) [Zillah's 4K Hard].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 139.99999999999986,
+        "variable": false
+      },
+      {
+        "name": "Meg & Dia - Monster (DotEXE Remix) (nold_1702) [Zillah's 4K Insane].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 139.99999999999986,
+        "variable": false
+      },
+      {
+        "name": "Meg & Dia - Monster (DotEXE Remix) (nold_1702) [Zillah's 4K Normal].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 139.99999999999986,
+        "variable": false
+      },
+      {
+        "name": "Meg & Dia - Monster (DotEXE Remix) (nold_1702) [Zillah's 7K Hard].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 139.99999999999986,
+        "variable": false
+      },
+      {
+        "name": "Meg & Dia - Monster (DotEXE Remix) (nold_1702) [Zillah's 7K Insane].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 139.99999999999986,
+        "variable": false
+      },
+      {
+        "name": "Meg & Dia - Monster (DotEXE Remix) (nold_1702) [Zillah's 7K Normal].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 139.99999999999986,
+        "variable": false
+      },
+      {
+        "name": "Meg & Dia - Monster (DotEXE Remix) (nold_1702) [m1ng's Oni].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 139.99999999999986,
+        "variable": false
+      },
+      {
+        "name": "Meg & Dia - Monster (DotEXE Remix) (nold_1702) [m1ng's Rain].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 139.99999999999986,
+        "variable": false
+      },
+      {
+        "name": "Meg & Dia - Monster (DotEXE Remix) (nold_1702) [ursa's OverdoZe].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 139.99999999999986,
+        "variable": false
+      }
+    ]
+  },
+  {
+    "id": "sample-045",
+    "directoryName": "1128596 Silentroom - NULCTRL EX",
+    "selectedBeatmap": "Silentroom - NULCTRL EX (AHHHHHHHHHHHHHH) [Hard].osu",
+    "selectedBpm": 100,
+    "predictedBpm": 200,
+    "sameAudioMapCount": 2,
+    "otherVariableMaps": [],
+    "matchedMaps": [],
+    "evidence": [
+      {
+        "startMs": 35944,
+        "endMs": 42940,
+        "bpm": 67.555,
+        "points": 4,
+        "maxSupport": 0.31910998920403105,
+        "siblingMatches": []
+      }
+    ],
+    "maps": [
+      {
+        "name": "Silentroom - NULCTRL EX (AHHHHHHHHHHHHHH) [Hard].osu",
+        "selected": true,
+        "redLineCount": 1,
+        "dominantBpm": 100,
+        "variable": false
+      },
+      {
+        "name": "Silentroom - NULCTRL EX (AHHHHHHHHHHHHHH) [nl_ctr]].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 100,
+        "variable": false
+      }
+    ]
+  },
+  {
+    "id": "sample-046",
+    "directoryName": "407447 Amane - Space Time (Amane Hardcore Remix)",
+    "selectedBeatmap": "Amane - Space Time (Amane Hardcore Remix) (FelipeLink) [Rerum Spatium Tempusque].osu",
+    "selectedBpm": 174.99999999999991,
+    "predictedBpm": 175,
+    "sameAudioMapCount": 1,
+    "otherVariableMaps": [],
+    "matchedMaps": [],
+    "evidence": [
+      {
+        "startMs": 244622,
+        "endMs": 250619,
+        "bpm": 77.714,
+        "points": 3,
+        "maxSupport": 0.10850477547085381,
+        "siblingMatches": []
+      }
+    ],
+    "maps": [
+      {
+        "name": "Amane - Space Time (Amane Hardcore Remix) (FelipeLink) [Rerum Spatium Tempusque].osu",
+        "selected": true,
+        "redLineCount": 1,
+        "dominantBpm": 174.99999999999991,
+        "variable": false
+      }
+    ]
+  },
+  {
+    "id": "sample-047",
+    "directoryName": "260551 t+pazolite - Rumble Kung-fu Showdown",
+    "selectedBeatmap": "t+pazolite - Rumble Kung-fu Showdown (L o L i) [Rumble+pazolite].osu",
+    "selectedBpm": 240,
+    "predictedBpm": 240,
+    "sameAudioMapCount": 1,
+    "otherVariableMaps": [],
+    "matchedMaps": [],
+    "evidence": [
+      {
+        "startMs": 128801,
+        "endMs": 134798,
+        "bpm": 60.093,
+        "points": 3,
+        "maxSupport": 0.1303373695663276,
+        "siblingMatches": []
+      }
+    ],
+    "maps": [
+      {
+        "name": "t+pazolite - Rumble Kung-fu Showdown (L o L i) [Rumble+pazolite].osu",
+        "selected": true,
+        "redLineCount": 2,
+        "dominantBpm": 240,
+        "variable": false
+      }
+    ]
+  },
+  {
+    "id": "sample-049",
+    "directoryName": "190529 Junk - Aihana (Love+ Edit)",
+    "selectedBeatmap": "Junk - Aihana (Love+ Edit) (richardfeder) [Another].osu",
+    "selectedBpm": 139.99999999999986,
+    "predictedBpm": 140,
+    "sameAudioMapCount": 5,
+    "otherVariableMaps": [],
+    "matchedMaps": [],
+    "evidence": [
+      {
+        "startMs": 83870,
+        "endMs": 89867,
+        "bpm": 80.124,
+        "points": 3,
+        "maxSupport": 0.09461025829194393,
+        "siblingMatches": []
+      },
+      {
+        "startMs": 87864,
+        "endMs": 94860,
+        "bpm": 80.124,
+        "points": 4,
+        "maxSupport": 0.10000577347529539,
+        "siblingMatches": []
+      }
+    ],
+    "maps": [
+      {
+        "name": "Junk - Aihana (Love+ Edit) (richardfeder) [Another].osu",
+        "selected": true,
+        "redLineCount": 1,
+        "dominantBpm": 139.99999999999986,
+        "variable": false
+      },
+      {
+        "name": "Junk - Aihana (Love+ Edit) (richardfeder) [Hyper].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 139.99999999999986,
+        "variable": false
+      },
+      {
+        "name": "Junk - Aihana (Love+ Edit) (richardfeder) [Normal].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 139.99999999999986,
+        "variable": false
+      },
+      {
+        "name": "Junk - Aihana (Love+ Edit) (richardfeder) [S.Star's Another].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 139.99999999999986,
+        "variable": false
+      },
+      {
+        "name": "Junk - Aihana (Love+ Edit) (richardfeder) [S.Star's Beginner].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 139.99999999999986,
+        "variable": false
+      }
+    ]
+  },
+  {
+    "id": "sample-050",
+    "directoryName": "1787128 Chiro, Kotono, Hiyorin - My Dream Kingdom!",
+    "selectedBeatmap": "Chiro, Kotono, Hiyorin - My Dream Kingdom! (Snow Note) [Snother].osu",
+    "selectedBpm": 120,
+    "predictedBpm": 239.9,
+    "sameAudioMapCount": 2,
+    "otherVariableMaps": [],
+    "matchedMaps": [],
+    "evidence": [
+      {
+        "startMs": 60906,
+        "endMs": 67901,
+        "bpm": 60.093,
+        "points": 4,
+        "maxSupport": 0.13083329006555236,
+        "siblingMatches": []
+      }
+    ],
+    "maps": [
+      {
+        "name": "Chiro, Kotono, Hiyorin - My Dream Kingdom! (Snow Note) [Snother AR9.2].osu",
+        "selected": false,
+        "redLineCount": 3,
+        "dominantBpm": 120,
+        "variable": false
+      },
+      {
+        "name": "Chiro, Kotono, Hiyorin - My Dream Kingdom! (Snow Note) [Snother].osu",
+        "selected": true,
+        "redLineCount": 3,
+        "dominantBpm": 120,
+        "variable": false
+      }
+    ]
+  },
+  {
+    "id": "sample-052",
+    "directoryName": "916257 GYARI - Akari ga Yatte Kita Zo (Cut Ver)",
+    "selectedBeatmap": "GYARI - Akari ga Yatte Kita Zo (Cut Ver.) (LeiN-) [notice me].osu",
+    "selectedBpm": 136.00000000000009,
+    "predictedBpm": 136,
+    "sameAudioMapCount": 1,
+    "otherVariableMaps": [],
+    "matchedMaps": [],
+    "evidence": [
+      {
+        "startMs": 78878,
+        "endMs": 84875,
+        "bpm": 60.444,
+        "points": 3,
+        "maxSupport": 0.12823427973480203,
+        "siblingMatches": []
+      }
+    ],
+    "maps": [
+      {
+        "name": "GYARI - Akari ga Yatte Kita Zo (Cut Ver.) (LeiN-) [notice me].osu",
+        "selected": true,
+        "redLineCount": 1,
+        "dominantBpm": 136.00000000000009,
+        "variable": false
+      }
+    ]
+  },
+  {
+    "id": "sample-053",
+    "directoryName": "25671 NieN - Leave me Alone",
+    "selectedBeatmap": "NieN - Leave me Alone (MoonFragrance) [ykcarrot's Hard].osu",
+    "selectedBpm": 236.00000000000023,
+    "predictedBpm": 236,
+    "sameAudioMapCount": 4,
+    "otherVariableMaps": [],
+    "matchedMaps": [],
+    "evidence": [
+      {
+        "startMs": 15975,
+        "endMs": 21972,
+        "bpm": 67.555,
+        "points": 3,
+        "maxSupport": 0.2893084887700161,
+        "siblingMatches": []
+      },
+      {
+        "startMs": 27957,
+        "endMs": 34952,
+        "bpm": 67.555,
+        "points": 4,
+        "maxSupport": 0.28766301682926787,
+        "siblingMatches": []
+      }
+    ],
+    "maps": [
+      {
+        "name": "NieN - Leave me Alone (MoonFragrance) [Maximum].osu",
+        "selected": false,
+        "redLineCount": 2,
+        "dominantBpm": 236.00000000000023,
+        "variable": false
+      },
+      {
+        "name": "NieN - Leave me Alone (MoonFragrance) [Normal].osu",
+        "selected": false,
+        "redLineCount": 2,
+        "dominantBpm": 236.00000000000023,
+        "variable": false
+      },
+      {
+        "name": "NieN - Leave me Alone (MoonFragrance) [Taiko].osu",
+        "selected": false,
+        "redLineCount": 2,
+        "dominantBpm": 236.00000000000023,
+        "variable": false
+      },
+      {
+        "name": "NieN - Leave me Alone (MoonFragrance) [ykcarrot's Hard].osu",
+        "selected": true,
+        "redLineCount": 2,
+        "dominantBpm": 236.00000000000023,
+        "variable": false
+      }
+    ]
+  },
+  {
+    "id": "sample-062",
+    "directoryName": "293475 Renard vs Kitsune^2 - The Castle",
+    "selectedBeatmap": "Renard vs Kitsune^2 - The Castle (Nivrad00) [Fortress].osu",
+    "selectedBpm": 200,
+    "predictedBpm": 200,
+    "sameAudioMapCount": 4,
+    "otherVariableMaps": [],
+    "matchedMaps": [],
+    "evidence": [
+      {
+        "startMs": 53917,
+        "endMs": 59913,
+        "bpm": 73.045,
+        "points": 3,
+        "maxSupport": 0.22889364510774612,
+        "siblingMatches": []
+      }
+    ],
+    "maps": [
+      {
+        "name": "Renard vs Kitsune^2 - The Castle (Nivrad00) [Fortress].osu",
+        "selected": true,
+        "redLineCount": 1,
+        "dominantBpm": 200,
+        "variable": false
+      },
+      {
+        "name": "Renard vs Kitsune^2 - The Castle (Nivrad00) [Hard].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 200,
+        "variable": false
+      },
+      {
+        "name": "Renard vs Kitsune^2 - The Castle (Nivrad00) [Insane].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 200,
+        "variable": false
+      },
+      {
+        "name": "Renard vs Kitsune^2 - The Castle (Nivrad00) [Normal].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 200,
+        "variable": false
+      }
+    ]
+  },
+  {
+    "id": "sample-063",
+    "directoryName": "senya - otogibanashi no karakuri ha,",
+    "selectedBeatmap": "senya - Otogibanashi no karakuri ha, (Xzzj) [Karakuri2].osu",
+    "selectedBpm": 133.99999999999991,
+    "predictedBpm": 134,
+    "sameAudioMapCount": 2,
+    "otherVariableMaps": [],
+    "matchedMaps": [],
+    "evidence": [
+      {
+        "startMs": 227648,
+        "endMs": 233645,
+        "bpm": 89.878,
+        "points": 3,
+        "maxSupport": 0.06742125056548984,
+        "siblingMatches": []
+      }
+    ],
+    "maps": [
+      {
+        "name": "senya - Otogibanashi no karakuri ha, (Xzzj) [Karakuri2].osu",
+        "selected": true,
+        "redLineCount": 1,
+        "dominantBpm": 133.99999999999991,
+        "variable": false
+      },
+      {
+        "name": "senya - Otogibanashi no karakuri ha, (Xzzj) [edit].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 133.99999999999991,
+        "variable": false
+      }
+    ]
+  },
+  {
+    "id": "sample-065",
+    "directoryName": "770829 Roselia - Guren no Yumiya",
+    "selectedBeatmap": "Roselia - Guren no Yumiya (- Aries -) [Expert].osu",
+    "selectedBpm": 181.00000000000017,
+    "predictedBpm": 181,
+    "sameAudioMapCount": 4,
+    "otherVariableMaps": [],
+    "matchedMaps": [],
+    "evidence": [
+      {
+        "startMs": 41935,
+        "endMs": 47932,
+        "bpm": 72.279,
+        "points": 3,
+        "maxSupport": 0.1563536970500732,
+        "siblingMatches": []
+      },
+      {
+        "startMs": 84869,
+        "endMs": 90866,
+        "bpm": 60.444,
+        "points": 3,
+        "maxSupport": 0.24808253722209608,
+        "siblingMatches": []
+      }
+    ],
+    "maps": [
+      {
+        "name": "Roselia - Guren no Yumiya (- Aries -) [Expert].osu",
+        "selected": true,
+        "redLineCount": 1,
+        "dominantBpm": 181.00000000000017,
+        "variable": false
+      },
+      {
+        "name": "Roselia - Guren no Yumiya (- Aries -) [Hard].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 181.00000000000017,
+        "variable": false
+      },
+      {
+        "name": "Roselia - Guren no Yumiya (- Aries -) [Ly0's Easy].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 181.00000000000017,
+        "variable": false
+      },
+      {
+        "name": "Roselia - Guren no Yumiya (- Aries -) [Ly0's Normal].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 181.00000000000017,
+        "variable": false
+      }
+    ]
+  },
+  {
+    "id": "sample-069",
+    "directoryName": "186443 Liberatus - Doll's Garden",
+    "selectedBeatmap": "Liberatus - Doll's Garden (rkddlf00) [4k SC].osu",
+    "selectedBpm": 160,
+    "predictedBpm": 160,
+    "sameAudioMapCount": 1,
+    "otherVariableMaps": [],
+    "matchedMaps": [],
+    "evidence": [
+      {
+        "startMs": 88863,
+        "endMs": 94860,
+        "bpm": 64.198,
+        "points": 3,
+        "maxSupport": 0.167474037990221,
+        "siblingMatches": []
+      }
+    ],
+    "maps": [
+      {
+        "name": "Liberatus - Doll's Garden (rkddlf00) [4k SC].osu",
+        "selected": true,
+        "redLineCount": 1,
+        "dominantBpm": 160,
+        "variable": false
+      }
+    ]
+  },
+  {
+    "id": "sample-070",
+    "directoryName": "1558408 Mori Calliope - Excuse My Rudeness, But Could You Please RIP (Nhato Remix)",
+    "selectedBeatmap": "Mori Calliope - Excuse My Rudeness, But Could You Please RIP (Nhato Remix) (AutotelicBrown) [Easy].osu",
+    "selectedBpm": 129.99999987,
+    "predictedBpm": 130,
+    "sameAudioMapCount": 5,
+    "otherVariableMaps": [],
+    "matchedMaps": [],
+    "evidence": [
+      {
+        "startMs": 998,
+        "endMs": 7994,
+        "bpm": 74.359,
+        "points": 4,
+        "maxSupport": 0.2435762943722918,
+        "siblingMatches": []
+      },
+      {
+        "startMs": 16974,
+        "endMs": 22971,
+        "bpm": 74.359,
+        "points": 3,
+        "maxSupport": 0.15900513965065663,
+        "siblingMatches": []
+      },
+      {
+        "startMs": 87864,
+        "endMs": 93861,
+        "bpm": 74.093,
+        "points": 3,
+        "maxSupport": 0.15341603845300236,
+        "siblingMatches": []
+      },
+      {
+        "startMs": 103839,
+        "endMs": 109836,
+        "bpm": 61.159,
+        "points": 3,
+        "maxSupport": 0.23814371741327228,
+        "siblingMatches": []
+      }
+    ],
+    "maps": [
+      {
+        "name": "Mori Calliope - Excuse My Rudeness, But Could You Please RIP (Nhato Remix) (AutotelicBrown) [Advanced].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 129.99999987,
+        "variable": false
+      },
+      {
+        "name": "Mori Calliope - Excuse My Rudeness, But Could You Please RIP (Nhato Remix) (AutotelicBrown) [Easy].osu",
+        "selected": true,
+        "redLineCount": 1,
+        "dominantBpm": 129.99999987,
+        "variable": false
+      },
+      {
+        "name": "Mori Calliope - Excuse My Rudeness, But Could You Please RIP (Nhato Remix) (AutotelicBrown) [Hard].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 129.99999987,
+        "variable": false
+      },
+      {
+        "name": "Mori Calliope - Excuse My Rudeness, But Could You Please RIP (Nhato Remix) (AutotelicBrown) [Normal].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 129.99999987,
+        "variable": false
+      },
+      {
+        "name": "Mori Calliope - Excuse My Rudeness, But Could You Please RIP (Nhato Remix) (AutotelicBrown) [RIP in beats].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 129.99999987,
+        "variable": false
+      }
+    ]
+  },
+  {
+    "id": "sample-073",
+    "directoryName": "Mutsuhiko Izumi - Snow Goose (13)",
+    "selectedBeatmap": "Mutsuhiko Izumi - Snow Goose (^) [13].osu",
+    "selectedBpm": 200,
+    "predictedBpm": 200,
+    "sameAudioMapCount": 1,
+    "otherVariableMaps": [],
+    "matchedMaps": [],
+    "evidence": [
+      {
+        "startMs": 90860,
+        "endMs": 96856,
+        "bpm": 66.683,
+        "points": 3,
+        "maxSupport": 0.16114402562379837,
+        "siblingMatches": []
+      }
+    ],
+    "maps": [
+      {
+        "name": "Mutsuhiko Izumi - Snow Goose (^) [13].osu",
+        "selected": true,
+        "redLineCount": 1,
+        "dominantBpm": 200,
+        "variable": false
+      }
+    ]
+  },
+  {
+    "id": "sample-075",
+    "directoryName": "833927 Weird Al Yankovic - Hardware Store",
+    "selectedBeatmap": "Weird Al Yankovic - Hardware Store (Woey) [POG CS0].osu",
+    "selectedBpm": 126.32999999999987,
+    "predictedBpm": 126.35,
+    "sameAudioMapCount": 2,
+    "otherVariableMaps": [],
+    "matchedMaps": [],
+    "evidence": [
+      {
+        "startMs": 48924,
+        "endMs": 54921,
+        "bpm": 72.279,
+        "points": 3,
+        "maxSupport": 0.32856020348173176,
+        "siblingMatches": []
+      }
+    ],
+    "maps": [
+      {
+        "name": "Weird Al Yankovic - Hardware Store (Woey) [POG CS0].osu",
+        "selected": true,
+        "redLineCount": 1,
+        "dominantBpm": 126.32999999999987,
+        "variable": false
+      },
+      {
+        "name": "Weird Al Yankovic - Hardware Store (Woey) [POG].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 126.32999999999987,
+        "variable": false
+      }
+    ]
+  },
+  {
+    "id": "sample-078",
+    "directoryName": "516824 Umeboshi Chazuke - Owari to Hajimari no Oto",
+    "selectedBeatmap": "Umeboshi Chazuke - Owari to Hajimari no Oto (Interlude-) [leqek's Hard].osu",
+    "selectedBpm": 201.0000000000001,
+    "predictedBpm": 201.05,
+    "sameAudioMapCount": 3,
+    "otherVariableMaps": [],
+    "matchedMaps": [],
+    "evidence": [
+      {
+        "startMs": 97849,
+        "endMs": 103846,
+        "bpm": 67.116,
+        "points": 3,
+        "maxSupport": 0.13913359374394133,
+        "siblingMatches": []
+      }
+    ],
+    "maps": [
+      {
+        "name": "Umeboshi Chazuke - Owari to Hajimari no Oto (Interlude-) [Special].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 201.0000000000001,
+        "variable": false
+      },
+      {
+        "name": "Umeboshi Chazuke - Owari to Hajimari no Oto (Interlude-) [Wonki's Easy].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 201.0000000000001,
+        "variable": false
+      },
+      {
+        "name": "Umeboshi Chazuke - Owari to Hajimari no Oto (Interlude-) [leqek's Hard].osu",
+        "selected": true,
+        "redLineCount": 1,
+        "dominantBpm": 201.0000000000001,
+        "variable": false
+      }
+    ]
+  },
+  {
+    "id": "sample-081",
+    "directoryName": "506155 Ayalis - Ai o Chikaishi Hime Kazari",
+    "selectedBeatmap": "Ayalis - Ai o Chikaishi Hime Kazari (handsome) [captin's Extra].osu",
+    "selectedBpm": 209.99999999999977,
+    "predictedBpm": 209.95,
+    "sameAudioMapCount": 7,
+    "otherVariableMaps": [],
+    "matchedMaps": [],
+    "evidence": [
+      {
+        "startMs": 33947,
+        "endMs": 39944,
+        "bpm": 60.128,
+        "points": 3,
+        "maxSupport": 0.07874412111962709,
+        "siblingMatches": []
+      },
+      {
+        "startMs": 193701,
+        "endMs": 199698,
+        "bpm": 85.069,
+        "points": 3,
+        "maxSupport": 0.08335825403206754,
+        "siblingMatches": []
+      }
+    ],
+    "maps": [
+      {
+        "name": "Ayalis - Ai o Chikaishi Hime Kazari (handsome) [Ascendance's Easy].osu",
+        "selected": false,
+        "redLineCount": 6,
+        "dominantBpm": 209.99999999999977,
+        "variable": false
+      },
+      {
+        "name": "Ayalis - Ai o Chikaishi Hime Kazari (handsome) [Hard].osu",
+        "selected": false,
+        "redLineCount": 6,
+        "dominantBpm": 209.99999999999977,
+        "variable": false
+      },
+      {
+        "name": "Ayalis - Ai o Chikaishi Hime Kazari (handsome) [Kyshiro's Extra].osu",
+        "selected": false,
+        "redLineCount": 6,
+        "dominantBpm": 209.99999999999977,
+        "variable": false
+      },
+      {
+        "name": "Ayalis - Ai o Chikaishi Hime Kazari (handsome) [Master].osu",
+        "selected": false,
+        "redLineCount": 6,
+        "dominantBpm": 209.99999999999977,
+        "variable": false
+      },
+      {
+        "name": "Ayalis - Ai o Chikaishi Hime Kazari (handsome) [Normal].osu",
+        "selected": false,
+        "redLineCount": 6,
+        "dominantBpm": 209.99999999999977,
+        "variable": false
+      },
+      {
+        "name": "Ayalis - Ai o Chikaishi Hime Kazari (handsome) [captin's Extra].osu",
+        "selected": true,
+        "redLineCount": 6,
+        "dominantBpm": 209.99999999999977,
+        "variable": false
+      },
+      {
+        "name": "Ayalis - Ai o Chikaishi Hime Kazari (handsome) [toybot's Insane].osu",
+        "selected": false,
+        "redLineCount": 6,
+        "dominantBpm": 209.99999999999977,
+        "variable": false
+      }
+    ]
+  },
+  {
+    "id": "sample-082",
+    "directoryName": "beatmap-637195271310242821-Oomori Seiko - JUSTadICE (TV Size)",
+    "selectedBeatmap": "Oomori Seiko - JUSTadICE (TV Size) (None1637) [Ki Ki Ki CS4].osu",
+    "selectedBpm": 185.0000000000002,
+    "predictedBpm": 185,
+    "sameAudioMapCount": 6,
+    "otherVariableMaps": [],
+    "matchedMaps": [],
+    "evidence": [
+      {
+        "startMs": 12980,
+        "endMs": 18977,
+        "bpm": 82.358,
+        "points": 3,
+        "maxSupport": 0.2115756212621533,
+        "siblingMatches": []
+      }
+    ],
+    "maps": [
+      {
+        "name": "Oomori Seiko - JUSTadICE (TV Size) (None1637) [Extra].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 185.0000000000002,
+        "variable": false
+      },
+      {
+        "name": "Oomori Seiko - JUSTadICE (TV Size) (None1637) [Ki Ki Ki CS4].osu",
+        "selected": true,
+        "redLineCount": 1,
+        "dominantBpm": 185.0000000000002,
+        "variable": false
+      },
+      {
+        "name": "Oomori Seiko - JUSTadICE (TV Size) (None1637) [Ki Ki Ki].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 185.0000000000002,
+        "variable": false
+      },
+      {
+        "name": "Oomori Seiko - JUSTadICE (TV Size) (None1637) [Test For CS NaN].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 185.0000000000002,
+        "variable": false
+      },
+      {
+        "name": "Oomori Seiko - JUSTadICE (TV Size) (None1637) [Test For Long Slider].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 1.8500000000000021e+301,
+        "variable": false
+      },
+      {
+        "name": "Oomori Seiko - JUSTadICE (TV Size) (None1637) [Test For PP].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 185.0000000000002,
+        "variable": false
+      }
+    ]
+  },
+  {
+    "id": "sample-083",
+    "directoryName": "845720 OSU! - PACK 9",
+    "selectedBeatmap": "OSU! - PACK 9 (Spinner) [Justability (Amamiya Nathan's Shooting Star) 1.4x - mapped by Skystar].osu",
+    "selectedBpm": 252.00004032000643,
+    "predictedBpm": 63,
+    "sameAudioMapCount": 2,
+    "otherVariableMaps": [],
+    "matchedMaps": [],
+    "evidence": [
+      {
+        "startMs": 7987,
+        "endMs": 13984,
+        "bpm": 126.048,
+        "points": 3,
+        "maxSupport": 0.15082994447682355,
+        "siblingMatches": []
+      },
+      {
+        "startMs": 67895,
+        "endMs": 73892,
+        "bpm": 72.027,
+        "points": 3,
+        "maxSupport": 0.13556727314346423,
+        "siblingMatches": []
+      },
+      {
+        "startMs": 131796,
+        "endMs": 137793,
+        "bpm": 127.604,
+        "points": 3,
+        "maxSupport": 0.15825481385293524,
+        "siblingMatches": []
+      },
+      {
+        "startMs": 137787,
+        "endMs": 143784,
+        "bpm": 73.565,
+        "points": 3,
+        "maxSupport": 0.1892217794224613,
+        "siblingMatches": []
+      },
+      {
+        "startMs": 151765,
+        "endMs": 158761,
+        "bpm": 126.048,
+        "points": 4,
+        "maxSupport": 0.12977553356337668,
+        "siblingMatches": []
+      },
+      {
+        "startMs": 168739,
+        "endMs": 174736,
+        "bpm": 121.599,
+        "points": 3,
+        "maxSupport": 0.11756215894210378,
+        "siblingMatches": []
+      },
+      {
+        "startMs": 206681,
+        "endMs": 213676,
+        "bpm": 126.048,
+        "points": 4,
+        "maxSupport": 0.10166355770137882,
+        "siblingMatches": []
+      },
+      {
+        "startMs": 235636,
+        "endMs": 242631,
+        "bpm": 84.032,
+        "points": 4,
+        "maxSupport": 0.1725426592718349,
+        "siblingMatches": []
+      },
+      {
+        "startMs": 256604,
+        "endMs": 262600,
+        "bpm": 126.048,
+        "points": 3,
+        "maxSupport": 0.1227168382120187,
+        "siblingMatches": []
+      },
+      {
+        "startMs": 278570,
+        "endMs": 284567,
+        "bpm": 72.279,
+        "points": 3,
+        "maxSupport": 0.1176100187877779,
+        "siblingMatches": []
+      },
+      {
+        "startMs": 291550,
+        "endMs": 297546,
+        "bpm": 123.047,
+        "points": 3,
+        "maxSupport": 0.10833139412414758,
+        "siblingMatches": []
+      },
+      {
+        "startMs": 301534,
+        "endMs": 307531,
+        "bpm": 72.027,
+        "points": 3,
+        "maxSupport": 0.16251278720120058,
+        "siblingMatches": []
+      },
+      {
+        "startMs": 306526,
+        "endMs": 312523,
+        "bpm": 168.064,
+        "points": 3,
+        "maxSupport": 0.11051910644130732,
+        "siblingMatches": []
+      },
+      {
+        "startMs": 309522,
+        "endMs": 316517,
+        "bpm": 129.199,
+        "points": 4,
+        "maxSupport": 0.09913431322214353,
+        "siblingMatches": []
+      },
+      {
+        "startMs": 322502,
+        "endMs": 328499,
+        "bpm": 84.1,
+        "points": 3,
+        "maxSupport": 0.17551689692285216,
+        "siblingMatches": []
+      }
+    ],
+    "maps": [
+      {
+        "name": "OSU! - PACK 9 (Spinner) [Justability (Amamiya Nathan's Shooting Star) 1.4x (EZ)].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 252.00004032000643,
+        "variable": false
+      },
+      {
+        "name": "OSU! - PACK 9 (Spinner) [Justability (Amamiya Nathan's Shooting Star) 1.4x - mapped by Skystar].osu",
+        "selected": true,
+        "redLineCount": 1,
+        "dominantBpm": 252.00004032000643,
+        "variable": false
+      }
+    ]
+  },
+  {
+    "id": "sample-084",
+    "directoryName": "64839 Misato Aki - DESIRE (Short Ver)",
+    "selectedBeatmap": "Misato Aki - DESIRE (Short Ver.) (Nichiyouki) [Sekai's Easy].osu",
+    "selectedBpm": 118.99999999999999,
+    "predictedBpm": 238,
+    "sameAudioMapCount": 5,
+    "otherVariableMaps": [],
+    "matchedMaps": [],
+    "evidence": [
+      {
+        "startMs": 67895,
+        "endMs": 73892,
+        "bpm": 68,
+        "points": 3,
+        "maxSupport": 0.12280370108404437,
+        "siblingMatches": []
+      }
+    ],
+    "maps": [
+      {
+        "name": "Misato Aki - DESIRE (Short Ver.) (Nichiyouki) [BeatofIke's Normal].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 118.99999999999999,
+        "variable": false
+      },
+      {
+        "name": "Misato Aki - DESIRE (Short Ver.) (Nichiyouki) [CakiP's Hard].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 118.99999999999999,
+        "variable": false
+      },
+      {
+        "name": "Misato Aki - DESIRE (Short Ver.) (Nichiyouki) [Insane].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 118.99999999999999,
+        "variable": false
+      },
+      {
+        "name": "Misato Aki - DESIRE (Short Ver.) (Nichiyouki) [Sekai's Easy].osu",
+        "selected": true,
+        "redLineCount": 1,
+        "dominantBpm": 118.99999999999999,
+        "variable": false
+      },
+      {
+        "name": "Misato Aki - DESIRE (Short Ver.) (Nichiyouki) [alacat's Hard].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 118.99999999999999,
+        "variable": false
+      }
+    ]
+  },
+  {
+    "id": "sample-085",
+    "directoryName": "135070 DragonForce - Fury Of The Storm",
+    "selectedBeatmap": "DragonForce - Fury Of The Storm (T o u c h e) [Legend 210BPM AR10].osu",
+    "selectedBpm": 209.99999999999977,
+    "predictedBpm": 210.25,
+    "sameAudioMapCount": 3,
+    "otherVariableMaps": [],
+    "matchedMaps": [],
+    "evidence": [
+      {
+        "startMs": 24961,
+        "endMs": 30958,
+        "bpm": 68.677,
+        "points": 3,
+        "maxSupport": 0.08184464985556972,
+        "siblingMatches": []
+      },
+      {
+        "startMs": 45929,
+        "endMs": 52924,
+        "bpm": 119.837,
+        "points": 4,
+        "maxSupport": 0.13723627899346813,
+        "siblingMatches": []
+      },
+      {
+        "startMs": 338477,
+        "endMs": 344474,
+        "bpm": 69.602,
+        "points": 3,
+        "maxSupport": 0.1251800898909789,
+        "siblingMatches": []
+      }
+    ],
+    "maps": [
+      {
+        "name": "DragonForce - Fury Of The Storm (T o u c h e) [Legend 210BPM AR10].osu",
+        "selected": true,
+        "redLineCount": 1,
+        "dominantBpm": 209.99999999999977,
+        "variable": false
+      },
+      {
+        "name": "DragonForce - Fury Of The Storm (T o u c h e) [Legend 210BPM AR9].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 209.99999999999977,
+        "variable": false
+      },
+      {
+        "name": "DragonForce - Fury Of The Storm (T o u c h e) [Legend 210BPM].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 209.99999999999977,
+        "variable": false
+      }
+    ]
+  },
+  {
+    "id": "sample-088",
+    "directoryName": "1159269 Zekk - SUMMER",
+    "selectedBeatmap": "Zekk - SUMMER (Shima Rin) [Ichigo].osu",
+    "selectedBpm": 174.99999999999991,
+    "predictedBpm": 175,
+    "sameAudioMapCount": 3,
+    "otherVariableMaps": [],
+    "matchedMaps": [],
+    "evidence": [
+      {
+        "startMs": 102841,
+        "endMs": 108838,
+        "bpm": 63.645,
+        "points": 3,
+        "maxSupport": 0.3028203655494974,
+        "siblingMatches": []
+      },
+      {
+        "startMs": 112826,
+        "endMs": 119821,
+        "bpm": 99.864,
+        "points": 4,
+        "maxSupport": 0.16300545588377335,
+        "siblingMatches": []
+      },
+      {
+        "startMs": 116819,
+        "endMs": 122816,
+        "bpm": 63.645,
+        "points": 3,
+        "maxSupport": 0.21243105764224454,
+        "siblingMatches": []
+      }
+    ],
+    "maps": [
+      {
+        "name": "Zekk - SUMMER (Shima Rin) [FAMoss' Normal].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 174.99999999999991,
+        "variable": false
+      },
+      {
+        "name": "Zekk - SUMMER (Shima Rin) [Hard].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 174.99999999999991,
+        "variable": false
+      },
+      {
+        "name": "Zekk - SUMMER (Shima Rin) [Ichigo].osu",
+        "selected": true,
+        "redLineCount": 1,
+        "dominantBpm": 174.99999999999991,
+        "variable": false
+      }
+    ]
+  },
+  {
+    "id": "sample-089",
+    "directoryName": "722744 Camellia - put' l'da",
+    "selectedBeatmap": "Camellia - put' l'da (Rose Pacifica) [Frozen].osu",
+    "selectedBpm": 200,
+    "predictedBpm": 200,
+    "sameAudioMapCount": 1,
+    "otherVariableMaps": [],
+    "matchedMaps": [],
+    "evidence": [
+      {
+        "startMs": 45929,
+        "endMs": 54921,
+        "bpm": 66.683,
+        "points": 6,
+        "maxSupport": 0.3578463510181851,
+        "siblingMatches": []
+      },
+      {
+        "startMs": 128801,
+        "endMs": 134798,
+        "bpm": 66.683,
+        "points": 3,
+        "maxSupport": 0.16081487213214107,
+        "siblingMatches": []
+      },
+      {
+        "startMs": 163747,
+        "endMs": 169744,
+        "bpm": 66.683,
+        "points": 3,
+        "maxSupport": 0.19725143605809123,
+        "siblingMatches": []
+      },
+      {
+        "startMs": 166742,
+        "endMs": 172739,
+        "bpm": 114.209,
+        "points": 3,
+        "maxSupport": 0.14868974322901488,
+        "siblingMatches": []
+      },
+      {
+        "startMs": 192702,
+        "endMs": 203691,
+        "bpm": 114.209,
+        "points": 8,
+        "maxSupport": 0.3409288787666914,
+        "siblingMatches": []
+      },
+      {
+        "startMs": 231642,
+        "endMs": 237639,
+        "bpm": 89.103,
+        "points": 3,
+        "maxSupport": 0.24537064782154663,
+        "siblingMatches": []
+      }
+    ],
+    "maps": [
+      {
+        "name": "Camellia - put' l'da (Rose Pacifica) [Frozen].osu",
+        "selected": true,
+        "redLineCount": 1,
+        "dominantBpm": 200,
+        "variable": false
+      }
+    ]
+  },
+  {
+    "id": "sample-090",
+    "directoryName": "1930076 Lime - BEYOND",
+    "selectedBeatmap": "Lime - BEYOND (FLeVI) [LN Aurora Australis].osu",
+    "selectedBpm": 276.0000000000001,
+    "predictedBpm": 138,
+    "sameAudioMapCount": 12,
+    "otherVariableMaps": [],
+    "matchedMaps": [],
+    "evidence": [
+      {
+        "startMs": 28955,
+        "endMs": 35950,
+        "bpm": 61.341,
+        "points": 4,
+        "maxSupport": 0.4555418779434543,
+        "siblingMatches": []
+      },
+      {
+        "startMs": 36943,
+        "endMs": 42940,
+        "bpm": 61.341,
+        "points": 3,
+        "maxSupport": 0.5260290898399129,
+        "siblingMatches": []
+      },
+      {
+        "startMs": 50921,
+        "endMs": 56918,
+        "bpm": 61.341,
+        "points": 3,
+        "maxSupport": 0.3735084318423716,
+        "siblingMatches": []
+      }
+    ],
+    "maps": [
+      {
+        "name": "Lime - BEYOND (FLeVI) [LN Aurora Australis].osu",
+        "selected": true,
+        "redLineCount": 1,
+        "dominantBpm": 276.0000000000001,
+        "variable": false
+      },
+      {
+        "name": "Lime - BEYOND (FLeVI) [LN Easy].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 276.0000000000001,
+        "variable": false
+      },
+      {
+        "name": "Lime - BEYOND (FLeVI) [LN Extra].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 276.0000000000001,
+        "variable": false
+      },
+      {
+        "name": "Lime - BEYOND (FLeVI) [LN Hard].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 276.0000000000001,
+        "variable": false
+      },
+      {
+        "name": "Lime - BEYOND (FLeVI) [LN Normal].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 276.0000000000001,
+        "variable": false
+      },
+      {
+        "name": "Lime - BEYOND (FLeVI) [LN insane].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 276.0000000000001,
+        "variable": false
+      },
+      {
+        "name": "Lime - BEYOND (FLeVI) [RC Aurora Borealis].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 276.0000000000001,
+        "variable": false
+      },
+      {
+        "name": "Lime - BEYOND (FLeVI) [RC Easy].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 276.0000000000001,
+        "variable": false
+      },
+      {
+        "name": "Lime - BEYOND (FLeVI) [RC Extra].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 276.0000000000001,
+        "variable": false
+      },
+      {
+        "name": "Lime - BEYOND (FLeVI) [RC Hard].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 276.0000000000001,
+        "variable": false
+      },
+      {
+        "name": "Lime - BEYOND (FLeVI) [RC Insane].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 276.0000000000001,
+        "variable": false
+      },
+      {
+        "name": "Lime - BEYOND (FLeVI) [RC Normal].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 276.0000000000001,
+        "variable": false
+      }
+    ]
+  },
+  {
+    "id": "sample-092",
+    "directoryName": "Lindwurm",
+    "selectedBeatmap": "Kuroneko Dungeon - Ryoushi no Umi no Lindwurm (None1637) [Extra Jump].osu",
+    "selectedBpm": 280.0000000000004,
+    "predictedBpm": 139.95,
+    "sameAudioMapCount": 2,
+    "otherVariableMaps": [],
+    "matchedMaps": [],
+    "evidence": [
+      {
+        "startMs": 28955,
+        "endMs": 34952,
+        "bpm": 80.124,
+        "points": 3,
+        "maxSupport": 0.1605252618081465,
+        "siblingMatches": []
+      },
+      {
+        "startMs": 62903,
+        "endMs": 72893,
+        "bpm": 62.265,
+        "points": 7,
+        "maxSupport": 0.21348271000808924,
+        "siblingMatches": []
+      },
+      {
+        "startMs": 85867,
+        "endMs": 91864,
+        "bpm": 80.124,
+        "points": 3,
+        "maxSupport": 0.2763440222892677,
+        "siblingMatches": []
+      }
+    ],
+    "maps": [
+      {
+        "name": "Kuroneko Dungeon - Ryoushi no Umi no Lindwurm (None1637) [Extra Jump].osu",
+        "selected": true,
+        "redLineCount": 1,
+        "dominantBpm": 280.0000000000004,
+        "variable": false
+      },
+      {
+        "name": "Kuroneko Dungeon - Ryoushi no Umi no Lindwurm (None1637) [Normal].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 280.0000000000004,
+        "variable": false
+      }
+    ]
+  },
+  {
+    "id": "sample-093",
+    "directoryName": "29616 NAOKI feat Becky Lucinda - My Only Shining Star (Remix)",
+    "selectedBeatmap": "NAOKI feat. Becky Lucinda - My Only Shining Star (Remix) (Natteke) [Hyper].osu",
+    "selectedBpm": 144.99999999999994,
+    "predictedBpm": 145,
+    "sameAudioMapCount": 4,
+    "otherVariableMaps": [],
+    "matchedMaps": [],
+    "evidence": [
+      {
+        "startMs": 5991,
+        "endMs": 11987,
+        "bpm": 64.6,
+        "points": 3,
+        "maxSupport": 0.7092080406377633,
+        "siblingMatches": []
+      }
+    ],
+    "maps": [
+      {
+        "name": "NAOKI feat. Becky Lucinda - My Only Shining Star (Remix) (Natteke) [Another].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 144.99999999999994,
+        "variable": false
+      },
+      {
+        "name": "NAOKI feat. Becky Lucinda - My Only Shining Star (Remix) (Natteke) [Beginner].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 144.99999999999994,
+        "variable": false
+      },
+      {
+        "name": "NAOKI feat. Becky Lucinda - My Only Shining Star (Remix) (Natteke) [Hyper].osu",
+        "selected": true,
+        "redLineCount": 1,
+        "dominantBpm": 144.99999999999994,
+        "variable": false
+      },
+      {
+        "name": "NAOKI feat. Becky Lucinda - My Only Shining Star (Remix) (Natteke) [lepidon! - Taiko Oni].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 144.99999999999994,
+        "variable": false
+      }
+    ]
+  },
+  {
+    "id": "sample-096",
+    "directoryName": "450885 Aimer - REI AM",
+    "selectedBeatmap": "Aimer - REI AM (spboxer3) [REI AM].osu",
+    "selectedBpm": 72.00000000000003,
+    "predictedBpm": 143.95,
+    "sameAudioMapCount": 1,
+    "otherVariableMaps": [],
+    "matchedMaps": [],
+    "evidence": [
+      {
+        "startMs": 30952,
+        "endMs": 36949,
+        "bpm": 64.398,
+        "points": 3,
+        "maxSupport": 0.364989972996829,
+        "siblingMatches": []
+      },
+      {
+        "startMs": 270582,
+        "endMs": 276579,
+        "bpm": 97.509,
+        "points": 3,
+        "maxSupport": 0.09761260602119523,
+        "siblingMatches": []
+      }
+    ],
+    "maps": [
+      {
+        "name": "Aimer - REI AM (spboxer3) [REI AM].osu",
+        "selected": true,
+        "redLineCount": 1,
+        "dominantBpm": 72.00000000000003,
+        "variable": false
+      }
+    ]
+  },
+  {
+    "id": "sample-098",
+    "directoryName": "14853 COOL&CREATE - Saishoukichiku Imouto Flandre S",
+    "selectedBeatmap": "COOL&CREATE - Saishoukichiku Imouto Flandre S (dksslqj) [Easy].osu",
+    "selectedBpm": 200,
+    "predictedBpm": 200,
+    "sameAudioMapCount": 3,
+    "otherVariableMaps": [],
+    "matchedMaps": [],
+    "evidence": [
+      {
+        "startMs": 36943,
+        "endMs": 42940,
+        "bpm": 66.469,
+        "points": 3,
+        "maxSupport": 0.1601701392705922,
+        "siblingMatches": []
+      }
+    ],
+    "maps": [
+      {
+        "name": "COOL&CREATE - Saishoukichiku Imouto Flandre S (dksslqj) [Easy].osu",
+        "selected": true,
+        "redLineCount": 1,
+        "dominantBpm": 200,
+        "variable": false
+      },
+      {
+        "name": "COOL&CREATE - Saishoukichiku Imouto Flandre S (dksslqj) [Hard].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 200,
+        "variable": false
+      },
+      {
+        "name": "COOL&CREATE - Saishoukichiku Imouto Flandre S (dksslqj) [Lunatic].osu",
+        "selected": false,
+        "redLineCount": 1,
+        "dominantBpm": 200,
+        "variable": false
+      }
+    ]
+  }
+]

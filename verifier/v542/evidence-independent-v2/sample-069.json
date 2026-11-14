@@ -1,0 +1,52 @@
+{
+  "id": "sample-069",
+  "directoryName": "186443 Liberatus - Doll's Garden",
+  "beatmapFile": "Liberatus - Doll's Garden (rkddlf00) [4k SC].osu",
+  "referenceBpm": 160,
+  "predictedBpm": 160,
+  "frozenBpm": 160,
+  "deterministicEvidence": true,
+  "evidence": [
+    {
+      "startMs": 88863,
+      "endMs": 94860,
+      "bpm": 64.198,
+      "points": 3,
+      "maxSupport": 0.167474037990221,
+      "index": 0,
+      "ratioToPredictedMain": 0.40123749999999997,
+      "ratioToAnnotatedMain": 0.40123749999999997,
+      "boundary": "end",
+      "localBpmMin": 64.198,
+      "localBpmMax": 64.198,
+      "medianSupport": 0.167474037990221,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 37.5,
+          "first": 0.4283083899775457,
+          "second": 0.39821173877732907,
+          "combined": 0.41837649508147423
+        },
+        "annotatedMain": {
+          "lag": 37.5,
+          "first": 0.4283083899775457,
+          "second": 0.39821173877732907,
+          "combined": 0.41837649508147423
+        },
+        "evidenceBpm": {
+          "lag": 93.46085547836381,
+          "first": 0.3195780811857481,
+          "second": null,
+          "combined": 0.3195780811857481
+        }
+      },
+      "objectCount": 54,
+      "objectGrid": {
+        "predictedMainHalf": 0.5925925925925926,
+        "annotatedMainHalf": 0.5925925925925926,
+        "evidenceHalf": 0.25925925925925924
+      }
+    }
+  ],
+  "analysisMs": 859
+}

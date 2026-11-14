@@ -1,0 +1,48 @@
+{
+  "id": "sample-035",
+  "directoryName": "1686033 HOYO-MiX - Termination of Desires",
+  "beatmapFile": "HOYO-MiX - Termination of Desires (Mipha-) [Insane].osu",
+  "metadata": {
+    "Title": "Termination of Desires",
+    "TitleUnicode": "何妄何执",
+    "Artist": "HOYO-MiX",
+    "ArtistUnicode": "HOYO-MiX",
+    "Creator": "Mipha-",
+    "Version": "Insane",
+    "Source": "Genshin Impact",
+    "Tags": "mihoyo hoyoverse raiden shogun shougun ei theme the stellar moments vol. 2 miphather video game electronic oriental instrumental 原神 キャラクターテーマ ost original soundtrack 輝く星々 volume 雷電将軍 baal 原神-闪耀的群星2 Yu-Peng Chen 陈宇鹏 陈致逸 Dimeng Yuan 苑迪萌 Jiannan Gu 顾剑楠 International Master Philharmonic Orchestra Demo Trailer Judgment of Euthymia Electro Archon Inazuma 妄念と執念",
+    "BeatmapID": "3506488",
+    "BeatmapSetID": "1686033",
+    "Mode": "3"
+  },
+  "audioDurationMs": 155007.43764172334,
+  "redLines": [
+    {
+      "time": 125,
+      "beatLength": 416.666667,
+      "bpm": 143.9999998848,
+      "durationMs": 11250
+    },
+    {
+      "time": 11375,
+      "beatLength": 416.666667,
+      "bpm": 143.9999998848,
+      "durationMs": 143632.43764172334
+    }
+  ],
+  "referenceBpm": 143.9999998848,
+  "referenceVariable": false,
+  "referenceRedLineCount": 2,
+  "referenceCoverageMs": 154882.43764172334,
+  "status": "ok",
+  "prediction": {
+    "bpm": 144,
+    "offsetMs": 562,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 112,
+    "rawBpm": 288,
+    "rawSegmentCount": 77
+  },
+  "evaluationMs": 1301
+}

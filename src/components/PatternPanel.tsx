@@ -1,8 +1,9 @@
 // v86: Pattern 库面板 — 分类侧栏 + 缩略图网格; 缩略图可拖到游玩区落盘, 拖到分类标签移动分类
 import { useEffect, useRef, useState } from 'react';
-import { Star, X } from 'lucide-react'; // v181: ★/✕ → lucide
+import { Plus, Star, X } from 'lucide-react'; // v181: ★/✕ → lucide
 import { store, useEditor } from '@/osu/store';
-import { DraggableDialog } from './DraggableDialog';
+import { DialogButton, DraggableDialog } from './DraggableDialog';
+import { UiAutoControl, UiAutoIcon, UiAutoText } from './uiLayout/UiControl'; // v534
 import { DEFAULT_GROUP, type StoredPattern } from '@/osu/patternLibrary';
 import { renderPatternThumbnail } from './patternThumb';
 import { getSkin } from '@/osu/skin';
@@ -15,7 +16,7 @@ function Thumb({ pattern }: { pattern: StoredPattern }) {
     const c = ref.current;
     if (c && store.beatmap) renderPatternThumbnail(c, pattern, store.beatmap, getSkin());
   });
-  return <canvas ref={ref} width={90} height={90} className="rounded bg-black block" />;
+  return <UiAutoControl localId={`card.${pattern.id}.thumbnail`} kind="canvas"><canvas ref={ref} width={90} height={90} className="rounded bg-black block" /></UiAutoControl>;
 }
 
 export function PatternPanel() {
@@ -38,9 +39,9 @@ export function PatternPanel() {
 
   const alignBox = (v: 'greenline' | 'scale', label: string, title: string) => (
     <label className="flex items-center gap-1 cursor-pointer select-none" title={title}>
-      <input type="checkbox" checked={align === v} data-pattern-align={v}
-        onChange={() => store.setPatternAlign(align === v ? 'none' : v)} />
-      {label}
+      <UiAutoControl localId={`align.${v}`}><input type="checkbox" checked={align === v} data-pattern-align={v}
+        onChange={() => store.setPatternAlign(align === v ? 'none' : v)} /></UiAutoControl>
+      <UiAutoText localId={`align.${v}`} textKey={`pattern.align_${v}`}>{label}</UiAutoText>
     </label>
   );
 
@@ -49,60 +50,60 @@ export function PatternPanel() {
       <div className="space-y-2.5">
         {/* 收藏 + 对齐选项 */}
         <div className="flex items-center gap-2">
-          <input value={collectName} onChange={e => setCollectName(e.target.value)} placeholder={t('pattern.name_placeholder', 'Pattern name')}
+          <UiAutoControl localId="collect-name"><input value={collectName} onChange={e => setCollectName(e.target.value)} placeholder={t('pattern.name_placeholder', 'Pattern name')}
             data-pattern-input="collect-name"
-            className="flex-1 min-w-0 bg-black/40 border border-white/15 rounded px-1.5 py-0.5 text-white" />
-          <button disabled={!store.selected.size}
+            className="flex-1 min-w-0 bg-black/40 border border-white/15 rounded px-1.5 py-0.5 text-white" /></UiAutoControl>
+          <UiAutoControl localId="collect" kind="button" defaultTextKey="pattern.bookmark_selected" defaultIcon="lucide:Star"><button disabled={!store.selected.size}
             onClick={() => { store.addPatternFromSelection(collectName.trim(), group); setCollectName(''); }}
             data-pattern-input="collect"
             className="px-2 py-0.5 rounded bg-sky-600/70 hover:bg-sky-500/70 disabled:opacity-30 shrink-0">
-            <Star className="inline-block w-3.5 h-3.5 mr-0.5 -mt-0.5 fill-current" />{t('pattern.bookmark_selected', 'Bookmark Selected ({n})', { n: store.selected.size })}
-          </button>
+            <UiAutoIcon localId="collect"><Star className="inline-block w-3.5 h-3.5 mr-0.5 -mt-0.5 fill-current" /></UiAutoIcon><UiAutoText localId="collect" textKey="pattern.bookmark_selected" vars={{ n: store.selected.size }}>Bookmark Selected ({'{n}'})</UiAutoText>
+          </button></UiAutoControl>
         </div>
         <div className="flex items-center gap-3 text-white/70 flex-wrap">
           {alignBox('greenline', t('pattern.align_greenline', 'Inherited Point Align'), t('pattern.align_greenline_hint', 'Insert an inherited timing point at the start of the pattern to change SV to match the speed when bookmarked, and one at the end to restore SV'))}
           {alignBox('scale', t('pattern.align_scale', 'Scale Slider Align'), t('pattern.align_scale_hint', 'Geometrically scale sliders so a slider that occupied one beat when bookmarked still occupies one beat after being dragged out'))}
           {/* v393: 不记录物件音效 */}
           <label className="flex items-center gap-1 cursor-pointer select-none" title={t('pattern.no_hitsound_hint', 'Bookmarked patterns keep no hit sounds or custom samples; placed objects use the default hitsound')}>
-            <input type="checkbox" checked={store.patternNoHitsound} data-pattern-nohitsound
-              onChange={e => store.setPatternNoHitsound(e.target.checked)} />
-            {t('pattern.no_hitsound', 'No Hitsounds')}
+            <UiAutoControl localId="no-hitsound"><input type="checkbox" checked={store.patternNoHitsound} data-pattern-nohitsound
+              onChange={e => store.setPatternNoHitsound(e.target.checked)} /></UiAutoControl>
+            <UiAutoText localId="no-hitsound" textKey="pattern.no_hitsound">No Hitsounds</UiAutoText>
           </label>
         </div>
         <div className="flex gap-2.5">
           {/* 分类侧栏 */}
           <div className="w-24 shrink-0 space-y-1">
             {groups.map(gn => (
-              <div key={gn} onClick={() => { setGroup(gn); setRenaming(false); }}
+              <UiAutoControl key={gn} localId={`group.${gn}`} kind="button"><div onClick={() => { setGroup(gn); setRenaming(false); }}
                 data-pattern-group={gn}
                 className={`px-1.5 py-1 rounded cursor-pointer truncate ${group === gn ? 'bg-sky-600/50 text-white' : 'bg-white/5 text-white/60 hover:bg-white/10'}`}
                 title={groupLabel(gn)}>
                 {groupLabel(gn)} <span className="text-white/35">{store.patterns.filter(p => p.group === gn).length}</span>
-              </div>
+              </div></UiAutoControl>
             ))}
             <div className="flex gap-1 pt-1">
-              <input value={newGroup} onChange={e => setNewGroup(e.target.value)} placeholder={t('pattern.new_group_placeholder', 'New group')}
+              <UiAutoControl localId="new-group"><input value={newGroup} onChange={e => setNewGroup(e.target.value)} placeholder={t('pattern.new_group_placeholder', 'New group')}
                 data-pattern-input="new-group"
-                className="w-full min-w-0 bg-black/40 border border-white/15 rounded px-1 py-0.5 text-white text-[11px]" />
-              <button onClick={() => { store.addPatternGroup(newGroup); setNewGroup(''); }}
+                className="w-full min-w-0 bg-black/40 border border-white/15 rounded px-1 py-0.5 text-white text-[11px]" /></UiAutoControl>
+              <UiAutoControl localId="add-group" kind="button" defaultIcon="lucide:Plus"><button onClick={() => { store.addPatternGroup(newGroup); setNewGroup(''); }}
                 data-pattern-input="add-group"
-                className="px-1.5 rounded bg-white/10 hover:bg-white/20 shrink-0">+</button>
+                className="px-1.5 rounded bg-white/10 hover:bg-white/20 shrink-0"><UiAutoIcon localId="add-group"><Plus className="w-3.5 h-3.5" /></UiAutoIcon></button></UiAutoControl>
             </div>
             {group !== DEFAULT_GROUP && (
               <div className="flex gap-1">
-                <button onClick={() => { setRenaming(!renaming); setRenameText(group); }}
+                <DialogButton uiId="rename-group" textKey="pattern.rename" onClick={() => { setRenaming(!renaming); setRenameText(group); }}
                   data-pattern-input="rename-group"
-                  className="flex-1 px-1 rounded bg-white/10 hover:bg-white/20">{t('pattern.rename', 'Rename')}</button>
-                <button onClick={() => { store.deletePatternGroup(group); setGroup(DEFAULT_GROUP); }}
+                  className="flex-1 px-1 rounded bg-white/10 hover:bg-white/20">Rename</DialogButton>
+                <DialogButton uiId="delete-group" textKey="pattern.delete" onClick={() => { store.deletePatternGroup(group); setGroup(DEFAULT_GROUP); }}
                   data-pattern-input="delete-group"
-                  className="flex-1 px-1 rounded bg-red-500/30 hover:bg-red-500/50">{t('pattern.delete', 'Delete')}</button>
+                  className="flex-1 px-1 rounded bg-red-500/30 hover:bg-red-500/50">Delete</DialogButton>
               </div>
             )}
             {renaming && (
-              <input value={renameText} onChange={e => setRenameText(e.target.value)}
+              <UiAutoControl localId="rename-group-name"><input value={renameText} onChange={e => setRenameText(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter') { store.renamePatternGroup(group, renameText); setGroup(renameText.trim() || group); setRenaming(false); } }}
                 data-pattern-input="rename-group-name" autoFocus
-                className="w-full bg-black/40 border border-white/15 rounded px-1 py-0.5 text-white text-[11px]" />
+                className="w-full bg-black/40 border border-white/15 rounded px-1 py-0.5 text-white text-[11px]" /></UiAutoControl>
             )}
           </div>
           {/* 缩略图网格 */}
@@ -118,20 +119,20 @@ export function PatternPanel() {
                   onPointerDown={e => { if ((e.target as HTMLElement).closest('button,input')) return; store.startPatternDrag(p.id); }}>
                   <Thumb pattern={p} />
                   {editId === p.id ? (
-                    <input value={editName} onChange={e => setEditName(e.target.value)} autoFocus
+                    <UiAutoControl localId={`card.${p.id}.rename`}><input value={editName} onChange={e => setEditName(e.target.value)} autoFocus
                       onBlur={() => { store.renamePattern(p.id, editName); setEditId(null); }}
                       onKeyDown={e => { if (e.key === 'Enter') { store.renamePattern(p.id, editName); setEditId(null); } }}
                       data-pattern-input="rename"
-                      className="w-full mt-1 bg-black/40 border border-white/15 rounded px-1 text-white text-[10px]" />
+                      className="w-full mt-1 bg-black/40 border border-white/15 rounded px-1 text-white text-[10px]" /></UiAutoControl>
                   ) : (
                     <div className="mt-1 text-[10px] text-white/70 truncate text-center"
                       onDoubleClick={() => { setEditId(p.id); setEditName(p.name); }}
                       title={t('pattern.rename_hint', 'Double-click to rename')}>{p.name}</div>
                   )}
-                  <button onClick={() => store.deletePattern(p.id)}
+                  <UiAutoControl localId={`card.${p.id}.delete`} kind="button" defaultIcon="lucide:X"><button onClick={() => store.deletePattern(p.id)}
                     data-pattern-delete={p.id}
                     className="absolute top-0.5 right-0.5 w-4 h-4 rounded bg-black/60 text-white/50 hover:text-red-400 text-[10px] leading-4 opacity-0 group-hover/card:opacity-100"
-                    title={t('pattern.delete_pattern', 'Delete pattern')}><X className="w-3.5 h-3.5" /></button>
+                    title={t('pattern.delete_pattern', 'Delete pattern')}><UiAutoIcon localId={`card.${p.id}.delete`}><X className="w-3.5 h-3.5" /></UiAutoIcon></button></UiAutoControl>
                 </div>
               ))}
             </div>

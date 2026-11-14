@@ -1,7 +1,8 @@
 // v64 多边形生成弹窗 (lazer PolygonGenerationPopover): 圆心固定游玩区中心 (256,192), 实时预览 + 参数记忆 + 一次 undo
 import { useEffect, useMemo, useState } from 'react';
 import { store, useEditor } from '@/osu/store';
-import { DraggableDialog, DraftNum, loadParams, saveParams, useSaveParamsOnClose } from '../DraggableDialog';
+import { DialogButton, DraggableDialog, DraftNum, loadParams, saveParams, useSaveParamsOnClose } from '../DraggableDialog';
+import { UiAutoControl, UiAutoText } from '../uiLayout/UiControl'; // v533
 import { computePolygon, DEFAULT_POLYGON_PARAMS, POLYGON_LIMITS as L, type PolygonParams } from '@/osu/convert/polygon';
 import { useT } from '@/i18n';
 
@@ -61,22 +62,20 @@ export function PolygonDialog() {
         <span className="text-white/40">{L.distanceSnap[0]}–{L.distanceSnap[1]} {t('convert.polygon_ds_hint', '(same as Distance Snap 1x)')}</span>
       </Row>
       <Row label={t('convert.polygon_new_combo', 'New Combo')}>
-        <input type="checkbox" checked={params.newCombo} data-conv="newCombo"
-          onChange={e => upd({ newCombo: e.target.checked })} />
-        <span className="text-white/40">{t('convert.polygon_first_only', 'First object only')}</span>
+        <UiAutoControl localId="new-combo"><input type="checkbox" checked={params.newCombo} data-conv="newCombo"
+          onChange={e => upd({ newCombo: e.target.checked })} /></UiAutoControl>
+        <span className="text-white/40"><UiAutoText localId="new-combo" textKey="convert.polygon_first_only">First object only</UiAutoText></span>
       </Row>
       <div className="text-white/40">
         {t('convert.polygon_summary', 'Start {time}ms · center (256,192) · will create {n} Hit Circles', { time: result.startTime, n: params.vertices * params.repeats })}
       </div>
       {/* v395: 顶点出游玩区照常生成, 原红色拦截提示移除 */}
       <div className="flex gap-2 pt-1">
-        <button data-conv="apply"
+        <DialogButton uiId="apply" textKey="convert.create" data-conv="apply"
           onClick={() => { saveParams('polygon', params); store.applyConversion([], result.objects); }}
           disabled={!result.objects.length}
-          className="px-3 py-1 rounded bg-pink-500 hover:bg-pink-400 disabled:opacity-40 text-white font-bold">
-          {t('convert.create', 'Create')}
-        </button>
-        <button onClick={() => store.closeConversion()} className="px-3 py-1 rounded bg-white/10 hover:bg-white/20">{t('convert.cancel', 'Cancel')}</button>
+          className="px-3 py-1 rounded bg-pink-500 hover:bg-pink-400 disabled:opacity-40 text-white font-bold">Create</DialogButton>
+        <DialogButton uiId="cancel" textKey="convert.cancel" onClick={() => store.closeConversion()} className="px-3 py-1 rounded bg-white/10 hover:bg-white/20">Cancel</DialogButton>
       </div>
     </DraggableDialog>
   );

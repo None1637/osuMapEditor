@@ -15,7 +15,7 @@ console.log('== A: 源码契约');
 {
   const dlg = read('src/components/convert/AnchorStampDialog.tsx');
   const canvas = read('src/components/convert/AnchorStampTemplateCanvas.tsx');
-  assert(/stamp_capture[\s\S]{0,150}tplLabel/.test(dlg), '捕获按钮始终显示动作文案与模板后缀');
+  assert(/stamp_capture[\s\S]{0,500}tplLabel/.test(dlg), '捕获按钮始终显示动作文案与模板后缀 (v533 DialogButton 包装)');
   assert(/width=\{dialogWidth\}/.test(dlg) && /canvasHeights/.test(dlg), '浮窗宽度受控 + 规则高度独立');
   assert(/resize-x/.test(canvas) && /resize-y/.test(canvas) && /resize-xy/.test(canvas), '右/下/角三个缩放手柄');
   assert(/ResizeObserver/.test(canvas), '实际尺寸变化后重适配视图');

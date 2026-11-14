@@ -6,6 +6,7 @@ import { useEffect, useRef } from 'react';
 import { drawWave, drawSpectro, type SpectroScroll } from '@/osu/waveformDraw';
 import { store } from '@/osu/store';
 import { formatMsTime } from '@/osu/timingEdit';
+import { UiAutoControl } from './uiLayout/UiControl'; // v535
 
 export interface PreviewLine { time: number; bpm: number; meter?: number }
 
@@ -145,7 +146,7 @@ export function BpmPreview({ buf, lines, secPerRow, onSeek, onZoom }: {
   }, [onZoom]);
 
   return (
-    <canvas
+    <UiAutoControl localId="preview.canvas" kind="canvas"><canvas
       ref={canvasRef}
       style={{ display: 'block', cursor: 'crosshair', width: W }}
       onClick={e => {
@@ -155,6 +156,6 @@ export function BpmPreview({ buf, lines, secPerRow, onSeek, onZoom }: {
         const x = e.clientX - rect.left;
         onSeek(t0 + (x / rect.width) * winMs);
       }}
-    />
+    /></UiAutoControl>
   );
 }

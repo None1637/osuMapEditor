@@ -1,0 +1,42 @@
+{
+  "id": "sample-029",
+  "directoryName": "1995272 Various Artists - Jack House's 150 Jack Practice v2",
+  "beatmapFile": "Various Artists - Jack House's 150 Jack Practice v2 (yks1) [Saisei  ieFaH].osu",
+  "metadata": {
+    "Title": "Jack House's 150 Jack Practice v2",
+    "TitleUnicode": "Jack House's 150 Jack Practice v2",
+    "Artist": "Various Artists",
+    "ArtistUnicode": "Various Artists",
+    "Creator": "yks1",
+    "Version": "Saisei // ieFaH",
+    "Source": "",
+    "Tags": "",
+    "BeatmapID": "4146576",
+    "BeatmapSetID": "1995272",
+    "Mode": "3"
+  },
+  "audioDurationMs": 283880,
+  "redLines": [
+    {
+      "time": -65,
+      "beatLength": 400,
+      "bpm": 150,
+      "durationMs": 283880
+    }
+  ],
+  "referenceBpm": 150,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 283880,
+  "status": "ok",
+  "prediction": {
+    "bpm": 150,
+    "offsetMs": 341,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 267,
+    "rawBpm": 300,
+    "rawSegmentCount": 81
+  },
+  "evaluationMs": 2353
+}

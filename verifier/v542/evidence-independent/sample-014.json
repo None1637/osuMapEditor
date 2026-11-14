@@ -1,0 +1,132 @@
+{
+  "id": "sample-014",
+  "directoryName": "828088 DJ Seven - Charon",
+  "beatmapFile": "DJ Seven - Charon (Momi) [DT for no notelock].osu",
+  "referenceBpm": 116.6666699074075,
+  "predictedBpm": 232.7,
+  "frozenBpm": 232.7,
+  "deterministicEvidence": true,
+  "evidence": [
+    {
+      "startMs": 60906,
+      "endMs": 66903,
+      "bpm": 67.555,
+      "points": 3,
+      "maxSupport": 0.18858329705943586,
+      "index": 0,
+      "ratioToPredictedMain": 0.29030941125913196,
+      "ratioToAnnotatedMain": 0.5790428410583334,
+      "boundary": "interior",
+      "localBpmMin": 67.555,
+      "localBpmMax": 67.555,
+      "medianSupport": 0.18858329705943586,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 25.784271594327464,
+          "first": null,
+          "second": null,
+          "combined": null
+        },
+        "annotatedMain": {
+          "lag": 51.42857,
+          "first": null,
+          "second": null,
+          "combined": null
+        },
+        "evidenceBpm": {
+          "lag": 88.81651987269632,
+          "first": null,
+          "second": null,
+          "combined": null
+        }
+      },
+      "objectCount": 18,
+      "objectGrid": {
+        "predictedMainHalf": 1,
+        "annotatedMainHalf": 0.8333333333333334,
+        "evidenceHalf": 0.16666666666666666
+      }
+    },
+    {
+      "startMs": 82872,
+      "endMs": 88869,
+      "bpm": 68,
+      "points": 3,
+      "maxSupport": 0.30267549030537655,
+      "index": 1,
+      "ratioToPredictedMain": 0.2922217447357112,
+      "ratioToAnnotatedMain": 0.5828571266666667,
+      "boundary": "interior",
+      "localBpmMin": 67.555,
+      "localBpmMax": 68,
+      "medianSupport": 0.30267549030537655,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 25.784271594327464,
+          "first": null,
+          "second": null,
+          "combined": null
+        },
+        "annotatedMain": {
+          "lag": 51.42857,
+          "first": null,
+          "second": null,
+          "combined": null
+        },
+        "evidenceBpm": {
+          "lag": 88.23529411764706,
+          "first": null,
+          "second": null,
+          "combined": null
+        }
+      },
+      "objectCount": 15,
+      "objectGrid": {
+        "predictedMainHalf": 1,
+        "annotatedMainHalf": 1,
+        "evidenceHalf": 0.13333333333333333
+      }
+    },
+    {
+      "startMs": 85867,
+      "endMs": 91864,
+      "bpm": 78.303,
+      "points": 3,
+      "maxSupport": 0.23933183128620367,
+      "index": 2,
+      "ratioToPredictedMain": 0.3364976364417705,
+      "ratioToAnnotatedMain": 0.671168552785,
+      "boundary": "interior",
+      "localBpmMin": 78.303,
+      "localBpmMax": 78.303,
+      "medianSupport": 0.23933183128620367,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 25.784271594327464,
+          "first": -0.00214621327660115,
+          "second": -0.0025489927411069483,
+          "combined": -0.0022791304998880635
+        },
+        "annotatedMain": {
+          "lag": 51.42857,
+          "first": -0.002546965957155908,
+          "second": -0.002256682507882652,
+          "combined": -0.002451172418895734
+        },
+        "evidenceBpm": {
+          "lag": 76.62541665070304,
+          "first": -0.0025914269581348275,
+          "second": null,
+          "combined": -0.0025914269581348275
+        }
+      },
+      "objectCount": 21,
+      "objectGrid": {
+        "predictedMainHalf": 1,
+        "annotatedMainHalf": 0.8571428571428571,
+        "evidenceHalf": 0.3333333333333333
+      }
+    }
+  ],
+  "analysisMs": 3283
+}

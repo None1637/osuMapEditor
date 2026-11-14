@@ -13,8 +13,8 @@ function assert(cond, msg) { if (!cond) { failures++; console.error('  FAIL:', m
 
 const ec = fs.readFileSync(path.join(root, 'src/components/EditorCanvas.tsx'), 'utf8');
 assert(/v270 二轮: 用户反馈铺满方向错误, 还原 v129 固定预留/.test(ec), 'v270 还原注释在');
-assert(/r\.height - RESERVED_TOP - RESERVED_BOTTOM/.test(ec), '可用高度固定扣除上下预留 (111/92)');
-assert(/oy: RESERVED_TOP \+ \(availH - PH \* scale\) \/ 2/.test(ec), '垂直位置从固定预留顶起算');
+assert(/r\.height - rt - rb/.test(ec) && /layout\?\.height \?\? 92/.test(ec) && /layout\?\.height \?\? 80/.test(ec), '可用高度扣除预留 (默认仍 111/92; v527 可配置)');
+assert(/oy: rt \+ \(availH - PH \* scale\) \/ 2/.test(ec), '垂直位置从当前预留顶起算 (默认 111)');
 assert(!/resTop|resBottom/.test(ec), 'v270 初版的变量化预留已移除');
 
 if (failures) { console.error(`\nV270_FAILED: ${failures} 处失败`); process.exit(1); }

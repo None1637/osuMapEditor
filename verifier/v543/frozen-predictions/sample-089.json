@@ -1,0 +1,42 @@
+{
+  "id": "sample-089",
+  "directoryName": "722744 Camellia - put' l'da",
+  "beatmapFile": "Camellia - put' l'da (Rose Pacifica) [Frozen].osu",
+  "metadata": {
+    "Title": "put' l'da",
+    "TitleUnicode": "путь льда",
+    "Artist": "Camellia",
+    "ArtistUnicode": "かめりあ",
+    "Creator": "Rose Pacifica",
+    "Version": "Frozen",
+    "Source": "",
+    "Tags": "ice path cametek kamelcamellia かめるかめりあ TF40K E.P. Tr.04",
+    "BeatmapID": "1540892",
+    "BeatmapSetID": "722744",
+    "Mode": "0"
+  },
+  "audioDurationMs": 307159.2743764172,
+  "redLines": [
+    {
+      "time": 1213,
+      "beatLength": 300,
+      "bpm": 200,
+      "durationMs": 305946.2743764172
+    }
+  ],
+  "referenceBpm": 200,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 305946.2743764172,
+  "status": "ok",
+  "prediction": {
+    "bpm": 200,
+    "offsetMs": 195,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 289,
+    "rawBpm": 400,
+    "rawSegmentCount": 161
+  },
+  "evaluationMs": 3064
+}

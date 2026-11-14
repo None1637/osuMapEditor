@@ -1,0 +1,35 @@
+{
+  "id": "sample-075",
+  "directoryName": "454903 Remo Prototype[CV Hanamori Yumiri] - Sendan Life",
+  "beatmapFile": "Remo Prototype[CV Hanamori Yumiri] - Sendan Life (Wolcrez) [EZ].osu",
+  "metadata": {
+    "Title": "Sendan Life",
+    "TitleUnicode": "Sendan Life",
+    "Artist": "Remo Prototype",
+    "Mode": "3"
+  },
+  "audioDurationMs": 83070.47619047618,
+  "redLines": [
+    {
+      "time": 7785,
+      "beatLength": 264.31718061674,
+      "bpm": 227.00000000000006,
+      "durationMs": 75285.47619047618
+    }
+  ],
+  "referenceBpm": 227.00000000000006,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 75285.47619047618,
+  "status": "ok",
+  "prediction": {
+    "bpm": 227,
+    "offsetMs": 147,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 78,
+    "rawBpm": 227,
+    "rawSegmentCount": 17
+  },
+  "evaluationMs": 825
+}

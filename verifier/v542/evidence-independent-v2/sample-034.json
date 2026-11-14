@@ -1,0 +1,92 @@
+{
+  "id": "sample-034",
+  "directoryName": "1336953 Various Artists - Julaaaan's Triangle Jump Training",
+  "beatmapFile": "Various Artists - Julaaaan's Triangle Jump Training (Julaaaan) [Eyes Half Closed].osu",
+  "referenceBpm": 135.00000000000014,
+  "predictedBpm": 135,
+  "frozenBpm": 135,
+  "deterministicEvidence": true,
+  "evidence": [
+    {
+      "startMs": 30952,
+      "endMs": 39944,
+      "bpm": 202.665,
+      "points": 6,
+      "maxSupport": 0.16314421993580566,
+      "index": 0,
+      "ratioToPredictedMain": 1.5012222222222222,
+      "ratioToAnnotatedMain": 1.5012222222222207,
+      "boundary": "interior",
+      "localBpmMin": 202.665,
+      "localBpmMax": 202.665,
+      "medianSupport": 0.146684556053235,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 44.44444444444444,
+          "first": 0.1382711498024614,
+          "second": 0.22646363497013564,
+          "combined": 0.16737466990779393
+        },
+        "annotatedMain": {
+          "lag": 44.4444444444444,
+          "first": 0.13827114980246016,
+          "second": 0.22646363497014102,
+          "combined": 0.16737466990779487
+        },
+        "evidenceBpm": {
+          "lag": 29.605506624232106,
+          "first": 0.12799831280955315,
+          "second": 0.09230935334887756,
+          "combined": 0.11622095618753021
+        }
+      },
+      "objectCount": 49,
+      "objectGrid": {
+        "predictedMainHalf": 0.42857142857142855,
+        "annotatedMainHalf": 0.42857142857142855,
+        "evidenceHalf": 0.9591836734693877
+      }
+    },
+    {
+      "startMs": 42934,
+      "endMs": 53923,
+      "bpm": 202.665,
+      "points": 8,
+      "maxSupport": 0.18478588888926945,
+      "index": 1,
+      "ratioToPredictedMain": 1.5012222222222222,
+      "ratioToAnnotatedMain": 1.5012222222222207,
+      "boundary": "end",
+      "localBpmMin": 202.665,
+      "localBpmMax": 202.665,
+      "medianSupport": 0.14243607009174647,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 44.44444444444444,
+          "first": 0.18331337056528435,
+          "second": 0.3375749397216282,
+          "combined": 0.23421968838687784
+        },
+        "annotatedMain": {
+          "lag": 44.4444444444444,
+          "first": 0.18331337056528343,
+          "second": 0.3375749397216308,
+          "combined": 0.23421968838687807
+        },
+        "evidenceBpm": {
+          "lag": 29.605506624232106,
+          "first": 0.1240996952715205,
+          "second": 0.10933311581821911,
+          "combined": 0.11922672405193105
+        }
+      },
+      "objectCount": 56,
+      "objectGrid": {
+        "predictedMainHalf": 0.42857142857142855,
+        "annotatedMainHalf": 0.42857142857142855,
+        "evidenceHalf": 0.9821428571428571
+      }
+    }
+  ],
+  "analysisMs": 579
+}

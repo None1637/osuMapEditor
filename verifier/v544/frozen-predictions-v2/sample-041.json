@@ -1,0 +1,42 @@
+{
+  "id": "sample-041",
+  "directoryName": "191429 C-Show - UNOwen wa kanojo nanoka (TO-HOlic mix)",
+  "beatmapFile": "C-Show - U.N.Owen wa kanojo nanoka (TO-HOlic mix) (Rugure) [leqek's 4K EXH].osu",
+  "metadata": {
+    "Title": "U.N.Owen wa kanojo nanoka? (TO-HOlic mix)",
+    "TitleUnicode": "U.N.オーエンは彼女なのか？(TO-HOlic mix)",
+    "Artist": "C-Show",
+    "ArtistUnicode": "C-Show",
+    "Creator": "Rugure",
+    "Version": "leqek's 4K EXH",
+    "Source": "",
+    "Tags": "touhou flandre scarlet SDVX sound voltex owen was her leqek bemani konami",
+    "BeatmapID": "455705",
+    "BeatmapSetID": "191429",
+    "Mode": "3"
+  },
+  "audioDurationMs": 110550.20408163266,
+  "redLines": [
+    {
+      "time": 2262,
+      "beatLength": 272.727272727273,
+      "bpm": 219.9999999999998,
+      "durationMs": 108288.20408163266
+    }
+  ],
+  "referenceBpm": 219.9999999999998,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 108288.20408163266,
+  "status": "ok",
+  "prediction": {
+    "bpm": 220,
+    "offsetMs": 405,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 107,
+    "rawBpm": 220,
+    "rawSegmentCount": 60
+  },
+  "evaluationMs": 1315
+}

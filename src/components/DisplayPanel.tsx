@@ -5,6 +5,7 @@ import { displaySettings, type BoolDisplayKey, type StrDisplayKey } from '@/osu/
 import { getElectronAPI, isElectron } from '@/osu/electronBridge'; // v263: 窗口条隐藏开关 (Electron 专属)
 import { DraggableDialog, ClickPct } from './DraggableDialog'; // v389: ClickPct = 点击 % 数变输入框
 import { useT } from '@/i18n';
+import { UiAutoControl } from './uiLayout/UiControl'; // v534
 
 const ROWS: { key: BoolDisplayKey; nameKey: string; nameEn: string; descKey: string; descEn: string }[] = [
   { key: 'skinColors', nameKey: 'display.skin_colours_name', nameEn: 'Skin Colours', descKey: 'display.skin_colours_desc', descEn: "Prefer the skin's skin.ini [Colours] over the beatmap's own object/slider colours (on: skin first, off: beatmap first; undefined entries fall back to the other side, then defaults)" },
@@ -45,12 +46,12 @@ export function DisplayPanel() {
       <div className="space-y-2.5">
         {ROWS.map(r => (
           <div key={r.key} className="flex items-center gap-2.5" data-display-row={r.key}>
-            <button onClick={() => store.setDisplayFlag(r.key, !displaySettings[r.key])}
+            <UiAutoControl localId={`toggle.${r.key}`} kind="button"><button onClick={() => store.setDisplayFlag(r.key, !displaySettings[r.key])}
               data-display-toggle={r.key}
               className={`w-9 h-5 rounded-full relative shrink-0 transition-colors ${displaySettings[r.key] ? 'bg-sky-500' : 'bg-white/15'}`}
               title={displaySettings[r.key] ? t('display.click_to_disable', 'Click to disable') : t('display.click_to_enable', 'Click to enable')}>
               <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all ${displaySettings[r.key] ? 'left-[18px]' : 'left-0.5'}`} />
-            </button>
+            </button></UiAutoControl>
             <div className="min-w-0">
               <div className={`text-xs ${displaySettings[r.key] ? 'text-white/90' : 'text-white/45'}`}>{t(r.nameKey, r.nameEn)}</div>
               <div className="text-[10px] text-white/40 leading-4">{t(r.descKey, r.descEn)}</div>
@@ -64,11 +65,11 @@ export function DisplayPanel() {
               <div className="text-xs text-white/90">{t(r.nameKey, r.nameEn)}</div>
               <div className="text-[10px] text-white/40 leading-4">{t(r.descKey, r.descEn)}</div>
             </div>
-            <select value={displaySettings[r.key]} data-display-select={r.key}
+            <UiAutoControl localId={`select.${r.key}`}><select value={displaySettings[r.key]} data-display-select={r.key}
               onChange={e => store.setDisplayString(r.key, e.target.value as 'stable' | 'lazer')}
               className="shrink-0 bg-white/10 rounded px-1.5 py-1 text-xs text-white/90 outline-none">
               {r.options.map(([v, labelKey, labelEn]) => <option key={v} value={v} className="bg-neutral-800">{t(labelKey, labelEn)}</option>)}
-            </select>
+            </select></UiAutoControl>
           </div>
         ))}
         {/* v168: 背景图亮度滑条 (默认 35% = 旧固定 alpha 0.35; 样式仿 VolumePanel) */}
@@ -77,21 +78,21 @@ export function DisplayPanel() {
             <div className="text-xs text-white/90">{t('display.bg_brightness_name', 'Background Brightness')}</div>
             <div className="text-[10px] text-white/40 leading-4">{t('display.bg_brightness_desc', 'Opacity of the playfield background image; 0% fully hidden, 100% full brightness')}</div>
           </div>
-          <input type="range" min={0} max={100} step={1} value={displaySettings.bgBrightness}
+          <UiAutoControl localId="slider.bgBrightness"><input type="range" min={0} max={100} step={1} value={displaySettings.bgBrightness}
             data-display-slider="bgBrightness"
             onChange={e => store.setDisplayNumber('bgBrightness', parseInt(e.target.value))}
-            className="w-28 accent-sky-500" />
+            className="w-28 accent-sky-500" /></UiAutoControl>
           <ClickPct value={displaySettings.bgBrightness} set={v => store.setDisplayNumber('bgBrightness', v)} testid="bgBrightness" />{/* v389: 点击 % 数变输入框直接打数字 */}
         </div>
         {/* v263: 窗口条隐藏 (Electron 专属; 重启后生效; 页签栏兼作拖拽区) */}
         {isElectron() && hideTitleBar !== null && (
           <div className="flex items-center gap-2.5" data-display-row="hideTitleBar">
-            <button onClick={() => { const v = !hideTitleBar; setHideTitleBar(v); getElectronAPI()?.setHideTitleBar(v).catch(() => { }); }}
+            <UiAutoControl localId="toggle.hideTitleBar" kind="button"><button onClick={() => { const v = !hideTitleBar; setHideTitleBar(v); getElectronAPI()?.setHideTitleBar(v).catch(() => { }); }}
               data-display-toggle="hideTitleBar"
               className={`w-9 h-5 rounded-full relative shrink-0 transition-colors ${hideTitleBar ? 'bg-sky-500' : 'bg-white/15'}`}
               title={hideTitleBar ? t('display.click_to_disable', 'Click to disable') : t('display.click_to_enable', 'Click to enable')}>
               <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all ${hideTitleBar ? 'left-[18px]' : 'left-0.5'}`} />
-            </button>
+            </button></UiAutoControl>
             <div className="min-w-0">
               <div className={`text-xs ${hideTitleBar ? 'text-white/90' : 'text-white/45'}`}>{t('display.hide_title_bar_name', 'Hide Title Bar')}</div>
               <div className="text-[10px] text-white/40 leading-4">{t('display.hide_title_bar_desc', 'Removes the system title bar while keeping the top-right minimize/maximize/close buttons; blank areas of the tab bar can drag the window; takes effect after restart')}</div>

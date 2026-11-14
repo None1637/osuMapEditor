@@ -1,0 +1,42 @@
+{
+  "id": "sample-097",
+  "directoryName": "RoughSketch Uno さきぴょ - Nyan-Nyan-Nyan!",
+  "beatmapFile": "RoughSketchUno - Nyan-Nyan-Nyan! (None1637) [Extra].osu",
+  "metadata": {
+    "Title": "Nyan-Nyan-Nyan!",
+    "TitleUnicode": "Nyan-Nyan-Nyan!",
+    "Artist": "RoughSketch/Uno/",
+    "ArtistUnicode": "RoughSketch/Uno/さきぴょ",
+    "Creator": "None1637",
+    "Version": "Extra",
+    "Source": "",
+    "Tags": "",
+    "BeatmapID": "196417",
+    "BeatmapSetID": "67133",
+    "Mode": "0"
+  },
+  "audioDurationMs": 252343.94557823127,
+  "redLines": [
+    {
+      "time": 0,
+      "beatLength": 342.857142857143,
+      "bpm": 174.99999999999991,
+      "durationMs": 252343.94557823127
+    }
+  ],
+  "referenceBpm": 174.99999999999991,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 252343.94557823127,
+  "status": "ok",
+  "prediction": {
+    "bpm": 175,
+    "offsetMs": 349,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 247,
+    "rawBpm": 175,
+    "rawSegmentCount": 14
+  },
+  "evaluationMs": 2419
+}

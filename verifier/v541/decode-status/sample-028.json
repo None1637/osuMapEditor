@@ -1,0 +1,6 @@
+{
+  "id": "sample-028",
+  "status": "audio_unavailable",
+  "audioCopyStatus": "copy_failed",
+  "error": "Error: ENOENT: no such file or directory, copyfile 'F:\\Backup\\D\\osu!\\Songs\\1408765 Synth Monsters_Senri_SADRECORDS - GAMER\\audio.mp3' -> 'D:\\Projects\\osuMapEditor\\Kimi_Agent_osu!编辑器改进 (1)\\app\\verifier\\v541\\samples\\sample-028\\audio.mp3'"
+}

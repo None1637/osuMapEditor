@@ -1,0 +1,42 @@
+{
+  "id": "sample-037",
+  "directoryName": "285722 paraoka - REAL210",
+  "beatmapFile": "paraoka - REAL210 (lahphnya) [AR9.5].osu",
+  "metadata": {
+    "Title": "REAL210",
+    "TitleUnicode": "REAL210",
+    "Artist": "paraoka",
+    "ArtistUnicode": "paraoka",
+    "Creator": "lahphnya",
+    "Version": "AR9.5",
+    "Source": "",
+    "Tags": "",
+    "BeatmapID": "645245",
+    "BeatmapSetID": "285722",
+    "Mode": "0"
+  },
+  "audioDurationMs": 197537.9591836735,
+  "redLines": [
+    {
+      "time": 803.786175776843,
+      "beatLength": 285.714285714286,
+      "bpm": 209.99999999999977,
+      "durationMs": 196734.17300789664
+    }
+  ],
+  "referenceBpm": 209.99999999999977,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 196734.17300789664,
+  "status": "ok",
+  "prediction": {
+    "bpm": 210,
+    "offsetMs": 543,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 193,
+    "rawBpm": 420,
+    "rawSegmentCount": 90
+  },
+  "evaluationMs": 1807
+}

@@ -3,6 +3,7 @@ import { store, useEditor } from '@/osu/store';
 import { volumeSettings, type VolumeSettings } from '@/osu/volumeSettings';
 import { useT } from '@/i18n';
 import { DraggableDialog, ClickPct } from './DraggableDialog'; // v389: ClickPct = 点击 % 数变输入框
+import { UiAutoControl, UiAutoText } from './uiLayout/UiControl'; // v534
 
 const ROWS: { key: keyof VolumeSettings; i18n: string; name: string; desc: string }[] = [
   { key: 'master', i18n: 'master', name: 'Master', desc: 'Affects both music and effects' },
@@ -18,14 +19,14 @@ export function VolumePanel() {
       <div className="space-y-3">
         {ROWS.map(r => (
           <div key={r.key} className="flex items-center gap-2.5" data-volume-row={r.key}>
-            <div className="w-24 shrink-0">
-              <div className="text-xs text-white/90">{t(`volume.${r.i18n}`, r.name)}</div>
+            <UiAutoControl localId={`label.${r.key}`} kind="panel"><div className="w-24 shrink-0">
+              <div className="text-xs text-white/90"><UiAutoText localId={`label.${r.key}`} textKey={`volume.${r.i18n}`}>{r.name}</UiAutoText></div>
               <div className="text-[10px] text-white/40 leading-4">{t(`volume.${r.i18n}_desc`, r.desc)}</div>
-            </div>
-            <input type="range" min={0} max={100} step={1} value={volumeSettings[r.key]}
+            </div></UiAutoControl>
+            <UiAutoControl localId={`slider.${r.key}`}><input type="range" min={0} max={100} step={1} value={volumeSettings[r.key]}
               data-volume-slider={r.key}
               onChange={e => store.setVolume(r.key, parseInt(e.target.value))}
-              className="flex-1 accent-sky-500" />
+              className="flex-1 accent-sky-500" /></UiAutoControl>
             <ClickPct value={volumeSettings[r.key]} set={v => store.setVolume(r.key, v)} testid={r.key} />{/* v389: 点击 % 数变输入框直接打数字 */}
           </div>
         ))}

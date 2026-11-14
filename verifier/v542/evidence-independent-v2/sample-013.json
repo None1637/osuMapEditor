@@ -1,0 +1,92 @@
+{
+  "id": "sample-013",
+  "directoryName": "749327 MY FIRST STORY - Shissou FLAME",
+  "beatmapFile": "MY FIRST STORY - Shissou FLAME (A r M i N) [Extreme].osu",
+  "referenceBpm": 209.99999999999977,
+  "predictedBpm": 210,
+  "frozenBpm": 210,
+  "deterministicEvidence": true,
+  "evidence": [
+    {
+      "startMs": 53917,
+      "endMs": 59913,
+      "bpm": 84.032,
+      "points": 3,
+      "maxSupport": 0.1107335140415874,
+      "index": 0,
+      "ratioToPredictedMain": 0.4001523809523809,
+      "ratioToAnnotatedMain": 0.40015238095238137,
+      "boundary": "interior",
+      "localBpmMin": 84.032,
+      "localBpmMax": 84.032,
+      "medianSupport": 0.1107335140415874,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 28.571428571428573,
+          "first": 0.23056849436324764,
+          "second": 0.191688764707052,
+          "combined": 0.2177381835767031
+        },
+        "annotatedMain": {
+          "lag": 28.5714285714286,
+          "first": 0.2305684943632501,
+          "second": 0.1916887647070606,
+          "combined": 0.21773818357670757
+        },
+        "evidenceBpm": {
+          "lag": 71.4013709063214,
+          "first": 0.11788344780591896,
+          "second": 0.1030547457992964,
+          "combined": 0.11298997614373352
+        }
+      },
+      "objectCount": 31,
+      "objectGrid": {
+        "predictedMainHalf": 0.9032258064516129,
+        "annotatedMainHalf": 0.9032258064516129,
+        "evidenceHalf": 0.25806451612903225
+      }
+    },
+    {
+      "startMs": 143778,
+      "endMs": 149775,
+      "bpm": 69.837,
+      "points": 3,
+      "maxSupport": 0.13131245157849394,
+      "index": 1,
+      "ratioToPredictedMain": 0.3325571428571429,
+      "ratioToAnnotatedMain": 0.3325571428571432,
+      "boundary": "interior",
+      "localBpmMin": 69.837,
+      "localBpmMax": 70.074,
+      "medianSupport": 0.1267432018274667,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 28.571428571428573,
+          "first": 0.09636385936100647,
+          "second": 0.07081315365321272,
+          "combined": 0.08793212647743454
+        },
+        "annotatedMain": {
+          "lag": 28.5714285714286,
+          "first": 0.09636385936100642,
+          "second": 0.07081315365321303,
+          "combined": 0.08793212647743459
+        },
+        "evidenceBpm": {
+          "lag": 85.91434339963055,
+          "first": 0.1075147005116857,
+          "second": null,
+          "combined": 0.10751470051168568
+        }
+      },
+      "objectCount": 0,
+      "objectGrid": {
+        "predictedMainHalf": null,
+        "annotatedMainHalf": null,
+        "evidenceHalf": null
+      }
+    }
+  ],
+  "analysisMs": 2569
+}

@@ -1,0 +1,48 @@
+{
+  "id": "sample-051",
+  "directoryName": "1055134 UNDEAD CORPORATION - The Empress scream off ver",
+  "beatmapFile": "UNDEAD CORPORATION - The Empress scream off ver (Toumei Dragon) [Insane].osu",
+  "metadata": {
+    "Title": "The Empress scream off ver",
+    "TitleUnicode": "The Empress scream off ver",
+    "Artist": "UNDEAD CORPORATION",
+    "ArtistUnicode": "UNDEAD CORPORATION",
+    "Creator": "Toumei Dragon",
+    "Version": "Insane",
+    "Source": "",
+    "Tags": "",
+    "BeatmapID": "2205154",
+    "BeatmapSetID": "1055134",
+    "Mode": "0"
+  },
+  "audioDurationMs": 134092.0634920635,
+  "redLines": [
+    {
+      "time": 342,
+      "beatLength": 222.222222222222,
+      "bpm": 270.0000000000003,
+      "durationMs": 3528
+    },
+    {
+      "time": 3870,
+      "beatLength": 222.2222,
+      "bpm": 270.0000270000027,
+      "durationMs": 130222.06349206349
+    }
+  ],
+  "referenceBpm": 270.0000270000027,
+  "referenceVariable": false,
+  "referenceRedLineCount": 2,
+  "referenceCoverageMs": 130222.06349206349,
+  "status": "ok",
+  "prediction": {
+    "bpm": 135,
+    "offsetMs": 336,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 131,
+    "rawBpm": 135,
+    "rawSegmentCount": 21
+  },
+  "evaluationMs": 1286
+}

@@ -1,0 +1,59 @@
+{
+  "id": "sample-030",
+  "directoryName": "10860 Haru - Children Festival (Instrumental)",
+  "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\10860 Haru - Children Festival (Instrumental)",
+  "status": "ok",
+  "referenceBpm": 139.99999999999986,
+  "referenceVariable": false,
+  "predictedBpm": 140,
+  "predictedVariable": false,
+  "variableLines": [],
+  "trueVariableMs": 0,
+  "flaggedWindowCount": 57,
+  "flaggedWindowsOnVariable": 0,
+  "rawCandidateCount": 1,
+  "rawCandidatesOnVariable": 0,
+  "finalEvidenceCount": 0,
+  "finalEvidenceOnVariable": 0,
+  "candidates": [
+    {
+      "startMs": 196696,
+      "endMs": 202693,
+      "bpm": 79.814,
+      "points": 3,
+      "maxSupport": 0.28680897575215913,
+      "localGridCoverage": 0.15384615384615385,
+      "rejection": "weak_short",
+      "independentMainScore": 0.2991176248936165,
+      "independentLocalScore": 0.16246675058406945,
+      "variableOverlapMs": 0,
+      "overlapsVariable": false,
+      "tripletVotes": [
+        {
+          "timeMs": 198696.0544217687,
+          "bpm": 79.814,
+          "localGridCoverage": 0.15384615384615385,
+          "tripletGridCoverage": 0.7307692307692307,
+          "tripletGridHalfCoverage": 0.38461538461538464,
+          "tripletGridDoubleCoverage": 0.9230769230769231
+        },
+        {
+          "timeMs": 199694.51247165533,
+          "bpm": 79.814,
+          "localGridCoverage": 0.14814814814814814,
+          "tripletGridCoverage": 0.7407407407407407,
+          "tripletGridHalfCoverage": 0.4444444444444444,
+          "tripletGridDoubleCoverage": 0.9629629629629629
+        },
+        {
+          "timeMs": 200692.97052154195,
+          "bpm": 80.124,
+          "localGridCoverage": 0.16,
+          "tripletGridCoverage": 0.72,
+          "tripletGridHalfCoverage": 0.4,
+          "tripletGridDoubleCoverage": 0.96
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "id": "sample-065",
+  "directoryName": "303649 LiSA - Rally Go Round -TV ver-",
+  "beatmapFile": "LiSA - Rally Go Round -TV ver.- (DrawdeX) [7K HD].osu",
+  "metadata": {
+    "Title": "Rally Go Round -TV ver.-",
+    "TitleUnicode": "Rally Go Round -TV ver.-",
+    "Artist": "LiSA",
+    "ArtistUnicode": "LiSA",
+    "Creator": "DrawdeX",
+    "Version": "7K HD",
+    "Source": "Nisekoi:",
+    "Tags": "ニセコイ: 2nd Season OP Muu-chan Eternalie Lenfried-",
+    "Mode": "3"
+  },
+  "audioDurationMs": 89991.83673469388,
+  "redLines": [
+    {
+      "time": 314,
+      "beatLength": 315.789473684211,
+      "bpm": 189.99999999999974,
+      "durationMs": 89677.83673469388
+    }
+  ],
+  "referenceBpm": 189.99999999999974,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 89677.83673469388,
+  "status": "ok",
+  "prediction": {
+    "bpm": 189.4,
+    "offsetMs": 358,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 87,
+    "rawBpm": 378.8,
+    "rawSegmentCount": 114
+  },
+  "evaluationMs": 855
+}

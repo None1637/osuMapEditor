@@ -1,0 +1,42 @@
+{
+  "id": "sample-043",
+  "directoryName": "707133 Fear, and Loathing in Las Vegas - Cast Your Shell",
+  "beatmapFile": "Fear, and Loathing in Las Vegas - Cast Your Shell (puxtu) [Len's Classic Hyper].osu",
+  "metadata": {
+    "Title": "Cast Your Shell",
+    "TitleUnicode": "Cast Your Shell",
+    "Artist": "Fear, and Loathing in Las Vegas",
+    "ArtistUnicode": "Fear, and Loathing in Las Vegas",
+    "Creator": "puxtu",
+    "Version": "Len's Classic Hyper",
+    "Source": "",
+    "Tags": "Feeling of Unity Electronicore Digital hardcore Metalcore Post-hardcore falilv Regraz Len SnowNiNo_ Nerova Riuz GX Battle Akitoshi",
+    "BeatmapID": "1583174",
+    "BeatmapSetID": "707133",
+    "Mode": "0"
+  },
+  "audioDurationMs": 129712.38095238095,
+  "redLines": [
+    {
+      "time": 5050,
+      "beatLength": 292.682926829268,
+      "bpm": 205.0000000000002,
+      "durationMs": 124662.38095238095
+    }
+  ],
+  "referenceBpm": 205.0000000000002,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 124662.38095238095,
+  "status": "ok",
+  "prediction": {
+    "bpm": 205,
+    "offsetMs": 982,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 126,
+    "rawBpm": 410,
+    "rawSegmentCount": 104
+  },
+  "evaluationMs": 1306
+}

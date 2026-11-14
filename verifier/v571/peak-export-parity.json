@@ -1,0 +1,458 @@
+{
+  "version": "v571-full-peak-export-parity-v1",
+  "passed": true,
+  "comparisonRows": 90,
+  "exactResidualEquality": true,
+  "rows": [
+    {
+      "segmentId": "sample-044_h24947",
+      "expectedResidualMs": 6.674232300287258,
+      "reproducedResidualMs": 6.674232300287258
+    },
+    {
+      "segmentId": "sample-044_h5781",
+      "expectedResidualMs": 8.095236495389145,
+      "reproducedResidualMs": 8.095236495389145
+    },
+    {
+      "segmentId": "sample-044_h24614",
+      "expectedResidualMs": 6.541311580927868,
+      "reproducedResidualMs": 6.541311580927868
+    },
+    {
+      "segmentId": "sample-044_h27615",
+      "expectedResidualMs": -6.391911553662794,
+      "reproducedResidualMs": -6.391911553662794
+    },
+    {
+      "segmentId": "sample-044_h35281",
+      "expectedResidualMs": 6.173219211312244,
+      "reproducedResidualMs": 6.173219211312244
+    },
+    {
+      "segmentId": "sample-044_h40947",
+      "expectedResidualMs": -6.274374470580369,
+      "reproducedResidualMs": -6.274374470580369
+    },
+    {
+      "segmentId": "sample-044_h154531",
+      "expectedResidualMs": null,
+      "reproducedResidualMs": null
+    },
+    {
+      "segmentId": "sample-044_h4447",
+      "expectedResidualMs": 3.9052446493260504,
+      "reproducedResidualMs": 3.9052446493260504
+    },
+    {
+      "segmentId": "sample-044_h3447",
+      "expectedResidualMs": 2.4974865268427493,
+      "reproducedResidualMs": 2.4974865268427493
+    },
+    {
+      "segmentId": "sample-044_h10614",
+      "expectedResidualMs": 0.02895155504302238,
+      "reproducedResidualMs": 0.02895155504302238
+    },
+    {
+      "segmentId": "sample-044_h2114",
+      "expectedResidualMs": 3.4025252920800995,
+      "reproducedResidualMs": 3.4025252920800995
+    },
+    {
+      "segmentId": "sample-044_h6281",
+      "expectedResidualMs": -3.043690842127944,
+      "reproducedResidualMs": -3.043690842127944
+    },
+    {
+      "segmentId": "sample-044_h25447",
+      "expectedResidualMs": 0.45731335018354,
+      "reproducedResidualMs": 0.45731335018354
+    },
+    {
+      "segmentId": "sample-044_h38281",
+      "expectedResidualMs": 1.325633282707713,
+      "reproducedResidualMs": 1.325633282707713
+    },
+    {
+      "segmentId": "sample-044_h29947",
+      "expectedResidualMs": 1.4657285963003233,
+      "reproducedResidualMs": 1.4657285963003233
+    },
+    {
+      "segmentId": "sample-044_h43614",
+      "expectedResidualMs": -0.6767089587883675,
+      "reproducedResidualMs": -0.6767089587883675
+    },
+    {
+      "segmentId": "sample-044_h9447",
+      "expectedResidualMs": 0.49174142742958793,
+      "reproducedResidualMs": 0.49174142742958793
+    },
+    {
+      "segmentId": "sample-044_h28114",
+      "expectedResidualMs": 0.6563794337271247,
+      "reproducedResidualMs": 0.6563794337271247
+    },
+    {
+      "segmentId": "sample-044_h32947",
+      "expectedResidualMs": 1.1229270926487516,
+      "reproducedResidualMs": 1.1229270926487516
+    },
+    {
+      "segmentId": "sample-044_h39781",
+      "expectedResidualMs": -1.4713105546325096,
+      "reproducedResidualMs": -1.4713105546325096
+    },
+    {
+      "segmentId": "sample-044_h36781",
+      "expectedResidualMs": 0.5162417318497319,
+      "reproducedResidualMs": 0.5162417318497319
+    },
+    {
+      "segmentId": "sample-044_h30281",
+      "expectedResidualMs": -4.6559226320714515,
+      "reproducedResidualMs": -4.6559226320714515
+    },
+    {
+      "segmentId": "sample-044_h42447",
+      "expectedResidualMs": -0.26854655574425124,
+      "reproducedResidualMs": -0.26854655574425124
+    },
+    {
+      "segmentId": "sample-044_h7281",
+      "expectedResidualMs": -1.0427811379877312,
+      "reproducedResidualMs": -1.0427811379877312
+    },
+    {
+      "segmentId": "sample-044_h42114",
+      "expectedResidualMs": 0.07500162949872902,
+      "reproducedResidualMs": 0.07500162949872902
+    },
+    {
+      "segmentId": "sample-044_h8947",
+      "expectedResidualMs": 0.9197963028818776,
+      "reproducedResidualMs": 0.9197963028818776
+    },
+    {
+      "segmentId": "sample-044_h18114",
+      "expectedResidualMs": 2.5779307754528418,
+      "reproducedResidualMs": 2.5779307754528418
+    },
+    {
+      "segmentId": "sample-044_h14114",
+      "expectedResidualMs": -0.16702423075548722,
+      "reproducedResidualMs": -0.16702423075548722
+    },
+    {
+      "segmentId": "sample-044_h23781",
+      "expectedResidualMs": -1.5381580508656043,
+      "reproducedResidualMs": -1.5381580508656043
+    },
+    {
+      "segmentId": "sample-044_h38614",
+      "expectedResidualMs": -2.797321341240604,
+      "reproducedResidualMs": -2.797321341240604
+    },
+    {
+      "segmentId": "sample-032_h80970",
+      "expectedResidualMs": 3.1693058956152527,
+      "reproducedResidualMs": 3.1693058956152527
+    },
+    {
+      "segmentId": "sample-032_h203192",
+      "expectedResidualMs": 1.611496612225892,
+      "reproducedResidualMs": 1.611496612225892
+    },
+    {
+      "segmentId": "sample-032_h117220",
+      "expectedResidualMs": 2.8884125184849836,
+      "reproducedResidualMs": 2.8884125184849836
+    },
+    {
+      "segmentId": "sample-032_h60415",
+      "expectedResidualMs": -0.034053923074679915,
+      "reproducedResidualMs": -0.034053923074679915
+    },
+    {
+      "segmentId": "sample-032_h168748",
+      "expectedResidualMs": -3.3468910931551363,
+      "reproducedResidualMs": -3.3468910931551363
+    },
+    {
+      "segmentId": "sample-032_h129997",
+      "expectedResidualMs": 0.920333249741816,
+      "reproducedResidualMs": 0.920333249741816
+    },
+    {
+      "segmentId": "sample-032_h218192",
+      "expectedResidualMs": -1.106413983827224,
+      "reproducedResidualMs": -1.106413983827224
+    },
+    {
+      "segmentId": "sample-032_h334165",
+      "expectedResidualMs": -2.130132589896675,
+      "reproducedResidualMs": -2.130132589896675
+    },
+    {
+      "segmentId": "sample-032_h294303",
+      "expectedResidualMs": -0.898661878425628,
+      "reproducedResidualMs": -0.898661878425628
+    },
+    {
+      "segmentId": "sample-032_h336873",
+      "expectedResidualMs": -1.682050299772527,
+      "reproducedResidualMs": -1.682050299772527
+    },
+    {
+      "segmentId": "sample-032_h310415",
+      "expectedResidualMs": 7.979546514572576,
+      "reproducedResidualMs": 7.979546514572576
+    },
+    {
+      "segmentId": "sample-032_h45553",
+      "expectedResidualMs": -9.010808395949425,
+      "reproducedResidualMs": -9.010808395949425
+    },
+    {
+      "segmentId": "sample-032_h47220",
+      "expectedResidualMs": null,
+      "reproducedResidualMs": null
+    },
+    {
+      "segmentId": "sample-032_h24026",
+      "expectedResidualMs": 6.4199588352348655,
+      "reproducedResidualMs": 6.4199588352348655
+    },
+    {
+      "segmentId": "sample-032_h88401",
+      "expectedResidualMs": null,
+      "reproducedResidualMs": null
+    },
+    {
+      "segmentId": "sample-032_h75692",
+      "expectedResidualMs": -5.795362554243184,
+      "reproducedResidualMs": -5.795362554243184
+    },
+    {
+      "segmentId": "sample-032_h250970",
+      "expectedResidualMs": 5.599985647684662,
+      "reproducedResidualMs": 5.599985647684662
+    },
+    {
+      "segmentId": "sample-032_h33470",
+      "expectedResidualMs": 7.219374220170721,
+      "reproducedResidualMs": 7.219374220170721
+    },
+    {
+      "segmentId": "sample-032_h309581",
+      "expectedResidualMs": 5.254124420520384,
+      "reproducedResidualMs": 5.254124420520384
+    },
+    {
+      "segmentId": "sample-032_h97220",
+      "expectedResidualMs": -5.454561702747014,
+      "reproducedResidualMs": -5.454561702747014
+    },
+    {
+      "segmentId": "sample-032_h177915",
+      "expectedResidualMs": -3.8125153538712766,
+      "reproducedResidualMs": -3.8125153538712766
+    },
+    {
+      "segmentId": "sample-032_h210067",
+      "expectedResidualMs": -2.6270363265648484,
+      "reproducedResidualMs": -2.6270363265648484
+    },
+    {
+      "segmentId": "sample-032_h354790",
+      "expectedResidualMs": 6.096071734791622,
+      "reproducedResidualMs": 6.096071734791622
+    },
+    {
+      "segmentId": "sample-032_h308262",
+      "expectedResidualMs": 0.573903565236833,
+      "reproducedResidualMs": 0.573903565236833
+    },
+    {
+      "segmentId": "sample-032_h186248",
+      "expectedResidualMs": -0.11228914139792323,
+      "reproducedResidualMs": -0.11228914139792323
+    },
+    {
+      "segmentId": "sample-032_h355067",
+      "expectedResidualMs": 2.4146098261117004,
+      "reproducedResidualMs": 2.4146098261117004
+    },
+    {
+      "segmentId": "sample-032_h93192",
+      "expectedResidualMs": 1.2036929193418473,
+      "reproducedResidualMs": 1.2036929193418473
+    },
+    {
+      "segmentId": "sample-032_h332220",
+      "expectedResidualMs": 5.137539524992462,
+      "reproducedResidualMs": 5.137539524992462
+    },
+    {
+      "segmentId": "sample-032_h309859",
+      "expectedResidualMs": null,
+      "reproducedResidualMs": null
+    },
+    {
+      "segmentId": "sample-032_h295831",
+      "expectedResidualMs": 2.4997632444719784,
+      "reproducedResidualMs": 2.4997632444719784
+    },
+    {
+      "segmentId": "sample-002_h217921",
+      "expectedResidualMs": -1.0117410552338697,
+      "reproducedResidualMs": -1.0117410552338697
+    },
+    {
+      "segmentId": "sample-002_h34243",
+      "expectedResidualMs": -3.5084581475894083,
+      "reproducedResidualMs": -3.5084581475894083
+    },
+    {
+      "segmentId": "sample-002_h113017",
+      "expectedResidualMs": -0.5402834619744681,
+      "reproducedResidualMs": -0.5402834619744681
+    },
+    {
+      "segmentId": "sample-002_h240570",
+      "expectedResidualMs": -1.805022006155923,
+      "reproducedResidualMs": -1.805022006155923
+    },
+    {
+      "segmentId": "sample-002_h220770",
+      "expectedResidualMs": -1.3099481729441322,
+      "reproducedResidualMs": -1.3099481729441322
+    },
+    {
+      "segmentId": "sample-002_h235701",
+      "expectedResidualMs": -0.9722399161837529,
+      "reproducedResidualMs": -0.9722399161837529
+    },
+    {
+      "segmentId": "sample-002_h140503",
+      "expectedResidualMs": 2.8768485255131964,
+      "reproducedResidualMs": 2.8768485255131964
+    },
+    {
+      "segmentId": "sample-002_h136984",
+      "expectedResidualMs": 2.761558528873138,
+      "reproducedResidualMs": 2.761558528873138
+    },
+    {
+      "segmentId": "sample-002_h42958",
+      "expectedResidualMs": -2.0711734954020358,
+      "reproducedResidualMs": -2.0711734954020358
+    },
+    {
+      "segmentId": "sample-002_h111928",
+      "expectedResidualMs": 3.5041847843531286,
+      "reproducedResidualMs": 3.5041847843531286
+    },
+    {
+      "segmentId": "sample-002_h99106",
+      "expectedResidualMs": -5.79696599644376,
+      "reproducedResidualMs": -5.79696599644376
+    },
+    {
+      "segmentId": "sample-002_h151396",
+      "expectedResidualMs": null,
+      "reproducedResidualMs": null
+    },
+    {
+      "segmentId": "sample-002_h205028",
+      "expectedResidualMs": 5.013153654144844,
+      "reproducedResidualMs": 5.013153654144844
+    },
+    {
+      "segmentId": "sample-002_h118715",
+      "expectedResidualMs": -8.007243535437738,
+      "reproducedResidualMs": -8.007243535437738
+    },
+    {
+      "segmentId": "sample-002_h217419",
+      "expectedResidualMs": -8.702916822512634,
+      "reproducedResidualMs": -8.702916822512634
+    },
+    {
+      "segmentId": "sample-002_h85447",
+      "expectedResidualMs": 9.66349836034351,
+      "reproducedResidualMs": 9.66349836034351
+    },
+    {
+      "segmentId": "sample-002_h106313",
+      "expectedResidualMs": 5.602261898326105,
+      "reproducedResidualMs": 5.602261898326105
+    },
+    {
+      "segmentId": "sample-002_h242581",
+      "expectedResidualMs": -6.433382756251376,
+      "reproducedResidualMs": -6.433382756251376
+    },
+    {
+      "segmentId": "sample-002_h90894",
+      "expectedResidualMs": null,
+      "reproducedResidualMs": null
+    },
+    {
+      "segmentId": "sample-002_h255647",
+      "expectedResidualMs": -5.289208191650687,
+      "reproducedResidualMs": -5.289208191650687
+    },
+    {
+      "segmentId": "sample-002_h237210",
+      "expectedResidualMs": -7.910411318123806,
+      "reproducedResidualMs": -7.910411318123806
+    },
+    {
+      "segmentId": "sample-002_h257155",
+      "expectedResidualMs": -2.1056985754112247,
+      "reproducedResidualMs": -2.1056985754112247
+    },
+    {
+      "segmentId": "sample-002_h201760",
+      "expectedResidualMs": 8.176393562112935,
+      "reproducedResidualMs": 8.176393562112935
+    },
+    {
+      "segmentId": "sample-002_h30715",
+      "expectedResidualMs": -7.746870796247094,
+      "reproducedResidualMs": -7.746870796247094
+    },
+    {
+      "segmentId": "sample-002_h168491",
+      "expectedResidualMs": -5.829064783029025,
+      "reproducedResidualMs": -5.829064783029025
+    },
+    {
+      "segmentId": "sample-002_h133799",
+      "expectedResidualMs": -1.8725327070860658,
+      "reproducedResidualMs": -1.8725327070860658
+    },
+    {
+      "segmentId": "sample-002_h204134",
+      "expectedResidualMs": 6.17032109037973,
+      "reproducedResidualMs": 6.17032109037973
+    },
+    {
+      "segmentId": "sample-002_h89386",
+      "expectedResidualMs": 6.987931945346645,
+      "reproducedResidualMs": 6.987931945346645
+    },
+    {
+      "segmentId": "sample-002_h19658",
+      "expectedResidualMs": null,
+      "reproducedResidualMs": null
+    },
+    {
+      "segmentId": "sample-002_h141006",
+      "expectedResidualMs": -3.137115211546188,
+      "reproducedResidualMs": -3.137115211546188
+    }
+  ]
+}

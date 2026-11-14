@@ -1,0 +1,52 @@
+{
+  "id": "sample-015",
+  "directoryName": "1780278 DJ Myosuke & Laur - Break Through Myself feat Risa Yuzuki (Short Ver)",
+  "beatmapFile": "DJ Myosuke & Laur - Break Through Myself feat. Risa Yuzuki (Short Ver.) (keksikosu) [keksikosu vs. AlexDunk Apocalypse].osu",
+  "referenceBpm": 200,
+  "predictedBpm": 200,
+  "frozenBpm": 200,
+  "deterministicEvidence": true,
+  "evidence": [
+    {
+      "startMs": 127802,
+      "endMs": 133799,
+      "bpm": 89.103,
+      "points": 3,
+      "maxSupport": 0.24286429836411713,
+      "index": 0,
+      "ratioToPredictedMain": 0.445515,
+      "ratioToAnnotatedMain": 0.445515,
+      "boundary": "interior",
+      "localBpmMin": 89.103,
+      "localBpmMax": 89.103,
+      "medianSupport": 0.24286429836411713,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 30,
+          "first": null,
+          "second": null,
+          "combined": null
+        },
+        "annotatedMain": {
+          "lag": 30,
+          "first": null,
+          "second": null,
+          "combined": null
+        },
+        "evidenceBpm": {
+          "lag": 67.33780007407158,
+          "first": null,
+          "second": null,
+          "combined": null
+        }
+      },
+      "objectCount": 88,
+      "objectGrid": {
+        "predictedMainHalf": 0.8068181818181818,
+        "annotatedMainHalf": 0.8068181818181818,
+        "evidenceHalf": 0.13636363636363635
+      }
+    }
+  ],
+  "analysisMs": 1378
+}

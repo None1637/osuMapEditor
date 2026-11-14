@@ -1,0 +1,296 @@
+[
+  {
+    "id": "sample-032",
+    "evidenceIndexes": [
+      2
+    ],
+    "question": "162.771 BPM 约为 108 的 1.5 倍，疑似三连音；是否听成真实速度提升？",
+    "directoryName": "149527 Ito Kanako - Sky of Twilight",
+    "beatmapFile": "Ito Kanako - Sky of Twilight (Brainpeeler) [Marathon].osu",
+    "file": "sample-032_342.465-357.460.wav",
+    "clipStartMs": 342465,
+    "clipEndMs": 357460,
+    "evidence": [
+      {
+        "startMs": 346465,
+        "endMs": 353460,
+        "bpm": 162.771,
+        "points": 4,
+        "maxSupport": 0.17894633993259215,
+        "index": 2,
+        "ratioToPredictedMain": 0.7535694444444444,
+        "ratioToAnnotatedMain": 1.50713888888889,
+        "boundary": "interior",
+        "localBpmMin": 162.771,
+        "localBpmMax": 162.771,
+        "medianSupport": 0.1510639386291831,
+        "timeDomain": {
+          "predictedMain": {
+            "lag": 27.77777777777778,
+            "first": -0.028207298195214937,
+            "second": -0.041715548072952045,
+            "combined": -0.03266502065486818
+          },
+          "annotatedMain": {
+            "lag": 55.5555555555556,
+            "first": -0.04171554807295052,
+            "second": 0.3857087880244913,
+            "combined": 0.0993344828392053
+          },
+          "evidenceBpm": {
+            "lag": 36.86160311111931,
+            "first": 0.37134531978519064,
+            "second": 0.3545205891284903,
+            "combined": 0.36579315866847956
+          }
+        },
+        "objectCount": 117,
+        "objectGrid": {
+          "predictedMainHalf": 0.4358974358974359,
+          "annotatedMainHalf": 0.358974358974359,
+          "evidenceHalf": 0.7008547008547008
+        }
+      }
+    ],
+    "sampleRate": 11025,
+    "frames": 165319,
+    "peak": 30919
+  },
+  {
+    "id": "sample-034",
+    "evidenceIndexes": [
+      0,
+      1
+    ],
+    "question": "202.665 BPM 约为 135 的 1.5 倍，对象网格符合三连音；是否真实变速？",
+    "directoryName": "1336953 Various Artists - Julaaaan's Triangle Jump Training",
+    "beatmapFile": "Various Artists - Julaaaan's Triangle Jump Training (Julaaaan) [Eyes Half Closed].osu",
+    "file": "sample-034_26.952-57.923.wav",
+    "clipStartMs": 26952,
+    "clipEndMs": 57923,
+    "evidence": [
+      {
+        "startMs": 30952,
+        "endMs": 39944,
+        "bpm": 202.665,
+        "points": 6,
+        "maxSupport": 0.16314421993580566,
+        "index": 0,
+        "ratioToPredictedMain": 1.5012222222222222,
+        "ratioToAnnotatedMain": 1.5012222222222207,
+        "boundary": "interior",
+        "localBpmMin": 202.665,
+        "localBpmMax": 202.665,
+        "medianSupport": 0.146684556053235,
+        "timeDomain": {
+          "predictedMain": {
+            "lag": 44.44444444444444,
+            "first": 0.1382711498024614,
+            "second": 0.22646363497013564,
+            "combined": 0.16737466990779393
+          },
+          "annotatedMain": {
+            "lag": 44.4444444444444,
+            "first": 0.13827114980246016,
+            "second": 0.22646363497014102,
+            "combined": 0.16737466990779487
+          },
+          "evidenceBpm": {
+            "lag": 29.605506624232106,
+            "first": 0.12799831280955315,
+            "second": 0.09230935334887756,
+            "combined": 0.11622095618753021
+          }
+        },
+        "objectCount": 49,
+        "objectGrid": {
+          "predictedMainHalf": 0.42857142857142855,
+          "annotatedMainHalf": 0.42857142857142855,
+          "evidenceHalf": 0.9591836734693877
+        }
+      },
+      {
+        "startMs": 42934,
+        "endMs": 53923,
+        "bpm": 202.665,
+        "points": 8,
+        "maxSupport": 0.18478588888926945,
+        "index": 1,
+        "ratioToPredictedMain": 1.5012222222222222,
+        "ratioToAnnotatedMain": 1.5012222222222207,
+        "boundary": "end",
+        "localBpmMin": 202.665,
+        "localBpmMax": 202.665,
+        "medianSupport": 0.14243607009174647,
+        "timeDomain": {
+          "predictedMain": {
+            "lag": 44.44444444444444,
+            "first": 0.18331337056528435,
+            "second": 0.3375749397216282,
+            "combined": 0.23421968838687784
+          },
+          "annotatedMain": {
+            "lag": 44.4444444444444,
+            "first": 0.18331337056528343,
+            "second": 0.3375749397216308,
+            "combined": 0.23421968838687807
+          },
+          "evidenceBpm": {
+            "lag": 29.605506624232106,
+            "first": 0.1240996952715205,
+            "second": 0.10933311581821911,
+            "combined": 0.11922672405193105
+          }
+        },
+        "objectCount": 56,
+        "objectGrid": {
+          "predictedMainHalf": 0.42857142857142855,
+          "annotatedMainHalf": 0.42857142857142855,
+          "evidenceHalf": 0.9821428571428571
+        }
+      }
+    ],
+    "sampleRate": 11025,
+    "frames": 341455,
+    "peak": 32767
+  },
+  {
+    "id": "sample-088",
+    "evidenceIndexes": [
+      0,
+      1,
+      2
+    ],
+    "question": "局部 63.645/99.864 对主 175 BPM，独立指标不一致；是否存在真实慢段？",
+    "directoryName": "1159269 Zekk - SUMMER",
+    "beatmapFile": "Zekk - SUMMER (Shima Rin) [Ichigo].osu",
+    "file": "sample-088_98.841-126.816.wav",
+    "clipStartMs": 98841,
+    "clipEndMs": 126816,
+    "evidence": [
+      {
+        "startMs": 102841,
+        "endMs": 108838,
+        "bpm": 63.645,
+        "points": 3,
+        "maxSupport": 0.3028203655494974,
+        "index": 0,
+        "ratioToPredictedMain": 0.3636857142857143,
+        "ratioToAnnotatedMain": 0.3636857142857145,
+        "boundary": "interior",
+        "localBpmMin": 63.645,
+        "localBpmMax": 69.837,
+        "medianSupport": 0.3028203655494974,
+        "timeDomain": {
+          "predictedMain": {
+            "lag": 34.285714285714285,
+            "first": 0.08961249610031093,
+            "second": 0.32845106029297405,
+            "combined": 0.16842922228388976
+          },
+          "annotatedMain": {
+            "lag": 34.2857142857143,
+            "first": 0.08961249610031144,
+            "second": 0.328451060292976,
+            "combined": 0.16842922228389076
+          },
+          "evidenceBpm": {
+            "lag": 94.27292010370022,
+            "first": 0.36374846225906843,
+            "second": null,
+            "combined": 0.36374846225906843
+          }
+        },
+        "objectCount": 82,
+        "objectGrid": {
+          "predictedMainHalf": 0.6341463414634146,
+          "annotatedMainHalf": 0.6341463414634146,
+          "evidenceHalf": 0.12195121951219512
+        }
+      },
+      {
+        "startMs": 112826,
+        "endMs": 119821,
+        "bpm": 99.864,
+        "points": 4,
+        "maxSupport": 0.16300545588377335,
+        "index": 1,
+        "ratioToPredictedMain": 0.5706514285714286,
+        "ratioToAnnotatedMain": 0.5706514285714289,
+        "boundary": "interior",
+        "localBpmMin": 99.864,
+        "localBpmMax": 99.864,
+        "medianSupport": 0.12137145274214967,
+        "timeDomain": {
+          "predictedMain": {
+            "lag": 34.285714285714285,
+            "first": 0.26203457484916093,
+            "second": 0.3437570390884616,
+            "combined": 0.2890029880481302
+          },
+          "annotatedMain": {
+            "lag": 34.2857142857143,
+            "first": 0.2620345748491608,
+            "second": 0.34375703908846533,
+            "combined": 0.2890029880481313
+          },
+          "evidenceBpm": {
+            "lag": 60.08171112713289,
+            "first": 0.24036134267353762,
+            "second": 0.3240733312576105,
+            "combined": 0.2679862989062817
+          }
+        },
+        "objectCount": 96,
+        "objectGrid": {
+          "predictedMainHalf": 0.65625,
+          "annotatedMainHalf": 0.65625,
+          "evidenceHalf": 0.16666666666666666
+        }
+      },
+      {
+        "startMs": 116819,
+        "endMs": 122816,
+        "bpm": 63.645,
+        "points": 3,
+        "maxSupport": 0.21243105764224454,
+        "index": 2,
+        "ratioToPredictedMain": 0.3636857142857143,
+        "ratioToAnnotatedMain": 0.3636857142857145,
+        "boundary": "interior",
+        "localBpmMin": 63.606,
+        "localBpmMax": 63.645,
+        "medianSupport": 0.21243105764224454,
+        "timeDomain": {
+          "predictedMain": {
+            "lag": 34.285714285714285,
+            "first": 0.35153437234719354,
+            "second": 0.5466686394650749,
+            "combined": 0.41592868049609444
+          },
+          "annotatedMain": {
+            "lag": 34.2857142857143,
+            "first": 0.3515343723471941,
+            "second": 0.5466686394650769,
+            "combined": 0.41592868049609544
+          },
+          "evidenceBpm": {
+            "lag": 94.27292010370022,
+            "first": 0.3183365578591562,
+            "second": null,
+            "combined": 0.3183365578591562
+          }
+        },
+        "objectCount": 85,
+        "objectGrid": {
+          "predictedMainHalf": 0.6588235294117647,
+          "annotatedMainHalf": 0.6588235294117647,
+          "evidenceHalf": 0.11764705882352941
+        }
+      }
+    ],
+    "sampleRate": 11025,
+    "frames": 308424,
+    "peak": 32767
+  }
+]

@@ -1,0 +1,43 @@
+{
+  "id": "sample-073",
+  "directoryName": "Mutsuhiko Izumi - Snow Goose (13)",
+  "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\Mutsuhiko Izumi - Snow Goose (13)",
+  "status": "ok",
+  "referenceBpm": 200,
+  "referenceVariable": false,
+  "predictedBpm": 200,
+  "predictedVariable": false,
+  "variableLines": [],
+  "trueVariableMs": 0,
+  "flaggedWindowCount": 7,
+  "flaggedWindowsOnVariable": 0,
+  "rawCandidateCount": 1,
+  "rawCandidatesOnVariable": 0,
+  "finalEvidenceCount": 0,
+  "finalEvidenceOnVariable": 0,
+  "candidates": [
+    {
+      "startMs": 90860,
+      "endMs": 96856,
+      "bpm": 66.683,
+      "points": 3,
+      "maxSupport": 0.16114402562379837,
+      "localGridCoverage": 0.10526315789473684,
+      "rejection": "triplet",
+      "independentMainScore": null,
+      "independentLocalScore": null,
+      "variableOverlapMs": 0,
+      "overlapsVariable": false,
+      "tripletVotes": [
+        {
+          "timeMs": 93857.95918367346,
+          "bpm": 66.683,
+          "localGridCoverage": 0.0967741935483871,
+          "tripletGridCoverage": 0.6774193548387096,
+          "tripletGridHalfCoverage": 0.4838709677419355,
+          "tripletGridDoubleCoverage": 1
+        }
+      ]
+    }
+  ]
+}

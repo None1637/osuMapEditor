@@ -1,0 +1,15 @@
+{
+  "version": "v558-independent-result-recheck-v1",
+  "passed": true,
+  "comparisonRows": 90,
+  "recomputedMethods": [
+    "full",
+    "lag5",
+    "superflux",
+    "fullGlobal",
+    "lag5Global",
+    "superfluxGlobal"
+  ],
+  "populationWeight": 3468.0,
+  "failures": []
+}

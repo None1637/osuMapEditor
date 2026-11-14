@@ -1,0 +1,92 @@
+{
+  "id": "sample-053",
+  "directoryName": "25671 NieN - Leave me Alone",
+  "beatmapFile": "NieN - Leave me Alone (MoonFragrance) [ykcarrot's Hard].osu",
+  "referenceBpm": 236.00000000000023,
+  "predictedBpm": 236,
+  "frozenBpm": 236,
+  "deterministicEvidence": true,
+  "evidence": [
+    {
+      "startMs": 15975,
+      "endMs": 21972,
+      "bpm": 67.555,
+      "points": 3,
+      "maxSupport": 0.2893084887700161,
+      "index": 0,
+      "ratioToPredictedMain": 0.28625,
+      "ratioToAnnotatedMain": 0.2862499999999997,
+      "boundary": "interior",
+      "localBpmMin": 67.555,
+      "localBpmMax": 67.555,
+      "medianSupport": 0.20928005773161884,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 25.423728813559322,
+          "first": 0.301089844390022,
+          "second": 0.32387905351647134,
+          "combined": 0.30861028340175034
+        },
+        "annotatedMain": {
+          "lag": 25.423728813559297,
+          "first": 0.3010898443900218,
+          "second": 0.32387905351646973,
+          "combined": 0.3086102834017496
+        },
+        "evidenceBpm": {
+          "lag": 88.81651987269632,
+          "first": 0.26167015321223436,
+          "second": null,
+          "combined": 0.26167015321223436
+        }
+      },
+      "objectCount": 17,
+      "objectGrid": {
+        "predictedMainHalf": 1,
+        "annotatedMainHalf": 1,
+        "evidenceHalf": 0.23529411764705882
+      }
+    },
+    {
+      "startMs": 27957,
+      "endMs": 34952,
+      "bpm": 67.555,
+      "points": 4,
+      "maxSupport": 0.28766301682926787,
+      "index": 1,
+      "ratioToPredictedMain": 0.28625,
+      "ratioToAnnotatedMain": 0.2862499999999997,
+      "boundary": "interior",
+      "localBpmMin": 67.335,
+      "localBpmMax": 67.555,
+      "medianSupport": 0.28766301682926787,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 25.423728813559322,
+          "first": 0.39935635367068967,
+          "second": 0.40865105085667935,
+          "combined": 0.4024236037420663
+        },
+        "annotatedMain": {
+          "lag": 25.423728813559297,
+          "first": 0.39935635367068884,
+          "second": 0.40865105085668235,
+          "combined": 0.40242360374206676
+        },
+        "evidenceBpm": {
+          "lag": 88.81651987269632,
+          "first": 0.14648513651689699,
+          "second": null,
+          "combined": 0.14648513651689699
+        }
+      },
+      "objectCount": 20,
+      "objectGrid": {
+        "predictedMainHalf": 0.95,
+        "annotatedMainHalf": 0.95,
+        "evidenceHalf": 0.3
+      }
+    }
+  ],
+  "analysisMs": 1086
+}

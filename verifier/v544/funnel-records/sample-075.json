@@ -1,0 +1,51 @@
+{
+  "id": "sample-075",
+  "directoryName": "833927 Weird Al Yankovic - Hardware Store",
+  "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\833927 Weird Al Yankovic - Hardware Store",
+  "status": "ok",
+  "referenceBpm": 126.32999999999987,
+  "referenceVariable": false,
+  "predictedBpm": 126.35,
+  "predictedVariable": false,
+  "variableLines": [],
+  "trueVariableMs": 0,
+  "flaggedWindowCount": 19,
+  "flaggedWindowsOnVariable": 0,
+  "rawCandidateCount": 1,
+  "rawCandidatesOnVariable": 0,
+  "finalEvidenceCount": 0,
+  "finalEvidenceOnVariable": 0,
+  "candidates": [
+    {
+      "startMs": 48924,
+      "endMs": 54921,
+      "bpm": 72.279,
+      "points": 3,
+      "maxSupport": 0.32856020348173176,
+      "localGridCoverage": 0.0547945205479452,
+      "rejection": "weak_short",
+      "independentMainScore": 0.15605444652212355,
+      "independentLocalScore": -0.006508253043986575,
+      "variableOverlapMs": 0,
+      "overlapsVariable": false,
+      "tripletVotes": [
+        {
+          "timeMs": 50924.26303854875,
+          "bpm": 71.777,
+          "localGridCoverage": 0.05263157894736842,
+          "tripletGridCoverage": 0.40350877192982454,
+          "tripletGridHalfCoverage": 0.21052631578947367,
+          "tripletGridDoubleCoverage": 0.5497076023391813
+        },
+        {
+          "timeMs": 51922.72108843538,
+          "bpm": 72.279,
+          "localGridCoverage": 0.061224489795918366,
+          "tripletGridCoverage": 0.41496598639455784,
+          "tripletGridHalfCoverage": 0.21768707482993196,
+          "tripletGridDoubleCoverage": 0.5306122448979592
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "version": "v566-raw-rising-edge-independent-recheck-v1",
+  "passed": true,
+  "objects": 90,
+  "refinedCount": 83,
+  "maximumTimeDifferenceMs": 0,
+  "failures": []
+}

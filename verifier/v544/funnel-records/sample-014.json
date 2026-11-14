@@ -1,0 +1,113 @@
+{
+  "id": "sample-014",
+  "directoryName": "828088 DJ Seven - Charon",
+  "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\828088 DJ Seven - Charon",
+  "status": "ok",
+  "referenceBpm": 116.6666699074075,
+  "referenceVariable": false,
+  "predictedBpm": 232.7,
+  "predictedVariable": false,
+  "variableLines": [],
+  "trueVariableMs": 0,
+  "flaggedWindowCount": 66,
+  "flaggedWindowsOnVariable": 0,
+  "rawCandidateCount": 3,
+  "rawCandidatesOnVariable": 0,
+  "finalEvidenceCount": 0,
+  "finalEvidenceOnVariable": 0,
+  "candidates": [
+    {
+      "startMs": 60906,
+      "endMs": 66903,
+      "bpm": 67.555,
+      "points": 3,
+      "maxSupport": 0.18858329705943586,
+      "localGridCoverage": 0.07272727272727272,
+      "rejection": "weak_short",
+      "independentMainScore": 0.0474495476605805,
+      "independentLocalScore": 0.03369848415459337,
+      "variableOverlapMs": 0,
+      "overlapsVariable": false,
+      "tripletVotes": [
+        {
+          "timeMs": 63904.21768707483,
+          "bpm": 67.555,
+          "localGridCoverage": 0.058823529411764705,
+          "tripletGridCoverage": 0.6274509803921569,
+          "tripletGridHalfCoverage": 0.4117647058823529,
+          "tripletGridDoubleCoverage": 0.5686274509803921
+        },
+        {
+          "timeMs": 64902.67573696145,
+          "bpm": 67.555,
+          "localGridCoverage": 0.07272727272727272,
+          "tripletGridCoverage": 0.6181818181818182,
+          "tripletGridHalfCoverage": 0.41818181818181815,
+          "tripletGridDoubleCoverage": 0.5454545454545454
+        }
+      ]
+    },
+    {
+      "startMs": 82872,
+      "endMs": 88869,
+      "bpm": 68,
+      "points": 3,
+      "maxSupport": 0.30267549030537655,
+      "localGridCoverage": 0.08333333333333333,
+      "rejection": "weak_short",
+      "independentMainScore": -0.01566120275269172,
+      "independentLocalScore": 0.07275858020353276,
+      "variableOverlapMs": 0,
+      "overlapsVariable": false,
+      "tripletVotes": [
+        {
+          "timeMs": 85870.2947845805,
+          "bpm": 67.555,
+          "localGridCoverage": 0.08333333333333333,
+          "tripletGridCoverage": 0.6041666666666666,
+          "tripletGridHalfCoverage": 0.4166666666666667,
+          "tripletGridDoubleCoverage": 0.5833333333333334
+        },
+        {
+          "timeMs": 86868.75283446712,
+          "bpm": 68,
+          "localGridCoverage": 0.09615384615384616,
+          "tripletGridCoverage": 0.5576923076923077,
+          "tripletGridHalfCoverage": 0.4230769230769231,
+          "tripletGridDoubleCoverage": 0.5769230769230769
+        }
+      ]
+    },
+    {
+      "startMs": 85867,
+      "endMs": 91864,
+      "bpm": 78.303,
+      "points": 3,
+      "maxSupport": 0.23933183128620367,
+      "localGridCoverage": 0.08333333333333333,
+      "rejection": "triplet",
+      "independentMainScore": null,
+      "independentLocalScore": null,
+      "variableOverlapMs": 0,
+      "overlapsVariable": false,
+      "tripletVotes": [
+        {
+          "timeMs": 87867.21088435374,
+          "bpm": 78.303,
+          "localGridCoverage": 0.10869565217391304,
+          "tripletGridCoverage": 0.5869565217391305,
+          "tripletGridHalfCoverage": 0.45652173913043476,
+          "tripletGridDoubleCoverage": 0.5652173913043478
+        },
+        {
+          "timeMs": 88865.66893424036,
+          "bpm": 78.303,
+          "localGridCoverage": 0.08333333333333333,
+          "tripletGridCoverage": 0.6527777777777778,
+          "tripletGridHalfCoverage": 0.4166666666666667,
+          "tripletGridDoubleCoverage": 0.5972222222222222
+        }
+      ]
+    }
+  ]
+}

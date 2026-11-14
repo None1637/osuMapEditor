@@ -1,0 +1,52 @@
+{
+  "id": "sample-030",
+  "directoryName": "10860 Haru - Children Festival (Instrumental)",
+  "beatmapFile": "Haru - Children Festival (Instrumental) (Hikato) [Hard].osu",
+  "referenceBpm": 139.99999999999986,
+  "predictedBpm": 140,
+  "frozenBpm": 140,
+  "deterministicEvidence": true,
+  "evidence": [
+    {
+      "startMs": 196696,
+      "endMs": 202693,
+      "bpm": 79.814,
+      "points": 3,
+      "maxSupport": 0.28680897575215913,
+      "index": 0,
+      "ratioToPredictedMain": 0.5700999999999999,
+      "ratioToAnnotatedMain": 0.5701000000000005,
+      "boundary": "interior",
+      "localBpmMin": 79.814,
+      "localBpmMax": 80.124,
+      "medianSupport": 0.238259870669487,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 42.857142857142854,
+          "first": 0.31431790600237075,
+          "second": 0.2682564480970548,
+          "combined": 0.2991176248936165
+        },
+        "annotatedMain": {
+          "lag": 42.857142857142904,
+          "first": 0.31431790600236587,
+          "second": 0.26825644809705523,
+          "combined": 0.2991176248936134
+        },
+        "evidenceBpm": {
+          "lag": 75.17478136667754,
+          "first": 0.16246675058406945,
+          "second": null,
+          "combined": 0.16246675058406945
+        }
+      },
+      "objectCount": 20,
+      "objectGrid": {
+        "predictedMainHalf": 0.8,
+        "annotatedMainHalf": 0.8,
+        "evidenceHalf": 0.2
+      }
+    }
+  ],
+  "analysisMs": 2656
+}

@@ -1,0 +1,42 @@
+{
+  "id": "sample-046",
+  "directoryName": "517739 You Are Free - Little Mary ( Original Mix )",
+  "beatmapFile": "You Are Free - Little Mary  ( Original Mix ) (Kawai-umi) [Little Mary].osu",
+  "metadata": {
+    "Title": "Little Mary  ( Original Mix )",
+    "TitleUnicode": "Little Mary （Original Mix）",
+    "Artist": "You Are Free",
+    "ArtistUnicode": "You Are Free",
+    "Creator": "Kawai-umi",
+    "Version": "Little Mary",
+    "Source": "",
+    "Tags": "Instrumental Expert Original You Are Free mary Electronic over",
+    "BeatmapID": "1100011",
+    "BeatmapSetID": "517739",
+    "Mode": "0"
+  },
+  "audioDurationMs": 245108.02721088435,
+  "redLines": [
+    {
+      "time": 100,
+      "beatLength": 413.793103448276,
+      "bpm": 144.99999999999994,
+      "durationMs": 245008.02721088435
+    }
+  ],
+  "referenceBpm": 144.99999999999994,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 245008.02721088435,
+  "status": "ok",
+  "prediction": {
+    "bpm": 145,
+    "offsetMs": 131,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 236,
+    "rawBpm": 145,
+    "rawSegmentCount": 15
+  },
+  "evaluationMs": 2136
+}

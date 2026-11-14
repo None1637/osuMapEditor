@@ -1,0 +1,78 @@
+{
+  "id": "sample-017",
+  "directoryName": "1510535 65daysofstatic - Retreat! Retreat! (Cut Ver)",
+  "beatmapFile": "Stars Hollow - as you were before. (Cut Ver.) (quantumvortex) [Extreme].osu",
+  "metadata": {
+    "Title": "as you were before. (Cut Ver.)",
+    "TitleUnicode": "as you were before. (Cut Ver.)",
+    "Artist": "Stars Hollow",
+    "ArtistUnicode": "Stars Hollow",
+    "Creator": "quantumvortex",
+    "Version": "Extreme",
+    "Source": "Various Artists - Jump Pack 7",
+    "Tags": "happy again midwest emo pop punk alternative mathrock rock male vocal vocals short version",
+    "BeatmapID": "3093274",
+    "BeatmapSetID": "1510535",
+    "Mode": "0"
+  },
+  "audioDurationMs": 116924.08163265306,
+  "redLines": [
+    {
+      "time": 185,
+      "beatLength": 1283.42245989305,
+      "bpm": 46.74999999999993,
+      "durationMs": 1283
+    },
+    {
+      "time": 1468,
+      "beatLength": 1196.41076769691,
+      "bpm": 50.14999999999997,
+      "durationMs": 1196
+    },
+    {
+      "time": 2664,
+      "beatLength": 1246.10591900312,
+      "bpm": 48.149999999999814,
+      "durationMs": 2492
+    },
+    {
+      "time": 5156,
+      "beatLength": 1202.40480961924,
+      "bpm": 49.899999999999935,
+      "durationMs": 1202
+    },
+    {
+      "time": 6358,
+      "beatLength": 1233.29907502569,
+      "bpm": 48.65000000000015,
+      "durationMs": 1233
+    },
+    {
+      "time": 7591,
+      "beatLength": 1253.91849529781,
+      "bpm": 47.84999999999983,
+      "durationMs": 1253
+    },
+    {
+      "time": 8844,
+      "beatLength": 307.692307692308,
+      "bpm": 194.9999999999998,
+      "durationMs": 108080.08163265306
+    }
+  ],
+  "referenceBpm": 194.9999999999998,
+  "referenceVariable": true,
+  "referenceRedLineCount": 7,
+  "referenceCoverageMs": 108080.08163265306,
+  "status": "ok",
+  "prediction": {
+    "bpm": 195.1,
+    "offsetMs": 274,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 114,
+    "rawBpm": 390.2,
+    "rawSegmentCount": 125
+  },
+  "evaluationMs": 1268
+}

@@ -1,0 +1,32 @@
+{
+  "version": "v569-label-free-gate-independent-recheck-v1",
+  "passed": true,
+  "comparisonRows": 90,
+  "labelFreeGateVerified": true,
+  "gateFieldsUsed": [
+    "segmentId",
+    "sampleId",
+    "fold",
+    "ddcParabolicResidualMs"
+  ],
+  "candidateAndCorrectionSourcesVerified": true,
+  "csvVerified": true,
+  "groupsVerified": [
+    "overall",
+    "perSample",
+    "perStratum",
+    "perFold"
+  ],
+  "hypotheses": {
+    "H1": true,
+    "H2": true,
+    "H3": true
+  },
+  "targetAchieved": false,
+  "sample044AtLeast80Preserved": true,
+  "noClearRateNotIncreased": true,
+  "audibleCorrectRate": 0.7087396325395572,
+  "deltaFromE5": 0.004001262917582404,
+  "netFixedWeightFromE5": 7.322222222222223,
+  "failures": []
+}

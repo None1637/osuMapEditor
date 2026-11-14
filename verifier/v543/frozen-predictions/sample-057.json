@@ -1,0 +1,50 @@
+{
+  "id": "sample-057",
+  "directoryName": "2976 IOSYS - Tsukiyo wo Kakusanai Teido no Nouryoku",
+  "beatmapFile": "IOSYS - Tsukiyo wo Kakusanai Teido no Nouryoku (Card N'FoRcE) [Insane].osu",
+  "metadata": {
+    "Title": "Tsukiyo wo Kakusanai Teido no Nouryoku",
+    "Artist": "IOSYS",
+    "Creator": "Card N'FoRcE",
+    "Version": "Insane",
+    "Source": "",
+    "Tags": "",
+    "Mode": "0"
+  },
+  "audioDurationMs": 139337.14285714284,
+  "redLines": [
+    {
+      "time": 25934,
+      "beatLength": 400,
+      "bpm": 150,
+      "durationMs": 19182
+    },
+    {
+      "time": 45116,
+      "beatLength": 400,
+      "bpm": 150,
+      "durationMs": 51591
+    },
+    {
+      "time": 96707,
+      "beatLength": 400,
+      "bpm": 150,
+      "durationMs": 42630.14285714284
+    }
+  ],
+  "referenceBpm": 150,
+  "referenceVariable": false,
+  "referenceRedLineCount": 3,
+  "referenceCoverageMs": 113403.14285714284,
+  "status": "ok",
+  "prediction": {
+    "bpm": 150,
+    "offsetMs": 332,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 134,
+    "rawBpm": 150,
+    "rawSegmentCount": 6
+  },
+  "evaluationMs": 1329
+}

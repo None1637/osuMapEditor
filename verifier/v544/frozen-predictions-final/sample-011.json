@@ -1,0 +1,42 @@
+{
+  "id": "sample-011",
+  "directoryName": "352570 beatMARIO - Night of Knights",
+  "beatmapFile": "beatMARIO - Night of Knights (alacat) [Kotori's Extreme].osu",
+  "metadata": {
+    "Title": "Night of Knights",
+    "TitleUnicode": "ナイト・オブ・ナイツ",
+    "Artist": "beatMARIO",
+    "ArtistUnicode": "ビートまりお",
+    "Creator": "alacat",
+    "Version": "Kotori's Extreme",
+    "Source": "東方Project",
+    "Tags": "Guy sionKotori iyasine N_a_s_y_a Nasya ZUN Touhou Kaeidzuka 東方花映塚 ～ Phantasmagoria of Flower View. 十六夜咲夜 Izayoi Sakuya フラワリングナイト Flowering Night th09 上海アリス幻樂団 Team Shanghai Alice 花詠束 -hanataba- Unionest.NET",
+    "BeatmapID": "828940",
+    "BeatmapSetID": "352570",
+    "Mode": "0"
+  },
+  "audioDurationMs": 190920,
+  "redLines": [
+    {
+      "time": 416,
+      "beatLength": 333.333333333333,
+      "bpm": 180.0000000000002,
+      "durationMs": 190504
+    }
+  ],
+  "referenceBpm": 180.0000000000002,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 190504,
+  "status": "ok",
+  "prediction": {
+    "bpm": 180,
+    "offsetMs": 616,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 184,
+    "rawBpm": 360,
+    "rawSegmentCount": 1
+  },
+  "evaluationMs": 1757
+}

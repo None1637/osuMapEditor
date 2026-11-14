@@ -1,0 +1,19 @@
+{
+  "id": "sample-021",
+  "directoryName": "500905 The Quick Brown Fox - Break",
+  "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\500905 The Quick Brown Fox - Break",
+  "status": "ok",
+  "referenceBpm": 247.0000329333378,
+  "referenceVariable": false,
+  "predictedBpm": 123.5,
+  "predictedVariable": false,
+  "variableLines": [],
+  "trueVariableMs": 0,
+  "flaggedWindowCount": 13,
+  "flaggedWindowsOnVariable": 0,
+  "rawCandidateCount": 0,
+  "rawCandidatesOnVariable": 0,
+  "finalEvidenceCount": 0,
+  "finalEvidenceOnVariable": 0,
+  "candidates": []
+}

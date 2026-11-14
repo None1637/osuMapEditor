@@ -1,0 +1,51 @@
+{
+  "id": "sample-084",
+  "directoryName": "64839 Misato Aki - DESIRE (Short Ver)",
+  "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\64839 Misato Aki - DESIRE (Short Ver)",
+  "status": "ok",
+  "referenceBpm": 118.99999999999999,
+  "referenceVariable": false,
+  "predictedBpm": 238,
+  "predictedVariable": false,
+  "variableLines": [],
+  "trueVariableMs": 0,
+  "flaggedWindowCount": 29,
+  "flaggedWindowsOnVariable": 0,
+  "rawCandidateCount": 1,
+  "rawCandidatesOnVariable": 0,
+  "finalEvidenceCount": 0,
+  "finalEvidenceOnVariable": 0,
+  "candidates": [
+    {
+      "startMs": 67895,
+      "endMs": 73892,
+      "bpm": 68,
+      "points": 3,
+      "maxSupport": 0.12280370108404437,
+      "localGridCoverage": 0.052941176470588235,
+      "rejection": "weak_short",
+      "independentMainScore": 0.25226111037874854,
+      "independentLocalScore": 0.16328766904288616,
+      "variableOverlapMs": 0,
+      "overlapsVariable": false,
+      "tripletVotes": [
+        {
+          "timeMs": 70893.42403628118,
+          "bpm": 68,
+          "localGridCoverage": 0.052941176470588235,
+          "tripletGridCoverage": 0.5470588235294118,
+          "tripletGridHalfCoverage": 0.38235294117647056,
+          "tripletGridDoubleCoverage": 0.5411764705882353
+        },
+        {
+          "timeMs": 71891.8820861678,
+          "bpm": 68.044,
+          "localGridCoverage": 0.05325443786982249,
+          "tripletGridCoverage": 0.5502958579881657,
+          "tripletGridHalfCoverage": 0.40828402366863903,
+          "tripletGridDoubleCoverage": 0.5621301775147929
+        }
+      ]
+    }
+  ]
+}

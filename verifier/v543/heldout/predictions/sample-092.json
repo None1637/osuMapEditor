@@ -1,0 +1,40 @@
+{
+  "id": "sample-092",
+  "directoryName": "1507653 REDALiCE vs Kobaryo - REKKA RESONANCE",
+  "beatmapFile": "REDALiCE vs. Kobaryo - REKKA RESONANCE (Syadow-) [Alleyne's BEYOND].osu",
+  "metadata": {
+    "Title": "REKKA RESONANCE",
+    "TitleUnicode": "烈華RESONANCE",
+    "Artist": "REDALiCE vs. Kobaryo",
+    "ArtistUnicode": "REDALiCE vs. Kobaryo",
+    "Creator": "Syadow-",
+    "Version": "Alleyne's BEYOND",
+    "Source": "Arcaea",
+    "Tags": "lowiro Memory Archive Video Game Electronic instrumental HARDCORE TANO*C Collaboration",
+    "Mode": "3"
+  },
+  "audioDurationMs": 142413.3333333333,
+  "redLines": [
+    {
+      "time": 1959,
+      "beatLength": 250,
+      "bpm": 240,
+      "durationMs": 140454.3333333333
+    }
+  ],
+  "referenceBpm": 240,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 140454.3333333333,
+  "status": "ok",
+  "prediction": {
+    "bpm": 240,
+    "offsetMs": 507,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 139,
+    "rawBpm": 240,
+    "rawSegmentCount": 36
+  },
+  "evaluationMs": 1372
+}

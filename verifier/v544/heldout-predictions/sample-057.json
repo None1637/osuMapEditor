@@ -1,0 +1,42 @@
+{
+  "id": "sample-057",
+  "directoryName": "1180425 t+pazolite - Tempestissimo",
+  "beatmapFile": "t+pazolite - Tempestissimo (Cubby) [BLACK FATE].osu",
+  "metadata": {
+    "Title": "Tempestissimo",
+    "TitleUnicode": "Tempestissimo",
+    "Artist": "t+pazolite",
+    "ArtistUnicode": "t+pazolite",
+    "Creator": "Cubby",
+    "Version": "Black Fate",
+    "Source": "Arcaea",
+    "Tags": "Lowiro Hikari Taritsu Anomaly Hardcore Black Fate Conflict",
+    "BeatmapID": "2461453",
+    "BeatmapSetID": "1180425",
+    "Mode": "0"
+  },
+  "audioDurationMs": 137142.85714285713,
+  "redLines": [
+    {
+      "time": 1020,
+      "beatLength": 259.74025974026,
+      "bpm": 230.99999999999977,
+      "durationMs": 136122.85714285713
+    }
+  ],
+  "referenceBpm": 230.99999999999977,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 136122.85714285713,
+  "status": "ok",
+  "prediction": {
+    "bpm": 231,
+    "offsetMs": 786,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 122,
+    "rawBpm": 231,
+    "rawSegmentCount": 27
+  },
+  "evaluationMs": 1291
+}

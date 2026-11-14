@@ -1,0 +1,19 @@
+{
+  "id": "sample-079",
+  "directoryName": "2222231 Daibaku Hashin - Noda feat Zundamon, Hatsune Miku, Kasane Teto [no video]",
+  "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\2222231 Daibaku Hashin - Noda feat Zundamon, Hatsune Miku, Kasane Teto [no video]",
+  "status": "ok",
+  "referenceBpm": 141.9999999999999,
+  "referenceVariable": false,
+  "predictedBpm": 142,
+  "predictedVariable": false,
+  "variableLines": [],
+  "trueVariableMs": 0,
+  "flaggedWindowCount": 44,
+  "flaggedWindowsOnVariable": 0,
+  "rawCandidateCount": 0,
+  "rawCandidatesOnVariable": 0,
+  "finalEvidenceCount": 0,
+  "finalEvidenceOnVariable": 0,
+  "candidates": []
+}

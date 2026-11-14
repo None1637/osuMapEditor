@@ -1,0 +1,42 @@
+{
+  "id": "sample-079",
+  "directoryName": "155749 xi - .357 Magnum",
+  "beatmapFile": "xi - .357 Magnum (Akali) [Ex's Muzukashii].osu",
+  "metadata": {
+    "Title": ".357 Magnum",
+    "TitleUnicode": ".357 Magnum",
+    "Artist": "xi",
+    "ArtistUnicode": "xi",
+    "Creator": "Akali",
+    "Version": "Ex's Muzukashii",
+    "Source": "BMS",
+    "Tags": "sayaka- dialgadu77 tidek EXTREMEBEAT piano jazz",
+    "BeatmapID": "552442",
+    "BeatmapSetID": "155749",
+    "Mode": "1"
+  },
+  "audioDurationMs": 132780.4081632653,
+  "redLines": [
+    {
+      "time": 669.585365853658,
+      "beatLength": 336.134453781513,
+      "bpm": 178.4999999999998,
+      "durationMs": 132110.82279741165
+    }
+  ],
+  "referenceBpm": 178.4999999999998,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 132110.82279741165,
+  "status": "ok",
+  "prediction": {
+    "bpm": 178.5,
+    "offsetMs": 873,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 128,
+    "rawBpm": 357,
+    "rawSegmentCount": 21
+  },
+  "evaluationMs": 1102
+}

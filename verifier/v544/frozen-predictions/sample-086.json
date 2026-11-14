@@ -1,0 +1,42 @@
+{
+  "id": "sample-086",
+  "directoryName": "638012 cYsmix - Breeze",
+  "beatmapFile": "cYsmix - Breeze (AncuL) [Insane].osu",
+  "metadata": {
+    "Title": "Breeze",
+    "TitleUnicode": "Breeze",
+    "Artist": "cYsmix",
+    "ArtistUnicode": "cYsmix",
+    "Creator": "AncuL",
+    "Version": "Insane",
+    "Source": "osu!",
+    "Tags": "featured artist monthly beatmapping contest sea arabia mappers' guild",
+    "BeatmapID": "1353489",
+    "BeatmapSetID": "638012",
+    "Mode": "3"
+  },
+  "audioDurationMs": 106319.45578231293,
+  "redLines": [
+    {
+      "time": 1750,
+      "beatLength": 428.571428571429,
+      "bpm": 139.99999999999986,
+      "durationMs": 104569.45578231293
+    }
+  ],
+  "referenceBpm": 139.99999999999986,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 104569.45578231293,
+  "status": "ok",
+  "prediction": {
+    "bpm": 140,
+    "offsetMs": 482,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 103,
+    "rawBpm": 140,
+    "rawSegmentCount": 21
+  },
+  "evaluationMs": 1213
+}

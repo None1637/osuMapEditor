@@ -1,0 +1,63 @@
+osu file format v14
+
+[General]
+AudioFilename: audio.ogg
+AudioLeadIn: 0
+PreviewTime: 179648
+Countdown: 0
+SampleSet: Soft
+StackLeniency: 0.7
+Mode: 3
+LetterboxInBreaks: 0
+SpecialStyle: 0
+WidescreenStoryboard: 1
+
+[Editor]
+Bookmarks: 190027
+DistanceSpacing: 1.8
+BeatDivisor: 2
+GridSize: 4
+TimelineZoom: 1.600001
+
+[Metadata]
+Title:INTERNET YAMERO
+TitleUnicode:INTERNET YAMERO
+Artist:Aiobahn feat. KOTOKO
+ArtistUnicode:Aiobahn feat. KOTOKO
+Creator:FLeVI
+Version:Natro's Hard
+Source:NEEDY GIRL OVERDOSE
+Tags:streamer ame KAngel OMGkawaiiAngel p-chan tenshi overload video game japanese electronic female vocal muse dash にゃるら nyalra nyarura angel WSS playground xemono visual novel cute
+BeatmapID:4073568
+BeatmapSetID:1962727
+
+[Difficulty]
+HPDrainRate:8
+CircleSize:4
+OverallDifficulty:7
+ApproachRate:5
+SliderMultiplier:1.4
+SliderTickRate:1
+
+[Events]
+//Background and Video events
+Video,-191,"video.mp4"
+0,0,"bg.jpg",0,0
+//Break Periods
+//Storyboard Layer 0 (Background)
+//Storyboard Layer 1 (Fail)
+//Storyboard Layer 2 (Pass)
+//Storyboard Layer 3 (Foreground)
+//Storyboard Layer 4 (Overlay)
+//Storyboard Sound Samples
+
+[TimingPoints]
+1920,324.324324324324,4,2,1,50,1,0
+4514,324.324324324324,4,2,1,50,1,0
+158892,324.324324324324,4,2,1,50,1,0
+179648,-100,4,2,1,50,0,1
+200415,324.324324324324,4,2,1,50,1,0
+200415,-100,4,2,1,50,0,0
+
+
+[HitObjects]

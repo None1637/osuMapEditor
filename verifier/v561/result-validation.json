@@ -1,0 +1,13 @@
+{
+  "version": "v561-independent-result-recheck-v1",
+  "passed": true,
+  "comparisonRows": 90,
+  "recomputedMethods": [
+    "full",
+    "ddcOfficial",
+    "fusion"
+  ],
+  "populationWeight": 3468.0,
+  "netFixedWeight": -60.6888888888889,
+  "failures": []
+}

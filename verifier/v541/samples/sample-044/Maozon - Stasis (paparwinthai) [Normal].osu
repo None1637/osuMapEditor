@@ -1,0 +1,87 @@
+osu file format v14
+
+[General]
+AudioFilename: audio.mp3
+AudioLeadIn: 0
+PreviewTime: 108114
+Countdown: 1
+SampleSet: Normal
+StackLeniency: 0.6
+Mode: 0
+LetterboxInBreaks: 0
+WidescreenStoryboard: 1
+
+[Editor]
+Bookmarks: 12114,17447,33447,44114,54781,65447,97447
+DistanceSpacing: 1
+BeatDivisor: 4
+GridSize: 4
+TimelineZoom: 2
+
+[Metadata]
+Title:Stasis
+TitleUnicode:Stasis
+Artist:Maozon
+ArtistUnicode:Maozon
+Creator:paparwinthai
+Version:Normal
+Source:Lanota Chapter IV
+Tags:lanota maozon stasis
+BeatmapID:1882326
+BeatmapSetID:895790
+
+[Difficulty]
+HPDrainRate:4
+CircleSize:4
+OverallDifficulty:3
+ApproachRate:6
+SliderMultiplier:1.2
+SliderTickRate:1
+
+[Events]
+//Background and Video events
+0,0,"c7a9c83627002f660db7cadac56c678c.jpg",0,0
+//Break Periods
+2,12314,15314
+//Storyboard Layer 0 (Background)
+//Storyboard Layer 1 (Fail)
+//Storyboard Layer 2 (Pass)
+//Storyboard Layer 3 (Foreground)
+//Storyboard Sound Samples
+
+[TimingPoints]
+1448,333.333333333333,4,1,0,100,1,0
+6789,-100,4,1,0,100,0,0
+22781,-100,4,1,0,100,0,0
+65447,-100,4,1,0,100,0,0
+76114,-100,4,1,0,100,0,0
+86781,-100,4,1,0,100,0,0
+108114,-100,4,1,0,100,0,1
+129447,-100,4,1,0,100,0,0
+
+
+[HitObjects]
+434,124,6781,6,0,B|362:64|319:52,1,120
+274,54,7281,2,0,B|180:62|141:84,1,120
+277,209,8114,6,0,B|205:149|162:137,1,120
+117,139,8614,2,0,B|23:147|-16:169,1,120
+428,174,9447,6,0,L|325:78,1,120
+256,54,9947,2,0,P|161:94|143:120,1,120
+256,192,10781,12,0,12114,0:0:0:0:
+196,247,17447,5,0,0:0:0:0:
+316,247,17781,1,0,0:0:0:0:
+317,127,18114,1,0,0:0:0:0:
+197,130,18447,1,0,0:0:0:0:
+185,249,18781,5,0,0:0:0:0:
+313,263,19114,1,0,0:0:0:0:
+327,135,19447,1,0,0:0:0:0:
+199,121,19781,1,0,0:0:0:0:
+222,238,20114,5,0,0:0:0:0:
+302,226,20447,1,0,0:0:0:0:
+290,146,20781,1,0,0:0:0:0:
+210,158,21114,1,0,0:0:0:0:
+256,195,21447,5,0,0:0:0:0:
+80,195,23447,1,0,0:0:0:0:
+246,289,24781,1,0,0:0:0:0:
+399,184,26114,1,0,0:0:0:0:
+107,108,27447,1,0,0:0:0:0:

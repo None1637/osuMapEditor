@@ -1,0 +1,42 @@
+{
+  "id": "sample-012",
+  "directoryName": "1822924 Unknown Artist - Yatsume Ana (33 mins)",
+  "beatmapFile": "Unknown Artist - Yatsume Ana (33 mins) (-Shiraishi-) [!].osu",
+  "metadata": {
+    "Title": "Yatsume Ana (33 mins)",
+    "TitleUnicode": "Yatsume Ana (33 mins)",
+    "Artist": "Unknown Artist",
+    "ArtistUnicode": "Unknown Artist",
+    "Creator": "-Shiraishi-",
+    "Version": "<!>",
+    "Source": "",
+    "Tags": "crewk chordjack ヤツメ穴",
+    "BeatmapID": "3740592",
+    "BeatmapSetID": "1822924",
+    "Mode": "3"
+  },
+  "audioDurationMs": 1994280,
+  "redLines": [
+    {
+      "time": 212,
+      "beatLength": 461.538461538462,
+      "bpm": 129.99999999999986,
+      "durationMs": 1994068
+    }
+  ],
+  "referenceBpm": 129.99999999999986,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 1994068,
+  "status": "ok",
+  "prediction": {
+    "bpm": 130,
+    "offsetMs": 699,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 1994,
+    "rawBpm": 260,
+    "rawSegmentCount": 38
+  },
+  "evaluationMs": 20510
+}

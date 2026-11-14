@@ -1,0 +1,52 @@
+{
+  "id": "sample-050",
+  "directoryName": "1787128 Chiro, Kotono, Hiyorin - My Dream Kingdom!",
+  "beatmapFile": "Chiro, Kotono, Hiyorin - My Dream Kingdom! (Snow Note) [Snother].osu",
+  "referenceBpm": 120,
+  "predictedBpm": 239.9,
+  "frozenBpm": 239.9,
+  "deterministicEvidence": true,
+  "evidence": [
+    {
+      "startMs": 60906,
+      "endMs": 67901,
+      "bpm": 60.093,
+      "points": 4,
+      "maxSupport": 0.13083329006555236,
+      "index": 0,
+      "ratioToPredictedMain": 0.25049187161317216,
+      "ratioToAnnotatedMain": 0.5007750000000001,
+      "boundary": "interior",
+      "localBpmMin": 60.093,
+      "localBpmMax": 60.093,
+      "medianSupport": 0.13083329006555236,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 25.010421008753646,
+          "first": 0.011468261094519878,
+          "second": 0.061923480957372476,
+          "combined": 0.028118483649261238
+        },
+        "annotatedMain": {
+          "lag": 50,
+          "first": 0.06154761773001736,
+          "second": -0.01630045520267781,
+          "combined": 0.03585775366222795
+        },
+        "evidenceBpm": {
+          "lag": 99.8452398781888,
+          "first": -0.018449030678444403,
+          "second": null,
+          "combined": -0.018449030678444403
+        }
+      },
+      "objectCount": 28,
+      "objectGrid": {
+        "predictedMainHalf": 0.75,
+        "annotatedMainHalf": 0.6785714285714286,
+        "evidenceHalf": 0.42857142857142855
+      }
+    }
+  ],
+  "analysisMs": 1667
+}

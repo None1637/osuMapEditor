@@ -1,0 +1,42 @@
+{
+  "id": "sample-020",
+  "directoryName": "2247744 Carpenter Brut - Division Ruine",
+  "beatmapFile": "Carpenter Brut - Division Ruine (Tempest_WH) [Insane 1.25x (156bpm) OD8].osu",
+  "metadata": {
+    "Title": "Division Ruine",
+    "TitleUnicode": "Division Ruine",
+    "Artist": "Carpenter Brut",
+    "ArtistUnicode": "Carpenter Brut",
+    "Creator": "Tempest_WH",
+    "Version": "Insane 1.25x (156bpm) OD8",
+    "Source": "Trilogy",
+    "Tags": "SynthWave osutrainer",
+    "BeatmapID": "4779304",
+    "BeatmapSetID": "2247744",
+    "Mode": "3"
+  },
+  "audioDurationMs": 172052.97052154192,
+  "redLines": [
+    {
+      "time": -8,
+      "beatLength": 383.969282457403,
+      "bpm": 156.26250000000016,
+      "durationMs": 172052.97052154192
+    }
+  ],
+  "referenceBpm": 156.26250000000016,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 172052.97052154192,
+  "status": "ok",
+  "prediction": {
+    "bpm": 156.25,
+    "offsetMs": 412,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 167,
+    "rawBpm": 312.5,
+    "rawSegmentCount": 99
+  },
+  "evaluationMs": 1940
+}

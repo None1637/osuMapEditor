@@ -1,0 +1,42 @@
+{
+  "id": "sample-042",
+  "directoryName": "192588 Mwyaaah - HEYYEYAAEYAAAEYAEYAA",
+  "beatmapFile": "Mwyaaah - HEYYEYAAEYAAAEYAEYAA (blazziken) [Insane].osu",
+  "metadata": {
+    "Title": "HEYYEYAAEYAAAEYAEYAA",
+    "TitleUnicode": "HEYYEYAAEYAAAEYAEYAA",
+    "Artist": "Mwyaaah",
+    "ArtistUnicode": "Mwyaaah",
+    "Creator": "blazziken",
+    "Version": "Insane",
+    "Source": "Blaziken (DUMP FILE!)",
+    "Tags": "Stepmania",
+    "BeatmapID": "457942",
+    "BeatmapSetID": "192588",
+    "Mode": "3"
+  },
+  "audioDurationMs": 124891.42857142858,
+  "redLines": [
+    {
+      "time": 0,
+      "beatLength": 428.571,
+      "bpm": 140.00014000014,
+      "durationMs": 124891.42857142858
+    }
+  ],
+  "referenceBpm": 140.00014000014,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 124891.42857142858,
+  "status": "ok",
+  "prediction": {
+    "bpm": 140,
+    "offsetMs": 260,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 122,
+    "rawBpm": 280,
+    "rawSegmentCount": 24
+  },
+  "evaluationMs": 1135
+}

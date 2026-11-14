@@ -1,0 +1,42 @@
+{
+  "id": "sample-005",
+  "directoryName": "1193063 BAND-MAID - RINNE",
+  "beatmapFile": "BAND-MAID - RINNE (ShirohaMyMommy) [INSANE].osu",
+  "metadata": {
+    "Title": "RINNE",
+    "TitleUnicode": "輪廻",
+    "Artist": "BAND-MAID",
+    "ArtistUnicode": "BAND-MAID",
+    "Creator": "ShirohaMyMommy",
+    "Version": "INSANE",
+    "Source": "",
+    "Tags": "mirash delis japanese rock",
+    "BeatmapID": "2485990",
+    "BeatmapSetID": "1193063",
+    "Mode": "0"
+  },
+  "audioDurationMs": 208543.9455782313,
+  "redLines": [
+    {
+      "time": 1242,
+      "beatLength": 315.789473684211,
+      "bpm": 189.99999999999974,
+      "durationMs": 207301.9455782313
+    }
+  ],
+  "referenceBpm": 189.99999999999974,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 207301.9455782313,
+  "status": "ok",
+  "prediction": {
+    "bpm": 190,
+    "offsetMs": 319,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 201,
+    "rawBpm": 190,
+    "rawSegmentCount": 32
+  },
+  "evaluationMs": 1975
+}

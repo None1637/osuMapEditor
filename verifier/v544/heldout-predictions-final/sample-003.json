@@ -1,0 +1,42 @@
+{
+  "id": "sample-003",
+  "directoryName": "859575 Ayase Rie - Hijitsuzaikei Joshitachi wa Dou Surya Ii Desu ka",
+  "beatmapFile": "Ayase Rie - Hijitsuzaikei Joshitachi wa Dou Surya Ii Desu ka (Left) [_Epreus' Normal].osu",
+  "metadata": {
+    "Title": "Hijitsuzaikei Joshitachi wa Dou Surya Ii Desu ka?",
+    "TitleUnicode": "非実在系女子達はどうすりゃいいですか？",
+    "Artist": "Ayase Rie",
+    "ArtistUnicode": "綾瀬理恵",
+    "Creator": "Left",
+    "Version": "_Epreus' Normal",
+    "Source": "抜きゲーみたいな島に住んでる貧乳（わたし）はどうすりゃいいですか？",
+    "Tags": "抜きゲーみたいな島に住んでる貧乳はどうすりゃいいですか？ 金閉開羅巧夢 Is the Island Utopia or Dystopia? Nukitashi Qruppo Eroge OP1 Visual Novel _Epreus Djulus Mitsuna- Testo Garden",
+    "BeatmapID": "1815245",
+    "BeatmapSetID": "859575",
+    "Mode": "0"
+  },
+  "audioDurationMs": 81580.40816326531,
+  "redLines": [
+    {
+      "time": 629,
+      "beatLength": 379.746835443038,
+      "bpm": 158,
+      "durationMs": 80951.40816326531
+    }
+  ],
+  "referenceBpm": 158,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 80951.40816326531,
+  "status": "ok",
+  "prediction": {
+    "bpm": 158,
+    "offsetMs": 279,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 78,
+    "rawBpm": 316,
+    "rawSegmentCount": 24
+  },
+  "evaluationMs": 671
+}

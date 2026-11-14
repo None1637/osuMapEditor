@@ -1,0 +1,82 @@
+{
+  "id": "sample-053",
+  "directoryName": "25671 NieN - Leave me Alone",
+  "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\25671 NieN - Leave me Alone",
+  "status": "ok",
+  "referenceBpm": 236.00000000000023,
+  "referenceVariable": false,
+  "predictedBpm": 236,
+  "predictedVariable": false,
+  "variableLines": [],
+  "trueVariableMs": 0,
+  "flaggedWindowCount": 29,
+  "flaggedWindowsOnVariable": 0,
+  "rawCandidateCount": 2,
+  "rawCandidatesOnVariable": 0,
+  "finalEvidenceCount": 0,
+  "finalEvidenceOnVariable": 0,
+  "candidates": [
+    {
+      "startMs": 15975,
+      "endMs": 21972,
+      "bpm": 67.555,
+      "points": 3,
+      "maxSupport": 0.2893084887700161,
+      "localGridCoverage": 0.07017543859649122,
+      "rejection": "weak_short",
+      "independentMainScore": 0.30861028340175034,
+      "independentLocalScore": 0.26167015321223436,
+      "variableOverlapMs": 0,
+      "overlapsVariable": false,
+      "tripletVotes": [
+        {
+          "timeMs": 17975.147392290248,
+          "bpm": 67.555,
+          "localGridCoverage": 0.07352941176470588,
+          "tripletGridCoverage": 0.7058823529411765,
+          "tripletGridHalfCoverage": 0.4852941176470588,
+          "tripletGridDoubleCoverage": 0.6617647058823529
+        },
+        {
+          "timeMs": 18973.60544217687,
+          "bpm": 67.555,
+          "localGridCoverage": 0.06578947368421052,
+          "tripletGridCoverage": 0.6842105263157895,
+          "tripletGridHalfCoverage": 0.4473684210526316,
+          "tripletGridDoubleCoverage": 0.618421052631579
+        }
+      ]
+    },
+    {
+      "startMs": 27957,
+      "endMs": 34952,
+      "bpm": 67.555,
+      "points": 4,
+      "maxSupport": 0.28766301682926787,
+      "localGridCoverage": 0.06593406593406594,
+      "rejection": "insufficient_margin",
+      "independentMainScore": 0.4024236037420663,
+      "independentLocalScore": 0.14648513651689699,
+      "variableOverlapMs": 0,
+      "overlapsVariable": false,
+      "tripletVotes": [
+        {
+          "timeMs": 30955.102040816328,
+          "bpm": 67.335,
+          "localGridCoverage": 0.06172839506172839,
+          "tripletGridCoverage": 0.6790123456790124,
+          "tripletGridHalfCoverage": 0.49382716049382713,
+          "tripletGridDoubleCoverage": 0.6419753086419753
+        },
+        {
+          "timeMs": 31953.560090702947,
+          "bpm": 67.555,
+          "localGridCoverage": 0.06896551724137931,
+          "tripletGridCoverage": 0.7011494252873564,
+          "tripletGridHalfCoverage": 0.47126436781609193,
+          "tripletGridDoubleCoverage": 0.6206896551724138
+        }
+      ]
+    }
+  ]
+}

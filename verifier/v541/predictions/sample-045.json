@@ -1,0 +1,50 @@
+{
+  "id": "sample-045",
+  "directoryName": "1128596 Silentroom - NULCTRL EX",
+  "beatmapFile": "Silentroom - NULCTRL EX (AHHHHHHHHHHHHHH) [Hard].osu",
+  "metadata": {
+    "Title": "NULCTRL EX",
+    "TitleUnicode": "NULCTRL EX",
+    "Artist": "Silentroom",
+    "ArtistUnicode": "Silentroom",
+    "Creator": "AHHHHHHHHHHHHHH",
+    "Version": "Hard",
+    "Source": "G2R2018 Climax",
+    "Tags": "SLRM-0001 sv ravon musync musynx featured artist fa Groundbreaking compilation album VI Yoru FRENZ2018 null control nullctrl ctrl extended go back 2 to your roots bms rainbow frontier maimai dx+ electronic edm dance music instrumental WING plain jane swissbeatbox seville film studio sfs motion",
+    "BeatmapID": "2422800",
+    "BeatmapSetID": "1128596",
+    "Mode": "3"
+  },
+  "audioDurationMs": 247497.77777777778,
+  "redLines": [
+    {
+      "time": 230,
+      "beatLength": 600,
+      "bpm": 100,
+      "durationMs": 247267.77777777778
+    }
+  ],
+  "referenceBpm": 100,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 247267.77777777778,
+  "status": "ok",
+  "prediction": {
+    "bpm": 200,
+    "offsetMs": 566,
+    "variable": true,
+    "evidence": [
+      {
+        "startMs": 35944,
+        "endMs": 42940,
+        "bpm": 67.555,
+        "points": 4,
+        "maxSupport": 0.31910998920403105
+      }
+    ],
+    "localPointCount": 241,
+    "rawBpm": 200,
+    "rawSegmentCount": 92
+  },
+  "evaluationMs": 2232
+}

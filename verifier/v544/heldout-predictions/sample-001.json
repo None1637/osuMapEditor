@@ -1,0 +1,163 @@
+{
+  "id": "sample-001",
+  "directoryName": "292644 ZUN remixed by LeaF - Resurrection Spell",
+  "beatmapFile": "ZUN remixed by LeaF - Resurrection Spell (Muya) [Hard].osu",
+  "metadata": {
+    "Title": "Resurrection Spell",
+    "TitleUnicode": "Resurrection Spell",
+    "Artist": "ZUN remixed by LeaF",
+    "ArtistUnicode": "ZUN remixed by LeaF",
+    "Creator": "Muya",
+    "Version": "Hard",
+    "Source": "BMS",
+    "Tags": "東方Project Touhou Project 東方永夜抄 ～ Imperishable Night. TRANCE SPEED 東方音弾遊戯4 ondanyugi4 ondanyuugi4 The 4th Toho Only BMS Festival!! 月まで届け、不死の煙 Tsuki Made Todoke, Fushi no Kemuri Reach for the Moon, Immortal Smoke 藤原妹紅 Fujiwara no Mokou",
+    "BeatmapID": "675223",
+    "BeatmapSetID": "292644",
+    "Mode": "0"
+  },
+  "audioDurationMs": 148323.26530612243,
+  "redLines": [
+    {
+      "time": 64,
+      "beatLength": 666.666666666667,
+      "bpm": 89.99999999999996,
+      "durationMs": 13333
+    },
+    {
+      "time": 13397,
+      "beatLength": 600,
+      "bpm": 100,
+      "durationMs": 2400
+    },
+    {
+      "time": 15797,
+      "beatLength": 576.923076923077,
+      "bpm": 103.99999999999999,
+      "durationMs": 2307
+    },
+    {
+      "time": 18104,
+      "beatLength": 555.555555555556,
+      "bpm": 107.99999999999991,
+      "durationMs": 2222
+    },
+    {
+      "time": 20326,
+      "beatLength": 535.714285714286,
+      "bpm": 111.99999999999994,
+      "durationMs": 1071
+    },
+    {
+      "time": 21397,
+      "beatLength": 333.333333333333,
+      "bpm": 180.0000000000002,
+      "durationMs": 1999
+    },
+    {
+      "time": 23396,
+      "beatLength": 333.333333333333,
+      "bpm": 180.0000000000002,
+      "durationMs": 2665
+    },
+    {
+      "time": 26061,
+      "beatLength": 333.333333333333,
+      "bpm": 180.0000000000002,
+      "durationMs": 86666
+    },
+    {
+      "time": 112727,
+      "beatLength": 461.538461538462,
+      "bpm": 129.99999999999986,
+      "durationMs": 9232
+    },
+    {
+      "time": 121959,
+      "beatLength": 428.571428571429,
+      "bpm": 139.99999999999986,
+      "durationMs": 1714
+    },
+    {
+      "time": 123673,
+      "beatLength": 400,
+      "bpm": 150,
+      "durationMs": 1600
+    },
+    {
+      "time": 125273,
+      "beatLength": 375,
+      "bpm": 160,
+      "durationMs": 1500
+    },
+    {
+      "time": 126773,
+      "beatLength": 352.941176470588,
+      "bpm": 170.0000000000001,
+      "durationMs": 1411
+    },
+    {
+      "time": 128184,
+      "beatLength": 333.333333333333,
+      "bpm": 180.0000000000002,
+      "durationMs": 1333
+    },
+    {
+      "time": 129517,
+      "beatLength": 315.789473684211,
+      "bpm": 189.99999999999974,
+      "durationMs": 1263
+    },
+    {
+      "time": 130780,
+      "beatLength": 300,
+      "bpm": 200,
+      "durationMs": 6000
+    },
+    {
+      "time": 136780,
+      "beatLength": 600,
+      "bpm": 100,
+      "durationMs": 11543.265306122426
+    }
+  ],
+  "referenceBpm": 180.0000000000002,
+  "referenceVariable": true,
+  "referenceRedLineCount": 17,
+  "referenceCoverageMs": 92663,
+  "status": "ok",
+  "prediction": {
+    "bpm": 180,
+    "offsetMs": 761,
+    "variable": true,
+    "evidence": [
+      {
+        "startMs": 14977,
+        "endMs": 21972,
+        "bpm": 107.666,
+        "points": 4,
+        "maxSupport": 0.5468834571176219,
+        "localGridCoverage": 0.09411764705882353,
+        "tripletLike": false,
+        "independentMainScore": -0.03497278626603666,
+        "independentMainBpm": 180,
+        "independentLocalScore": 0.33040487461059526
+      },
+      {
+        "startMs": 113824,
+        "endMs": 126810,
+        "bpm": 129.523,
+        "points": 10,
+        "maxSupport": 0.1917719922380014,
+        "localGridCoverage": 0.0967741935483871,
+        "tripletLike": false,
+        "independentMainScore": -0.048447221283063446,
+        "independentMainBpm": 180,
+        "independentLocalScore": 0.35548266697961717
+      }
+    ],
+    "localPointCount": 138,
+    "rawBpm": 360,
+    "rawSegmentCount": 69
+  },
+  "evaluationMs": 1472
+}

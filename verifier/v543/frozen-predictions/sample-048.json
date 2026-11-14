@@ -1,0 +1,42 @@
+{
+  "id": "sample-048",
+  "directoryName": "226133 Junk - Yellow Smile(bms edit)",
+  "beatmapFile": "Junk - Yellow Smile(bms edit) (rui) [Beginner].osu",
+  "metadata": {
+    "Title": "Yellow Smile(bms edit)",
+    "TitleUnicode": "Yellow Smile(bms edit)",
+    "Artist": "Junk",
+    "ArtistUnicode": "Junk",
+    "Creator": "rui",
+    "Version": "Beginner",
+    "Source": "BMS",
+    "Tags": "G2R2014 wring リア充とは何だったのか Trance Step",
+    "BeatmapID": "543787",
+    "BeatmapSetID": "226133",
+    "Mode": "0"
+  },
+  "audioDurationMs": 120111.02040816327,
+  "redLines": [
+    {
+      "time": 64,
+      "beatLength": 344.827586206897,
+      "bpm": 173.99999999999977,
+      "durationMs": 120047.02040816327
+    }
+  ],
+  "referenceBpm": 173.99999999999977,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 120047.02040816327,
+  "status": "ok",
+  "prediction": {
+    "bpm": 174,
+    "offsetMs": 433,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 114,
+    "rawBpm": 348,
+    "rawSegmentCount": 24
+  },
+  "evaluationMs": 1158
+}

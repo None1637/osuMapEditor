@@ -1,0 +1,59 @@
+osu file format v14
+
+[General]
+AudioFilename: .mp3
+AudioLeadIn: 0
+PreviewTime: 0
+Countdown: 0
+SampleSet: Soft
+StackLeniency: 0.7
+Mode: 3
+LetterboxInBreaks: 0
+SpecialStyle: 0
+WidescreenStoryboard: 1
+
+[Editor]
+DistanceSpacing: 0.8
+BeatDivisor: 4
+GridSize: 8
+TimelineZoom: 3.599998
+
+[Metadata]
+Title:Jumpstream Of Fighters Vol. 2A
+TitleUnicode:Jumpstream Of Fighters Vol. 2A
+Artist:Various Artists
+ArtistUnicode:Various Artists
+Creator:Leo137
+Version:(Marathon) - Delete Upon Download
+Source:
+Tags:jsof happy hardcore jcore j-core japanese core stepmania pack Klaius porkypink Blaziken sunnyglasses Akuma123 Alamanar Another Infinity Ryu☆ Ryu* 405nm (Hommarju Remix) Srav3R Kamuy (DJ Noriken Remix) HARDCORE TANO*C かめりあ＆ななひら Camellia feat. Nanahira Rainbow (P*Light Remix) Zennihon Suppoko Nyaago Shineitai Bon de Nyaago 全日本スッポコニャーゴ親衛隊 ボン de ニャーゴ siromaru 黒魔 Chroma Sanaas Eiden JENNY ROM SENORITA (Speedy Mix) DDR señorita smiley​*​smiley lapix vs. DJ Genki Future Maker Kobaryo Night of Core 嗚呼 絢爛の泡沫が如く (Epsilon Remix) ういにゃす・おっちょこバニー Aa Kenran no Yume ga Gotoku Uinyasu, Occhoko Bunny Epsilon114 BlackY BLASTBURN DJKurara feat. Megurine Luka, GUMI グミ 巡音ルカ Synthesizer EasyPop 青龍 Seiryu Critical Crystal ああ...翡翠茶漬け... AA... Hisui Chazuke... Stardust Prism starside aaaa ああああ 翡乃イスカ Umeboshi Chazuke Hino Isuka 翡乃イスカ 自強號 痛男次郎 itaojirou Tze-Chiang ああああ ☆をかけるアドベンチャー ～ we are forever friends! ～ AAAA Hoshi o Kakeru Adventure ~ we are forever friends! ~ goreshit toromi hearts 2 Dreamin' attraction!!
+BeatmapID:1159070
+BeatmapSetID:547197
+
+[Difficulty]
+HPDrainRate:8
+CircleSize:4
+OverallDifficulty:8
+ApproachRate:5
+SliderMultiplier:1.4
+SliderTickRate:1
+
+[Events]
+//Background and Video events
+0,0,"jsof2 group.jpg",0,0
+//Break Periods
+2,200,1355000
+//Storyboard Layer 0 (Background)
+//Storyboard Layer 1 (Fail)
+//Storyboard Layer 2 (Pass)
+//Storyboard Layer 3 (Foreground)
+//Storyboard Layer 4 (Overlay)
+//Storyboard Sound Samples
+
+[TimingPoints]
+0,300,4,2,0,5,1,0
+
+
+[HitObjects]
+64,192,0,5,0,0:0:0:0:
+448,192,1360000,5,0,0:0:0:0:

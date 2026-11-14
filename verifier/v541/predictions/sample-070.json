@@ -1,0 +1,71 @@
+{
+  "id": "sample-070",
+  "directoryName": "1558408 Mori Calliope - Excuse My Rudeness, But Could You Please RIP (Nhato Remix)",
+  "beatmapFile": "Mori Calliope - Excuse My Rudeness, But Could You Please RIP (Nhato Remix) (AutotelicBrown) [Easy].osu",
+  "metadata": {
+    "Title": "Excuse My Rudeness, But Could You Please RIP? (Nhato Remix)",
+    "TitleUnicode": "失礼しますが、RIP♡ (Nhato Remix)",
+    "Artist": "Mori Calliope",
+    "ArtistUnicode": "Mori Calliope",
+    "Creator": "AutotelicBrown",
+    "Version": "Easy",
+    "Source": "",
+    "Tags": "福室達也 Tatsuya Fukumuro 森 カリオペ callioP ホロライブプロダクション Hololive Production vtuber virtual youtuber Holomyth deadbeatsremix RIPRemixEvent RIPRemixEntry カバー株式会社 COVER Corporation English Japanese Bass House Rap Electronic Jazz kokorobeats K's Coro 東山エイト eight tohyama",
+    "BeatmapID": "3230594",
+    "BeatmapSetID": "1558408",
+    "Mode": "3"
+  },
+  "audioDurationMs": 198013.51473922902,
+  "redLines": [
+    {
+      "time": 222,
+      "beatLength": 461.538462,
+      "bpm": 129.99999987,
+      "durationMs": 197791.51473922902
+    }
+  ],
+  "referenceBpm": 129.99999987,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 197791.51473922902,
+  "status": "ok",
+  "prediction": {
+    "bpm": 130,
+    "offsetMs": 243,
+    "variable": true,
+    "evidence": [
+      {
+        "startMs": 998,
+        "endMs": 7994,
+        "bpm": 74.359,
+        "points": 4,
+        "maxSupport": 0.2435762943722918
+      },
+      {
+        "startMs": 16974,
+        "endMs": 22971,
+        "bpm": 74.359,
+        "points": 3,
+        "maxSupport": 0.15900513965065663
+      },
+      {
+        "startMs": 87864,
+        "endMs": 93861,
+        "bpm": 74.093,
+        "points": 3,
+        "maxSupport": 0.15341603845300236
+      },
+      {
+        "startMs": 103839,
+        "endMs": 109836,
+        "bpm": 61.159,
+        "points": 3,
+        "maxSupport": 0.23814371741327228
+      }
+    ],
+    "localPointCount": 192,
+    "rawBpm": 260,
+    "rawSegmentCount": 65
+  },
+  "evaluationMs": 1775
+}

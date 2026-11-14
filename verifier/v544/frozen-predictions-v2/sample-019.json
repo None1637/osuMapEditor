@@ -1,0 +1,42 @@
+{
+  "id": "sample-019",
+  "directoryName": "83572 ani feat moco - Light up My Love",
+  "beatmapFile": "ani feat. moco - Light up My Love (popner) [Hyper].osu",
+  "metadata": {
+    "Title": "Light up My Love",
+    "TitleUnicode": "Light up My Love",
+    "Artist": "ani feat. moco",
+    "ArtistUnicode": "ani feat. moco",
+    "Creator": "popner",
+    "Version": "Hyper",
+    "Source": "Cytus",
+    "Tags": "Flower onoken -kevincela-",
+    "BeatmapID": "230692",
+    "BeatmapSetID": "83572",
+    "Mode": "0"
+  },
+  "audioDurationMs": 121155.91836734694,
+  "redLines": [
+    {
+      "time": 78,
+      "beatLength": 350.877192982456,
+      "bpm": 171.00000000000006,
+      "durationMs": 121077.91836734694
+    }
+  ],
+  "referenceBpm": 171.00000000000006,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 121077.91836734694,
+  "status": "ok",
+  "prediction": {
+    "bpm": 171,
+    "offsetMs": 458,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 118,
+    "rawBpm": 342,
+    "rawSegmentCount": 21
+  },
+  "evaluationMs": 1204
+}

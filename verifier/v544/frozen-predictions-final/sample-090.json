@@ -1,0 +1,42 @@
+{
+  "id": "sample-090",
+  "directoryName": "1930076 Lime - BEYOND",
+  "beatmapFile": "Lime - BEYOND (FLeVI) [LN Aurora Australis].osu",
+  "metadata": {
+    "Title": "BEYOND",
+    "TitleUnicode": "BEYOND",
+    "Artist": "Lime",
+    "ArtistUnicode": "Lime",
+    "Creator": "FLeVI",
+    "Version": "LN Aurora Australis",
+    "Source": "THE BMS OF FIGHTERS XVI -NEO DYSTOPIA-",
+    "Tags": "Electronic Instrumental FUSION POP kankitsu kanki2 BOFXVI video game vgm piano house",
+    "BeatmapID": "3988022",
+    "BeatmapSetID": "1930076",
+    "Mode": "3"
+  },
+  "audioDurationMs": 135652.24489795917,
+  "redLines": [
+    {
+      "time": 1715,
+      "beatLength": 217.391304347826,
+      "bpm": 276.0000000000001,
+      "durationMs": 133937.24489795917
+    }
+  ],
+  "referenceBpm": 276.0000000000001,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 133937.24489795917,
+  "status": "ok",
+  "prediction": {
+    "bpm": 138,
+    "offsetMs": 661,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 129,
+    "rawBpm": 276,
+    "rawSegmentCount": 14
+  },
+  "evaluationMs": 1127
+}

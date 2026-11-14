@@ -1,0 +1,38 @@
+{
+  "id": "sample-093",
+  "directoryName": "29616 NAOKI feat Becky Lucinda - My Only Shining Star (Remix)",
+  "beatmapFile": "NAOKI feat. Becky Lucinda - My Only Shining Star (Remix) (Natteke) [Hyper].osu",
+  "metadata": {
+    "Title": "My Only Shining Star (Remix)",
+    "Artist": "NAOKI feat. Becky Lucinda",
+    "Creator": "Natteke",
+    "Version": "Hyper",
+    "Source": "Beatmania IIDX",
+    "Tags": "alace garven lepidopodus Danceforze",
+    "Mode": "0"
+  },
+  "audioDurationMs": 114468.57142857142,
+  "redLines": [
+    {
+      "time": 1849.14689562226,
+      "beatLength": 413.793103448276,
+      "bpm": 144.99999999999994,
+      "durationMs": 112619.42453294915
+    }
+  ],
+  "referenceBpm": 144.99999999999994,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 112619.42453294915,
+  "status": "ok",
+  "prediction": {
+    "bpm": 145,
+    "offsetMs": 834,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 111,
+    "rawBpm": 290,
+    "rawSegmentCount": 22
+  },
+  "evaluationMs": 1137
+}

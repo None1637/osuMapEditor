@@ -1,0 +1,52 @@
+{
+  "id": "sample-078",
+  "directoryName": "516824 Umeboshi Chazuke - Owari to Hajimari no Oto",
+  "beatmapFile": "Umeboshi Chazuke - Owari to Hajimari no Oto (Interlude-) [leqek's Hard].osu",
+  "referenceBpm": 201.0000000000001,
+  "predictedBpm": 201.05,
+  "frozenBpm": 201.05,
+  "deterministicEvidence": true,
+  "evidence": [
+    {
+      "startMs": 97849,
+      "endMs": 103846,
+      "bpm": 67.116,
+      "points": 3,
+      "maxSupport": 0.13913359374394133,
+      "index": 0,
+      "ratioToPredictedMain": 0.3338274061178811,
+      "ratioToAnnotatedMain": 0.33391044776119383,
+      "boundary": "interior",
+      "localBpmMin": 67.116,
+      "localBpmMax": 67.16,
+      "medianSupport": 0.13913359374394133,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 29.843322556577967,
+          "first": -0.00797359403367106,
+          "second": 0.08788585958037023,
+          "combined": 0.02366002565896257
+        },
+        "annotatedMain": {
+          "lag": 29.8507462686567,
+          "first": -0.007917766190933154,
+          "second": 0.08833321059180835,
+          "combined": 0.023845056147371542
+        },
+        "evidenceBpm": {
+          "lag": 89.39746111210442,
+          "first": -0.009909685313362355,
+          "second": null,
+          "combined": -0.009909685313362355
+        }
+      },
+      "objectCount": 30,
+      "objectGrid": {
+        "predictedMainHalf": 0.8666666666666667,
+        "annotatedMainHalf": 0.8666666666666667,
+        "evidenceHalf": 0.3
+      }
+    }
+  ],
+  "analysisMs": 1248
+}

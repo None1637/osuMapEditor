@@ -1,0 +1,60 @@
+{
+  "id": "sample-036",
+  "directoryName": "1217337 Kamiyama Yoh - bunny",
+  "beatmapFile": "Kamiyama Yoh - bunny (Keiga) [Insane].osu",
+  "metadata": {
+    "Title": "bunny",
+    "TitleUnicode": "bunny",
+    "Artist": "Kamiyama Yoh",
+    "ArtistUnicode": "神山羊",
+    "Creator": "Keiga",
+    "Version": "Insane",
+    "Source": "",
+    "Tags": "-Ziel- FAMoss Japanese J-pop Jpop Pop ゆめみるこども Yumemiru kodomo 2nd mini Album uki3/ewe",
+    "BeatmapID": "2562058",
+    "BeatmapSetID": "1217337",
+    "Mode": "3"
+  },
+  "audioDurationMs": 214491.42857142858,
+  "redLines": [
+    {
+      "time": 585,
+      "beatLength": 468.75,
+      "bpm": 128,
+      "durationMs": 157031
+    },
+    {
+      "time": 157616,
+      "beatLength": 441.176470588235,
+      "bpm": 136.00000000000009,
+      "durationMs": 441
+    },
+    {
+      "time": 158057,
+      "beatLength": 468.75,
+      "bpm": 128,
+      "durationMs": 6590
+    },
+    {
+      "time": 164647,
+      "beatLength": 468.75,
+      "bpm": 128,
+      "durationMs": 49844.42857142858
+    }
+  ],
+  "referenceBpm": 128,
+  "referenceVariable": true,
+  "referenceRedLineCount": 4,
+  "referenceCoverageMs": 213465.42857142858,
+  "status": "ok",
+  "prediction": {
+    "bpm": 128,
+    "offsetMs": 604,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 211,
+    "rawBpm": 256,
+    "rawSegmentCount": 75
+  },
+  "evaluationMs": 2020
+}

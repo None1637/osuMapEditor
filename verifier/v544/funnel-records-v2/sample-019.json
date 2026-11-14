@@ -1,0 +1,19 @@
+{
+  "id": "sample-019",
+  "directoryName": "83572 ani feat moco - Light up My Love",
+  "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\83572 ani feat moco - Light up My Love",
+  "status": "ok",
+  "referenceBpm": 171.00000000000006,
+  "referenceVariable": false,
+  "predictedBpm": 171,
+  "predictedVariable": false,
+  "variableLines": [],
+  "trueVariableMs": 0,
+  "flaggedWindowCount": 19,
+  "flaggedWindowsOnVariable": 0,
+  "rawCandidateCount": 0,
+  "rawCandidatesOnVariable": 0,
+  "finalEvidenceCount": 0,
+  "finalEvidenceOnVariable": 0,
+  "candidates": []
+}

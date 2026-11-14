@@ -1,0 +1,42 @@
+{
+  "id": "sample-060",
+  "directoryName": "130556 Jeff Williams - This Will Be the Day (feat Casey Lee Williams)",
+  "beatmapFile": "Jeff Williams - This Will Be the Day (feat. Casey Lee Williams) (arcwinolivirus) [4K Easy].osu",
+  "metadata": {
+    "Title": "This Will Be the Day (feat. Casey Lee Williams)",
+    "TitleUnicode": "This Will Be the Day (feat. Casey Lee Williams)",
+    "Artist": "Jeff Williams",
+    "ArtistUnicode": "Jeff Williams",
+    "Creator": "arcwinolivirus",
+    "Version": "4K Easy",
+    "Source": "RWBY",
+    "Tags": "opening roosterteeth -DanteMayCry-",
+    "BeatmapID": "360806",
+    "BeatmapSetID": "130556",
+    "Mode": "3"
+  },
+  "audioDurationMs": 69271.6553287982,
+  "redLines": [
+    {
+      "time": 244,
+      "beatLength": 315.789473684211,
+      "bpm": 189.99999999999974,
+      "durationMs": 69027.6553287982
+    }
+  ],
+  "referenceBpm": 189.99999999999974,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 69027.6553287982,
+  "status": "ok",
+  "prediction": {
+    "bpm": 190,
+    "offsetMs": 744,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 63,
+    "rawBpm": 380,
+    "rawSegmentCount": 28
+  },
+  "evaluationMs": 705
+}

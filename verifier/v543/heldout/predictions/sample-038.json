@@ -1,0 +1,53 @@
+{
+  "id": "sample-038",
+  "directoryName": "404447 Two Steps From Hell - Winterspell (Nightcore Mix)",
+  "beatmapFile": "Two Steps From Hell - Winterspell (Nightcore Mix) (Nayrus) [Winterwind].osu",
+  "metadata": {
+    "Title": "Winterspell (Nightcore Mix)",
+    "TitleUnicode": "Winterspell (Nightcore Mix)",
+    "Artist": "Two Steps From Hell",
+    "ArtistUnicode": "Two Steps From Hell",
+    "Creator": "Nayrus",
+    "Version": "Winterwind",
+    "Source": "",
+    "Tags": "",
+    "BeatmapID": "879376",
+    "BeatmapSetID": "404447",
+    "Mode": "0"
+  },
+  "audioDurationMs": 151693.06122448982,
+  "redLines": [
+    {
+      "time": 1395,
+      "beatLength": 374.298190892077,
+      "bpm": 160.30000000000015,
+      "durationMs": 150298.06122448982
+    }
+  ],
+  "referenceBpm": 160.30000000000015,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 150298.06122448982,
+  "status": "ok",
+  "prediction": {
+    "bpm": 120.2,
+    "offsetMs": 902,
+    "variable": true,
+    "evidence": [
+      {
+        "startMs": 998,
+        "endMs": 14983,
+        "bpm": 160.247,
+        "points": 11,
+        "maxSupport": 0.12777702661891424,
+        "localGridCoverage": 0.18571428571428572,
+        "independentMainScore": 0.2376519948467123,
+        "independentLocalScore": 0.5391843158884906
+      }
+    ],
+    "localPointCount": 148,
+    "rawBpm": 240.4,
+    "rawSegmentCount": 51
+  },
+  "evaluationMs": 1474
+}

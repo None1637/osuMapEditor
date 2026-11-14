@@ -71,6 +71,8 @@ export interface ElectronAPI {
   reportError(msg: string): void;
   /** v346: 上报当前界面语言 (主进程据此重建菜单标签; 启动一次 + 切换时) */
   menuLang(lang: string): void;
+  /** v526: 菜单布局覆盖 (路径 ID → 当前语言文本/visible/enabled) */
+  uiMenuOverrides(value: Record<string, { text?: string; visible?: boolean; enabled?: boolean }>): void;
   /** v493: GitHub Releases 更新检测 (主进程请求; update = null 表示已是最新) */
   checkUpdate(): Promise<ElectronUpdateResult>;
   /** v493: 系统浏览器打开 https 链接 (确认更新后打开 release 页) */
@@ -93,6 +95,7 @@ export interface ElectronMenuNode {
   checked?: boolean;
   accelerator?: string;
   id?: string; // 叶子项 (可操作)
+  uiId?: string; // v526: 永久布局 ID (菜单结构路径, 跨语言/重建稳定)
   submenu?: ElectronMenuNode[];
 }
 

@@ -1,0 +1,42 @@
+{
+  "id": "sample-072",
+  "directoryName": "945395 tokuP - SPiCa",
+  "beatmapFile": "tokuP - SPiCa (LLENN-) [Hard].osu",
+  "metadata": {
+    "Title": "SPiCa",
+    "TitleUnicode": "SPiCa",
+    "Artist": "tokuP",
+    "ArtistUnicode": "とくP",
+    "Creator": "LLENN-",
+    "Version": "Hard",
+    "Source": "",
+    "Tags": "Vocaloid Amiichii dudehacker novelty japanese pop Headphone-Tokyo へっどほんトーキョー Hatsune Miku 初音ミク Vocalolegend EXIT TUNES PRESENTS SUPER PRODUCERS BEAT ft. MK Remix MIKUNOPOLIS in LOS ANGELES \"Hajimemashite, Hatsune Miku desu\" Vocalohistory Hatsune Miku 5th Birthday Best ~memories~ Hatsune Miku -Project DIVA- extend Arcade F 2nd Future Tone",
+    "BeatmapID": "2252552",
+    "BeatmapSetID": "945395",
+    "Mode": "3"
+  },
+  "audioDurationMs": 217652.24489795917,
+  "redLines": [
+    {
+      "time": 3301,
+      "beatLength": 370.37037037037,
+      "bpm": 162.00000000000017,
+      "durationMs": 214351.24489795917
+    }
+  ],
+  "referenceBpm": 162.00000000000017,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 214351.24489795917,
+  "status": "ok",
+  "prediction": {
+    "bpm": 162,
+    "offsetMs": 730,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 209,
+    "rawBpm": 324,
+    "rawSegmentCount": 135
+  },
+  "evaluationMs": 2104
+}

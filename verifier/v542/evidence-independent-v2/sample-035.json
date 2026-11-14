@@ -1,0 +1,52 @@
+{
+  "id": "sample-035",
+  "directoryName": "1686033 HOYO-MiX - Termination of Desires",
+  "beatmapFile": "HOYO-MiX - Termination of Desires (Mipha-) [Insane].osu",
+  "referenceBpm": 143.9999998848,
+  "predictedBpm": 144,
+  "frozenBpm": 144,
+  "deterministicEvidence": true,
+  "evidence": [
+    {
+      "startMs": 43932,
+      "endMs": 49929,
+      "bpm": 64.198,
+      "points": 3,
+      "maxSupport": 0.25377981098697805,
+      "index": 0,
+      "ratioToPredictedMain": 0.4458194444444444,
+      "ratioToAnnotatedMain": 0.4458194448011,
+      "boundary": "interior",
+      "localBpmMin": 64,
+      "localBpmMax": 64.198,
+      "medianSupport": 0.25377981098697805,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 41.66666666666667,
+          "first": 0.09073897706792669,
+          "second": 0.31187786852857186,
+          "combined": 0.1637148112499396
+        },
+        "annotatedMain": {
+          "lag": 41.6666667,
+          "first": 0.09073897884544325,
+          "second": 0.3118778771786177,
+          "combined": 0.16371481529539084
+        },
+        "evidenceBpm": {
+          "lag": 93.46085547836381,
+          "first": -0.06806829178770718,
+          "second": null,
+          "combined": -0.06806829178770718
+        }
+      },
+      "objectCount": 55,
+      "objectGrid": {
+        "predictedMainHalf": 0.7272727272727273,
+        "annotatedMainHalf": 0.7272727272727273,
+        "evidenceHalf": 0.14545454545454545
+      }
+    }
+  ],
+  "analysisMs": 1379
+}

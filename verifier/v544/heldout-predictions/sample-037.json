@@ -1,0 +1,42 @@
+{
+  "id": "sample-037",
+  "directoryName": "1640503 Various Artists - deleted vibro maps minipack",
+  "beatmapFile": "Various Artists - deleted vibro maps minipack (arpia97) [Pocari Sweat].osu",
+  "metadata": {
+    "Title": "deleted vibro maps minipack",
+    "TitleUnicode": "",
+    "Artist": "Various Artists",
+    "ArtistUnicode": "Various Artists",
+    "Creator": "arpia97",
+    "Version": "Pocari Sweat",
+    "Source": "",
+    "Tags": "vibro, meme, jack",
+    "BeatmapID": "3348377",
+    "BeatmapSetID": "1640503",
+    "Mode": "3"
+  },
+  "audioDurationMs": 31425.30612244898,
+  "redLines": [
+    {
+      "time": -222,
+      "beatLength": 504.201680672269,
+      "bpm": 118.99999999999999,
+      "durationMs": 31425.30612244898
+    }
+  ],
+  "referenceBpm": 118.99999999999999,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 31425.30612244898,
+  "status": "ok",
+  "prediction": {
+    "bpm": 237.8,
+    "offsetMs": 559,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 25,
+    "rawBpm": 237.8,
+    "rawSegmentCount": 11
+  },
+  "evaluationMs": 266
+}

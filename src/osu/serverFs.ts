@@ -11,6 +11,35 @@ export interface ServerDirs {
   skinName: string | null;
 }
 
+// v575: exe 曲库索引批量通道 (一次 manifest + 有界批读, 避免逐文件 HTTP)
+export interface ServerFileManifestEntry { rel: string; size: number; lastModified: number }
+export interface ServerFileBatchEntry extends ServerFileManifestEntry { text: string }
+
+export async function fetchServerFileTree(): Promise<ServerFileManifestEntry[]> {
+  const res = await fetch('api/local-fs/tree?root=songs&rel=');
+  if (!res.ok) throw new Error(tNow('fs.dir_read_failed', 'Failed to read directory ({status}): {path}', { status: res.status, path: '/' }));
+  return (await res.json() as { files: ServerFileManifestEntry[] }).files;
+}
+
+export interface ServerFileTreePage {
+  files: ServerFileManifestEntry[];
+  total: number;
+  nextOffset: number | null;
+}
+
+// v576: 大曲库按顶层目录分页, 每页到达即可生成骨架, 不再整库等待
+export async function fetchServerFileTreePage(offset: number, limit = 256): Promise<ServerFileTreePage> {
+  const res = await fetch(`api/local-fs/tree-page?root=songs&offset=${offset}&limit=${limit}`);
+  if (!res.ok) throw new Error(tNow('fs.dir_read_failed', 'Failed to read directory ({status}): {path}', { status: res.status, path: `/${offset}` }));
+  return await res.json() as ServerFileTreePage;
+}
+
+export async function readServerFileBatch(files: string[]): Promise<ServerFileBatchEntry[]> {
+  const res = await fetch('api/local-fs/read-batch?root=songs', { method: 'POST', body: JSON.stringify({ files }) });
+  if (!res.ok) throw new Error(tNow('fs.read_failed', 'Read failed ({status}): {path}', { status: res.status, path: `${files.length} files` }));
+  return (await res.json() as { files: ServerFileBatchEntry[] }).files;
+}
+
 /** 读取服务器配置的曲库/皮肤目录; 未配置或端点不可用 (如纯静态部署) 返回 null */
 export async function fetchServerDirs(): Promise<ServerDirs | null> {
   try {

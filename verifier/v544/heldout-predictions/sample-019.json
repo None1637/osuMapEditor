@@ -1,0 +1,48 @@
+{
+  "id": "sample-019",
+  "directoryName": "Sokoninaru_-_Gou_Ni_Moyu",
+  "beatmapFile": "Sokoninaru - Gou Ni Moyu (ReflectGoku) [backup].osu",
+  "metadata": {
+    "Title": "Gou Ni Moyu",
+    "TitleUnicode": "Gou Ni Moyu",
+    "Artist": "Sokoninaru",
+    "ArtistUnicode": "Sokoninaru",
+    "Creator": "ReflectGoku",
+    "Version": "backup",
+    "Source": "",
+    "Tags": "",
+    "BeatmapID": "0",
+    "BeatmapSetID": "997470",
+    "Mode": "0"
+  },
+  "audioDurationMs": 240327.61904761902,
+  "redLines": [
+    {
+      "time": 430,
+      "beatLength": 400,
+      "bpm": 150,
+      "durationMs": 23200
+    },
+    {
+      "time": 23630,
+      "beatLength": 200,
+      "bpm": 300,
+      "durationMs": 216697.61904761902
+    }
+  ],
+  "referenceBpm": 300,
+  "referenceVariable": true,
+  "referenceRedLineCount": 2,
+  "referenceCoverageMs": 216697.61904761902,
+  "status": "ok",
+  "prediction": {
+    "bpm": 150.1,
+    "offsetMs": 280,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 232,
+    "rawBpm": 300.2,
+    "rawSegmentCount": 212
+  },
+  "evaluationMs": 2671
+}

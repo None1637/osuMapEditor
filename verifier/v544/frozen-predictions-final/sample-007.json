@@ -1,0 +1,50 @@
+{
+  "id": "sample-007",
+  "directoryName": "7158 Liverne - Necrofantasia",
+  "beatmapFile": "Liverne - Necrofantasia (lesjuh) [Lesjuh].osu",
+  "metadata": {
+    "Title": "Necrofantasia",
+    "Artist": "Liverne",
+    "Creator": "lesjuh",
+    "Version": "Lesjuh",
+    "Source": "",
+    "Tags": "Touhou Canon Demetori",
+    "Mode": "0"
+  },
+  "audioDurationMs": 338160.09070294787,
+  "redLines": [
+    {
+      "time": 200,
+      "beatLength": 333.333333333333,
+      "bpm": 180.0000000000002,
+      "durationMs": 235999
+    },
+    {
+      "time": 236199,
+      "beatLength": 2666.66666666667,
+      "bpm": 22.49999999999997,
+      "durationMs": 1666
+    },
+    {
+      "time": 237865,
+      "beatLength": 333.333333333333,
+      "bpm": 180.0000000000002,
+      "durationMs": 100295.09070294787
+    }
+  ],
+  "referenceBpm": 180.0000000000002,
+  "referenceVariable": true,
+  "referenceRedLineCount": 3,
+  "referenceCoverageMs": 336294.09070294787,
+  "status": "ok",
+  "prediction": {
+    "bpm": 180,
+    "offsetMs": 568,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 332,
+    "rawBpm": 360,
+    "rawSegmentCount": 258
+  },
+  "evaluationMs": 3229
+}

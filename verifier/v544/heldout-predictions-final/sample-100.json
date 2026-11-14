@@ -1,0 +1,42 @@
+{
+  "id": "sample-100",
+  "directoryName": "1998287 ZUN - The World Is Made in an Adorable Way",
+  "beatmapFile": "ZUN - The World Is Made in an Adorable Way (AFKL1919) [崀暁抺惗揑涋彈].osu",
+  "metadata": {
+    "Title": "The World Is Made in an Adorable Way",
+    "TitleUnicode": "世界は可愛く出来ている",
+    "Artist": "ZUN",
+    "ArtistUnicode": "ZUN",
+    "Creator": "AFKL1919",
+    "Version": "降伏畜生的巫女",
+    "Source": "東方獣王園　～ Unfinished Dream of All Living Ghost.",
+    "Tags": "東方project touhou project zun Reimu Hakurei th19 video game instrumental 東方獣王園　～ Unfinished Dream of All Living Ghost.",
+    "BeatmapID": "4265651",
+    "BeatmapSetID": "1998287",
+    "Mode": "0"
+  },
+  "audioDurationMs": 189637.18820861678,
+  "redLines": [
+    {
+      "time": 358,
+      "beatLength": 355.029585798817,
+      "bpm": 168.9999999999998,
+      "durationMs": 189279.18820861678
+    }
+  ],
+  "referenceBpm": 168.9999999999998,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 189279.18820861678,
+  "status": "ok",
+  "prediction": {
+    "bpm": 169,
+    "offsetMs": 386,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 186,
+    "rawBpm": 338,
+    "rawSegmentCount": 19
+  },
+  "evaluationMs": 1581
+}

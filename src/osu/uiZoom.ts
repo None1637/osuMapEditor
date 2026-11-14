@@ -53,6 +53,9 @@ if (typeof window !== 'undefined') {
   window.addEventListener('scroll', bump, true);
 }
 
+/** v527: 自定义布局改变元素位置/尺寸时主动失效, 不等 2s TTL */
+export function invalidateUiZoomRectCache(): void { rectEpoch++; }
+
 export function zoomRect(el: Element): LayoutRect {
   const now = performance.now();
   const hit = rectCache.get(el);

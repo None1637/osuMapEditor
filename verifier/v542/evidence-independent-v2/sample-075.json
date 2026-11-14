@@ -1,0 +1,52 @@
+{
+  "id": "sample-075",
+  "directoryName": "833927 Weird Al Yankovic - Hardware Store",
+  "beatmapFile": "Weird Al Yankovic - Hardware Store (Woey) [POG CS0].osu",
+  "referenceBpm": 126.32999999999987,
+  "predictedBpm": 126.35,
+  "frozenBpm": 126.35,
+  "deterministicEvidence": true,
+  "evidence": [
+    {
+      "startMs": 48924,
+      "endMs": 54921,
+      "bpm": 72.279,
+      "points": 3,
+      "maxSupport": 0.32856020348173176,
+      "index": 0,
+      "ratioToPredictedMain": 0.5720538187574199,
+      "ratioToAnnotatedMain": 0.572144383756828,
+      "boundary": "interior",
+      "localBpmMin": 71.777,
+      "localBpmMax": 72.279,
+      "medianSupport": 0.32856020348173176,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 47.48713889988129,
+          "first": 0.04801964472318585,
+          "second": 0.37539783199269405,
+          "combined": 0.15605444652212355
+        },
+        "annotatedMain": {
+          "lag": 47.494656851104295,
+          "first": 0.048457028135302276,
+          "second": 0.3736088762044731,
+          "combined": 0.15575713799812865
+        },
+        "evidenceBpm": {
+          "lag": 83.01166313867098,
+          "first": -0.006508253043986574,
+          "second": null,
+          "combined": -0.006508253043986575
+        }
+      },
+      "objectCount": 0,
+      "objectGrid": {
+        "predictedMainHalf": null,
+        "annotatedMainHalf": null,
+        "evidenceHalf": null
+      }
+    }
+  ],
+  "analysisMs": 2042
+}

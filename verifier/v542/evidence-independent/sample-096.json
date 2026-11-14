@@ -1,0 +1,92 @@
+{
+  "id": "sample-096",
+  "directoryName": "450885 Aimer - REI AM",
+  "beatmapFile": "Aimer - REI AM (spboxer3) [REI AM].osu",
+  "referenceBpm": 72.00000000000003,
+  "predictedBpm": 143.95,
+  "frozenBpm": 143.95,
+  "deterministicEvidence": true,
+  "evidence": [
+    {
+      "startMs": 30952,
+      "endMs": 36949,
+      "bpm": 64.398,
+      "points": 3,
+      "maxSupport": 0.364989972996829,
+      "index": 0,
+      "ratioToPredictedMain": 0.44736366794025706,
+      "ratioToAnnotatedMain": 0.8944166666666663,
+      "boundary": "interior",
+      "localBpmMin": 64.198,
+      "localBpmMax": 64.802,
+      "medianSupport": 0.3581057837271317,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 41.68113928447378,
+          "first": 0.1886787012862626,
+          "second": 0.18591519934262946,
+          "combined": 0.18776674564486368
+        },
+        "annotatedMain": {
+          "lag": 83.3333333333333,
+          "first": 0.17385661318547377,
+          "second": null,
+          "combined": 0.17385661318547377
+        },
+        "evidenceBpm": {
+          "lag": 93.17059536010436,
+          "first": -0.022485778758554863,
+          "second": null,
+          "combined": -0.022485778758554863
+        }
+      },
+      "objectCount": 18,
+      "objectGrid": {
+        "predictedMainHalf": 0.9444444444444444,
+        "annotatedMainHalf": 0.5,
+        "evidenceHalf": 0.16666666666666666
+      }
+    },
+    {
+      "startMs": 270582,
+      "endMs": 276579,
+      "bpm": 97.509,
+      "points": 3,
+      "maxSupport": 0.09761260602119523,
+      "index": 1,
+      "ratioToPredictedMain": 0.6773810350816256,
+      "ratioToAnnotatedMain": 1.3542916666666662,
+      "boundary": "interior",
+      "localBpmMin": 95.262,
+      "localBpmMax": 97.509,
+      "medianSupport": 0.05939457841036252,
+      "timeDomain": {
+        "predictedMain": {
+          "lag": 41.68113928447378,
+          "first": null,
+          "second": null,
+          "combined": null
+        },
+        "annotatedMain": {
+          "lag": 83.3333333333333,
+          "first": null,
+          "second": null,
+          "combined": null
+        },
+        "evidenceBpm": {
+          "lag": 61.532781589391746,
+          "first": null,
+          "second": null,
+          "combined": null
+        }
+      },
+      "objectCount": 18,
+      "objectGrid": {
+        "predictedMainHalf": 1,
+        "annotatedMainHalf": 0.5555555555555556,
+        "evidenceHalf": 0.16666666666666666
+      }
+    }
+  ],
+  "analysisMs": 3161
+}

@@ -1,0 +1,19 @@
+{
+  "id": "sample-038",
+  "directoryName": "76048 ZUN - The Youkai Mountain ~ Mysterious Mountain",
+  "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\76048 ZUN - The Youkai Mountain ~ Mysterious Mountain",
+  "status": "ok",
+  "referenceBpm": 168.00000000000006,
+  "referenceVariable": false,
+  "predictedBpm": 168,
+  "predictedVariable": false,
+  "variableLines": [],
+  "trueVariableMs": 0,
+  "flaggedWindowCount": 5,
+  "flaggedWindowsOnVariable": 0,
+  "rawCandidateCount": 0,
+  "rawCandidatesOnVariable": 0,
+  "finalEvidenceCount": 0,
+  "finalEvidenceOnVariable": 0,
+  "candidates": []
+}

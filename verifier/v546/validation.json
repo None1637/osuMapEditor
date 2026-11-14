@@ -1,0 +1,185 @@
+{
+  "version": "v546-validation-v1",
+  "passed": true,
+  "segmentCount": 16,
+  "perSample": {
+    "sample-001": 8,
+    "sample-058": 8
+  },
+  "wavDurationSeconds": 2,
+  "wavMatchesDecodedPcmSampleForSample": true,
+  "groundTruthFieldsBlank": true,
+  "failures": [],
+  "files": [
+    {
+      "path": "clips\\sample-001_r176435.wav",
+      "bytes": 88244,
+      "sha256": "de753f505f7977e1244ead3ef37626a03042bb55314d111069f35a16dd7e60a3"
+    },
+    {
+      "path": "plots\\sample-001_r176435.png",
+      "bytes": 424626,
+      "sha256": "24d89610fa293a155e137b4318a94690321e2b7e71f6b2e2625599c200d82b44"
+    },
+    {
+      "path": "clips\\sample-001_r177231.wav",
+      "bytes": 88244,
+      "sha256": "77d99ca52e5e42307bc03823e8d665d5a1c7e936a4ebb7a266ee28b1b8e1c3d5"
+    },
+    {
+      "path": "plots\\sample-001_r177231.png",
+      "bytes": 422006,
+      "sha256": "5a44b5c6cb1444a933daa71fb11a837f1127f4abb68030ff82b986e6118ce000"
+    },
+    {
+      "path": "clips\\sample-001_r178020.wav",
+      "bytes": 88244,
+      "sha256": "4cae4f9d95de8625238964cea2ebf185d1682bbbb93b1f27dead7798c4db93ea"
+    },
+    {
+      "path": "plots\\sample-001_r178020.png",
+      "bytes": 417799,
+      "sha256": "1c0a2c3c8e45af95778d7034145a78e8a1042930e28d7c386fd9f6eba9d1b864"
+    },
+    {
+      "path": "clips\\sample-001_r178816.wav",
+      "bytes": 88244,
+      "sha256": "5d62301fbbf17199bd81e5985f0dc8477ac42ac5d7c1cfcea5310f161db87c36"
+    },
+    {
+      "path": "plots\\sample-001_r178816.png",
+      "bytes": 402771,
+      "sha256": "efdc72404064bd05c93710ed1cabce4884ccc1eff4b70937d4fa0db7a590e419"
+    },
+    {
+      "path": "clips\\sample-001_r179619.wav",
+      "bytes": 88244,
+      "sha256": "59099a45a3c25a6a491b45c72c59cc862a2a64ab609da0f2112ae82751cb3cce"
+    },
+    {
+      "path": "plots\\sample-001_r179619.png",
+      "bytes": 401873,
+      "sha256": "a2f6b21f460922a7823eb8a86c044926c0592647b878d8c08f17c40b0edb9ea2"
+    },
+    {
+      "path": "clips\\sample-001_r180429.wav",
+      "bytes": 88244,
+      "sha256": "b5a4c7287ba0964530aaf39ac866bcf28d2aec4d6a340fe9e99d9a6f7ce92ebd"
+    },
+    {
+      "path": "plots\\sample-001_r180429.png",
+      "bytes": 406245,
+      "sha256": "8cb13ec27e6d2061467c709d4157df5c862f968d34d143e598dc800c6b707c90"
+    },
+    {
+      "path": "clips\\sample-001_r181247.wav",
+      "bytes": 88244,
+      "sha256": "aebee8a8b09e14daf6129769d8ce99982d3d000e17adaf4962320d51b744c64e"
+    },
+    {
+      "path": "plots\\sample-001_r181247.png",
+      "bytes": 425691,
+      "sha256": "8ad8636c3000b411f2aa8ca0defa89969e4eea6e03e95fae88959ea8b5219d50"
+    },
+    {
+      "path": "clips\\sample-001_r182021.wav",
+      "bytes": 88244,
+      "sha256": "784e22666ffc217337b7bed088dcb5c51e5074acf01a1f761152be176d5faf60"
+    },
+    {
+      "path": "plots\\sample-001_r182021.png",
+      "bytes": 438002,
+      "sha256": "36a374887538d6010425057b376ba3be7d681cc0e29f1e5719b5830ae1434c4e"
+    },
+    {
+      "path": "clips\\sample-058_r32400.wav",
+      "bytes": 88244,
+      "sha256": "21de6b98ffa1a21c4666b77e49a78c5a14d7ed0470bd3b5c2dfc21a31c0fb275"
+    },
+    {
+      "path": "plots\\sample-058_r32400.png",
+      "bytes": 444488,
+      "sha256": "d993608df3795d69d53f598dc1af2be1b5dde2421bb1e3ef5756da15b2f40f26"
+    },
+    {
+      "path": "clips\\sample-058_r33688.wav",
+      "bytes": 88244,
+      "sha256": "d8e79d7bb99bfe87f55c907fd9cf117fae39cc80500afc13602a57009595fda4"
+    },
+    {
+      "path": "plots\\sample-058_r33688.png",
+      "bytes": 406306,
+      "sha256": "c3c1ef3eaa67e3d0403ba4a64cca92f8a88bb86cabfda966cecc96d01bfc43fc"
+    },
+    {
+      "path": "clips\\sample-058_h38530.wav",
+      "bytes": 88244,
+      "sha256": "417f99c955a1561102dc97ac891e8211602ee40db5b94cde61caebbc3de4ad17"
+    },
+    {
+      "path": "plots\\sample-058_h38530.png",
+      "bytes": 327809,
+      "sha256": "ba92dd9b1d2754a4503f9ab5d0b9e5e9135ee44917a6c7c5c924c09032388c79"
+    },
+    {
+      "path": "clips\\sample-058_h42951.wav",
+      "bytes": 88244,
+      "sha256": "960840b28763c1b3e16804dec5bf1a7e00b63d2a4709e29e88f97f629d432672"
+    },
+    {
+      "path": "plots\\sample-058_h42951.png",
+      "bytes": 399134,
+      "sha256": "ddf3a801f1744d3fdeb22dd46802f19e0d23c16fd73b4f434721c8f90a7561aa"
+    },
+    {
+      "path": "clips\\sample-058_h42109.wav",
+      "bytes": 88244,
+      "sha256": "26fa4acaeb637304f81245dd22d1421635b4c30142213595f016d33da441265f"
+    },
+    {
+      "path": "plots\\sample-058_h42109.png",
+      "bytes": 379342,
+      "sha256": "c154a208aa1e658fb46a7a8abc69c379d4d202a521024c104b8b9c8de3b9e256"
+    },
+    {
+      "path": "clips\\sample-058_h44635.wav",
+      "bytes": 88244,
+      "sha256": "4e68cdc2d7b442a3bb34b1397758c8c5e5d2c76adee86a11ab6d730c318c94c4"
+    },
+    {
+      "path": "plots\\sample-058_h44635.png",
+      "bytes": 343419,
+      "sha256": "c41a5a2b6efc538e39ebde5e33c21dfb176e77c0998fe2cbf660a14df418ea8c"
+    },
+    {
+      "path": "clips\\sample-058_h33042.wav",
+      "bytes": 88244,
+      "sha256": "32cb7258415991376531ea8d7cdbf61be9834382d02f0842ffc1660dd045c188"
+    },
+    {
+      "path": "plots\\sample-058_h33042.png",
+      "bytes": 412642,
+      "sha256": "dc3f42039367a0551fdd9268ef71cfd8c6d97863f9cbefffe05e84b2047c171a"
+    },
+    {
+      "path": "clips\\sample-058_h32091.wav",
+      "bytes": 88244,
+      "sha256": "ec238b321ca02c87258bbd2cc38eeb075b5a29ae2b35bfe5d582676ed85f605d"
+    },
+    {
+      "path": "plots\\sample-058_h32091.png",
+      "bytes": 424506,
+      "sha256": "ac62a03ecb526bd7e98b5d734849734afd134a143c4bedae8cbabda1a4c8e8d1"
+    },
+    {
+      "path": "sample-001-contact.png",
+      "bytes": 1432561,
+      "sha256": "3f723da89c9ae230b73c05c2bc9ca0da23dabc7ad535e4fb67d3bbe6f45e714b"
+    },
+    {
+      "path": "sample-058-contact.png",
+      "bytes": 1358918,
+      "sha256": "3997cfb0a2bb067b17cc630819eb2c68845d4baca52b0a8b803133319debccde"
+    }
+  ]
+}

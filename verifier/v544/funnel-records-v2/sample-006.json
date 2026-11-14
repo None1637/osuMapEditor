@@ -1,0 +1,51 @@
+{
+  "id": "sample-006",
+  "directoryName": "886126 Brandy - Cross Time",
+  "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\886126 Brandy - Cross Time",
+  "status": "ok",
+  "referenceBpm": 160,
+  "referenceVariable": false,
+  "predictedBpm": 160,
+  "predictedVariable": false,
+  "variableLines": [],
+  "trueVariableMs": 0,
+  "flaggedWindowCount": 18,
+  "flaggedWindowsOnVariable": 0,
+  "rawCandidateCount": 1,
+  "rawCandidatesOnVariable": 0,
+  "finalEvidenceCount": 0,
+  "finalEvidenceOnVariable": 0,
+  "candidates": [
+    {
+      "startMs": 69892,
+      "endMs": 75889,
+      "bpm": 72.279,
+      "points": 3,
+      "maxSupport": 0.094805511438092,
+      "localGridCoverage": 0.06521739130434782,
+      "rejection": "weak_short",
+      "independentMainScore": 0.15042414725803183,
+      "independentLocalScore": 0.09455269968044216,
+      "variableOverlapMs": 0,
+      "overlapsVariable": false,
+      "tripletVotes": [
+        {
+          "timeMs": 72890.34013605442,
+          "bpm": 67.116,
+          "localGridCoverage": 0.05555555555555555,
+          "tripletGridCoverage": 0.6111111111111112,
+          "tripletGridHalfCoverage": 0.3148148148148148,
+          "tripletGridDoubleCoverage": 0.6481481481481481
+        },
+        {
+          "timeMs": 73888.79818594104,
+          "bpm": 72.279,
+          "localGridCoverage": 0.06521739130434782,
+          "tripletGridCoverage": 0.5217391304347826,
+          "tripletGridHalfCoverage": 0.2717391304347826,
+          "tripletGridDoubleCoverage": 0.5652173913043478
+        }
+      ]
+    }
+  ]
+}

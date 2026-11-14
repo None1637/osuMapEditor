@@ -1,0 +1,42 @@
+{
+  "id": "sample-013",
+  "directoryName": "749327 MY FIRST STORY - Shissou FLAME",
+  "beatmapFile": "MY FIRST STORY - Shissou FLAME (A r M i N) [Extreme].osu",
+  "metadata": {
+    "Title": "Shissou FLAME",
+    "TitleUnicode": "失踪FLAME",
+    "Artist": "MY FIRST STORY",
+    "ArtistUnicode": "MY FIRST STORY",
+    "Creator": "A r M i N",
+    "Version": "Extreme",
+    "Source": "",
+    "Tags": "",
+    "BeatmapID": "1578355",
+    "BeatmapSetID": "749327",
+    "Mode": "0"
+  },
+  "audioDurationMs": 257133.3333333333,
+  "redLines": [
+    {
+      "time": 614,
+      "beatLength": 285.714285714286,
+      "bpm": 209.99999999999977,
+      "durationMs": 256519.3333333333
+    }
+  ],
+  "referenceBpm": 209.99999999999977,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 256519.3333333333,
+  "status": "ok",
+  "prediction": {
+    "bpm": 210,
+    "offsetMs": 355,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 232,
+    "rawBpm": 420,
+    "rawSegmentCount": 218
+  },
+  "evaluationMs": 2653
+}

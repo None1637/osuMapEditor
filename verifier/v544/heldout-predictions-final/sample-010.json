@@ -1,0 +1,42 @@
+{
+  "id": "sample-010",
+  "directoryName": "2044442 nui - Mayday",
+  "beatmapFile": "nui - Mayday (sukii) [Senseless].osu",
+  "metadata": {
+    "Title": "Mayday",
+    "TitleUnicode": "メデ",
+    "Artist": "nui",
+    "ArtistUnicode": "nui",
+    "Creator": "sukii",
+    "Version": "Senseless",
+    "Source": "",
+    "Tags": "月詠み Tsukuyomi bwcbfhd2 badlywoodcup barrier f hd2",
+    "BeatmapID": "4267100",
+    "BeatmapSetID": "2044442",
+    "Mode": "0"
+  },
+  "audioDurationMs": 205264.39909297053,
+  "redLines": [
+    {
+      "time": -114,
+      "beatLength": 348.837209302326,
+      "bpm": 171.99999999999977,
+      "durationMs": 205264.39909297053
+    }
+  ],
+  "referenceBpm": 171.99999999999977,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 205264.39909297053,
+  "status": "ok",
+  "prediction": {
+    "bpm": 172,
+    "offsetMs": 607,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 197,
+    "rawBpm": 344,
+    "rawSegmentCount": 84
+  },
+  "evaluationMs": 1796
+}

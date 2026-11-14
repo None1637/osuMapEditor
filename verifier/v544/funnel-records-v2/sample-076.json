@@ -1,0 +1,19 @@
+{
+  "id": "sample-076",
+  "directoryName": "283841 S-C-U feat Qrispy Joybox - anemone",
+  "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\283841 S-C-U feat Qrispy Joybox - anemone",
+  "status": "ok",
+  "referenceBpm": 200,
+  "referenceVariable": false,
+  "predictedBpm": 200,
+  "predictedVariable": false,
+  "variableLines": [],
+  "trueVariableMs": 0,
+  "flaggedWindowCount": 4,
+  "flaggedWindowsOnVariable": 0,
+  "rawCandidateCount": 0,
+  "rawCandidatesOnVariable": 0,
+  "finalEvidenceCount": 0,
+  "finalEvidenceOnVariable": 0,
+  "candidates": []
+}

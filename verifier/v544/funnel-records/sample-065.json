@@ -1,0 +1,90 @@
+{
+  "id": "sample-065",
+  "directoryName": "770829 Roselia - Guren no Yumiya",
+  "sourceDirectory": "F:\\Backup\\D\\osu!\\Songs\\770829 Roselia - Guren no Yumiya",
+  "status": "ok",
+  "referenceBpm": 181.00000000000017,
+  "referenceVariable": false,
+  "predictedBpm": 181,
+  "predictedVariable": false,
+  "variableLines": [],
+  "trueVariableMs": 0,
+  "flaggedWindowCount": 20,
+  "flaggedWindowsOnVariable": 0,
+  "rawCandidateCount": 2,
+  "rawCandidatesOnVariable": 0,
+  "finalEvidenceCount": 0,
+  "finalEvidenceOnVariable": 0,
+  "candidates": [
+    {
+      "startMs": 41935,
+      "endMs": 47932,
+      "bpm": 72.279,
+      "points": 3,
+      "maxSupport": 0.1563536970500732,
+      "localGridCoverage": 0.061452513966480445,
+      "rejection": "weak_short",
+      "independentMainScore": 0.3773035613614913,
+      "independentLocalScore": 0.24341858758295928,
+      "variableOverlapMs": 0,
+      "overlapsVariable": false,
+      "tripletVotes": [
+        {
+          "timeMs": 43935.056689342404,
+          "bpm": 72.279,
+          "localGridCoverage": 0.05172413793103448,
+          "tripletGridCoverage": 0.5517241379310345,
+          "tripletGridHalfCoverage": 0.3218390804597701,
+          "tripletGridDoubleCoverage": 0.5977011494252874
+        },
+        {
+          "timeMs": 44933.514739229024,
+          "bpm": 72.279,
+          "localGridCoverage": 0.06321839080459771,
+          "tripletGridCoverage": 0.5459770114942529,
+          "tripletGridHalfCoverage": 0.2988505747126437,
+          "tripletGridDoubleCoverage": 0.5919540229885057
+        },
+        {
+          "timeMs": 45931.97278911564,
+          "bpm": 72.279,
+          "localGridCoverage": 0.061452513966480445,
+          "tripletGridCoverage": 0.5418994413407822,
+          "tripletGridHalfCoverage": 0.3128491620111732,
+          "tripletGridDoubleCoverage": 0.6312849162011173
+        }
+      ]
+    },
+    {
+      "startMs": 84869,
+      "endMs": 90866,
+      "bpm": 60.444,
+      "points": 3,
+      "maxSupport": 0.24808253722209608,
+      "localGridCoverage": 0.04375,
+      "rejection": "triplet",
+      "independentMainScore": null,
+      "independentLocalScore": null,
+      "variableOverlapMs": 0,
+      "overlapsVariable": false,
+      "tripletVotes": [
+        {
+          "timeMs": 87867.21088435374,
+          "bpm": 60.444,
+          "localGridCoverage": 0.04375,
+          "tripletGridCoverage": 0.5625,
+          "tripletGridHalfCoverage": 0.29375,
+          "tripletGridDoubleCoverage": 0.625
+        },
+        {
+          "timeMs": 88865.66893424036,
+          "bpm": 60.444,
+          "localGridCoverage": 0.041666666666666664,
+          "tripletGridCoverage": 0.5476190476190477,
+          "tripletGridHalfCoverage": 0.30357142857142855,
+          "tripletGridDoubleCoverage": 0.5952380952380952
+        }
+      ]
+    }
+  ]
+}

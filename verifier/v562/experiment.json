@@ -1,0 +1,37 @@
+{
+  "version": "v562-absolute-time-error-correction-v1",
+  "status": "evaluation_correction_before_metrics",
+  "datasetRole": "development_diagnostic_only_provisional_visual_blind_labels",
+  "sampleIds": ["sample-044", "sample-032", "sample-002"],
+  "selectionSource": "../v557/selection.json",
+  "annotationSource": "../v557/annotations-sample-*.csv",
+  "confirmationSetPolicy": "No confirmation-set audio, candidates or labels are read",
+  "reason": "Historical analyses subtracted actualRelativeMs from a residual relative to targetMs, omitting targetMs-referenceMs; correct absolute candidate error requires restoring each method's own target offset",
+  "correctErrorFormula": "candidateAbsoluteMs - actualOnsetMs = residualMs + targetOffsetMs - actualRelativeMs",
+  "legacyErrorFormula": "residualMs - actualRelativeMs; retained only to quantify the historical evaluation error",
+  "targetRules": {
+    "crossFit": "targetOffsetMs = targetMs - referenceMs = globalDelayMs + phaseMs",
+    "globalOnly": "targetOffsetMs = globalDelayMs; residual was found around referenceMs + globalDelayMs without phase"
+  },
+  "methodDefinitions": [
+    {"name":"e1Full","source":"v558","field":"fullResidualMs","targetRule":"crossFit"},
+    {"name":"e1Lag5","source":"v558","field":"lag5ResidualMs","targetRule":"crossFit"},
+    {"name":"e1Superflux","source":"v558","field":"superfluxResidualMs","targetRule":"crossFit"},
+    {"name":"e1FullGlobal","source":"v558","field":"fullGlobalResidualMs","targetRule":"globalOnly"},
+    {"name":"e1Lag5Global","source":"v558","field":"lag5GlobalResidualMs","targetRule":"globalOnly"},
+    {"name":"e1SuperfluxGlobal","source":"v558","field":"superfluxGlobalResidualMs","targetRule":"globalOnly"},
+    {"name":"e2NeuralMax","source":"v559","field":"neuralMaxResidualMs","targetRule":"crossFit"},
+    {"name":"e2NeuralPitch","source":"v559","field":"neuralPitchResidualMs","targetRule":"crossFit"},
+    {"name":"e3DdcOfficial","source":"v560","field":"ddcOfficialResidualMs","targetRule":"crossFit"},
+    {"name":"e3DdcParabolic","source":"v560","field":"ddcParabolicResidualMs","targetRule":"crossFit"},
+    {"name":"e4Fusion","source":"v561","field":"fusionResidualMs","targetRule":"crossFit"}
+  ],
+  "primaryMetric": "clearAndApproximateOnsetRecall = population-weighted fraction of provisional audible labels whose absolute candidate onset error is <=5 ms",
+  "guardrailMetric": "noClearCandidateOutputRate; no_clear labels are not counted as audible successes",
+  "legacyAllObjectMetricRetained": true,
+  "toleranceMs": 5,
+  "targetAudibleCorrectRate": 0.8,
+  "transitionDefinitions": "Recompute E4 fixed/broken using corrected absolute errors; missing candidates are not correct",
+  "productionCodeChanged": false,
+  "historicalArtifactsPolicy": "Do not overwrite v558-v561 scripts or outputs; v562 is an additive correction audit"
+}

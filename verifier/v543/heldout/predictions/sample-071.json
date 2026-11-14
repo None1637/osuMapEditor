@@ -1,0 +1,42 @@
+{
+  "id": "sample-071",
+  "directoryName": "beatmap-638137132780358847-audio",
+  "beatmapFile": "anubasu-anubasu - Materialize Anything (None1637) [DROID MASTER].osu",
+  "metadata": {
+    "Title": "Materialize Anything",
+    "TitleUnicode": "Materialize Anything",
+    "Artist": "anubasu-anubasu",
+    "ArtistUnicode": "anubasu-anubasu",
+    "Creator": "None1637",
+    "Version": "DROID MASTER",
+    "Source": "BOFU2016",
+    "Tags": "hardstyle 叩くと音が鳴る魔法 tataku to oto ga naru mahou Materialize Anything (BMS Mix) electronic instrumental THE BMS OF FIGHTERS ULTIMATE 2016 - Legendary Again -",
+    "BeatmapID": "0",
+    "BeatmapSetID": "-1",
+    "Mode": "0"
+  },
+  "audioDurationMs": 139298.6848072562,
+  "redLines": [
+    {
+      "time": 1704,
+      "beatLength": 400,
+      "bpm": 150,
+      "durationMs": 137594.6848072562
+    }
+  ],
+  "referenceBpm": 150,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 137594.6848072562,
+  "status": "ok",
+  "prediction": {
+    "bpm": 150.1,
+    "offsetMs": 577,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 133,
+    "rawBpm": 150.1,
+    "rawSegmentCount": 9
+  },
+  "evaluationMs": 1347
+}

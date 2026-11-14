@@ -1,0 +1,30 @@
+{
+  "version": "v574-independent-onset-recheck-v1",
+  "passed": true,
+  "sampleCount": 18,
+  "comparisonRows": 24416,
+  "objectCount": 24416,
+  "inputHashesVerified": true,
+  "decodedPcmLengthsVerified": true,
+  "beatmapReferencesVerified": true,
+  "candidateRuleVerified": true,
+  "missingCandidatesCountedIncorrect": true,
+  "csvVerified": true,
+  "groupsVerified": [
+    "overall",
+    "perSample",
+    "specialTags"
+  ],
+  "primaryMethod": "legacyResidual",
+  "primaryCorrectCount": 21619,
+  "primaryCorrectRate": 0.8854439711664482,
+  "targetCorrectRate": 0.8,
+  "targetAchieved": true,
+  "allMethodTargets": {
+    "legacyResidual": true,
+    "e5Calibrated": true,
+    "e13CorrectedTargetRematch": false
+  },
+  "perSampleAllAtLeast80": false,
+  "failures": []
+}

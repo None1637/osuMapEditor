@@ -1,0 +1,40 @@
+{
+  "id": "sample-015",
+  "directoryName": "1780278 DJ Myosuke & Laur - Break Through Myself feat Risa Yuzuki (Short Ver)",
+  "beatmapFile": "DJ Myosuke & Laur - Break Through Myself feat. Risa Yuzuki (Short Ver.) (keksikosu) [keksikosu vs. AlexDunk Apocalypse].osu",
+  "metadata": {
+    "Title": "Break Through Myself feat. Risa Yuzuki (Short Ver.)",
+    "TitleUnicode": "Break Through Myself feat. Risa Yuzuki (Short Ver.)",
+    "Artist": "DJ Myosuke & Laur",
+    "ArtistUnicode": "DJ Myosuke & Laur",
+    "Creator": "keksikosu",
+    "Version": "keksikosu vs. AlexDunk Apocalypse",
+    "Source": "WACCA Reverse",
+    "Tags": "TCDR-0097 TANO*C STORE 柚木梨沙 DJGenki Taiyo Yamamoto electronic instrumental hardcore techno j-core jcore female vocal Japanese AlexDunk axelowo Aix- _Hikari -H_i_k_a_r_i- Das-",
+    "Mode": "3"
+  },
+  "audioDurationMs": 145350.02267573695,
+  "redLines": [
+    {
+      "time": 576,
+      "beatLength": 300,
+      "bpm": 200,
+      "durationMs": 144774.02267573695
+    }
+  ],
+  "referenceBpm": 200,
+  "referenceVariable": false,
+  "referenceRedLineCount": 1,
+  "referenceCoverageMs": 144774.02267573695,
+  "status": "ok",
+  "prediction": {
+    "bpm": 200,
+    "offsetMs": 1063,
+    "variable": false,
+    "evidence": [],
+    "localPointCount": 142,
+    "rawBpm": 400,
+    "rawSegmentCount": 141
+  },
+  "evaluationMs": 1455
+}
