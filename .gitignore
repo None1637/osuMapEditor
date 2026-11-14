@@ -42,10 +42,25 @@ verifier/**/*.wav
 verifier/**/*.mp3
 verifier/**/*.ogg
 
-# BPM 研究生成物与第三方运行环境 (脚本/文本结果仍入库)
+# BPM 研究生成物与第三方运行环境 (脚本与必要谱面样本仍入库)
 verifier/**/decoded/
 verifier/**/clips/
 verifier/**/plots/
 verifier/**/label-sheets/
 verifier/**/vendor/
 verifier/**/.browser-profile/
+verifier/**/activations/
+verifier/**/peaks/
+verifier/**/per-sample/
+verifier/**/predictions/
+verifier/**/*.npz
+verifier/**/*-contact.png
+verifier/**/*.jsonl
+verifier/**/*-comparison.csv
+verifier/**/oracle-*.csv
+verifier/**/experiment.json
+verifier/**/*results.json
+verifier/**/*predictions.json
+verifier/**/decode-summary.json
+verifier/**/selection.json
+verifier/**/labels-work.json

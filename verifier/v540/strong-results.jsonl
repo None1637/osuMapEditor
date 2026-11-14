@@ -1,6 +1,0 @@
-{"name":"strong-128","expectedBpm":128,"bpm":128,"errorPct":0,"gridErrorMs":3,"lines":1,"rawSegments":1,"variableSections":0,"beats":64,"elapsedMs":125}
-{"name":"strong-137.5","expectedBpm":137.5,"bpm":137.5,"errorPct":0,"gridErrorMs":3,"lines":1,"rawSegments":1,"variableSections":0,"beats":64,"elapsedMs":113}
-{"name":"strong-140.8","expectedBpm":140.8,"bpm":140.8,"errorPct":0,"gridErrorMs":3,"lines":1,"rawSegments":1,"variableSections":0,"beats":64,"elapsedMs":127}
-{"name":"strong-174","expectedBpm":174,"bpm":174,"errorPct":0,"gridErrorMs":3,"lines":1,"rawSegments":1,"variableSections":0,"beats":65,"elapsedMs":106}
-{"name":"strong-180","expectedBpm":180,"bpm":180,"errorPct":0,"gridErrorMs":3,"lines":1,"rawSegments":1,"variableSections":0,"beats":65,"elapsedMs":90}
-{"name":"strong-360","expectedBpm":360,"bpm":360,"errorPct":0,"gridErrorMs":3.33,"lines":1,"rawSegments":1,"variableSections":0,"beats":67,"elapsedMs":58}
