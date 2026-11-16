@@ -125,7 +125,7 @@ export function SongLibrary({ onClose }: { onClose: () => void }) {
       if (ds === null) return;
       dirsRef.current = ds;
       // v290: 索引缓存立即可搜 → 后台 reconcile (只读 size+lastModified 比对, 新增/变更才重解析)
-      // v576: 缓存读取与服务器清单并行, IDB 挂起也不能阻塞首批骨架; 最多再等 2s 后按无缓存继续
+      // v576: IDB 挂起不能阻塞首批骨架; v578: 已有持久缓存直接恢复, 不再每次打开都全量 reconcile
       const cachedPromise = idbLibraryIndexGet<LibraryIndexEntry>(h.name).catch(() => null);
       let cached: LibraryIndexEntry[] | null = h.serverRel === undefined ? await cachedPromise : null;
       if (scanGenRef.current !== myGen) return;
@@ -146,18 +146,37 @@ export function SongLibrary({ onClose }: { onClose: () => void }) {
         setEntries(list);
       };
       if (h.serverRel !== undefined) {
+        if (!thorough && !preserveView) {
+          cached = await Promise.race([cachedPromise, new Promise<null>(resolve => setTimeout(() => resolve(null), 250))]);
+          if (scanGenRef.current !== myGen) return;
+          if (cached?.length) {
+            dirsRef.current = [...new Set(cached.map(e => e.dirName))].sort()
+              .map(name => ({ name, handle: serverDir('songs', name, name) }));
+            flushNow(cached);
+            say(tNow('library.restored_from_index_cache', 'Restored {n} difficulties from index cache, verifying in background…', { n: cached.length }));
+          }
+        }
         const manifest = [];
         const all: LibraryIndexEntry[] = [];
-        // v576: 真实曲库可有上万目录; 每页立即显示, 不再等完整 /tree 响应一直卡在 0
+        // v576/v579: 无缓存时每页立即显示; 有缓存时保留完整旧列表, 避免重开缩水及每页全量重排
         for await (const files of scanServerFileManifest(() => scanGenRef.current !== myGen)) {
           manifest.push(...files);
           all.push(...serverSkeletons(files));
-          dirsRef.current = serverDirectories(manifest);
-          flushNow([...all]);
+          if (!cached?.length) {
+            dirsRef.current = serverDirectories(manifest);
+            flushNow([...all]);
+          }
         }
         if (scanGenRef.current !== myGen) return;
         cached = await Promise.race([cachedPromise, new Promise<null>(resolve => setTimeout(() => resolve(null), 2000))]);
         if (scanGenRef.current !== myGen) return;
+        if (cached?.length) {
+          // v579: 新清单一次性替换旧视图, 同 key 保留完整元数据; 后续 reconcile 只更新变化项
+          const byKey = new Map(cached.map(e => [entryKey(e), e]));
+          for (let i = 0; i < all.length; i++) all[i] = byKey.get(entryKey(all[i])) ?? all[i];
+          dirsRef.current = serverDirectories(manifest);
+          flushNow([...all]);
+        }
         say(tNow('library.listed_skeletons', 'Listed {n} difficulties (parsed from file names), parsing details in background…', { n: all.length }));
         const idxByKey = new Map<string, number>();
         all.forEach((e, i) => idxByKey.set(entryKey(e), i));

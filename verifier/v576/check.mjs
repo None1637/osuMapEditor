@@ -26,7 +26,8 @@ console.log('== B: 首屏不阻塞源码契约');
   assert(lib.includes('scanServerFileManifest') && !lib.includes('await fetchServerFileTree()'), '曲库不再等待完整 tree');
   assert(lib.indexOf('const cachedPromise') < lib.indexOf('for await (const files of scanServerFileManifest'), 'IDB 与服务器清单并行');
   assert(lib.includes('Promise.race([cachedPromise') && lib.includes('resolve(null), 2000'), 'IDB 读取有 2 秒回退');
-  const loop = lib.slice(lib.indexOf('for await (const files of scanServerFileManifest'), lib.indexOf('cached = await Promise.race'));
+  const loopStart = lib.indexOf('for await (const files of scanServerFileManifest');
+  const loop = lib.slice(loopStart, lib.indexOf('cached = await Promise.race', loopStart));
   assert(loop.includes('all.push(...serverSkeletons(files))') && loop.includes('flushNow([...all])'), '每页骨架立即刷新到界面');
 }
 

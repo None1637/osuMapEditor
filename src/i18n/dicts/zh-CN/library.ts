@@ -47,7 +47,7 @@ export const zhCN: Record<string, string> = {
   // 诊断日志消息 (面板底部可见) / 错误提示
   'library.scan_started': '开始扫描…',
   'library.restored_from_index_cache': '已从索引缓存恢复 {n} 难度, 后台校验更新…',
-  'library.listed_skeletons': '已列出 {n} 个难度 (文件名解析), 后台解析详细参数…',
+  // v578/v579: 缓存只负责首屏, 后台仍校验更新  'library.listed_skeletons': '已列出 {n} 个难度 (文件名解析), 后台解析详细参数…',
   'library.index_done': '索引完成: {diffs} 难度 / {dirs} 目录',
   'library.index_cache_write_failed': '索引缓存写入失败 (不影响本次使用)',
   'library.scan_error': '扫描出错: {msg}',
