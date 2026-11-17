@@ -6119,3 +6119,16 @@
 - 有缓存时不再逐页 flush/全量重排; 清单完成后同 key 保留旧元数据, 新文件以骨架加入, 删除项自然剔除。
 - 真实 Electron 观察到缓存列表可用后 tree-page/read-batch 持续请求, 不再停在旧列表; v579/v578/v576/v128
   回归及 `npm run build` 通过。
+
+## v580 — 合并滑条按实际尾裁剪
+- 原合并把源滑条末锚点之前的完整控制路径全部拼入, `pixelLength` 已截断的尾部之后仍影响新形状。
+- 新增 actualSliderSegments: 先转贝塞尔, 再按 pixelLength 对应的弧长用 de Casteljau 剖分;
+  只拼实际滑条身, 保持曲线形状, 每条源滑条独立截尾; length 缺失仍保留完整路径。
+- 验证: v580 覆盖直线、二次贝塞尔、多条滑条及缺省长度; v41 Crystalia 实际尾预期、v38/v212 回归及
+  `npm run build` 全绿。
+
+## v581 — 对称滑条编辑期保留三点圆弧
+- 原 P 源在对称窗口预览阶段即展开成 B 控制点, 原三点锚点无法继续编辑。
+- computeSymSlider 增加 forPreview: 预览显示独立 P 原弧与对称副本, 保留原 id 和三点锚点;
+  最终应用仍转换为 B 后拼接, join=none 仍只新增 P 副本。
+- 验证: v581 拼接/独立副本的预览与应用语义全绿; v243/v236 回归及 `npm run build` 通过。

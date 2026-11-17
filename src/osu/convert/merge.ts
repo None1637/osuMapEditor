@@ -2,8 +2,8 @@
 // 语义 (用户需求规格):
 //   - 按 time 升序把选中物件连接成一条新滑条 (无视堆叠偏移, 直接用逻辑坐标):
 //     单点(circle)/转盘(spinner): 贡献其位置点 (o.x, o.y), 与前一段直线连接
-//     滑条(slider): 保留其完整路径形状拼入 — 统一转贝塞尔段序列 (bezierPath.ts sliderToBezierSegments,
-//                   圆弧/卡特姆转贝塞尔确保形状不变), 段序列首尾接入
+//     滑条(slider): 按 pixelLength 截取实际滑条身拼入 — 统一转贝塞尔段序列并按弧长剖分,
+//                   圆弧/卡特姆转贝塞尔确保形状不变; v580: 末锚点超出实际尾的部分不再拼入
 //   - 物件之间的接缝 = 红锚点 (重复点) 分段; 相邻物件位置完全相同 (或滑条尾与下一物件头重合) 时去重, 避免零长接缝
 //   - 新滑条: head = 第一个物件位置, time = 第一个物件的 time, curveType 'B', slides=1
 //   - 长度: 由几何全长决定 (与节点编辑一致, 不拉伸/压缩到尾部物件时间), resnapSliderLength 吸附节拍
@@ -12,7 +12,16 @@
 import type { Beatmap, HitObject, Vec2 } from '../parser';
 import { genId } from '../parser';
 import { resnapSliderLength } from '../sliderPath';
-import { measureSegments, segmentsToPoints, sliderToBezierSegments, type BezierSeg } from './bezierPath';
+import { extractRange, measureSegments, segmentsToPoints, sliderToBezierSegments, type BezierSeg } from './bezierPath';
+
+/** v580: 只取 pixelLength 对应的实际滑条身; 末锚点之后的控制路径不得混入合并结果 */
+function actualSliderSegments(o: HitObject): BezierSeg[] {
+  const full = sliderToBezierSegments(o);
+  if (o.type !== 'slider' || o.length === undefined || !full.length) return full;
+  const measured = measureSegments(full);
+  const tail = Math.max(0, Math.min(o.length, measured.total));
+  return tail < measured.total ? extractRange(measured, 0, tail) : full;
+}
 
 /** 两点重合判定 (位置完全相同即去重; 坐标为整数, 小容差即可) */
 const samePos = (a: Vec2, b: Vec2) => Math.hypot(a.x - b.x, a.y - b.y) < 1e-6;
@@ -35,8 +44,8 @@ export function computeMerge(bm: Beatmap, objects: HitObject[], beatSnap?: numbe
   const segs: BezierSeg[] = [];
   let lastPt: Vec2 | null = null; // 当前已拼路径的末端点
   for (const o of sorted) {
-    // 滑条: 完整路径 -> 贝塞尔段序列; 控制点不足 (退化的滑条按头部点处理)
-    const sub = o.type === 'slider' ? sliderToBezierSegments(o) : [];
+    // v580: 按 pixelLength 裁到实际滑条尾 (de Casteljau 剖分保形), 不拼入尾部之后的控制路径
+    const sub = o.type === 'slider' ? actualSliderSegments(o) : [];
     if (o.type === 'slider' && sub.length > 0) {
       const head: Vec2 = { x: o.x, y: o.y };
       // 与上一段的直线接缝 (滑条头与上一段末重合则去重)

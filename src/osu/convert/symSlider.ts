@@ -20,6 +20,7 @@
 //   (sliderToBezierSegments+segmentsToPoints, v237 误差驱动减点, 误差 ≤0.2px) 再做对称/拼接 —
 //   否则拼接结果恒 'B', 原弧段直接嵌入会被当成普通贝塞尔控制点 (三点一段折线/二次曲线),
 //   与原圆弧形状不一致; v474 起独立副本 (join='none') 不再转换 — 每份仍恰好 3 点保留 'P'。
+// v581: P→B 仅在最终应用时执行; 编辑预览显示独立 P 原弧/副本并保留原锚点, 关窗应用前仍可改圆弧。
 // 拼接 (join='tail'/'head'):
 //   - 段序列: 拼尾 = [原, 份1..份n]; 拼头 = [份1..份n, 原]
 //   - 接缝处重复坐标点 = 红锚点分段 (segmentsToPoints 同款): 段 k>0 首点先写一次作接缝,
@@ -97,7 +98,7 @@ function transformNodes(nodes: Vec2[], anchor: Vec2, scaleAnchor: Vec2,
  * 对称滑条计算 (纯函数, 不改原物件 — 预览/应用由调用方决定)。
  * @returns join='none' → 各份独立副本数组; join='tail'/'head' → 单元素数组 (一条拼接滑条)
  */
-export function computeSymSlider(bm: Beatmap, o: HitObject, p: SymSliderParams): HitObject[] {
+export function computeSymSlider(bm: Beatmap, o: HitObject, p: SymSliderParams, forPreview = false): HitObject[] {
   if (o.type !== 'slider') return [];
   const count = p.mode === 'rotate' || p.mode === 'translate'
     ? Math.max(1, Math.min(99, Math.round(p.count))) : 1;
@@ -108,7 +109,7 @@ export function computeSymSlider(bm: Beatmap, o: HitObject, p: SymSliderParams):
   //   拼接不能不转: 单类型模型不支持多段 P (renderer/parser 对 P≠3 回退贝塞尔, lazer 同款)。
   let workType = o.curveType ?? 'L';
   let nodes: Vec2[] = [{ x: o.x, y: o.y }, ...(o.curvePoints ?? [])];
-  if (o.curveType === 'P' && p.join !== 'none') {
+  if (o.curveType === 'P' && p.join !== 'none' && !forPreview) { // v581: 仅最终应用转换, 预览保留 P 锚点
     const pts = segmentsToPoints(sliderToBezierSegments(o)); // 含头部; 段接缝重复点 (红锚点)
     if (pts.length >= 2) { nodes = pts; workType = 'B'; }
   }
@@ -140,6 +141,15 @@ export function computeSymSlider(bm: Beatmap, o: HitObject, p: SymSliderParams):
   }
 
   const orig = nodes.map(pt => ({ ...pt })); // 原节点坐标原样保留 (不重复取整)
+  if (forPreview && o.curveType === 'P') {
+    // v581: 编辑期保留独立三点圆弧及原锚点; 应用时才走下方 B 转换/拼接, 圆弧窗口内可继续改点
+    const source: HitObject = { ...o, curveType: 'P', curvePoints: orig.slice(1).map(pt => ({ ...pt })) };
+    const previewCopies = copies.map(pts => ({
+      ...o, id: genId(), curveType: 'P', x: pts[0].x, y: pts[0].y,
+      curvePoints: pts.slice(1), length: Math.round(sliderGeometryLength('P', pts) * 100) / 100,
+    }));
+    return p.join === 'head' ? [...previewCopies, source] : [source, ...previewCopies];
+  }
   if (p.join !== 'none') {
     // v236 二轮修正: 链式对齐平移 (取整后平移, 整数偏移无需再取整) — 对齐后所有接缝天然重合
     if (p.join === 'tail') {

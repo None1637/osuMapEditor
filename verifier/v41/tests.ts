@@ -1,5 +1,5 @@
 // 验证器 v41: circleToBezier 顺时针弧修复 + Crystalia P+B 合并保形 纯函数测试
-import { circleToBezier, measureSegments } from '../../src/osu/convert/bezierPath';
+import { circleToBezier, extractRange, measureSegments, sliderToBezierSegments } from '../../src/osu/convert/bezierPath';
 import { computeMerge } from '../../src/osu/convert/merge';
 import { getSliderPath } from '../../src/osu/sliderPath';
 import type { Beatmap, HitObject, Vec2 } from '../../src/osu/parser';
@@ -92,10 +92,15 @@ section('computeMerge: Crystalia 第3+4滑条 (P 250 + B 250) 保形');
     maxDev = Math.max(maxDev, Math.hypot(po.x - pm.x, po.y - pm.y));
   }
   assert(maxDev < 1, `P 部分最大偏差 ${maxDev.toFixed(2)}px < 1`);
-  // B 部分: 接缝 (红锚点重复对) 后接原 B 控制点, 原样保留
+  // v580: B 部分只保留 pixelLength=250 内的实际滑条身, 不再拼入尾部之后的控制点
   const pts = merged.curvePoints!;
-  const tail = pts.slice(-9).map(p => `${p.x},${p.y}`).join('|');
-  assert(tail === '381,310|355,273|355,273|335,305|299,316|299,316|279,282|236,276|209,291', `B 控制点原样保留 (${tail})`);
+  const measuredB = measureSegments(sliderToBezierSegments(s4));
+  const expectedPts = extractRange(measuredB, 0, 250);
+  const expected = expectedPts[expectedPts.length - 1];
+  const actual = pts.slice(-expected.length);
+  assert(actual.length === expected.length && actual.every((p, i) => Math.hypot(p.x - expected[i].x, p.y - expected[i].y) <= 0.71),
+    `B 截尾控制点与 de Casteljau 剖分一致 (${actual.map(p => `${p.x},${p.y}`).join('|')})`);
+  assert(!pts.some(p => p.x === 209 && p.y === 291), 'B 实际尾之后的 (209,291) 不拼入');
   // 长度 = 几何全长吸附 (P 250 + 接缝 + B 250, 不拉伸对齐尾部时间)
   assert(Math.abs(merged.length! - mergedPath.totalLength) < 1e-6, `长度 ${merged.length} = 路径全长 ${mergedPath.totalLength.toFixed(1)}`);
   void measureSegments; // (保留引用, 便于后续扩测)
