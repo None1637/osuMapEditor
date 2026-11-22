@@ -76,6 +76,18 @@ export function DuplicateDialog() {
     store.dupVectorDragHandler = (dx, dy) => setParams(p => ({ ...p, dx: Math.round(dx * 10) / 10, dy: Math.round(dy * 10) / 10 }));
     return () => { store.dupVectorDragHandler = null; store.dupVectorView = null; };
   }, []);
+  // v582: 自定义镜像轴两点 — 输入框与画布拖拽共用同一 params (复用对称轴视图/拖拽通道)
+  const customAxisActive = params.mirrorRepeat && params.mirrorAxis === 'custom';
+  useEffect(() => {
+    store.symSliderAxisView = customAxisActive ? { p1: { ...params.mirrorAxisP1 }, p2: { ...params.mirrorAxisP2 } } : null;
+  }, [customAxisActive, params.mirrorAxisP1, params.mirrorAxisP2]);
+  useEffect(() => {
+    store.symSliderAxisDragHandler = (which, x, y) => setParams(p => {
+      const q = { x: Math.round(x * 10) / 10, y: Math.round(y * 10) / 10 };
+      return which === 1 ? { ...p, mirrorAxisP1: q } : { ...p, mirrorAxisP2: q };
+    });
+    return () => { store.symSliderAxisDragHandler = null; store.symSliderAxisView = null; };
+  }, []);
 
   if (!bm) return null;
   const upd = (patch: Partial<DuplicateParams>) => setParams(p => ({ ...p, ...patch }));
@@ -154,22 +166,36 @@ export function DuplicateDialog() {
           <span className="text-white/40">{t('convert.draggable_on_canvas', 'Draggable on canvas')}</span>
         </Row>
       )}
-      {/* v437: 镜像重复 — 第 2/4/6… 份绕锚点轴向镜像 (几何含滑条形状; 平移向量不受影响) */}
+      {/* v437: 镜像重复; v582: 改第 1/3/5… 份并支持竖直/水平/任意两点自定义轴 (平移不受影响) */}
       <Row label={t('convert.dup_mirror', 'Mirror repeat')}>
         <label className="flex items-center gap-1">
           <UiAutoControl localId="mirror-repeat"><input type="checkbox" checked={params.mirrorRepeat} data-conv="mirrorRepeat"
             onChange={e => upd({ mirrorRepeat: e.target.checked })} /></UiAutoControl>
-          <UiAutoText localId="mirror-repeat" textKey="convert.dup_mirror_hint">Even copies mirrored around anchor axis</UiAutoText>
+          <UiAutoText localId="mirror-repeat" textKey="convert.dup_mirror_hint">Odd copies mirrored around anchor axis</UiAutoText>
         </label>
         {params.mirrorRepeat && (
           <UiAutoControl localId="mirror-axis"><select value={params.mirrorAxis} data-conv="mirrorAxis"
-            onChange={e => upd({ mirrorAxis: e.target.value as 'vertical' | 'horizontal' })}
+            onChange={e => upd({ mirrorAxis: e.target.value as 'vertical' | 'horizontal' | 'custom' })}
             className="bg-black/40 border border-white/15 rounded px-1 py-0.5 text-white">
             <option value="vertical">{t('convert.dup_mirror_v', 'Vertical axis (flip left-right)')}</option>
             <option value="horizontal">{t('convert.dup_mirror_h', 'Horizontal axis (flip up-down)')}</option>
+            <option value="custom">{t('convert.custom', 'Custom')}</option>
           </select></UiAutoControl>
         )}
       </Row>
+      {customAxisActive && (<>
+        <Row label={t('convert.dup_mirror_p1', 'Axis point 1')}>
+          <DraftNum value={params.mirrorAxisP1.x} testid="mirrorAxisP1x" set={v => upd({ mirrorAxisP1: { ...params.mirrorAxisP1, x: v } })} />
+          <DraftNum value={params.mirrorAxisP1.y} testid="mirrorAxisP1y" set={v => upd({ mirrorAxisP1: { ...params.mirrorAxisP1, y: v } })} />
+        </Row>
+        <Row label={t('convert.dup_mirror_p2', 'Axis point 2')}>
+          <DraftNum value={params.mirrorAxisP2.x} testid="mirrorAxisP2x" set={v => upd({ mirrorAxisP2: { ...params.mirrorAxisP2, x: v } })} />
+          <DraftNum value={params.mirrorAxisP2.y} testid="mirrorAxisP2y" set={v => upd({ mirrorAxisP2: { ...params.mirrorAxisP2, y: v } })} />
+          <span className="text-white/40">{t('convert.draggable_on_canvas', 'Draggable on canvas')}</span>
+        </Row>
+        {Math.hypot(params.mirrorAxisP2.x - params.mirrorAxisP1.x, params.mirrorAxisP2.y - params.mirrorAxisP1.y) < 1e-6 &&
+          <div className="text-red-300">{t('convert.dup_mirror_degenerate', 'Axis points coincide; cannot mirror')}</div>}
+      </>)}
       <div className="text-white/40">
         {t('convert.dup_summary', 'Will create {a} × {b} = {n} copies (originals kept, shown in preview)', { a: objs.length, b: params.count, n: result.length })}
       </div>

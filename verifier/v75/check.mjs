@@ -56,7 +56,7 @@ section('store.ts: reverseSelected (一次 undo + invalidate + 重排序)');
   const src = readSrc('src/osu/store.ts');
   assert(/reverseSelected\(\) \{/.test(src), 'reverseSelected 方法');
   assert(/objs\.length === 1 && objs\[0\]\.type !== 'slider'\) return/.test(src), 'lazer CanReverse: >1 或任一滑条');
-  assert(/reverseSelection\(bm, objs\)\) invalidatePath/.test(src), '反转后 invalidate 滑条路径缓存');
+  assert(/new Set\(reverseSelection\(bm, objs\)\)/.test(src) && /for \(const s of changed\) invalidatePath/.test(src), '反转后 invalidate 滑条路径缓存 (v583 合并校正值)');
   assert(/hitObjects\.sort\(\(a, b\) => a\.time - b\.time\)/.test(src), '时间镜像后重排序');
   assert(/import \{ reverseSelection \} from '\.\/reverse'/.test(src), 'import 接入');
 }

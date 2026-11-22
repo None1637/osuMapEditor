@@ -98,6 +98,30 @@ export function distanceLockDistance(bm: Beatmap, endTime: number, time: number)
   return distanceSnapPxPerBeat(bm, endTime) * beats;
 }
 
+/** v583: 镜像/旋转/缩放/反转后整体平移选区, 恢复首件头与前件尾的锁定间距 (形状不变) */
+export function lockDistanceAfterTransform(bm: Beatmap, objs: HitObject[]): HitObject[] {
+  if (!objs.length) return [];
+  const first = [...objs].sort((a, b) => a.time - b.time)[0];
+  const ref = distanceLockRef(bm, first.time, new Set(objs.map(o => o.id)));
+  if (!ref) return [];
+  const expected = distanceLockDistance(bm, ref.endTime, first.time);
+  const dx = first.x - ref.endX, dy = first.y - ref.endY;
+  const d = Math.hypot(dx, dy);
+  const target = d > 1e-6
+    ? { x: ref.endX + dx / d * expected, y: ref.endY + dy / d * expected }
+    : { x: ref.endX + expected, y: ref.endY };
+  const tx = Math.round(target.x - first.x), ty = Math.round(target.y - first.y);
+  if (!tx && !ty) return [];
+  const changed: HitObject[] = [];
+  for (const o of objs) {
+    if (o.type === 'spinner') continue;
+    o.x += tx; o.y += ty;
+    for (const p of o.curvePoints ?? []) { p.x += tx; p.y += ty; }
+    if (o.type === 'slider') changed.push(o);
+  }
+  return changed;
+}
+
 /** 放置预览间距信息 (间距面板用): 在 time 放置于 p 时, 与锁定间距参考件结束位置的间距倍率/像素距离 */
 export function previewSpacingInfo(bm: Beatmap, p: { x: number; y: number }, time: number): { x: number; y: number; prev: number | null; prevPx: number | null } {
   const ref = distanceLockRef(bm, time);

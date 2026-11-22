@@ -23,40 +23,39 @@ const P = (patch: Partial<DuplicateParams>): DuplicateParams => ({ ...DEFAULT_DU
   const out = computeDuplicate(bm, [circle(300, 192)], 'playfield', P({ count: 2, dx: 10 }));
   ok(out[0].x === 310 && out[1].x === 320, `不开镜像: 正常平移 (${out[0].x},${out[1].x})`);
 }
-// 2) 竖直轴镜像: copy2 x 绕 256 翻转, y 不变
+// 2) v582: 竖直轴镜像改为 copy1, copy2 不镜像
 {
   const out = computeDuplicate(bm, [circle(300, 100)], 'playfield', P({ count: 2, mirrorRepeat: true }));
-  ok(out[0].x === 300 && out[0].y === 100, 'copy1 不镜像');
-  ok(out[1].x === 212 && out[1].y === 100, `copy2 竖直轴镜像 x=2*256-300=212 (实际 ${out[1].x},${out[1].y})`);
+  ok(out[0].x === 212 && out[0].y === 100, `copy1 竖直轴镜像 x=2*256-300=212 (实际 ${out[0].x},${out[0].y})`);
+  ok(out[1].x === 300 && out[1].y === 100, 'copy2 不镜像');
 }
-// 3) 水平轴镜像: copy2 y 绕 192 翻转, x 不变
+// 3) 水平轴镜像: copy1 y 绕 192 翻转, x 不变
 {
   const out = computeDuplicate(bm, [circle(300, 100)], 'playfield', P({ count: 2, mirrorRepeat: true, mirrorAxis: 'horizontal' }));
-  ok(out[1].x === 300 && out[1].y === 284, `copy2 水平轴镜像 y=2*192-100=284 (实际 ${out[1].x},${out[1].y})`);
+  ok(out[0].x === 300 && out[0].y === 284, `copy1 水平轴镜像 y=2*192-100=284 (实际 ${out[0].x},${out[0].y})`);
 }
-// 4) 隔份: copy3 (第 3 份) 不镜像
+// 4) 奇数份: copy3 镜像, copy2 不镜像
 {
   const out = computeDuplicate(bm, [circle(300, 100)], 'playfield', P({ count: 3, mirrorRepeat: true }));
-  ok(out[2].x === 300 && out[2].y === 100, `copy3 不镜像 (实际 ${out[2].x},${out[2].y})`);
+  ok(out[1].x === 300 && out[2].x === 212, `copy2 不镜像, copy3 镜像 (实际 ${out[1].x},${out[2].x})`);
 }
-// 5) 平移向量不镜像: dx=10 时 copy2 x = 212 + 2×10
+// 5) 平移向量不镜像: dx=10 时 copy1 x = 212 + 10
 {
   const out = computeDuplicate(bm, [circle(300, 100)], 'playfield', P({ count: 2, dx: 10, mirrorRepeat: true }));
-  ok(out[1].x === 232, `平移不镜像: copy2 x=212+20=232 (实际 ${out[1].x})`);
+  ok(out[0].x === 222, `平移不镜像: copy1 x=212+10=222 (实际 ${out[0].x})`);
 }
 // 6) 滑条控制点同样镜像 (形状翻转)
 {
   const out = computeDuplicate(bm, [slider()], 'playfield', P({ count: 2, mirrorRepeat: true }));
-  const cp = out[1].curvePoints![0];
-  ok(out[1].x === 212 && out[1].y === 100 && cp.x === 162 && cp.y === 150,
-    `滑条头+控制点镜像 (头 ${out[1].x},${out[1].y} 点 ${cp.x},${cp.y})`);
+  const cp = out[0].curvePoints![0];
+  ok(out[0].x === 212 && out[0].y === 100 && cp.x === 162 && cp.y === 150,
+    `滑条头+控制点镜像 (头 ${out[0].x},${out[0].y} 点 ${cp.x},${cp.y})`);
 }
-// 7) 旋转逐份递增 (copy2 转 180°) 再镜像 — (300,100) 绕 (256,192) 转 180° = (212,284), 再竖直镜像 = (300,284)
+// 7) copy1 转90°后镜像; copy2 转180°不镜像
 {
   const out = computeDuplicate(bm, [circle(300, 100)], 'playfield', P({ count: 2, rotateDeg: 90, mirrorRepeat: true }));
-  ok(out[1].x === 300 && out[1].y === 284, `copy2 转180°后镜像 (实际 ${out[1].x},${out[1].y})`);
-  // copy1 转 90° 不镜像
-  ok(out[0].x === 348 && out[0].y === 236, `copy1 转90°不镜像 (实际 ${out[0].x},${out[0].y})`);
+  ok(out[0].x === 164 && out[0].y === 236, `copy1 转90°后镜像 (实际 ${out[0].x},${out[0].y})`);
+  ok(out[1].x === 212 && out[1].y === 284, `copy2 转180°不镜像 (实际 ${out[1].x},${out[1].y})`);
 }
 // 8) 转盘不动 (位置固定, 镜像不改)
 {

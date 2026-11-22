@@ -1,6 +1,6 @@
 // 验证器 v437: 批量复制窗口「镜像重复」选项 (soulten 需求: 重複次數&是否鏡像重複 — 批量复制也要)
-// 语义 (用户确认): 隔份镜像 + 轴可选 — 第 2/4/6… 份绕锚点轴向几何镜像 (含滑条形状翻转),
-//   平移向量不镜像; 轴 = vertical 竖直轴(左右翻转) / horizontal 水平轴(上下翻转)。
+// 语义: v582 起第 1/3/5… 份绕锚点轴向几何镜像 (含滑条形状翻转), 平移向量不镜像;
+//   轴 = vertical / horizontal / custom 任意两点连线。
 // 运行: node verifier/v437/check.mjs (纯源码+纯函数, 无需 build)
 import { buildSync } from 'esbuild';
 import { fileURLToPath } from 'url';
@@ -27,9 +27,9 @@ section('源码: duplicate.ts 参数与镜像逻辑');
 {
   const dup = read('src/osu/duplicate.ts');
   assert(/mirrorRepeat: boolean;\s*\/\/ v437/.test(dup), 'DuplicateParams.mirrorRepeat (v437 注释)');
-  assert(/mirrorAxis: 'vertical' \| 'horizontal';/.test(dup), 'DuplicateParams.mirrorAxis');
+  assert(/mirrorAxis: 'vertical' \| 'horizontal' \| 'custom';/.test(dup), 'DuplicateParams.mirrorAxis 含 custom (v582)');
   assert(/mirrorRepeat: false, mirrorAxis: 'vertical', \/\/ v437/.test(dup), 'DEFAULT 默认关镜像/竖直轴');
-  assert(/const mirrorOn = p\.mirrorRepeat && i % 2 === 0;/.test(dup), '隔份镜像 (第 2/4/6… 份)');
+  assert(/const mirrorOn = p\.mirrorRepeat && i % 2 === 1;/.test(dup), 'v582: 奇数份镜像 (第 1/3/5… 份)');
   assert(/2 \* c\.y - q\.y/.test(dup) && /2 \* c\.x - q\.x/.test(dup), '两轴镜像公式');
   assert(/return \{ x: q\.x \+ tx, y: q\.y \+ ty \};/.test(dup), '平移在镜像之后 (向量不镜像)');
 }

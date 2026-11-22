@@ -19,7 +19,8 @@ import { getElectronAPI } from './electronBridge'; // v185: 谱面备份 IPC
 import { defaultNewPoint, effectivePointAt, activePointAt, snapTimeToRedBeat, metronomeBeats, rangeTimes } from './timingEdit'; // v156; v372: rangeTimes
 import { resnapSliderLength, snapPlacementTime, placementLength, pendingSliderTimeline, sliderLengthSnapDivisor, snapSliderLength, parseBSplineType, resolveSliderCurveType, splitSliderAtAnchors, deleteSliderPoints } from './sliderPath'; // v156: 重新计算滑条长度; v357: 粘贴锚点节拍吸附; v364: 调试暴露吸附纯函数; v388: 选中集 B4 判定; v409: 锚点处分割; v424: 批量删锚点; v490: 锚点粘贴改建新滑条 (v408 插入管线引用随之移除)
 import { sliderVelocityAt, svPointAt } from './parser'; // v366: 调试暴露 (SV 绿线边界验证)
-import { snapshotNodes, withRedPartners, transformNodesFromSnapshot, nodeSelectionEquals } from './nodeSelection'; // v304: F08 节点选区快捷键变换; v462: 无差别 emit 守卫
+import { snapshotNodes, withRedPartners, transformNodesFromSnapshot, nodeSelectionEquals } from './nodeSelection';
+import { lockDistanceAfterTransform } from './spacing'; // v583 // v304: F08 节点选区快捷键变换; v462: 无差别 emit 守卫
 import { setDisplayFlag as applyDisplayFlag, setDisplayNumber as applyDisplayNumber, setDisplayString as applyDisplayString, type BoolDisplayKey, type DisplaySettings, type StrDisplayKey } from './displaySettings'; // v132: 显示设置
 import { setEditorPref as applyEditorPref, type EditorPrefKey } from './editorPrefs'; // v381: 通用编辑器偏好
 import { setVolume as applyVolume, musicGain, effectsGain, type VolumeSettings } from './volumeSettings'; // v144: 音量设置
@@ -2101,7 +2102,9 @@ class EditorStore {
     const c = this.resolveOrigin(origin, objs);
     if (!c) return; // 空选区或只选了转盘 (位置固定不可变换)
     this.pushUndo();
-    for (const s of fn(objs, c)) invalidatePath(s.id);
+    const changed = new Set(fn(objs, c));
+    if (this.distanceLock) for (const s of lockDistanceAfterTransform(this.beatmap!, objs)) changed.add(s); // v583
+    for (const s of changed) invalidatePath(s.id);
     this.emit();
   }
 
@@ -2295,7 +2298,9 @@ class EditorStore {
     if (objs.length === 0) return;
     if (objs.length === 1 && objs[0].type !== 'slider') return; // lazer CanReverse: 选中 >1 或任一滑条
     this.pushUndo();
-    for (const s of reverseSelection(bm, objs)) invalidatePath(s.id);
+    const changed = new Set(reverseSelection(bm, objs));
+    if (this.distanceLock) for (const s of lockDistanceAfterTransform(bm, objs)) changed.add(s); // v583
+    for (const s of changed) invalidatePath(s.id);
     bm.hitObjects.sort((a, b) => a.time - b.time);
     this.emit();
   }
@@ -2461,7 +2466,9 @@ class EditorStore {
     const line = this.symAxisLine();
     if (!line) return;
     this.pushUndo();
-    for (const s of reflectObjectsAcrossLine(objs, line.p1, line.p2)) invalidatePath(s.id);
+    const changed = new Set(reflectObjectsAcrossLine(objs, line.p1, line.p2));
+    if (this.distanceLock) for (const s of lockDistanceAfterTransform(this.beatmap!, objs)) changed.add(s); // v583
+    for (const s of changed) invalidatePath(s.id);
     this.emit();
   }
 

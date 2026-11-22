@@ -15,13 +15,16 @@ export interface DuplicateParams {
   copyGreenLines: boolean; // v68: 同时复制物件时间范围内的绿线 (滑条 = 整条 [头,尾] 内全部绿线)
   scalePerCopy: number;    // v116: 每份递增缩放 — 第 i 份 = 1 + i×此值 (0.1 => 1.1x/1.2x..., -0.1 => 0.9x/0.8x...)
   scaleSlidersGreenLines: boolean; // v116: 勾选后滑条参与几何缩放并添加补偿绿线 (头 SV×s / 尾还原, 时长不变); 否则滑条不缩放
-  mirrorRepeat: boolean;   // v437: 镜像重复 — 第 2/4/6… 份绕锚点轴向几何镜像 (含滑条形状翻转; 第 1/3/5… 份正常)
-  mirrorAxis: 'vertical' | 'horizontal'; // v437: 镜像轴 — vertical = 过锚点竖直轴 (左右翻转); horizontal = 水平轴 (上下翻转)
+  mirrorRepeat: boolean;   // v437/v582: 镜像重复 — 第 1/3/5… 份绕锚点轴向几何镜像 (含滑条形状翻转; 第 2/4/6… 份正常)
+  mirrorAxis: 'vertical' | 'horizontal' | 'custom'; // v582: custom = 任意两点连线
+  mirrorAxisP1: Pt;        // v582: 自定义对称轴端点 (对话框输入/画布拖拽共用)
+  mirrorAxisP2: Pt;
 }
 export const DEFAULT_DUPLICATE_PARAMS: DuplicateParams = {
   count: 2, intervalBeats: 1, rotateDeg: 0, dx: 0, dy: 0,
   copyGreenLines: false, scalePerCopy: 0, scaleSlidersGreenLines: false,
   mirrorRepeat: false, mirrorAxis: 'vertical', // v437
+  mirrorAxisP1: { x: 176, y: 192 }, mirrorAxisP2: { x: 336, y: 192 }, // v582
 };
 export type DuplicateOrigin = 'selection' | 'playfield' | Pt;
 
@@ -56,22 +59,29 @@ export function computeDuplicate(bm: Beatmap, objs: HitObject[], origin: Duplica
     : origin;
   if (!c) return [];
   const sorted = [...objs].sort((a, b) => a.time - b.time);
+  const ax = p.mirrorAxisP2.x - p.mirrorAxisP1.x, ay = p.mirrorAxisP2.y - p.mirrorAxisP1.y;
+  const axisLen2 = ax * ax + ay * ay;
+  if (p.mirrorRepeat && p.mirrorAxis === 'custom' && axisLen2 < 1e-9) return []; // v582: 自定义轴两点重合无法镜像
   const out: HitObject[] = [];
   for (let i = 1; i <= p.count; i++) {
     const r = (p.rotateDeg * i * Math.PI) / 180, cos = Math.cos(r), sin = Math.sin(r);
     const tx = p.dx * i, ty = p.dy * i;
     // v116: 第 i 份几何缩放 s = 1 + i×scalePerCopy (下限 0.1 防负缩放); 先绕锚点缩放再旋转再平移
     const s = Math.max(0.1, 1 + p.scalePerCopy * i);
-    // v437: 镜像重复 — 第 2/4/6… 份在缩放+旋转之后、平移之前绕锚点轴向镜像 (位置与滑条形状都翻转);
-    //   平移向量不镜像 (各份仍沿向量正常行进, 不在锚点两侧来回跳)
-    const mirrorOn = p.mirrorRepeat && i % 2 === 0;
+    // v437/v582: 第 1/3/5… 份在缩放+旋转之后、平移之前镜像; 平移向量不镜像
+    const mirrorOn = p.mirrorRepeat && i % 2 === 1;
     const rotS = (p0: Pt, k: number): Pt => ({
       x: c.x + (p0.x - c.x) * k * cos - (p0.y - c.y) * k * sin,
       y: c.y + (p0.x - c.x) * k * sin + (p0.y - c.y) * k * cos,
     });
     const rot = (p0: Pt, k: number): Pt => {
       let q = rotS(p0, k);
-      if (mirrorOn) q = p.mirrorAxis === 'horizontal' ? { x: q.x, y: 2 * c.y - q.y } : { x: 2 * c.x - q.x, y: q.y };
+      if (mirrorOn && p.mirrorAxis === 'custom') {
+        // v582: 关于任意直线镜像: 垂足 = p1 + d·((q−p1)·d/|d|²), 像 = 2·垂足−q
+        const t = ((q.x - p.mirrorAxisP1.x) * ax + (q.y - p.mirrorAxisP1.y) * ay) / axisLen2;
+        const fx = p.mirrorAxisP1.x + t * ax, fy = p.mirrorAxisP1.y + t * ay;
+        q = { x: 2 * fx - q.x, y: 2 * fy - q.y };
+      } else if (mirrorOn) q = p.mirrorAxis === 'horizontal' ? { x: q.x, y: 2 * c.y - q.y } : { x: 2 * c.x - q.x, y: q.y };
       return { x: q.x + tx, y: q.y + ty };
     };
     for (const o of sorted) {
