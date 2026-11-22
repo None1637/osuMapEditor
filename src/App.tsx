@@ -44,6 +44,7 @@ import { UnsavedDialog } from '@/components/UnsavedDialog'; // v120
 import { LangFirstRun } from '@/components/LangFirstRun'; // v349: 首次启动先选语言
 import { UpdatePrompt, manualCheckUpdate } from '@/components/UpdatePrompt'; // v493: GitHub Releases 更新检测
 import { BpmDetectDialog } from '@/components/BpmDetectDialog'; // v508: 测全曲/bookmark 区间 timing
+import { BookmarkHitSoundDialog } from '@/components/BookmarkHitSoundDialog'; // v585
 import { TransformDialog } from '@/components/TransformDialog'; // v209: 旋转/缩放独立窗口
 import { FpsCounter } from '@/components/FpsCounter'; // v220: 右下角帧数显示
 import { SavedFlash } from '@/components/SavedFlash'; // v460: stable 风「地图已保存」中央横条
@@ -1000,6 +1001,7 @@ export default function App() {
       {/* v493: 更新提示徽章 + 确认窗口 (自动检测/手动检查共用) */}
       <UpdatePrompt />
       {store.bpmDetectOpen && <BpmDetectDialog onClose={() => store.closeBpmDetect()} />}{/* v508: 测全曲/bookmark 区间 timing */}
+      {store.bookmarkHitSoundOpen && <BookmarkHitSoundDialog />}{/* v585 */}
     </div>
     {/* v220: 右下角帧数显示 — 悬浮于所有控件之上; 挂在 v217 zoom 容器外, 不随界面缩放; v253: 显示设置可关 */}
     {displaySettings.showFps && <FpsCounter />}

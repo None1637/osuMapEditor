@@ -602,6 +602,7 @@ class EditorStore {
   }
 
   load(bm: Beatmap, audioUrl: string | null, backgroundUrl: string | null = null, samples?: Map<string, File>, source: MapSource | null = null, audioKey: string | null = null, initialDirty = false) {
+    if (this.playing) this.pause(); // v584: 换图/刷新先暂停, 播放状态不得带入新谱面
     this.resetWheelGesture(); // v514: 换谱后不得补发上一张谱的滚轮余量
     invalidatePath(); // v378: 换谱几何缓存全部失效 — pathCache 按物件 id 缓存, 新谱物件 id 与旧谱滑条
     //   重合时 hitTest/渲染沿用旧几何 (点不中/画错形状); restore() 已有同款清理, load 漏了
@@ -2042,6 +2043,34 @@ class EditorStore {
     this.openBpmDetect({ startMs: start, endMs: end });
   }
   closeBpmDetect() { this.bpmDetectOpen = false; this.emit(); }
+
+  // v585: 当前 bookmark 区间内物件的整体 hitsound 编辑
+  bookmarkHitSoundOpen = false;
+  openBookmarkHitSound() { this.bookmarkHitSoundOpen = true; this.emit(); }
+  closeBookmarkHitSound() { this.bookmarkHitSoundOpen = false; this.emit(); }
+  bookmarkHitSoundObjects(): HitObject[] {
+    const bm = this.beatmap;
+    if (!bm) return [];
+    const marks = [...bm.editor.bookmarks].sort((a, b) => a - b);
+    if (!marks.length) return [];
+    let lo = -Infinity, hi = Infinity;
+    for (const b of marks) { if (b <= this.currentTime) lo = b; else { hi = b; break; } }
+    return bm.hitObjects.filter(o => o.time >= lo && o.time < hi);
+  }
+  applyBookmarkHitSound(enabledBits: readonly number[], sample: Partial<HitSample>) {
+    const objs = this.bookmarkHitSoundObjects();
+    if (this.lockNotes || !objs.length) return;
+    this.pushUndo();
+    for (const o of objs) {
+      for (const bit of [2, 4, 8]) {
+        const on = enabledBits.includes(bit);
+        o.hitSound = on ? (o.hitSound ?? 0) | bit : (o.hitSound ?? 0) & ~bit;
+        if (o.edgeSoundsRaw !== undefined) setEdgeSoundBitAll(o, bit, on);
+      }
+      o.hitSampleRaw = buildHitSampleRaw({ ...parseHitSample(o.hitSampleRaw), ...sample }, hitSampleFilename(o.hitSampleRaw));
+    }
+    this.emit();
+  }
 
   /** v372: 批量删除选中 timing 点 (红绿通用; 一次 undo) */
   deleteTimingPointsAt(times: Iterable<number>) {

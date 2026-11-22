@@ -473,6 +473,7 @@ const MENU_LABELS = {
   "menu.delete_timing": { en: "Delete Timing Point", "zh-CN": "删除Timing区间", "zh-TW": "刪除Timing區間" },
   "menu.resnap_current": { en: "Resnap Current Timing Point", "zh-CN": "重新对齐当前Timing区间", "zh-TW": "重新對齊當前Timing區間" },
   "menu.resnap_bookmarks": { en: "Resnap Current Bookmark Section", "zh-CN": "重新对齐Bookmark区间", "zh-TW": "重新對齊Bookmark區間" }, // v355
+  "menu.hitsound_bookmarks": { en: "Adjust Bookmark Section Hitsound...", "zh-CN": "调整Bookmark区间Hitsound...", "zh-TW": "調整Bookmark區間Hitsound..." }, // v585
   "menu.timing_setup": { en: "Timing Setup...", "zh-CN": "Timing设置...", "zh-TW": "Timing設置..." },
   "menu.resnap_all": { en: "Resnap All Objects", "zh-CN": "全部重新对齐", "zh-TW": "全部重新對齊" },
   "menu.shift_all": { en: "Shift All Objects' Time...", "zh-CN": "整体平移所有物件的时间...", "zh-TW": "整體平移所有物件的時間..." },
@@ -644,6 +645,7 @@ function buildMenu() {
         { label: mT("menu.delete_timing"), accelerator: acc("timing-delete-current", "CmdOrCtrl+I"), enabled: !!menuState, click: () => send({ type: "timing-delete-current" }) },
         { label: mT("menu.resnap_current"), enabled: !!menuState, click: () => send({ type: "timing-resnap-current" }) },
         { label: mT("menu.resnap_bookmarks"), enabled: !!menuState, click: () => send({ type: "timing-resnap-bookmarks" }) }, // v355
+        { label: mT("menu.hitsound_bookmarks"), enabled: !!menuState, click: () => send({ type: "timing-hitsound-bookmarks" }) }, // v585
         { label: mT("menu.bpm_detect_song"), enabled: !!menuState, click: () => send({ type: "bpm-detect-song" }) },
         { label: mT("menu.bpm_detect_bookmark"), enabled: !!menuState, click: () => send({ type: "bpm-detect-bookmark" }) },
         { label: mT("menu.timing_setup"), accelerator: acc("timing-open-settings", "F6"), click: () => send({ type: "timing-open-settings" }) },

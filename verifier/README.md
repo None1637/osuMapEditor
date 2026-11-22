@@ -6143,3 +6143,12 @@
 - 新增 lockDistanceAfterTransform: 按变换后的时间首件找前一个未选物件, 将首件头投影回期望距离圆,
   全部选中物件按同一整数 delta 平移, 不改变选区形状; applyTransform/reverseSelected/reflectSelected 均接入。
 - 验证: v583 镜像/旋转/反转/形状/store 集成全绿; v145/v75 回归及 `npm run build` 通过。
+
+## v584 — 换谱统一暂停
+- store.load 在替换谱面前若仍播放则先 pause, 曲库换图/菜单打开/刷新谱面均不继承播放状态。
+- 验证: v584 播放中 load 断言及 v509 音频回归、`npm run build` 通过。
+
+## v585 — Bookmark 区间整体 Hitsound
+- Timing 菜单新增「调整Bookmark区间Hitsound...」: 当前书签到下书签范围内物件统一设置
+  Whistle/Finish/Clap、NormalSet/AddSet、自定义序号与音量; 滑条边缘音效同步, 一次 undo。
+- 验证: v585 区间筛选/位标志/采样字段/区间外隔离及 v355 书签回归、`npm run build` 通过。

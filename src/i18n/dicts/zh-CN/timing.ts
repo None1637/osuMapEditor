@@ -59,4 +59,6 @@ export const zhCN: Record<string, string> = {
   'timing.apply': '应用',
   'timing.cancel': '取消',
   'timing.delete': '删除',
+  'bookmark_hs.title': 'Bookmark区间 Hitsound ({n} 个物件)',
+  'bookmark_hs.empty': '没有书签区间, 或该区间内没有物件',
 };
