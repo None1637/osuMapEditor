@@ -47,7 +47,7 @@ export const UI_CONTROLS: UiControlDefinition[] = [
   // v525: 独立窗口永久 ID (DraggableDialog.testid 原值永久保留)
   ...(['display-panel', 'pattern-panel', 'hotkey-panel', 'geo-snap', 'symSlider', 'stream', 'split',
     'batch-red', 'batch-green', 'polygon', 'duplicate', 'anchorStamp', 'tpdlg', 'rotate-dlg', 'scale-dlg',
-    'symmetry-dlg', 'volume-panel', 'bpm-detect-dialog', 'ui-layout-editor'] as const).map(id => ({
+    'symmetry-dlg', 'volume-panel', 'bpm-detect-dialog', 'b4-convert-settings', 'ui-layout-editor'] as const).map(id => ({
     id: `dialog.${id}`, kind: 'panel' as const,
   })),
   // v527: Canvas/自绘区域 (显示和命中共用实际 rect)
@@ -78,6 +78,7 @@ export const UI_CONTROLS: UiControlDefinition[] = [
     'grid-type', 'grid-spacing', 'grid-rotation', 'grid-origin-x', 'grid-origin-y'] as const)
     .map(id => ({ id: `sidebar.left.${id}`, kind: 'input' as const })),
   { id: 'sidebar.right.b4-convert', kind: 'button', defaultTextKey: 'app.b4_convert_all' },
+  { id: 'sidebar.right.b4-tolerance', kind: 'input' },
   ...([
     ['rotate-ccw', 'inspector.rotate_ccw'], ['rotate-cw', 'inspector.rotate_cw'], ['scale-apply', 'inspector.apply_scale'],
     ['flip-h', 'inspector.flip_h'], ['flip-v', 'inspector.flip_v'], ['stream', 'inspector.sliders_to_stream'],

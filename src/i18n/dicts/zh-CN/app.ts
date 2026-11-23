@@ -130,6 +130,11 @@ export const zhCN: Record<string, string> = {
   // v387: B4 不兼容 stable 警告条
   'app.b4_warning': '{count} 个 B 样条 (B4) 滑条 — stable osu! 无法读取',
   'app.b4_convert_all': '全部转为贝塞尔',
+  'app.b4_fit_tolerance': '拟合容差 px',
+  'b4_settings.title': 'B4转贝塞尔设置',
+  'b4_settings.tolerance': '拟合容差 px',
+  'b4_settings.max_degree': '最高贝塞尔阶数',
+  'b4_settings.hint': '容差越大通常锚点越少但偏差越大。阶数越高越容易用更多普通锚点完成单段拟合。',
   // v493: 更新检测
   'update.badge': '发现新版本 v{v} (点击查看)',
   'update.dismiss': '本次忽略',

@@ -2048,6 +2048,12 @@ class EditorStore {
   bookmarkHitSoundOpen = false;
   openBookmarkHitSound() { this.bookmarkHitSoundOpen = true; this.emit(); }
   closeBookmarkHitSound() { this.bookmarkHitSoundOpen = false; this.emit(); }
+
+  // v589: B4 转换参数设置窗口
+  b4ConvertSettingsOpen = false;
+  openB4ConvertSettings() { this.b4ConvertSettingsOpen = true; this.emit(); }
+  closeB4ConvertSettings() { this.b4ConvertSettingsOpen = false; this.emit(); }
+
   bookmarkHitSoundObjects(): HitObject[] {
     const bm = this.beatmap;
     if (!bm) return [];

@@ -5,11 +5,11 @@
 //   4) parser 读入保留 B4 + 段内类型字母 token 容错 + 序列化原样写回;
 //   5) convertB4: 全图 B4 -> stable 'B' (双候选少锚点, 形状偏差 <= ~1.5px), countBSplineSliders;
 //   6) IncrementalBSplineBuilder 冒烟 (合成笔迹 => 控制点远少于采样点)。
-import { bSplineToBezierSegments, bSplineToPiecewiseLinear, BSPLINE_FIT_TOLERANCE } from '@/osu/freehand/pathApproximator';
+import { bSplineToBezierSegments, bSplineToPiecewiseLinear } from '@/osu/freehand/pathApproximator';
 import { IncrementalBSplineBuilder } from '@/osu/freehand/bsplineBuilder';
 import { SliderPath, bsplineRawPath, parseBSplineType, resolveSliderCurveType, sliderGeometryLength } from '@/osu/sliderPath';
 import { parseHitObjectLine, serializeHitObjectLine, type Beatmap } from '@/osu/parser';
-import { countBSplineSliders, convertBSplineSlidersToBezier } from '@/osu/convert/convertB4';
+import { countBSplineSliders, convertBSplineSlidersToBezier, B4_CONVERT_FIT_TOLERANCE } from '@/osu/convert/convertB4';
 
 let failures = 0;
 function assert(cond: boolean, msg: string) { if (!cond) { failures++; console.error('  FAIL:', msg); } else console.log('  ok:', msg); }
@@ -105,7 +105,7 @@ section('convertB4: 全图 B4 -> stable B (形状 <= ~1.5px, 计数正确)');
   assert(n === 1 && bm.hitObjects[0].curveType === 'B' && countBSplineSliders(bm) === 0, '转换 1 条, 类型 => B, 计数归零');
   const conv = SliderPath.computeRawPath('B', [{ x: 0, y: 0 }, ...(bm.hitObjects[0].curvePoints ?? [])]);
   const dev = Math.max(maxDeviation(orig, conv), maxDeviation(conv, orig));
-  assert(dev <= BSPLINE_FIT_TOLERANCE + 0.6 + 0.5, `转换形状偏差 ${dev.toFixed(2)}px (容差+取整+采样余量)`);
+  assert(dev <= B4_CONVERT_FIT_TOLERANCE + 0.6 + 0.5, `转换形状偏差 ${dev.toFixed(2)}px (v586 容差+取整+采样余量)`);
   assert(bm.hitObjects[0].curvePoints!.every(p => Number.isInteger(p.x) && Number.isInteger(p.y)), '转换后锚点取整 (lazer 导出口径)');
 }
 

@@ -37,6 +37,7 @@ import { applyServerSkin } from '@/osu/serverSkin';
 import { getElectronAPI, isElectron } from '@/osu/electronBridge';
 import { handleMenuCommand, openServerDifficulty } from '@/osu/electronMenu';
 import { dispatchAnchorStampGeometryCommand, dispatchAnchorStampMenuCommand } from '@/osu/convert/anchorStampEditScope'; // v519: 模板局部编辑作用域
+import { b4ConvertSettings, setB4ConvertFitTolerance } from '@/osu/convert/convertB4'; // v587
 import { computeStarRating } from '@/osu/starRating'; // v167: 谱面星数 (lazer 移植)
 import { FirstRunWizard } from '@/components/FirstRunWizard';
 import { SkinListPanel } from '@/components/SkinListPanel';
@@ -45,6 +46,7 @@ import { LangFirstRun } from '@/components/LangFirstRun'; // v349: 首次启动�
 import { UpdatePrompt, manualCheckUpdate } from '@/components/UpdatePrompt'; // v493: GitHub Releases 更新检测
 import { BpmDetectDialog } from '@/components/BpmDetectDialog'; // v508: 测全曲/bookmark 区间 timing
 import { BookmarkHitSoundDialog } from '@/components/BookmarkHitSoundDialog'; // v585
+import { B4ConvertSettingsDialog } from '@/components/B4ConvertSettingsDialog'; // v589
 import { TransformDialog } from '@/components/TransformDialog'; // v209: 旋转/缩放独立窗口
 import { FpsCounter } from '@/components/FpsCounter'; // v220: 右下角帧数显示
 import { SavedFlash } from '@/components/SavedFlash'; // v460: stable 风「地图已保存」中央横条
@@ -907,6 +909,11 @@ export default function App() {
               {store.b4SliderCount > 0 && (
                 <div className="px-3 py-2 text-[11px] border-b border-white/10 bg-amber-500/10 text-amber-200" data-b4-warning>
                   <div>{t('app.b4_warning', '{count} B-spline (B4) slider(s) — stable osu! cannot read them', { count: store.b4SliderCount })}</div>
+                  <label className="mt-1 flex items-center gap-1">{t('app.b4_fit_tolerance', 'Fit tolerance (px)')}
+                    <UiControl id="sidebar.right.b4-tolerance"><input type="number" min={0.25} max={20} step={0.25} value={b4ConvertSettings.fitTolerance} data-b4-tolerance
+                      onChange={e => { setB4ConvertFitTolerance(parseFloat(e.target.value)); store.emitSelection(); }}
+                      className="w-16 bg-black/30 border border-amber-300/20 rounded px-1 py-0.5 text-amber-100" /></UiControl>
+                  </label>
                   <UiControl id="sidebar.right.b4-convert"><button onClick={() => store.convertAllBSplineSliders()} className="mt-1 px-2 py-0.5 rounded bg-amber-400/20 hover:bg-amber-400/30 text-amber-100">
                     <UiText id="sidebar.right.b4-convert" textKey="app.b4_convert_all">Convert all to Bezier</UiText>
                   </button></UiControl>
@@ -1002,6 +1009,7 @@ export default function App() {
       <UpdatePrompt />
       {store.bpmDetectOpen && <BpmDetectDialog onClose={() => store.closeBpmDetect()} />}{/* v508: 测全曲/bookmark 区间 timing */}
       {store.bookmarkHitSoundOpen && <BookmarkHitSoundDialog />}{/* v585 */}
+      {store.b4ConvertSettingsOpen && <B4ConvertSettingsDialog />}{/* v589 */}
     </div>
     {/* v220: 右下角帧数显示 — 悬浮于所有控件之上; 挂在 v217 zoom 容器外, 不随界面缩放; v253: 显示设置可关 */}
     {displaySettings.showFps && <FpsCounter />}

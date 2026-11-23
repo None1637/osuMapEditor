@@ -142,6 +142,7 @@ export async function handleMenuCommand(cmd: ElectronMenuCommand, onCreated?: ()
     case 'compose-polygon': store.openConversion('polygon'); return; // 无需选区
     // v386: 设置菜单 — editorPrefs 勾选开关 (翻转后 store.setEditorPref 内部 emitSelection → App.tsx 订阅回报主进程重建勾选)
     case 'settings-toggle-editor-pref': store.setEditorPref(cmd.key, !editorPrefs[cmd.key]); return;
+    case 'settings-b4-convert': store.openB4ConvertSettings(); return; // v589
     case 'compose-stream': // 滑条转连打: 需选中滑条
       if (store.beatmap?.hitObjects.some(o => store.selected.has(o.id) && o.type === 'slider')) store.openConversion('stream');
       return;

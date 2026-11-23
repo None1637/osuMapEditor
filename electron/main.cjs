@@ -474,6 +474,7 @@ const MENU_LABELS = {
   "menu.resnap_current": { en: "Resnap Current Timing Point", "zh-CN": "重新对齐当前Timing区间", "zh-TW": "重新對齊當前Timing區間" },
   "menu.resnap_bookmarks": { en: "Resnap Current Bookmark Section", "zh-CN": "重新对齐Bookmark区间", "zh-TW": "重新對齊Bookmark區間" }, // v355
   "menu.hitsound_bookmarks": { en: "Adjust Bookmark Section Hitsound...", "zh-CN": "调整Bookmark区间Hitsound...", "zh-TW": "調整Bookmark區間Hitsound..." }, // v585
+  "menu.b4_convert_settings": { en: "B4 to Bezier Settings...", "zh-CN": "B4转贝塞尔设置...", "zh-TW": "B4轉貝塞爾設置..." }, // v589
   "menu.timing_setup": { en: "Timing Setup...", "zh-CN": "Timing设置...", "zh-TW": "Timing設置..." },
   "menu.resnap_all": { en: "Resnap All Objects", "zh-CN": "全部重新对齐", "zh-TW": "全部重新對齊" },
   "menu.shift_all": { en: "Shift All Objects' Time...", "zh-CN": "整体平移所有物件的时间...", "zh-TW": "整體平移所有物件的時間..." },
@@ -662,6 +663,7 @@ function buildMenu() {
       label: mT("menu.settings"),
       submenu: [
         { label: mT("menu.reconfigure"), click: () => win?.webContents.send("open-setup") },
+        { label: mT("menu.b4_convert_settings"), click: () => send({ type: "settings-b4-convert" }) }, // v589
         { type: "separator" },
         // v386: 编辑器行为偏好 (checkbox, 勾选状态渲染端经 editor-prefs-state 上报; 点击 → menu-cmd 翻转 editorPrefs)
         { label: mT("menu.drag_adjust_numbers"), type: "checkbox", checked: editorPrefsState.dragAdjustNumbers, click: () => send({ type: "settings-toggle-editor-pref", key: "dragAdjustNumbers" }) },

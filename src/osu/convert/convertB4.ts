@@ -1,12 +1,45 @@
 // v387: 'B4'/'B<n>' (lazer 内存扩展 B 样条) 滑条一键转 stable 兼容 'B'
 // 对应 lazer 导出 stable 的 LegacyBeatmapExporter.MutateBeatmap + BezierConverter.ConvertToModernBezier;
-// 转换算法复用 bsplineToStableBezier (Boehm 精确 vs Schneider 拟合双候选取锚点少者, 偏差 <= 1px),
+// 转换算法复用 bsplineToStableBezier (Boehm 精确 vs Schneider 拟合双候选取锚点少者, v586 容差 4px),
 // 比 lazer 纯 Boehm 展开锚点更少; 坐标 Round 取整 (lazer 导出口径, stable 坐标为整数)
 import type { Beatmap } from '../parser';
 import { bsplineToStableBezier } from '../freehand/pathApproximator';
 import { parseBSplineType, SliderPath } from '../sliderPath';
 import { IncrementalBSplineBuilder } from '../freehand/bsplineBuilder';
 import type { Vec2 } from '../parser';
+
+/** v586: B4→B 默认 4px 拟合容差, 比 v387 的 1px 显著减少平滑段锚点 */
+export const B4_CONVERT_FIT_TOLERANCE = 4.0;
+const LS_B4_FIT_TOLERANCE = 'osu-editor:b4-fit-tolerance';
+
+/** v587: 用户可调容差 (0.25..20px), 持久化; 越大节点/红锚点通常越少, 形状偏差越大 */
+export const b4ConvertSettings: { fitTolerance: number; maxDegree: number } = { fitTolerance: loadB4FitTolerance(), maxDegree: 24 };
+function loadB4FitTolerance(): number {
+  try {
+    const v = Number(localStorage.getItem(LS_B4_FIT_TOLERANCE));
+    return Number.isFinite(v) && v > 0 ? Math.min(20, Math.max(0.25, v)) : B4_CONVERT_FIT_TOLERANCE;
+  } catch { return B4_CONVERT_FIT_TOLERANCE; }
+}
+export function setB4ConvertFitTolerance(v: number): void {
+  if (!Number.isFinite(v)) return;
+  b4ConvertSettings.fitTolerance = Math.min(20, Math.max(0.25, v));
+  try { localStorage.setItem(LS_B4_FIT_TOLERANCE, String(b4ConvertSettings.fitTolerance)); } catch { /* 隐私模式忽略 */ }
+}
+
+const LS_B4_MAX_DEGREE = 'osu-editor:b4-max-degree';
+/** v589: 高阶拟合的最高阶数 (3..24, 默认 24), 持久化 */
+b4ConvertSettings.maxDegree = loadB4MaxDegree();
+function loadB4MaxDegree(): number {
+  try {
+    const v = Number(localStorage.getItem(LS_B4_MAX_DEGREE));
+    return Number.isFinite(v) ? Math.min(24, Math.max(3, Math.round(v))) : 24;
+  } catch { return 24; }
+}
+export function setB4ConvertMaxDegree(v: number): void {
+  if (!Number.isFinite(v)) return;
+  b4ConvertSettings.maxDegree = Math.min(24, Math.max(3, Math.round(v)));
+  try { localStorage.setItem(LS_B4_MAX_DEGREE, String(b4ConvertSettings.maxDegree)); } catch { /* 隐私模式忽略 */ }
+}
 
 /** 谱面中 B 样条 ('B<n>') 滑条数量 (警告条显隐依据) */
 export function countBSplineSliders(bm: Beatmap | null): number {
@@ -29,7 +62,7 @@ export function convertBSplineSlidersToBezier(bm: Beatmap, onlyIds?: Set<number>
     if (deg === null) continue;
     if (onlyIds && !onlyIds.has(o.id)) continue;
     const pts = [{ x: o.x, y: o.y }, ...(o.curvePoints ?? [])];
-    o.curvePoints = bsplineToStableBezier(pts, deg).slice(1).map(p => ({ x: Math.round(p.x), y: Math.round(p.y) }));
+    o.curvePoints = bsplineToStableBezier(pts, deg, b4ConvertSettings.fitTolerance, true, true, b4ConvertSettings.maxDegree).slice(1).map(p => ({ x: Math.round(p.x), y: Math.round(p.y) }));
     o.curveType = 'B';
     n++;
   }

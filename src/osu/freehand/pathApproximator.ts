@@ -258,18 +258,124 @@ export function fitBezierToPolyline(input: Vec[], maxError: number): Vec[] {
   return out;
 }
 
-export function bsplineToStableBezier<T extends Vec>(pts: T[], degree = 4, maxError = BSPLINE_FIT_TOLERANCE): Vec[] {
+/** v588: 高阶贝塞尔最小二乘拟合 — 用更多白锚点换取整条不分段 (无红锚点) */
+export function fitHighOrderBezierToPolyline(input: Vec[], maxError: number, maxDegree = 24): Vec[] | null {
+  const points: Vec[] = [];
+  for (const p of input) if (!points.length || dist(p, points[points.length - 1]) > 1e-9) points.push(p);
+  if (points.length < 2) return points.map(p => ({ ...p }));
+  if (points.length === 2) return [points[0], points[1]];
+
+  const ts = [0];
+  for (let i = 1; i < points.length; i++) ts.push(ts[i - 1] + dist(points[i], points[i - 1]));
+  const total = ts[ts.length - 1];
+  if (total < 1e-9) return null;
+  for (let i = 0; i < ts.length; i++) ts[i] /= total;
+
+  const evalAt = (ctrl: Vec[], t: number): Vec => {
+    const n = ctrl.length - 1;
+    const b = new Array<number>(n + 1).fill(1);
+    for (let i = 1; i <= n; i++) b[i] = b[i - 1] * (n - i + 1) / i;
+    let px = 0, py = 0;
+    for (let i = 0; i <= n; i++) {
+      const w = b[i] * Math.pow(1 - t, n - i) * Math.pow(t, i);
+      px += ctrl[i].x * w; py += ctrl[i].y * w;
+    }
+    return { x: px, y: py };
+  };
+  const solve = (a: number[][], bx: number[], by: number[]): [number[], number[]] | null => {
+    const n = bx.length, aug = a.map((row, i) => [...row, bx[i], by[i]]);
+    for (let k = 0; k < n; k++) {
+      let pivot = k;
+      for (let i = k + 1; i < n; i++) if (Math.abs(aug[i][k]) > Math.abs(aug[pivot][k])) pivot = i;
+      if (Math.abs(aug[pivot][k]) < 1e-14) return null;
+      [aug[k], aug[pivot]] = [aug[pivot], aug[k]];
+      for (let i = k + 1; i < n; i++) {
+        const f = aug[i][k] / aug[k][k];
+        for (let j = k; j < n + 2; j++) aug[i][j] -= f * aug[k][j];
+      }
+    }
+    const x = new Array<number>(n), y = new Array<number>(n);
+    for (let i = n - 1; i >= 0; i--) {
+      let sx = aug[i][n], sy = aug[i][n + 1];
+      for (let j = i + 1; j < n; j++) { sx -= aug[i][j] * x[j]; sy -= aug[i][j] * y[j]; }
+      x[i] = sx / aug[i][i]; y[i] = sy / aug[i][i];
+    }
+    return [x, y];
+  };
+
+  for (let degree = 3; degree <= maxDegree; degree++) {
+    const unknown = degree - 1;
+    const a = Array.from({ length: unknown }, () => new Array<number>(unknown).fill(0));
+    const bx = new Array<number>(unknown).fill(0), by = new Array<number>(unknown).fill(0);
+    const basis = (t: number) => {
+      const b = new Array<number>(degree + 1).fill(1);
+      for (let i = 1; i <= degree; i++) b[i] = b[i - 1] * (degree - i + 1) / i;
+      for (let i = 0; i <= degree; i++) b[i] *= Math.pow(1 - t, degree - i) * Math.pow(t, i);
+      return b;
+    };
+    for (let k = 0; k < points.length; k++) {
+      const b = basis(ts[k]), rx = points[k].x - b[0] * points[0].x - b[degree] * points[points.length - 1].x;
+      const ry = points[k].y - b[0] * points[0].y - b[degree] * points[points.length - 1].y;
+      for (let i = 1; i < degree; i++) for (let j = 1; j < degree; j++) a[i - 1][j - 1] += b[i] * b[j];
+      for (let i = 1; i < degree; i++) { bx[i - 1] += b[i] * rx; by[i - 1] += b[i] * ry; }
+    }
+    const solved = solve(a, bx, by);
+    if (!solved) continue;
+    const ctrl = [points[0], ...solved[0].map((x, i) => ({ x, y: solved[1][i] })), points[points.length - 1]];
+    if (ctrl.some(p => !Number.isFinite(p.x) || !Number.isFinite(p.y))) continue;
+    let maxSq = 0;
+    for (let i = 0; i < points.length; i++) {
+      const q = evalAt(ctrl, ts[i]);
+      const d2 = (q.x - points[i].x) ** 2 + (q.y - points[i].y) ** 2;
+      if (d2 > maxSq) maxSq = d2;
+    }
+    if (maxSq <= maxError * maxError) return ctrl;
+  }
+  return null;
+}
+
+/** v587: 合并近直线红锚点接点; 尖角仍分段, 避免无意义地增加可编辑红锚点 */
+function mergeSmoothJoints<T extends Vec>(segs: T[][]): T[][] {
+  if (segs.length < 2) return segs;
+  const out: T[][] = [segs[0].slice()];
+  for (let i = 1; i < segs.length; i++) {
+    const next = segs[i], prev = out[out.length - 1];
+    const joint = prev[prev.length - 1];
+    const a = prev.length >= 2 ? prev[prev.length - 2] : joint;
+    const b = next.length >= 2 ? next[1] : joint;
+    const vx = joint.x - a.x, vy = joint.y - a.y, wx = b.x - next[0].x, wy = b.y - next[0].y;
+    const lv = Math.hypot(vx, vy), lw = Math.hypot(wx, wy);
+    const cos = lv > 1e-9 && lw > 1e-9 ? (vx * wx + vy * wy) / (lv * lw) : 1;
+    const straight = (ps: T[]) => {
+      const p0 = ps[0], p1 = ps[ps.length - 1], dx = p1.x - p0.x, dy = p1.y - p0.y, len = Math.hypot(dx, dy);
+      if (len < 1e-9) return true;
+      return ps.every(p => Math.abs(dy * (p.x - p0.x) - dx * (p.y - p0.y)) / len <= 0.5);
+    };
+    // 仅两侧本身都是直线时合并, 弯曲接点不能靠改角度省掉而不超拟合容差
+    if (cos >= Math.cos(Math.PI / 6) && straight(prev) && straight(next) && next.length) prev.push(...next.slice(1));
+    else out.push(next.slice());
+  }
+  return out;
+}
+
+export function bsplineToStableBezier<T extends Vec>(pts: T[], degree = 4, maxError = BSPLINE_FIT_TOLERANCE, mergeJoints = false, singleSegment = false, maxDegree = 24): Vec[] {
   // 按连续重复点 (红锚点) 切段 (与 sliderPath bsplineRawPath 同款约定), 各段独立转换后以重复点接回
-  const segs: T[][] = [];
+  let segs: T[][] = [];
   let cur: T[] = [];
   for (const p of pts) {
     if (cur.length > 0 && p.x === cur[cur.length - 1].x && p.y === cur[cur.length - 1].y) { segs.push(cur); cur = []; }
     cur.push(p);
   }
   segs.push(cur);
+  if (mergeJoints) segs = mergeSmoothJoints(segs);
   const out: Vec[] = [];
   for (const seg of segs) {
     if (seg.length === 0) continue;
+    if (singleSegment) {
+      // v588: 优先高阶整体拟合 (白锚点更多但无段内红锚点); 精度不足才回退分段方案
+      const high = fitHighOrderBezierToPolyline(bSplineToPiecewiseLinear(seg, degree), maxError, maxDegree);
+      if (high) { out.push(...high); continue; }
+    }
     // 双候选取锚点少者 (同点数取拟合 — 段内光滑无红锚点更好改):
     //   a) Boehm 精确转换 (退化单条 Bezier 时 0 误差且锚点最少; 高抖动锯齿段也常更省)
     //   b) Schneider 容差拟合 (光滑手绘笔迹锚点远少于精确转换, 偏差 <= maxError)

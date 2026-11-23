@@ -179,7 +179,8 @@ export type ElectronMenuCommand =
   | { type: 'compose-convert-bezier-b4' } // v464: 贝塞尔全图转 B4 (反向)
   // ---- v386: 设置菜单 — editorPrefs 勾选开关 (翻转, 状态经 menuEditorPrefsState 回报主进程重建勾选) ----
   | { type: 'check-update' } // v493: 关于菜单「检查更新」(手动检查, 带反馈)
-  | { type: 'settings-toggle-editor-pref'; key: 'dragAdjustNumbers' | 'moveDeadzone2px' | 'sliderHalfSnap' | 'svRedlineBoost' | 'svTailRestore' }; // v443: +sliderHalfSnap; v455: +svRedlineBoost; v457: +svTailRestore
+  | { type: 'settings-toggle-editor-pref'; key: 'dragAdjustNumbers' | 'moveDeadzone2px' | 'sliderHalfSnap' | 'svRedlineBoost' | 'svTailRestore' } // v443: +sliderHalfSnap; v455: +svRedlineBoost; v457: +svTailRestore
+  | { type: 'settings-b4-convert' } // v589
 
 /** v209: 渲染端 -> 主进程的编辑菜单置灰状态; v212: 扩 hasSlider/selMulti (作图菜单置灰用) */
 export interface ElectronEditMenuState {

@@ -65,7 +65,7 @@ section('convert: B4 下游工具链');
   assert(/parseBSplineType\(workType\) !== null \? workType : 'B'/.test(sym), 'symSlider 拼接保持 B4');
   const conv = read('src/osu/convert/convertB4.ts');
   assert(/export function countBSplineSliders\(/.test(conv) && /export function convertBSplineSlidersToBezier\(/.test(conv), 'convertB4 导出计数+转换');
-  assert(/bsplineToStableBezier\(pts, deg\)/.test(conv) && /Math\.round\(p\.x\)/.test(conv), '转换走双候选 + 取整');
+  assert(/bsplineToStableBezier\(pts, deg, b4ConvertSettings\.fitTolerance, true, true, b4ConvertSettings\.maxDegree\)/.test(conv) && /Math\.round\(p\.x\)/.test(conv), '转换走双候选 + v589 可配阶数 + 取整');
 }
 
 section('UI: 警告条 + 菜单 + Inspector');
