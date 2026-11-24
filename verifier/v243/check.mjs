@@ -33,7 +33,7 @@ section('symSlider.ts: P→B 转换源码断言');
 {
   const src = readSrc('src/osu/convert/symSlider.ts');
   assert(/import \{[^}]*segmentsToPoints[^}]*sliderToBezierSegments[^}]*\} from '\.\/bezierPath'/.test(src), '导入 bezierPath 转换工具');
-  assert(/if \(o\.curveType === 'P' && p\.join !== 'none' && !forPreview && !trimmed\)/.test(src)
+  assert(/if \(o\.curveType === 'P' && p\.join !== 'none' && !trimmed\)/.test(src)
     && /segmentsToPoints\(sliderToBezierSegments\(o\)\)/.test(src)
     && /workType = 'B'/.test(src), 'P 源仅拼接时展开为贝塞尔节点 (v474 收窄), workType = B');
   assert(/curveType: workType,/.test(src), 'join=none 副本 curveType 用 workType');

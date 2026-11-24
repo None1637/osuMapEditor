@@ -123,6 +123,8 @@ export interface RenderCtx {
   skin: Skin;
   time: number;
   selected: Set<number>;
+  /** v595: 只抑制这些滑条的控制点手柄 (对称最终预览); 身体/头尾选中效果仍保留 */
+  hiddenSliderControlPoints?: Set<number>;
   /** v245: 帧级缓存键 (EditorCanvas 传 dataVersion) — 选中装饰离屏层/followPoint 对缓存按它失效 */
   cacheKey?: string;
   /** v340: 数据版本键 (EditorCanvas 传 dataVersion) — 静态场景层按它失效 (拖拽只 bump version 不影响) */
@@ -779,7 +781,7 @@ function drawSelectionDecor(rc: RenderCtx, o: HitObject, radius: number) {
       drawSelectionRing(g, o.x, o.y, radius);
       if (tail) drawSelectionRing(g, tail.x, tail.y, radius);
     }
-    drawSliderControlPoints(g, o); // v259: 抽出共用 (hover 预览同用)
+    if (!rc.hiddenSliderControlPoints?.has(o.id)) drawSliderControlPoints(g, o); // v259/v595: hover 复用; 对称最终预览只显示原 P 锚点
   } else if (stableSel) {
     drawHitcircleSelectMark(rc, o.x, o.y, radius); // v469: stable 单点/spinner = 皮肤 hitcircleselect.png
   } else {

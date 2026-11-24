@@ -11,11 +11,12 @@ const arc: HitObject = {
   id: 1, type: 'slider', x: 0, y: 0, time: 1000, endTime: 2000,
   curveType: 'P', curvePoints: [{ x: 100, y: 100 }, { x: 200, y: 0 }], slides: 1, length: 50,
 };
-const preview = computeSymSlider(bm, arc, { ...DEFAULT_SYM_SLIDER_PARAMS, mode: 'point', join: 'tail' }, true);
+const joined = computeSymSlider(bm, arc, { ...DEFAULT_SYM_SLIDER_PARAMS, mode: 'point', join: 'tail' });
 const actualTail = getSliderPath(bm, arc).positionAt(50);
-ok(preview.length === 2 && preview[0].curveType === 'P' && preview[1].curveType === 'P', '对称预览仍保留三点圆弧');
-ok(Math.hypot(preview[1].x - actualTail.x, preview[1].y - actualTail.y) <= 1,
-  `对称副本首点接实际滑条尾 (${preview[1].x},${preview[1].y})`);
+ok(joined.length === 1 && joined[0].curveType === 'B', '对称拼接直接生成最终 B 结果');
+const joinedPts = [{ x: joined[0].x, y: joined[0].y }, ...(joined[0].curvePoints ?? [])];
+ok(joinedPts.some(p => Math.hypot(p.x - actualTail.x, p.y - actualTail.y) <= 1),
+  `最终拼接接缝位于实际滑条尾 (${actualTail.x.toFixed(2)},${actualTail.y.toFixed(2)})`);
 
 const short: HitObject = { id: 2, type: 'slider', x: 100, y: 0, time: 2000, curveType: 'L', curvePoints: [{ x: 300, y: 0 }], slides: 1, length: 50 };
 const circle: HitObject = { id: 3, type: 'circle', x: 0, y: 0, time: 1000 };

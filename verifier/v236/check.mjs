@@ -30,7 +30,7 @@ fs.unlinkSync(out);
 section('symSlider.ts: 纯函数模块');
 {
   const src = readSrc('src/osu/convert/symSlider.ts');
-  assert(/export function computeSymSlider\(bm: Beatmap, o: HitObject, p: SymSliderParams, forPreview = false\): HitObject\[\]/.test(src), 'computeSymSlider(bm, o, params, forPreview?) 导出 (v581)');
+  assert(/export function computeSymSlider\(bm: Beatmap, o: HitObject, p: SymSliderParams\): HitObject\[\]/.test(src), 'computeSymSlider(bm, o, params) 导出 (v595 统一最终预览/应用结果)');
   assert(/export const DEFAULT_SYM_SLIDER_PARAMS/.test(src), 'DEFAULT_SYM_SLIDER_PARAMS 导出');
   assert(/join: 'tail' \| 'head' \| 'none'/.test(src), 'join 三模式 (拼尾/拼头/独立副本)');
   // 二轮修正: 轴配置简化为 axisDir 三选 (v/h 过拼接锚点 / custom 两点直线), axisMode 删除
@@ -69,7 +69,7 @@ section('SymSliderDialog.tsx: 参数面板 + 预览/应用接线');
 {
   const src = readSrc('src/components/convert/SymSliderDialog.tsx');
   assert(/loadParams\('symSlider', DEFAULT_SYM_SLIDER_PARAMS\)/.test(src), '参数持久化 loadParams/saveParams');
-  assert(/setConversionPreview\(obj && previewResult\.length \? \{ hideIds: \[obj\.id\], objects: previewResult \} : null\)/.test(src), '预览隐藏原滑条 + 幽灵渲染 previewResult (v581)');
+  assert(/setConversionPreview\(obj && result\.length \? \{ hideIds: \[obj\.id\], objects: result \} : null\)/.test(src), '预览隐藏原滑条 + 直接渲染最终结果 (v595)');
   assert(/store\.applyConversion\(params\.join === 'none' \? \[\] : \[obj\.id\], result\)/.test(src), 'none 保留原件纯新增 / 拼接替换原件');
   assert(/\[bm, obj, params, sig\]/.test(src), 'useMemo 依赖节点内容签名 sig (节点就地编辑后预览重算, 避免无限循环)');
   assert(src.includes('对称滑条') && /data-conv="apply"/.test(src), '标题/应用按钮');

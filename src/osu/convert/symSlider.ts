@@ -20,7 +20,7 @@
 //   (sliderToBezierSegments+segmentsToPoints, v237 误差驱动减点, 误差 ≤0.2px) 再做对称/拼接 —
 //   否则拼接结果恒 'B', 原弧段直接嵌入会被当成普通贝塞尔控制点 (三点一段折线/二次曲线),
 //   与原圆弧形状不一致; v474 起独立副本 (join='none') 不再转换 — 每份仍恰好 3 点保留 'P'。
-// v581: P→B 仅在最终应用时执行; 编辑预览显示独立 P 原弧/副本并保留原锚点, 关窗应用前仍可改圆弧。
+// v595: 预览/应用统一使用最终转换结果; 原 P 三点锚点由 EditorCanvas 单独叠加并保持可编辑。
 // 拼接 (join='tail'/'head'):
 //   - 段序列: 拼尾 = [原, 份1..份n]; 拼头 = [份1..份n, 原]
 //   - 接缝处重复坐标点 = 红锚点分段 (segmentsToPoints 同款): 段 k>0 首点先写一次作接缝,
@@ -98,7 +98,7 @@ function transformNodes(nodes: Vec2[], anchor: Vec2, scaleAnchor: Vec2,
  * 对称滑条计算 (纯函数, 不改原物件 — 预览/应用由调用方决定)。
  * @returns join='none' → 各份独立副本数组; join='tail'/'head' → 单元素数组 (一条拼接滑条)
  */
-export function computeSymSlider(bm: Beatmap, o: HitObject, p: SymSliderParams, forPreview = false): HitObject[] {
+export function computeSymSlider(bm: Beatmap, o: HitObject, p: SymSliderParams): HitObject[] {
   if (o.type !== 'slider') return [];
   const count = p.mode === 'rotate' || p.mode === 'translate'
     ? Math.max(1, Math.min(99, Math.round(p.count))) : 1;
@@ -110,7 +110,7 @@ export function computeSymSlider(bm: Beatmap, o: HitObject, p: SymSliderParams, 
   let workType = o.curveType ?? 'L';
   let nodes: Vec2[] = [{ x: o.x, y: o.y }, ...(o.curvePoints ?? [])];
   let trimmed = false;
-  if (p.join !== 'none' && !forPreview && o.length !== undefined) {
+  if (p.join !== 'none' && o.length !== undefined) {
     // v594: 拼接前裁掉原滑条超出实际尾的部分, 防止副本与原路径重叠
     const full = sliderToBezierSegments(o), measured = measureSegments(full);
     if (o.length < measured.total) {
@@ -118,7 +118,7 @@ export function computeSymSlider(bm: Beatmap, o: HitObject, p: SymSliderParams, 
       workType = 'B'; trimmed = true;
     }
   }
-  if (o.curveType === 'P' && p.join !== 'none' && !forPreview && !trimmed) { // v581: 仅最终应用转换, 预览保留 P 锚点
+  if (o.curveType === 'P' && p.join !== 'none' && !trimmed) { // v595: 预览/应用都转最终 B; 原 P 锚点由画布另层保留
     const pts = segmentsToPoints(sliderToBezierSegments(o)); // 含头部; 段接缝重复点 (红锚点)
     if (pts.length >= 2) { nodes = pts; workType = 'B'; }
   }
@@ -173,15 +173,6 @@ export function computeSymSlider(bm: Beatmap, o: HitObject, p: SymSliderParams, 
         base = pts[0];
       }
     }
-  }
-  if (forPreview && o.curveType === 'P') {
-    // v581/v594: 编辑预览在链式对齐后生成, 保留 P 锚点且副本首点接实际滑条尾
-    const source: HitObject = { ...o, curveType: 'P', curvePoints: orig.slice(1).map(pt => ({ ...pt })) };
-    const previewCopies = copies.map(pts => ({
-      ...o, id: genId(), curveType: 'P', x: pts[0].x, y: pts[0].y,
-      curvePoints: pts.slice(1), length: Math.round(sliderGeometryLength('P', pts) * 100) / 100,
-    }));
-    return p.join === 'head' ? [...previewCopies, source] : [source, ...previewCopies];
   }
   if (p.join === 'none') {
     // 独立副本: time/endTime/slides/音效等继承原滑条, length 按各份几何全长重算

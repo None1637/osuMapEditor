@@ -16,7 +16,7 @@ const sym = fs.readFileSync(path.join(root, 'src/osu/convert/symSlider.ts'), 'ut
 const merge = fs.readFileSync(path.join(root, 'src/osu/convert/merge.ts'), 'utf8');
 assert(menu.includes("const DRAG = { WebkitAppRegion: 'drag' }"), '菜单行可拖动');
 assert(app.includes("style={hideTitleBar ? { WebkitAppRegion: 'no-drag' }"), '页签行保持禁拖');
-assert(sym.includes('let base = joinAnchor') && sym.indexOf('let base = joinAnchor') < sym.indexOf('if (forPreview'), '先按实际尾对齐再生成 P 预览');
+assert(sym.includes('let base = joinAnchor'), '最终拼接以实际滑条尾为链式对齐基准');
 assert(merge.includes('length: Math.round(measureSegments(segs).total * 100) / 100') && !merge.includes('resnapSliderLength'), '合并长度不再节拍吸附');
 console.log(failures ? `\nVERIFIER_V594_FAILED: ${failures}` : '\nVERIFIER_V594_ALL_TESTS_PASSED');
 process.exit(failures ? 1 : 0);

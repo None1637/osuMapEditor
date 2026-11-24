@@ -929,6 +929,10 @@ export function EditorCanvas() {
         // 转换预览 (F1-F4): v44 合并视图单趟渲染 — 源物件隐藏, 预览物件按时间并入,
         // combo 数字/颜色按合并后列表计算 (与转换应用后一致); 预览物件按选中渲染 (v40)
         const convPrev = store.conversionPreview;
+        // v595: 对称预览 body 用最终 B 结果, 原 P 对象仅作为可编辑三点锚点层保留
+        const symAnchorSource = store.conversionDialog === 'symSlider' && convPrev?.hideIds.length === 1
+          ? (bm.hitObjects.find(o => o.id === convPrev.hideIds[0] && o.type === 'slider' && o.curveType === 'P') ?? null)
+          : null;
         let bmView = mergedWithPreview(bm, convPrev);
         // v86: pattern 拖拽幻影 — 首物件跟随鼠标 (吸附与放置同源), 起点时间 = 当前时间吸附节拍, WYSIWYG (含对齐选项)
         if (store.patternDrag && cur.inside) {
@@ -1026,6 +1030,7 @@ export function EditorCanvas() {
           // ^ staticScene 门: 播放中时间逐帧变/平移中变换逐帧变/幽灵或转换预览合并视图 (bmRender !== bm)
           //   每帧换谱面引用 — 这些场景缓存必失效, 走原路径避免重建+blit 双重开销
           comboInfo: getCombos(bmRender), stackOffsets: getStackOffsets(bm),
+          hiddenSliderControlPoints: symAnchorSource && convPrev ? new Set(convPrev.objects.map(o => o.id)) : undefined,
         }, store.pendingSlider,
           // v207: 已有控制点时预览幻影用吸附后的 pendingCursor (onMouseMove 里与落点同公式), 否则原始光标 (头部幽灵)
           // v483: 门控 inside→over (同上)
@@ -1033,6 +1038,14 @@ export function EditorCanvas() {
             ? (store.pendingSlider.length > 0 ? store.pendingCursor : { x: cur.x, y: cur.y })
             : null, store.distanceLock, // v219: 预览滑条身按吸附长度截断需要锁定间距开关
           pendingSkeleton); // v318: F24a — 幽灵滑条接管身/头绘制时, pending 只画控制骨架
+        if (symAnchorSource) {
+          // 最终 B body 不显示其临时锚点; 这里只叠原 P 三点, 现有节点命中/拖拽仍直接修改 bm 源对象
+          const so = getStackOffsets(bm).get(symAnchorSource.id);
+          g.save();
+          g.translate(so?.dx ?? 0, so?.dy ?? 0);
+          drawSliderControlPoints(g, symAnchorSource);
+          g.restore();
+        }
         // v180: 转盘放置预览 (lazer SpinnerPiece alpha 0.5) — 终点实时跟随当前时间 (滚轮/播放均可拉长)
         if (store.pendingSpinner !== null) {
           drawPendingSpinner({ g, bm, skin, time: store.currentTime, selected: selView, comboInfo: new Map(), stackOffsets: getStackOffsets(bm) },

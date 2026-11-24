@@ -50,16 +50,11 @@ export function SymSliderDialog() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [bm, obj, params, sig],
   );
-  const previewResult = useMemo(
-    () => (bm && obj?.curveType === 'P' ? computeSymSlider(bm, obj, params, true) : result),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [bm, obj, params, sig, result],
-  );
   useEffect(() => {
-    // v581: P 源编辑预览保留独立三点圆弧及原锚点; result 仍是应用时的 B 转换结果
-    store.setConversionPreview(obj && previewResult.length ? { hideIds: [obj.id], objects: previewResult } : null);
+    // v595: 预览直接使用最终转换结果; 原 P 三点锚点由 EditorCanvas 单独叠加并保持可编辑
+    store.setConversionPreview(obj && result.length ? { hideIds: [obj.id], objects: result } : null);
     return () => store.setConversionPreview(null);
-  }, [previewResult, obj]);
+  }, [result, obj]);
   // v236 修正3: 自定义锚点圈视图 — 仅 rotate/translate 且 anchor='custom' 时显示 (画布每帧读取, 非响应式)
   const anchorActive = (params.mode === 'rotate' || params.mode === 'translate') && params.anchor === 'custom';
   useEffect(() => {
