@@ -9,7 +9,7 @@ import { IncrementalBSplineBuilder } from '../freehand/bsplineBuilder';
 import type { Vec2 } from '../parser';
 
 /** v586: B4→B 默认 4px 拟合容差, 比 v387 的 1px 显著减少平滑段锚点 */
-export const B4_CONVERT_FIT_TOLERANCE = 4.0;
+export const B4_CONVERT_FIT_TOLERANCE = 1.0; // v590: 默认恢复 v387 旧值, 自定义容差不受影响
 const LS_B4_FIT_TOLERANCE = 'osu-editor:b4-fit-tolerance';
 
 /** v587: 用户可调容差 (0.25..20px), 持久化; 越大节点/红锚点通常越少, 形状偏差越大 */

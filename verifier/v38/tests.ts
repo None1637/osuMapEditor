@@ -30,8 +30,8 @@ section('圆+圆 -> 直线滑条 (长度由几何全长决定, 不看尾部时�
   assert(r!.x === 100 && r!.y === 100 && r!.time === 2000, 'head/时间 = 第一个物件');
   assert(r!.curveType === 'B' && r!.slides === 1, "curveType 'B' slides=1");
   assert(r!.curvePoints!.length === 1 && r!.curvePoints![0].x === 300 && r!.curvePoints![0].y === 100, '单控制点 = 第二个圆位置');
-  // 几何全长 200 -> 吸附 tick 100 = 200; 两圆相隔 3000ms (等效 600px) 但不拉伸
-  assert(r!.length === 200, `长度 = 几何全长吸附 200, 不拉到尾部时间 (实际 ${r!.length})`);
+  // 几何全长 200; 两圆相隔 3000ms (等效 600px) 但不拉伸, v594 起也不再按 tick 吸附
+  assert(r!.length === 200, `长度 = 实际几何全长 200, 不拉到尾部时间 (实际 ${r!.length})`);
   assert(r!.hitSound === 10 && r!.hitSampleRaw === '1:2:0:80:' && r!.newCombo === true, 'hitsound/newCombo 仅首物件');
   assert(r!.edgeSoundsRaw === undefined && r!.edgeSetsRaw === undefined, '无边缘音字段');
 }

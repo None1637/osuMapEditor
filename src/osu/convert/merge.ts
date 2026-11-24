@@ -6,12 +6,11 @@
 //                   圆弧/卡特姆转贝塞尔确保形状不变; v580: 末锚点超出实际尾的部分不再拼入
 //   - 物件之间的接缝 = 红锚点 (重复点) 分段; 相邻物件位置完全相同 (或滑条尾与下一物件头重合) 时去重, 避免零长接缝
 //   - 新滑条: head = 第一个物件位置, time = 第一个物件的 time, curveType 'B', slides=1
-//   - 长度: 由几何全长决定 (与节点编辑一致, 不拉伸/压缩到尾部物件时间), resnapSliderLength 吸附节拍
+//   - 长度: 由合并后实际几何全长决定, 不再节拍吸附 (v594: 与合并前各段实际长度一致)
 //   - hitsound: 仅保留第一个物件的 hitSound/hitSampleRaw/newCombo 到新滑条头部, 其余物件采样 (含边缘音) 全部丢弃
 //   - 边界: 有效物件 <2 个, 或合并后路径总长 ≈0 (全部位置重合) 时返回 null (不动作)
 import type { Beatmap, HitObject, Vec2 } from '../parser';
 import { genId } from '../parser';
-import { resnapSliderLength } from '../sliderPath';
 import { extractRange, measureSegments, segmentsToPoints, sliderToBezierSegments, type BezierSeg } from './bezierPath';
 
 /** v580: 只取 pixelLength 对应的实际滑条身; 末锚点之后的控制路径不得混入合并结果 */
@@ -30,10 +29,10 @@ const roundPt = (p: Vec2) => ({ x: Math.round(p.x), y: Math.round(p.y) });
 /**
  * 多物件合并为一条滑条 (纯函数, 不改原物件)。
  * @param objects 选中的物件 (任意顺序, 内部按 time 升序)
- * @param beatSnap 节拍吸附分割 (默认取谱面 editor.beatDivisor, 与 store.beatSnap 同语义)
+ * @param _beatSnap 旧接口保留 (v594 起长度不再吸附)
  * @returns 新滑条 (未入谱面), 或 null (不满足合并条件)
  */
-export function computeMerge(bm: Beatmap, objects: HitObject[], beatSnap?: number): HitObject | null {
+export function computeMerge(_bm: Beatmap, objects: HitObject[], _beatSnap?: number): HitObject | null {
   const sorted = objects
     .filter(o => o.type === 'circle' || o.type === 'slider' || o.type === 'spinner')
     .slice()
@@ -72,13 +71,11 @@ export function computeMerge(bm: Beatmap, objects: HitObject[], beatSnap?: numbe
     x: Math.round(pts[0].x), y: Math.round(pts[0].y),
     time: first.time,
     curveType: 'B', curvePoints: pts.slice(1).map(roundPt),
-    slides: 1, length: 0, // 长度由几何全长决定, 下面 resnap 写回
+    slides: 1, length: Math.round(measureSegments(segs).total * 100) / 100, // v594: 不再节拍吸附, 保持合并前实际长度
     hitSound: first.hitSound ?? 0,          // 仅保留第一个物件的头部采样
     newCombo: !!first.newCombo,             // newCombo 也只看第一个物件
     comboSkip: first.comboSkip ?? 0,
   };
   if (first.hitSampleRaw !== undefined) slider.hitSampleRaw = first.hitSampleRaw;
-  // 长度 = 几何全长按节拍吸附 (与节点编辑同一 resnapSliderLength, 不对齐尾部物件时间)
-  resnapSliderLength(bm, slider, beatSnap ?? bm.editor?.beatDivisor ?? 4);
   return slider;
 }

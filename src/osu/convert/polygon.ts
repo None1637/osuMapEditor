@@ -3,6 +3,7 @@
 // 圆心固定游玩区中心 (256,192), 全部生成 HitCircle, 顶点 3-32 / 圈数 1-10 / 起始角 0-180° / DS 0.1-6
 import type { Beatmap, HitObject, TimingPoint } from '../parser';
 import { genId, timingAt, snapAcrossRedLine } from '../parser';
+import { hitObjectEndTime } from '../lifecycle'; // v591
 
 export interface PolygonParams {
   vertices: number;     // 顶点数 3-32
@@ -10,8 +11,9 @@ export interface PolygonParams {
   offsetAngle: number;  // 起始角 0-180 (度)
   distanceSnap: number; // 间距倍率 0.1-6 (= 锁定间距的 1x 同单位)
   newCombo: boolean;    // 首个物件 newCombo (lazer 绑定选区 NC 状态)
+  star: boolean;        // v592: n 角星 — 全部顶点在外圈, 每隔一个顶点连接形成星形
 }
-export const DEFAULT_POLYGON_PARAMS: PolygonParams = { vertices: 3, repeats: 1, offsetAngle: 0, distanceSnap: 1, newCombo: false };
+export const DEFAULT_POLYGON_PARAMS: PolygonParams = { vertices: 3, repeats: 1, offsetAngle: 0, distanceSnap: 1, newCombo: false, star: false };
 export const POLYGON_LIMITS = {
   vertices: [3, 32] as const,
   repeats: [1, 10] as const,
@@ -36,9 +38,9 @@ function lastSliderSv(bm: Beatmap, time: number): number {
   let last: HitObject | null = null;
   for (const o of bm.hitObjects) {
     if (o.type !== 'slider') continue;
-    const end = o.endTime ?? o.time;
+    const end = hitObjectEndTime(bm, o); // v591: 用实际滑条结束时刻, 不用开始时刻
     if (end > time + 1e-6) continue;
-    if (!last || (last.endTime ?? last.time) < end) last = o;
+    if (!last || hitObjectEndTime(bm, last) < end) last = o;
   }
   if (!last) return 1;
   const { green } = timingAt(bm.timingPoints, last.time);
@@ -66,9 +68,11 @@ export function computePolygon(bm: Beatmap, currentTime: number, divisor: number
   const total = Math.round(p.vertices) * Math.round(p.repeats);
   const objects: HitObject[] = [];
   for (let i = 0; i < total; i++) {
-    const angle = (p.offsetAngle * Math.PI) / 180 + (i + 1) * ((2 * Math.PI) / p.vertices);
-    const x = 256 + radius * Math.cos(angle);
-    const y = 192 + radius * Math.sin(angle);
+    // v592: n 角星 = 全外圈顶点按每隔一个点的顺序连接, 不设内圈
+    const angle = (p.offsetAngle * Math.PI) / 180 + (i + 1) * (p.star ? 2 : 1) * ((2 * Math.PI) / p.vertices);
+    const r = radius;
+    const x = 256 + r * Math.cos(angle);
+    const y = 192 + r * Math.sin(angle);
     objects.push({
       id: genId(), type: 'circle', x: Math.round(x), y: Math.round(y), time: Math.round(t),
       newCombo: i === 0 && p.newCombo, comboSkip: 0, hitSound: 0,

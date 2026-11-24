@@ -32,7 +32,7 @@ import type { Beatmap, HitObject, Vec2 } from '../parser';
 import { genId } from '../parser';
 import { sliderGeometryLength, parseBSplineType } from '../sliderPath'; // v387: parseBSplineType (B 样条拼接保型)
 import { sliderTailPoint } from '../objectSnap';
-import { segmentsToPoints, sliderToBezierSegments } from './bezierPath';
+import { extractRange, measureSegments, segmentsToPoints, sliderToBezierSegments } from './bezierPath';
 
 export type SymSliderMode = 'axis' | 'point' | 'rotate' | 'translate';
 
@@ -109,12 +109,24 @@ export function computeSymSlider(bm: Beatmap, o: HitObject, p: SymSliderParams, 
   //   拼接不能不转: 单类型模型不支持多段 P (renderer/parser 对 P≠3 回退贝塞尔, lazer 同款)。
   let workType = o.curveType ?? 'L';
   let nodes: Vec2[] = [{ x: o.x, y: o.y }, ...(o.curvePoints ?? [])];
-  if (o.curveType === 'P' && p.join !== 'none' && !forPreview) { // v581: 仅最终应用转换, 预览保留 P 锚点
+  let trimmed = false;
+  if (p.join !== 'none' && !forPreview && o.length !== undefined) {
+    // v594: 拼接前裁掉原滑条超出实际尾的部分, 防止副本与原路径重叠
+    const full = sliderToBezierSegments(o), measured = measureSegments(full);
+    if (o.length < measured.total) {
+      nodes = segmentsToPoints(extractRange(measured, 0, Math.max(0, o.length)));
+      workType = 'B'; trimmed = true;
+    }
+  }
+  if (o.curveType === 'P' && p.join !== 'none' && !forPreview && !trimmed) { // v581: 仅最终应用转换, 预览保留 P 锚点
     const pts = segmentsToPoints(sliderToBezierSegments(o)); // 含头部; 段接缝重复点 (红锚点)
     if (pts.length >= 2) { nodes = pts; workType = 'B'; }
   }
   // 拼接锚点: 拼头 = 原滑条头; 拼尾/独立副本 = 滑条尾 (v236 二轮修正: axis/point 的对称中心与缩放锚点恒用它)
   const joinAnchor = p.join === 'head' ? { x: o.x, y: o.y } : sliderTailPoint(bm, o);
+  // 截尾换算与渲染路径的采样略有差异: 统一末点到实际尾, 保证接缝严格重合,
+  // 否则非重合接缝会被并入前一条贝塞尔段, 改变原弧形状。
+  if (trimmed && p.join === 'tail' && nodes.length) nodes[nodes.length - 1] = { ...joinAnchor };
   // rotate/translate 用 anchor 字段; point 中心 = 拼接锚点
   const anchor = p.mode === 'point' ? joinAnchor : symSliderAnchor(bm, o, p);
   // axis: 解析对称轴 (v/h = 过拼接锚点, 仅方向有效 — 位置随即被链式对齐覆盖; custom = axisP1/axisP2 两点直线)
@@ -141,20 +153,11 @@ export function computeSymSlider(bm: Beatmap, o: HitObject, p: SymSliderParams, 
   }
 
   const orig = nodes.map(pt => ({ ...pt })); // 原节点坐标原样保留 (不重复取整)
-  if (forPreview && o.curveType === 'P') {
-    // v581: 编辑期保留独立三点圆弧及原锚点; 应用时才走下方 B 转换/拼接, 圆弧窗口内可继续改点
-    const source: HitObject = { ...o, curveType: 'P', curvePoints: orig.slice(1).map(pt => ({ ...pt })) };
-    const previewCopies = copies.map(pts => ({
-      ...o, id: genId(), curveType: 'P', x: pts[0].x, y: pts[0].y,
-      curvePoints: pts.slice(1), length: Math.round(sliderGeometryLength('P', pts) * 100) / 100,
-    }));
-    return p.join === 'head' ? [...previewCopies, source] : [source, ...previewCopies];
-  }
   if (p.join !== 'none') {
     // v236 二轮修正: 链式对齐平移 (取整后平移, 整数偏移无需再取整) — 对齐后所有接缝天然重合
     if (p.join === 'tail') {
       // 份1首节点 → 原滑条尾 (节点序列末点), 份 i 首节点 → 份 i-1 末节点
-      let base = orig[orig.length - 1];
+      let base = joinAnchor; // v594: 用 pixelLength 对应的实际滑条尾, 而非末控制点
       for (const pts of copies) {
         const ox = base.x - pts[0].x, oy = base.y - pts[0].y;
         if (ox || oy) for (const q of pts) { q.x += ox; q.y += oy; }
@@ -170,7 +173,17 @@ export function computeSymSlider(bm: Beatmap, o: HitObject, p: SymSliderParams, 
         base = pts[0];
       }
     }
-  } else {
+  }
+  if (forPreview && o.curveType === 'P') {
+    // v581/v594: 编辑预览在链式对齐后生成, 保留 P 锚点且副本首点接实际滑条尾
+    const source: HitObject = { ...o, curveType: 'P', curvePoints: orig.slice(1).map(pt => ({ ...pt })) };
+    const previewCopies = copies.map(pts => ({
+      ...o, id: genId(), curveType: 'P', x: pts[0].x, y: pts[0].y,
+      curvePoints: pts.slice(1), length: Math.round(sliderGeometryLength('P', pts) * 100) / 100,
+    }));
+    return p.join === 'head' ? [...previewCopies, source] : [source, ...previewCopies];
+  }
+  if (p.join === 'none') {
     // 独立副本: time/endTime/slides/音效等继承原滑条, length 按各份几何全长重算
     // v474: curveType 用 workType — P 源副本保留 'P' (不再转贝塞尔); 其余源不变
     return copies.map(pts => ({

@@ -1,10 +1,10 @@
 // 验证器 v243 行为测试: 对称滑条源为圆弧 (P) 时的类型处理 (computeSymSlider 纯函数数值断言)
 //   v474 收窄: 仅拼接 (join≠'none') 转贝塞尔; 独立副本保留 'P' (每份仍恰好 3 点, 圆弧形状天然保留)
 //   - P 源 join='none': 副本 curveType 保持 'P' 且节点数 = 3; 几何 ≈ 原弧 (容差 1px)
-//   - join='tail' 拼接: 结果 curveType='B' (多段 P 单类型模型不支持, 转贝塞尔保形), 全长 ≈ 2× 原弧长
+//   - join='tail' 拼接: 结果 curveType='B' (多段 P 单类型模型不支持, 转贝塞尔保形), 全长 ≈ 2× pixelLength 内原弧长
 //   - 非圆弧源 (L/B) 不受影响
 import { computeSymSlider, DEFAULT_SYM_SLIDER_PARAMS, type SymSliderParams } from '../../src/osu/convert/symSlider';
-import { measureSegments, deCasteljau, sliderToBezierSegments } from '../../src/osu/convert/bezierPath';
+import { extractRange, measureSegments, deCasteljau, segmentsToPoints, sliderToBezierSegments } from '../../src/osu/convert/bezierPath';
 import { genId, type Beatmap, type HitObject, type Vec2 } from '../../src/osu/parser';
 
 let failures = 0;
@@ -67,17 +67,23 @@ section('P 源: 平移副本保持形状 (v474: 保留 P)');
 section('P 源转贝塞尔: join=tail 拼接 (原弧段不再退化为折线)');
 {
   const src = mkSlider(arcPts);
-  const arcLen = measureSegments(sliderToBezierSegments(src)).total;
+  const full = sliderToBezierSegments(src), measured = measureSegments(full);
+  const trimmedSegs = extractRange(measured, 0, src.length ?? measured.total);
+  const trimmedPts = segmentsToPoints(trimmedSegs);
+  const trimmedObj: HitObject = { ...src, curveType: 'B', curvePoints: trimmedPts.slice(1) };
+  const trimmedLen = measureSegments(trimmedSegs).total;
   const r = computeSymSlider(bm, src, mk({ mode: 'translate', dx: 0, dy: 0, count: 1, join: 'tail' }));
   assert(r.length === 1 && r[0].curveType === 'B', `拼接结果单条 'B' (实际 ${r[0].curveType})`);
   assert(r[0].time === 1000 && r[0].endTime === 3000, `endTime 翻倍延长 (实际 ${r[0].time}~${r[0].endTime})`);
   const joinedLen = measureSegments(sliderToBezierSegments(r[0])).total;
-  assert(Math.abs(joinedLen - 2 * arcLen) <= 2,
-    `拼接几何全长 ≈ 2× 原弧长 (实际 ${joinedLen.toFixed(1)} vs ${(2 * arcLen).toFixed(1)})`);
-  // 前段采样 ≈ 原弧采样 (拼接路径前半 = 转换后的原弧, 未取整原样保留)
-  const half = samplePath(r[0]).slice(0, samplePath(src).length);
-  const dev = maxDev(samplePath(src), half);
-  assert(dev <= 1, `拼接前半段几何 = 原弧 (最大偏差 ${dev.toFixed(3)}px ≤ 1)`);
+  assert(Math.abs(joinedLen - 2 * trimmedLen) <= 2,
+    `拼接几何全长 ≈ 2× 实际尾内长度 (实际 ${joinedLen.toFixed(1)} vs ${(2 * trimmedLen).toFixed(1)})`);
+  // v594: 前半 = 实际尾内的原弧, 不含超出 pixelLength 的部分
+  const expectedSamples = samplePath(trimmedObj);
+  const joinedSamples = samplePath(r[0]);
+  const half = joinedSamples.slice(0, expectedSamples.length);
+  const dev = maxDev(expectedSamples, half);
+  assert(dev <= 1, `拼接前半段几何 = 截尾后的原弧 (最大偏差 ${dev.toFixed(3)}px ≤ 1)`);
 }
 
 section('非圆弧源不受影响');

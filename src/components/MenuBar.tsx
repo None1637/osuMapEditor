@@ -9,7 +9,7 @@ import { getElectronAPI, type ElectronMenuNode } from '@/osu/electronBridge';
 import { UiControl, UiText } from './uiLayout/UiControl'; // v526: 菜单布局/文本适配
 import { registerUiControls } from '@/osu/uiLayout';
 
-const DRAG = { WebkitAppRegion: 'drag' } as CSSProperties;
+const DRAG = { WebkitAppRegion: 'drag' } as CSSProperties; // v594: 仅菜单行可拖窗口, 页签行仍禁拖
 const NO_DRAG = { WebkitAppRegion: 'no-drag' } as CSSProperties;
 
 // v281: overlay = hideTitleBar 模式 (WCO 窗口按钮覆盖本行右侧, 需拖拽区 + 留白 140);

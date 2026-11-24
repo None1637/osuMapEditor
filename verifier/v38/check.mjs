@@ -28,7 +28,7 @@ section('merge.ts: computeMerge 语义接线');
   assert(src.includes('export function computeMerge'), 'computeMerge 导出');
   assert(src.includes('sliderToBezierSegments'), '滑条经 sliderToBezierSegments 转贝塞尔段 (形状保留)');
   assert(src.includes('segmentsToPoints'), '段序列转回控制点 (接缝重复点 = 红锚点)');
-  assert(src.includes('resnapSliderLength'), '长度 = 几何全长节拍吸附 (与节点编辑一致)');
+  assert(!src.includes('resnapSliderLength') && src.includes('measureSegments(segs).total'), '长度 = 合并后实际几何全长, 不节拍吸附 (v594)');
   assert(src.includes("curveType: 'B'") && src.includes('slides: 1'), "输出 curveType 'B' slides=1");
   assert(/\.sort\(\(a, b\) => a\.time - b\.time\)/.test(src), '按 time 升序连接');
   assert(src.includes('first.hitSound') && src.includes('first.hitSampleRaw') && src.includes('first.newCombo'), 'hitsound/newCombo 仅首物件');

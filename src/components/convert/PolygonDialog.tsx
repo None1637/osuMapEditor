@@ -61,6 +61,13 @@ export function PolygonDialog() {
           set={v => upd({ distanceSnap: Math.round(v * 10) / 10 })} />
         <span className="text-white/40">{L.distanceSnap[0]}–{L.distanceSnap[1]} {t('convert.polygon_ds_hint', '(same as Distance Snap 1x)')}</span>
       </Row>
+      <Row label={t('convert.polygon_star', 'N-pointed star')}>
+        <label className="flex items-center gap-1 cursor-pointer select-none">
+          <UiAutoControl localId="star"><input type="checkbox" checked={params.star} data-conv="star"
+            onChange={e => upd({ star: e.target.checked })} /></UiAutoControl>
+          <UiAutoText localId="star" textKey="convert.polygon_star_hint">All vertices on the outer circle, connected every other point</UiAutoText>
+        </label>
+      </Row>
       <Row label={t('convert.polygon_new_combo', 'New Combo')}>
         <UiAutoControl localId="new-combo"><input type="checkbox" checked={params.newCombo} data-conv="newCombo"
           onChange={e => upd({ newCombo: e.target.checked })} /></UiAutoControl>
