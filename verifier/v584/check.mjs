@@ -13,5 +13,5 @@ const rawText = { name: 'raw', setup(build) {
 await build({ entryPoints: [path.join(root, 'verifier/v584/tests.ts')], bundle: true, format: 'esm', platform: 'node', outfile: out, plugins: [rawText] });
 try { console.log(execSync(`node "${out}"`, { cwd: root, encoding: 'utf8' }).trim()); } finally { if (fs.existsSync(out)) fs.unlinkSync(out); }
 const src = fs.readFileSync(path.join(root, 'src/osu/store.ts'), 'utf8');
-if (!src.includes('if (this.playing) this.pause(); // v584')) { console.error('VERIFIER_V584_FAILED: load 未暂停'); process.exit(1); }
+if (!src.includes('this.playing && !preservePlayback')) { console.error('VERIFIER_V584_FAILED: 普通 load 未暂停'); process.exit(1); }
 console.log('VERIFIER_V584_ALL_TESTS_PASSED');

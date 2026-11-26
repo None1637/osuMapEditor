@@ -14,6 +14,13 @@ dist-ssr
 local-dirs.json
 release
 
+# v599: NuGet 下载缓存与 BASS 侧车构建产物 (源码及所需 lazer 同源 DLL 仍入库)
+native/packages/
+native/**/bin/
+native/**/obj/
+native/**/publish/
+native/**/lib/*.xml # 第三方 API 文档不参与构建, 原始空白符不纳入仓库
+
 # 验证体系运行产物 (CDP 截图/临时 esbuild 打包)
 verifier/runs
 verifier/**/_bundle.mjs

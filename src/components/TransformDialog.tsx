@@ -32,11 +32,12 @@ export function TransformDialog({ mode }: { mode: 'rotate' | 'scale' | 'symmetry
   const t = useT();
   const [angle, setAngle] = useState(0); // v315: F17a — 默认角度 0 (原 90)
   const [factor, setFactor] = useState(1); // v315: F16 — 默认倍率 1 (原 1.1)
-  const [factorY, setFactorY] = useState(1); // v282: 缩放支持仅X/仅Y (另一轴填 1)
-  // v315: F16 — xy固定 重开窗口保持上次状态 (localStorage 持久化, 关窗落盘)
-  // v405: 同键追加「应用于 X/Y 轴」勾选 (默认都勾), 关窗一并落盘
-  const [scaleParams, setScaleParams] = useState(() => loadParams('tf-scale', { lockRatio: false, axisX: true, axisY: true }));
-  const lockRatio = scaleParams.lockRatio, axisX = scaleParams.axisX, axisY = scaleParams.axisY;
+  // v596: 同一倍率直接应用于所有勾选轴; 旧 factorY/lockRatio 不再拆成第二套数值
+  const [scaleParams, setScaleParams] = useState(() => {
+    const p = loadParams('tf-scale', { axisX: true, axisY: true });
+    return { axisX: p.axisX, axisY: p.axisY }; // 丢弃旧存档里的 lockRatio 键
+  });
+  const axisX = scaleParams.axisX, axisY = scaleParams.axisY;
   useSaveParamsOnClose('tf-scale', scaleParams);
   // v405: 方向单选 (stable Rotate by 的 Direction) — 关窗记忆
   const [dir, setDir] = useState<RotateDir>(() => loadParams('tf-rotate', { dir: 'cw' as RotateDir }).dir);
@@ -85,10 +86,10 @@ export function TransformDialog({ mode }: { mode: 'rotate' | 'scale' | 'symmetry
     if (nodeMode) { store.endNodeTransformPreview(); store.beginNodeTransformPreview(); }
     else { store.endTransformPreview(); store.beginTransformPreview(); }
     previewOn.current = false;
-    setAngle(0); setFactor(1); setFactorY(1); // v331
+    setAngle(0); setFactor(1); // v331
   }, [selKey, mode, nodeMode]);
 
-  // v360: 节点版变换公式 (与 store.rotateSelectedNodes 同款旋转; 缩放各轴独立)
+  // v360: 节点版变换公式 (与 store.rotateSelectedNodes 同款旋转)
   const rotatePt = (p: { x: number; y: number }, c: { x: number; y: number }, deg: number) => {
     const r = (deg * Math.PI) / 180, cos = Math.cos(r), sin = Math.sin(r);
     return { x: c.x + (p.x - c.x) * cos - (p.y - c.y) * sin, y: c.y + (p.x - c.x) * sin + (p.y - c.y) * cos };
@@ -96,8 +97,8 @@ export function TransformDialog({ mode }: { mode: 'rotate' | 'scale' | 'symmetry
   const scalePt = (p: { x: number; y: number }, c: { x: number; y: number }, sx: number, sy: number) =>
     ({ x: c.x + (p.x - c.x) * sx, y: c.y + (p.y - c.y) * sy });
 
-  // v405: 「应用于 X/Y 轴」勾选后的实际倍率 (未勾选轴 = 1)
-  const { sx, sy } = axisScaleFactors(factor, factorY, axisX, axisY);
+  // v596: 勾选轴共用顶部同一倍率, 未勾选轴 = 1
+  const { sx, sy } = axisScaleFactors(factor, factor, axisX, axisY);
 
   // 值/原点变化时刷新预览 (仅用户已改过值后; 开窗不自动变换)
   useEffect(() => {
@@ -116,18 +117,7 @@ export function TransformDialog({ mode }: { mode: 'rotate' | 'scale' | 'symmetry
     const v = angleForDirection(angle, d);
     if (v !== angle) { previewOn.current = true; setAngle(v); }
   };
-  // v307: 比例固定时按改动前的 factor:factorY 联动另一轴 (x=y 时即等比缩放); 保留 4 位小数防长浮点尾
-  const round4 = (v: number) => Math.round(v * 10000) / 10000;
-  const changeFactor = (v: number) => {
-    previewOn.current = true;
-    if (lockRatio && factor !== 0) setFactorY(round4(v * factorY / factor));
-    setFactor(v);
-  };
-  const changeFactorY = (v: number) => {
-    previewOn.current = true;
-    if (lockRatio && factorY !== 0) setFactor(round4(v * factor / factorY));
-    setFactorY(v);
-  };
+  const changeFactor = (v: number) => { previewOn.current = true; setFactor(v); };
   const commit = (fn: Parameters<typeof store.commitTransformPreview>[0]) => {
     store.commitTransformPreview(fn, origin);
     previewOn.current = false; // 提交后显示已提交态, 下次改值重新预览
@@ -223,7 +213,7 @@ export function TransformDialog({ mode }: { mode: 'rotate' | 'scale' | 'symmetry
           </div>
           <div className={originGroup ? 'grid grid-cols-2 gap-2 items-start' : ''}>
             {originGroup}
-            {/* v405: stable 的 Apply to X-axis/Y-axis — 未勾选轴按倍率 1 计算; y 倍率框与 x:y 固定保留 (v282/v307) */}
+            {/* v596: stable 的 Apply to X-axis/Y-axis — 勾选轴共用顶部倍率, 未勾选轴按 1 计算 */}
             <Group label={t('transform.apply_to', 'Apply to')}>
               <label className="flex items-center gap-1 text-white/70">
                 <UiAutoControl localId="axis-x"><input type="checkbox" checked={axisX} data-tf="axis-x"
@@ -234,15 +224,6 @@ export function TransformDialog({ mode }: { mode: 'rotate' | 'scale' | 'symmetry
                 <UiAutoControl localId="axis-y"><input type="checkbox" checked={axisY} data-tf="axis-y"
                   onChange={e => { previewOn.current = true; setScaleParams(p => ({ ...p, axisY: e.target.checked })); }} /></UiAutoControl>
                 <UiAutoText localId="axis-y" textKey="transform.axis_y">Y-axis</UiAutoText>
-              </label>
-              <div className="flex items-center gap-1">
-                <span className="text-white/40">y</span>
-                <DraftNum value={factorY} set={changeFactorY} testid="factor-y" min={0.01} step={0.005} digits={3} /> {/* v367: 同上 */}
-              </div>
-              <label className="flex items-center gap-1 text-white/70" title={t('transform.lock_ratio_title', 'Lock x:y ratio — changing one axis scales the other at the current ratio')}>
-                <UiAutoControl localId="lock-ratio"><input type="checkbox" checked={lockRatio} data-tf="lock-ratio"
-                  onChange={e => setScaleParams(p => ({ ...p, lockRatio: e.target.checked }))} /></UiAutoControl>
-                <UiAutoText localId="lock-ratio" textKey="transform.lock_ratio">Lock x:y</UiAutoText>
               </label>
             </Group>
           </div>

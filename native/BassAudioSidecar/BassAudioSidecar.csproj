@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>BassAudioSidecar</AssemblyName>
+    <RootNamespace>BassAudioSidecar</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="ppy.ManagedBass">
+      <HintPath>lib/ppy.ManagedBass.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="ppy.ManagedBass.Fx">
+      <HintPath>lib/ppy.ManagedBass.Fx.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <None Include="lib/bass.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="lib/bass_fx.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="THIRD-PARTY-LICENSES.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+</Project>

@@ -1,4 +1,4 @@
-// 验证器 v307: 缩放窗口 x:y 比例固定 (锁定时改任一轴, 另一轴按当前比例联动)
+// 验证器 v307/v596: 旧 x:y 比例固定已由「勾选轴共用同一倍率」取代
 // 运行: node verifier/v307/check.mjs
 import { fileURLToPath } from 'url';
 import path from 'path';
@@ -11,22 +11,14 @@ function assert(cond, msg) { if (!cond) { failures++; console.error('  FAIL:', m
 function section(name) { console.log('== ' + name); }
 function readSrc(rel) { return fs.readFileSync(path.join(root, rel), 'utf8'); }
 
-section('TransformDialog.tsx: x:y 比例固定');
+section('TransformDialog.tsx: v596 统一倍率取代 x:y 比例固定');
 {
   const src = readSrc('src/components/TransformDialog.tsx');
-  const zhTransform = readSrc('src/i18n/dicts/zh-CN/transform.ts'); // v346: UI 文本走 i18n, 断言 key + 词典译文
-  // v405 适配: lockRatio 并入 scaleParams 对象持久化 (同键 tf-scale, 追加 axisX/axisY)
-  assert(/loadParams\('tf-scale', \{ lockRatio: false, axisX: true, axisY: true \}\)/.test(src) && /lockRatio = scaleParams\.lockRatio/.test(src), 'lockRatio state (v315: 默认关, localStorage 保持上次状态; v405 起并入 scaleParams)');
-  assert(/if \(lockRatio && factor !== 0\) setFactorY\(round4\(v \* factorY \/ factor\)\);\s*\n\s*setFactor\(v\);/.test(src),
-    '改 x → y 按当前比例联动');
-  assert(/if \(lockRatio && factorY !== 0\) setFactor\(round4\(v \* factor \/ factorY\)\);\s*\n\s*setFactorY\(v\);/.test(src),
-    '改 y → x 按当前比例联动');
-  assert(/const round4 = \(v: number\) => Math\.round\(v \* 10000\) \/ 10000;/.test(src), '联动值保留 4 位小数');
-  assert(/data-tf="lock-ratio"/.test(src) && /t\('transform\.lock_ratio', 'Lock x:y'\)/.test(src) && /'transform\.lock_ratio': 'x:y 固定'/.test(zhTransform),
-    '锁定复选框 UI (data-tf=lock-ratio, i18n transform.lock_ratio = x:y 固定)');
-  // 联动在 changeFactor/changeFactorY 内 — DraftNum 拖动/滚轮 (F06) 同走该入口, 自动生效
-  assert(/<DraftNum value=\{factor\} set=\{changeFactor\}/.test(src) && /<DraftNum value=\{factorY\} set=\{changeFactorY\}/.test(src),
-    '两个 DraftNum 均走联动入口 (拖动/滚轮调值同步联动)');
+  const zhTransform = readSrc('src/i18n/dicts/zh-CN/transform.ts');
+  assert(src.includes('axisScaleFactors(factor, factor, axisX, axisY)'), '所有勾选轴直接使用同一 factor');
+  assert(!src.includes('data-tf="lock-ratio"') && !src.includes('changeFactorY'), '旧比例联动与独立 Y 输入已移除');
+  assert(!zhTransform.includes("'transform.lock_ratio'"), '旧比例固定 i18n 文案已移除');
+  assert(/<DraftNum value=\{factor\} set=\{changeFactor\}/.test(src), '顶部统一 DraftNum 仍支持拖动/滚轮调值');
 }
 
 section('编译');

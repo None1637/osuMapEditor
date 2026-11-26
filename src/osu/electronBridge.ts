@@ -77,6 +77,20 @@ export interface ElectronAPI {
   checkUpdate(): Promise<ElectronUpdateResult>;
   /** v493: 系统浏览器打开 https 链接 (确认更新后打开 release 页) */
   openExternal(url: string): Promise<boolean>;
+  /** v599: 原生 BASS Tempo 播放; ok=false 时调用方回退 Web Audio */
+  bassPlay(payload: BassPlayPayload): Promise<{ ok: boolean; error?: string }>;
+  bassStop(): Promise<boolean>;
+  bassVolume(value: number): Promise<boolean>;
+}
+
+export interface BassPlayPayload {
+  folderRel: string | null;
+  audioFilename: string;
+  /** 非曲库来源 (拖入/新建谱面) 的原始音频字节, 主进程落临时文件后用同一 BASS 解码器 */
+  audioData?: ArrayBuffer;
+  offset: number;
+  rate: number;
+  volume: number;
 }
 
 /** v493: 更新检测结果 (主进程 check-update IPC 返回) */
@@ -139,6 +153,8 @@ export type ElectronMenuCommand =
   | { type: 'timing-resnap-current' }
   | { type: 'timing-resnap-bookmarks' } // v355
   | { type: 'timing-hitsound-bookmarks' } // v585
+  | { type: 'bookmark-add' } // v597: lazer BookmarkController — Timing/Bookmarks 菜单
+  | { type: 'bookmark-remove' }
   | { type: 'timing-resnap-all' }
   | { type: 'timing-open-settings' }
   | { type: 'timing-shift-all' }

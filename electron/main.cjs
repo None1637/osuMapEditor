@@ -7,7 +7,9 @@ const path = require("node:path")
 const http = require("node:http")
 const https = require("node:https") // v493: 更新检测 (GitHub API)
 const { spawn } = require("node:child_process")
+const { createBassAudio } = require("./bassAudio.cjs") // v599
 let win = null
+const bassAudio = createBassAudio(app, readSettings)
 // 端点逻辑与 vite 中间件共用 (ESM 模块, 由 main() 动态 import 后赋值; createServer 闭包请求时才解引用)
 let handleLocalFs = null
 // v77: 最近难度列表维护 (ESM 纯函数, main() 动态 import)
@@ -114,6 +116,11 @@ ipcMain.handle("get-settings", () => {
     hideTitleBar: !!s.hideTitleBar, // v263: 窗口条隐藏开关 (重启生效)
   }
 })
+
+// v599: 原生 BASS Tempo 音乐通道 (文件路径只在主进程解析, 渲染端不接触绝对路径)
+ipcMain.handle("bass-play", (_e, payload) => bassAudio.play(payload))
+ipcMain.handle("bass-stop", () => { bassAudio.stop(); return true })
+ipcMain.handle("bass-volume", (_e, value) => { bassAudio.volume(value); return true })
 
 // v263: 窗口条隐藏 — 显示设置面板开关写入 settings.json, 下次启动 createWindow 读取生效
 ipcMain.handle("set-hide-title-bar", (_e, b) => {
@@ -483,6 +490,9 @@ const MENU_LABELS = {
   "menu.bpm_detect_song": { en: "Detect BPM (Whole Song)", "zh-CN": "测量全曲 timing", "zh-TW": "測量全曲 timing" },
   "menu.bpm_detect_bookmark": { en: "Detect BPM (Bookmark Range)", "zh-CN": "测量当前 bookmark 区间 timing", "zh-TW": "測量當前 bookmark 區間 timing" },
   "menu.set_preview": { en: "Set Current Position as Preview Point", "zh-CN": "把当前位置设为预览点", "zh-TW": "把當前位置設為預覽點" },
+  "menu.bookmarks": { en: "Bookmarks", "zh-CN": "书签", "zh-TW": "書籤" }, // v597
+  "menu.bookmark_add": { en: "Add Bookmark", "zh-CN": "添加书签", "zh-TW": "新增書籤" },
+  "menu.bookmark_remove": { en: "Remove Closest Bookmark", "zh-CN": "删除最近的书签", "zh-TW": "刪除最近的書籤" },
   "menu.settings": { en: "Settings", "zh-CN": "设置", "zh-TW": "設置" },
   "menu.reconfigure": { en: "Reconfigure osu! Folder & Skin", "zh-CN": "重新配置 osu! 目录与皮肤", "zh-TW": "重新配置 osu! 目錄與皮膚" },
   // v386: 设置菜单可勾选项 (editorPrefs, 原快捷键设置面板通用区)
@@ -657,6 +667,14 @@ function buildMenu() {
         { label: mT("menu.delete_all_timing"), enabled: !!menuState, click: () => send({ type: "timing-delete-all" }) },
         { type: "separator" },
         { label: mT("menu.set_preview"), enabled: !!menuState, click: () => send({ type: "timing-set-preview" }) },
+        { type: "separator" },
+        {
+          label: mT("menu.bookmarks"), // v597: 对齐 lazer BookmarkController.Menu, 提供可见入口
+          submenu: [
+            { label: mT("menu.bookmark_add"), accelerator: acc("bookmark-add", "CmdOrCtrl+B"), enabled: !!menuState, click: () => send({ type: "bookmark-add" }) },
+            { label: mT("menu.bookmark_remove"), accelerator: acc("bookmark-remove", "CmdOrCtrl+Shift+B"), enabled: !!menuState, click: () => send({ type: "bookmark-remove" }) },
+          ],
+        },
       ],
     },
     {
@@ -699,7 +717,8 @@ function buildMenu() {
   win?.webContents.send("menu-definition", lastMenuDef)
 }
 
-app.on("window-all-closed", () => app.quit())
+app.on("window-all-closed", () => { bassAudio.dispose(); app.quit() })
+app.on("before-quit", () => bassAudio.dispose())
 
 // 启动: 先加载共享 ESM 端点模块 (CJS 无顶层 await, 统一在异步入口里做), 再建窗
 async function main() {

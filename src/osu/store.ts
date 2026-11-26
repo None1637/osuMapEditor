@@ -405,6 +405,11 @@ class EditorStore {
   // v447: 引擎销毁令牌 — 销毁/换歌时自增, 在途加载完成发现令牌已变即丢弃节点 (防复活重占 PCM)
   private tempoGen = 0;
   private rateGen = 0;
+  // v599: 原生 BASS Tempo 支路 (exe + 曲库本地文件; 与 Web Audio 引擎互斥)
+  private bassGen = 0;
+  private bassEndTimer: ReturnType<typeof setTimeout> | null = null;
+  private bassUnavailable = false;
+  bassActive = false;
   private clock: AudioClock | null = null;
   private scheduler: HitSoundScheduler | null = null;
   private hitBuffers = new Map<string, AudioBuffer>(); // stem(如 "soft-hitnormal") -> 谱面自定义采样
@@ -601,8 +606,10 @@ class EditorStore {
     }
   }
 
-  load(bm: Beatmap, audioUrl: string | null, backgroundUrl: string | null = null, samples?: Map<string, File>, source: MapSource | null = null, audioKey: string | null = null, initialDirty = false) {
-    if (this.playing) this.pause(); // v584: 换图/刷新先暂停, 播放状态不得带入新谱面
+  load(bm: Beatmap, audioUrl: string | null, backgroundUrl: string | null = null, samples?: Map<string, File>, source: MapSource | null = null, audioKey: string | null = null, initialDirty = false, preservePlayback = false) {
+    if (this.playing && !preservePlayback) this.pause(); // v584/v600: 换图必暂停; 仅右上角刷新显式保留播放
+    // v600: preservePlayback=true 时 playing 保持 true, App 随后的 seek 会在新谱面上重锚定音频/hitsound
+    this.bassUnavailable = false; // v599: 单个文件/设备失败只回退当前谱面, 换图允许重试原生 BASS
     this.resetWheelGesture(); // v514: 换谱后不得补发上一张谱的滚轮余量
     invalidatePath(); // v378: 换谱几何缓存全部失效 — pathCache 按物件 id 缓存, 新谱物件 id 与旧谱滑条
     //   重合时 hitTest/渲染沿用旧几何 (点不中/画错形状); restore() 已有同款清理, load 漏了
@@ -788,6 +795,48 @@ class EditorStore {
     this.rateNode = null; this.rateGain = null; this.rateLoading = null; this.rateActive = false;
   }
 
+  /** v599: 用 lazer 同源 BASS FX Tempo 播放慢放音乐; 返回 false 时沿用原 Web Audio 支路 */
+  private startBass(offset: number): boolean {
+    const api = getElectronAPI(), rel = this.mapSource?.dir.serverRel;
+    if (!api || !this.beatmap || !this.audioBuffer || !this.audioUrl || this.bassUnavailable) return false;
+    const gen = ++this.bassGen;
+    if (this.bassEndTimer) clearTimeout(this.bassEndTimer);
+    this.bassActive = true;
+    const fail = () => {
+      if (gen !== this.bassGen) return;
+      this.bassActive = false;
+      this.bassUnavailable = true; // 防止侧车缺失时在 pause/play 间无限重试
+      if (this.playing) { this.pause(); this.play(); }
+    };
+    void (async () => {
+      let audioData: ArrayBuffer | undefined;
+      if (rel == null) {
+        const res = await fetch(this.audioUrl!); // 非曲库来源: 主进程按原始字节落临时文件
+        if (!res.ok) throw new Error(`audio read failed: ${res.status}`);
+        audioData = await res.arrayBuffer();
+      }
+      if (gen !== this.bassGen) return;
+      const r = await api.bassPlay({
+        folderRel: rel ?? null, audioFilename: this.beatmap!.general.audioFilename, audioData,
+        offset, rate: this.playbackRate, volume: musicGain(),
+      });
+      if (!r.ok) fail();
+    })().catch(fail);
+    this.bassEndTimer = setTimeout(() => {
+      if (gen !== this.bassGen) return;
+      this.bassEndTimer = null; this.bassActive = false; this.playing = false;
+      this.currentTime = this.songLength(); this.emit();
+    }, Math.max(0, (this.audioBuffer.duration - offset) / this.playbackRate * 1000 + 100));
+    return true;
+  }
+
+  private stopBass() {
+    this.bassGen++;
+    if (this.bassEndTimer) { clearTimeout(this.bassEndTimer); this.bassEndTimer = null; }
+    if (this.bassActive) void getElectronAPI()?.bassStop();
+    this.bassActive = false;
+  }
+
   // 调试: 最近排程的 hitsound 记录 (排查"音效不对"类问题用, 上限 300 条)
   debugLog: { mapTimeMs: number; soundId: string; volume: number; used: string; kind: string }[] = [];
   private debugPush(mapTimeMs: number, soundId: string, volume: number, used: string, kind: string) {
@@ -822,6 +871,7 @@ class EditorStore {
     if (this.hitBus) this.hitBus.gain.value = HITSOUND_BUS_GAIN * effectsGain();
     if (this.musicBus) this.musicBus.gain.value = musicGain();
     if (this.audio) this.audio.volume = musicGain();
+    if (this.bassActive) void getElectronAPI()?.bassVolume(musicGain()); // v599
   }
 
   /** 登记 voice 并执行并发上限 (v122): 只数与新 voice 同时发声的旧 voice, 超限最老在新 voice 发声时刻
@@ -944,6 +994,7 @@ class EditorStore {
   }
 
   private stopSource() {
+    this.stopBass(); // v599: 暂停/换谱/重建支路时同步停止原生 BASS 音乐
     if (this.source) { try { this.source.onended = null; this.source.stop(); } catch { /* noop */ } this.source = null; }
     if (this.sourceGain) { try { this.sourceGain.disconnect(); } catch { /* noop */ } this.sourceGain = null; } // v216
     if (this.tempoEndTimer) { clearTimeout(this.tempoEndTimer); this.tempoEndTimer = null; }
@@ -1257,8 +1308,8 @@ class EditorStore {
     this.emit();
   }
 
-  /** v155: 删除离当前位置最近的书签 (Ctrl+Shift+B), 阈值 500ms 内无书签则不动作 */
-  removeBookmarkNear(t: number, threshold = 500) {
+  /** v155/v597: 删除离当前位置最近的书签 (Ctrl+Shift+B); lazer BookmarkController 阈值为 2000ms */
+  removeBookmarkNear(t: number, threshold = 2000) {
     const bm = this.beatmap; if (!bm || !bm.editor.bookmarks.length) return;
     let bi = -1, bd = Infinity;
     bm.editor.bookmarks.forEach((b, i) => { const d = Math.abs(b - t); if (d < bd) { bd = d; bi = i; } });
@@ -2626,7 +2677,9 @@ class EditorStore {
       const now = actx.currentTime;
       const startW = Math.round((now + 0.003) * sr) / sr;
       const bus = this.ensureMusicBus();
-      if (this.tempoActive && this.tempoNode) {
+      if (this.bassActive) {
+        this.startBass(offset); // v599: 原生流直接按新位置重建, 时钟/hitsound 仍走下方公共锚点
+      } else if (this.tempoActive && this.tempoNode) {
         // v226: 变速支路 dip 贴紧切换点单次短窗 (~5ms), 不再"立即拉零 + 延迟恢复"
         if (this.tempoGain) {
           const tg = this.tempoGain.gain;
@@ -2711,9 +2764,12 @@ class EditorStore {
 
   play() {
     this.playing = true;
+    // v599: exe 的编辑器慢放优先走 lazer 同源 BASS (曲库直读; 其他来源按原始字节落临时文件)
+    const bassWanted = this.playbackRate !== 1 && !this.rateAdjustPitch && !this.bassUnavailable
+      && !!this.audioUrl && !!getElectronAPI();
     // v509: signalsmith 尚未就绪时也不能用原生 playbackRate 冒充慢放 (那会降调)。
     // 本次先走浏览器 <audio preservesPitch>；引擎就绪后自动重进采样级时钟主路径。
-    if (this.audioBuffer && this.audioUrl && this.playbackRate !== 1 && !this.rateAdjustPitch && !this.tempoNode) {
+    if (!bassWanted && this.audioBuffer && this.audioUrl && this.playbackRate !== 1 && !this.rateAdjustPitch && !this.tempoNode) {
       this.stopSource();
       this.ensureTempoNode();
       this.tempoLoading?.then(() => {
@@ -2753,7 +2809,9 @@ class EditorStore {
       this.resumeFloorMs = this.currentTime; // v261: 恢复播放渲染位置钳制下限 = 暂停点 (防闪回, 见 positionMs)
       // 确定性锚定: 延迟 20ms 启动, W 时刻谱面位置精确 = offset
       const startW = Math.round((this.actx!.currentTime + 0.02) * sr) / sr;
-      if (this.playbackRate !== 1 && !this.rateAdjustPitch && this.tempoNode) { // v295: 变调模式走下方重采样支路
+      if (bassWanted && this.startBass(offset)) {
+        this.destroyTempoNode(); this.destroyRateNode(); // v599: 原生 BASS 与 Web Audio 引擎互斥
+      } else if (this.playbackRate !== 1 && !this.rateAdjustPitch && this.tempoNode) { // v295: 变调模式走下方重采样支路
         // 变速不变调 (lazer AudioAdjustments.Tempo): signalsmith-stretch 引擎.
         // schedule 锚点 = AudioContext 时间线, 与 source.start(startW, offset) 同一语义;
         // 节点自补偿内部延迟 (120ms), 每块按映射重定位, 无漂移

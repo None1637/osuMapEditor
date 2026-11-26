@@ -25,8 +25,8 @@ export function realSettingsPath() {
 // 启动隔离 Electron: 临时 user-data-dir (+ 默认播种真实 settings.json 副本, 可用 settingsPatch 合并改动,
 // 例如 v281 的 hideTitleBar 开关 — 不再直写真实配置)。seed=false 模拟配置丢失场景 (首跑向导 + 曲库界面会出现)。
 // 返回 { proc, profile }; 收尾必须 killIsolated(proc, profile)。
-export function launchIsolatedElectron(root, port, { seed = true, settingsPatch = null, extraArgs = [] } = {}) {
-  const ELECTRON = path.join(root, 'node_modules', 'electron', 'dist', 'electron.exe');
+export function launchIsolatedElectron(root, port, { seed = true, settingsPatch = null, extraArgs = [], exePath = null } = {}) {
+  const ELECTRON = exePath ?? path.join(root, 'node_modules', 'electron', 'dist', 'electron.exe');
   const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'osu-verifier-'));
   if (seed) {
     try {

@@ -6202,3 +6202,36 @@
 - 原 P 对象不被修改, EditorCanvas 单独叠加其三点控制手柄, 现有命中/拖拽仍写回原对象并实时重算预览。
 - 最终预览 B 滑条保留身体和头尾选中效果, 但抑制临时贝塞尔控制点, 避免与可编辑原锚点混杂。
 - 验证: v595 源码契约、v581/v594/v243/v236 回归及 `npm run build` 通过。
+
+## v596 — 缩放倍率直接应用于勾选轴
+- 缩放弹窗移除独立 Y 倍率输入框和 x:y 固定开关, 顶部同一倍率同时用于所有勾选轴, 未勾选轴保持 1。
+- X/Y 勾选仍独立持久化, 旧存档中的 lockRatio 键不再读入; 左侧栏原有独立 X/Y 数值缩放保持不变。
+- 验证: v596 源码契约、v405 布局/纯函数回归及 `npm run build` 通过。
+
+## v597 — Timing 菜单可见的书签增删入口
+- 现有 Ctrl+B 添加与 Ctrl+Shift+B 删除最近书签功能保留, 但此前只能从不显眼的快捷键提示或设置面板发现。
+- 参考 lazer `BookmarkController.Menu`, Timing 新增 Bookmarks 子菜单, 提供添加/删除最近书签及对应快捷键入口。
+- 删除范围由 500ms 对齐 lazer 的 2000ms; 同刻去重、时间排序、撤销和蓝线显示逻辑不变。
+- 验证: v597 添加/排序/去重/最近删除/阈值边界行为及菜单路由断言, 构建通过。
+
+## v598 — 皮肤异步加载代次保护
+- 用户偶发数字和 sliderball 等部分贴图回退默认: 默认皮肤与自定义皮肤共用单例, 旧异步任务可晚到覆盖;
+  多次换肤也会互相回写, 且 reset 会提前释放仍在解码的 object URL。
+- 新增 skinLoadSeq: 每次 reset 递增代次, 默认图片、自定义图片、skin.ini、followpoint 和最终回退收尾均只许当前代次写入。
+- 图片解码失败或代次失效时主动释放 object URL; 最后一次启动的换肤任务独占最终皮肤来源和贴图。
+- 验证: v598 用可控 Image 乱序覆盖默认晚到、A/B 并发换肤两场景; 数字、sliderball、ini 和来源均不被旧任务覆盖。
+
+## v599 — 原生 BASS Tempo 慢放链路
+- 旧编辑器慢放使用 signalsmith-stretch, 与 lazer PlaybackControl (`AdjustableProperty.Tempo`) 的 BASS FX
+  实现不同, 无法通过调参达到同源音质。现改为 .NET 侧车直接调用 lazer 当前依赖对应的 bass/bass_fx。
+- 侧车以 `BassFx.TempoCreate + ChannelAttribute.Tempo((rate-1)*100)` 保持音高; Unicode 路径和 JSON IPC 均为 UTF-8。
+- 曲库音频直接读原文件, 其他来源按原始字节 SHA-256 落临时文件; 暂停、播放中 seek、音量与播完仍接入原时钟/音效。
+- BASS 与 signalsmith/sinc/HTML 音乐支路互斥, 不可用时回退 Web Audio; 自包含 .NET 和原生 DLL 随便携 exe 分发。
+- 验证: native-smoke 真实 BASS 0.5x 起播/位置/停止; e2e 曲库 MP3、暂停重进、播放中 seek、非曲库来源均走 BASS;
+  v385/v382 旧 Web Audio 路径显式强制回退后全绿, `npm run build` 通过。最终 NSIS 下载受本机网络限制,
+  未能生成新便携包 (旧 release 文件不用于验收)。不同输出设备/驱动仍可能造成最终听感差异, 不声称跨设备样本级相同。
+
+## v600 — 刷新谱面保留播放
+- 普通曲库换图/菜单打开仍按 v584 统一暂停; 仅右上角「刷新谱面」和对应 Ctrl+R 命令保留播放状态。
+- store.load 新增 preservePlayback 可选参数, 默认 false; reloadMap 显式传 true, 随后的 seek 在新谱面上重锚定音频与 hitsound。
+- 验证: v600 默认暂停/显式保留行为及 App 接线; v584 普通换图暂停回归和构建通过。

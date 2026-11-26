@@ -305,12 +305,17 @@ function makeProceduralBase(): Skin {
   };
 }
 
+// v598: 换肤代次 — 每次 reset 都使此前未完成的默认/自定义加载失效, 防止旧任务回写同一单例
+let skinLoadSeq = 0;
+
 /** 从 public/skin/ 异步加载默认文件皮肤, 逐张替换 (加载失败的保留回退) */
 function loadDefaultFilesInto(skin: Skin) {
+  const generation = skinLoadSeq;
   const base = import.meta.env.BASE_URL || '/';
   const loadedKeys = new Set<keyof Skin>();
   let pending = SKIN_FILES.length + 20; // v298: +10 score 数字 (score-0..9)
   const done = () => {
+    if (generation !== skinLoadSeq) return;
     if (--pending === 0) {
       resolveSliderCircleFallback(skin, k => loadedKeys.has(k)); // v100
       skin.filesLoaded = true;
@@ -319,20 +324,29 @@ function loadDefaultFilesInto(skin: Skin) {
   };
   for (const [key, file] of SKIN_FILES) {
     const img = new Image();
-    img.onload = () => { (skin[key] as SkinImage) = img; loadedKeys.add(key); bumpSkinContentSeq(); done(); };
+    img.onload = () => {
+      if (generation !== skinLoadSeq) return; // v598: 默认皮肤晚到不得覆盖自定义皮肤
+      (skin[key] as SkinImage) = img; loadedKeys.add(key); bumpSkinContentSeq(); done();
+    };
     img.onerror = done;
     img.src = `${base}skin/${file}`;
   }
   for (let i = 0; i < 10; i++) {
     const img = new Image();
-    img.onload = () => { skin.default0[i] = img; bumpSkinContentSeq(); done(); };
+    img.onload = () => {
+      if (generation !== skinLoadSeq) return;
+      skin.default0[i] = img; bumpSkinContentSeq(); done();
+    };
     img.onerror = done;
     img.src = `${base}skin/default-${i}.png`;
   }
   // v298: score-0..9 (分数/combo 数字; 默认皮肤通常没有 → 保留 null 回退文字)
   for (let i = 0; i < 10; i++) {
     const img = new Image();
-    img.onload = () => { skin.scoreDigits[i] = img; bumpSkinContentSeq(); done(); };
+    img.onload = () => {
+      if (generation !== skinLoadSeq) return;
+      skin.scoreDigits[i] = img; bumpSkinContentSeq(); done();
+    };
     img.onerror = done;
     img.src = `${base}skin/score-${i}.png`;
   }
@@ -403,8 +417,9 @@ export function hitcircleSpriteWidth(img: SkinImage): number {
 }
 
 /** 换回程序化回退底 (不触发 public/skin 加载), 换肤前清场 */
-function resetToProcedural() {
-  const skin = getSkin();
+function resetToProcedural(): number {
+  const skin = getSkin(); // 先确保单例存在; 若此处才创建, 紧随其后的递增也会使刚启动的默认加载失效
+  const generation = ++skinLoadSeq; // v598: 先作废旧任务, 再释放其可能仍在解码的 object URL
   for (const u of skinObjectUrls) URL.revokeObjectURL(u);
   skinObjectUrls = [];
   Object.assign(skin, makeProceduralBase());
@@ -412,6 +427,7 @@ function resetToProcedural() {
   skin.cursortrail = undefined;
   skin.hitlighting = undefined; // v420
   bumpSkinContentSeq(); // v340
+  return generation;
 }
 
 /**
@@ -425,21 +441,27 @@ function resetToProcedural() {
  * 该常量只用于 applyConfigFrameRate=false 的路径; 60fps 默认让 1x1 空白帧皮肤的亮灭节奏快 6 倍, 连线看似断裂)。
  */
 export async function applySkinFromDir(dir: FsDirLike, sourceName: string): Promise<{ loaded: number; total: number }> {
-  resetToProcedural();
+  const generation = resetToProcedural();
   const skin = getSkin();
   const total = SKIN_FILES.length + 20; // v298: +10 score 数字
   let loaded = 0;
   const loadName = async (name: string, assign: (img: SkinImage) => void): Promise<boolean> => {
+    let url: string | null = null;
     try {
+      if (generation !== skinLoadSeq) return false; // v598: 旧任务不再发起新读取
       const f = await (await dir.getFileHandle(name)).getFile();
-      const url = URL.createObjectURL(f);
+      url = URL.createObjectURL(f);
       const img = await loadImage(url);
-      skinObjectUrls.push(url);
+      if (generation !== skinLoadSeq) { URL.revokeObjectURL(url); return false; } // 解码期间已被新换肤取代
       assign(img);
+      skinObjectUrls.push(url);
       bumpSkinContentSeq(); // v340
       if (name.toLowerCase().endsWith('@2x.png')) skinScaleAdjust.set(img, 2); // 高清贴图按半尺寸绘制
       return true;
-    } catch { return false; }
+    } catch {
+      if (url) URL.revokeObjectURL(url); // 解码失败也释放, 避免失败任务积累 blob
+      return false;
+    }
   };
   // v170: loadOne 已并入数字加载的 前缀→default 回退链 (见下方 jobs)
   // v132: skin.ini 文本共享读取 (AnimationFramerate 帧率 + [Colours] 皮肤颜色)
@@ -451,6 +473,7 @@ export async function applySkinFromDir(dir: FsDirLike, sourceName: string): Prom
   jobs.push((async () => {
     // v132: 解析 [Colours] (Combo1..8 / SliderBorder / SliderTrackOverride), 供显示设置「使用皮肤颜色」
     const cols = parseSkinIniColours(await iniTextP);
+    if (generation !== skinLoadSeq) return;
     skin.comboColors = cols.combos;
     skin.sliderBorder = cols.sliderBorder;
     skin.sliderTrackOverride = cols.sliderTrackOverride;
@@ -473,6 +496,7 @@ export async function applySkinFromDir(dir: FsDirLike, sourceName: string): Prom
     // v170: skin.ini [Fonts] HitCirclePrefix — 数字贴图用自定义前缀 (如 Saraune Leaves 的 blank-N;
     //       该皮肤 default-N.png 是 1x1 透明占位, 不读前缀会导致圈内数字不显示); 前缀文件缺失时回退 default-N
     const fonts = parseSkinIniFonts(await iniTextP);
+    if (generation !== skinLoadSeq) return;
     skin.hitCircleOverlap = fonts.hitCircleOverlap;
     const prefix = fonts.hitCirclePrefix ?? 'default';
     await Promise.all(Array.from({ length: 10 }, (_, i) => (async () => {
@@ -506,6 +530,7 @@ export async function applySkinFromDir(dir: FsDirLike, sourceName: string): Prom
     }
     if (frames.length) {
       const m = (await iniTextP).match(/^\s*AnimationFramerate\s*:\s*(\d+)/mi); // v132: 改用共享 skin.ini 文本
+      if (generation !== skinLoadSeq) return;
       const iniRate = m ? parseInt(m[1]) : 0;
       skin.followpointFrames = frames;
       skin.followpoint = frames[0];
@@ -519,6 +544,7 @@ export async function applySkinFromDir(dir: FsDirLike, sourceName: string): Prom
     }
   })());
   await Promise.all(jobs);
+  if (generation !== skinLoadSeq) return { loaded: 0, total }; // v598: 旧任务不得收尾覆盖新任务
   resolveSliderCircleFallback(skin, k => loadedKeys.has(k)); // v100: 缺失 sliderstart/endcircle 整组回退 hitcircle
   skin.filesLoaded = true;
   skinSourceName = sourceName;

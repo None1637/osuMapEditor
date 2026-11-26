@@ -10,3 +10,7 @@ files:
 win:
   target: portable
 asar: true
+# v599: 自包含 .NET + lazer 同源 BASS 原生库, 用户机器无需安装 .NET
+extraResources:
+  - from: native/BassAudioSidecar/publish
+    to: native/BassAudioSidecar

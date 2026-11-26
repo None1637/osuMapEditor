@@ -61,4 +61,8 @@ contextBridge.exposeInMainWorld("osuEditor", {
   // v493: GitHub Releases 更新检测 (主进程请求 API + 版本比较) / 确认后系统浏览器打开 release 页
   checkUpdate: () => ipcRenderer.invoke("check-update"),
   openExternal: (url) => ipcRenderer.invoke("open-external", url),
+  // v599: 原生 BASS Tempo 音乐通道
+  bassPlay: (payload) => ipcRenderer.invoke("bass-play", payload),
+  bassStop: () => ipcRenderer.invoke("bass-stop"),
+  bassVolume: (value) => ipcRenderer.invoke("bass-volume", value),
 })

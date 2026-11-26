@@ -24,8 +24,6 @@ export const zhCN: Record<string, string> = {
   'transform.cw': '顺时针',
   'transform.cw_once': '顺时针旋转一次',
   'transform.cw_title': '按输入角度顺时针旋转一次',
-  'transform.lock_ratio': 'x:y 固定',
-  'transform.lock_ratio_title': '固定 x:y 比例 — 改任一轴, 另一轴按当前比例联动',
   'transform.apply_scale': '应用倍率',
   'transform.apply_scale_title': '按输入倍率缩放, 应用后自动关窗 (取消勾选某轴则该轴不动; 滑条长度同步)', // v475: 注明会关窗
   'transform.apply_scale_stay': '应用倍率但不关闭', // v475

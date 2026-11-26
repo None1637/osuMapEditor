@@ -142,6 +142,7 @@ section('CDP: 功能回归 (不变调默认路径)');
         return d.hasAudioBuffer && d.tempoReady && d.defaultBuffers.length > 0; })()`).catch(() => false);
     }
     assert(ready, 'setup: 音频解码 + tempo 引擎就绪 (v447 懒建, 显式 ensure) + hitsound 就绪');
+    await evalJs('window.__osuStore.bassUnavailable = true'); // v599: 以下旧功能断言专测 signalsmith 回退路径
 
     // 0) 默认语义: rateAdjustPitch === false
     const d0 = await evalJs(`window.__osuStore.debugState()`);

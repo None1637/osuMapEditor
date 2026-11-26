@@ -10,10 +10,11 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:bass": "dotnet publish native/BassAudioSidecar/BassAudioSidecar.csproj -c Release -r win-x64 --self-contained true -o native/BassAudioSidecar/publish",
     "lint": "eslint .",
     "preview": "vite preview",
-    "dev:electron": "npm run build && electron .",
-    "dist:exe": "npm run build && electron-builder --win portable"
+    "dev:electron": "npm run build && npm run build:bass && electron .",
+    "dist:exe": "npm run build && npm run build:bass && electron-builder --win portable"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

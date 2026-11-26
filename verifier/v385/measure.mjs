@@ -153,6 +153,7 @@ export const SETUP_MAP = `(async () => {
   store.load({ ...base,
     timingPoints: [{ time: 0, beatLength: 500, meter: 4, sampleSet: 1, sampleIndex: 0, volume: 80, uninherited: true, effects: 0 }],
     hitObjects: [], editor: { ...base.editor, beatDivisor: 4, bookmarks: [] } }, null);
+  store.bassUnavailable = true; // v599: 本验证器专测旧 signalsmith 回退路径, 不走原生 BASS
   return true;
 })()`;
 

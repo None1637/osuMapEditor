@@ -1,8 +1,8 @@
 // 验证器 v367: 缩放类数值框精细度 ×10 — 用户反馈「缩放(1个选中)」变换窗口倍率调整精细度不够,
 //  要求所有缩放相关 UI 数值精度增加一位 (步进 ÷10, 显示 2 位 → 3 位小数)。
 // 改动面 (仅缩放语义框; BPM/SV/距离倍率/偏移等不动):
-//  1. TransformDialog 缩放窗口 倍率 x/y (testid factor/factor-y): step 0.05 → 0.005, digits 3
-//     — 滚轮/拖动 (5px=1step, DraftNum 共用逻辑) 步进自动同步 ÷10。
+//  1. TransformDialog 缩放窗口统一倍率 (testid factor): step 0.05 → 0.005, digits 3
+//     — 滚轮/拖动 (5px=1step, DraftNum 共用逻辑) 步进自动同步 ÷10; v596 移除独立 factor-y。
 //  2. DuplicateDialog / SymSliderDialog 每份递增缩放 (scalePerCopy): step 0.05 → 0.005, digits 3。
 //  3. App.tsx 游玩区平移 Zoom (v223/v224 左侧栏): 显示取整 ×100→×1000, step 0.1→0.01, digits 3。
 //  4. DraftNum (DraggableDialog) / PanNumInput (App) 新增 digits prop — 非草稿/非聚焦态 toFixed 显示。
@@ -25,7 +25,7 @@ section('源码: 四处缩放框 step ÷10 + digits=3');
 {
   const tf = read('src/components/TransformDialog.tsx');
   assert(/testid="factor" min=\{0\.01\} step=\{0\.005\} digits=\{3\}/.test(tf), '缩放窗口 倍率x: step 0.05→0.005, digits 3');
-  assert(/testid="factor-y" min=\{0\.01\} step=\{0\.005\} digits=\{3\}/.test(tf), '缩放窗口 倍率y: step 0.05→0.005, digits 3');
+  assert(!/testid="factor-y"/.test(tf), 'v596: 独立倍率 y 框已移除, 统一倍率保留 0.005/3 位精度');
   assert(!/testid="factor(-y)?" min=\{0\.01\} step=\{0\.05\}/.test(tf), '缩放窗口旧 0.05 步进已移除');
   const dup = read('src/components/convert/DuplicateDialog.tsx');
   assert(/testid="scalePerCopy" min=\{-0\.99\} max=\{5\} step=\{0\.005\} digits=\{3\}/.test(dup), 'DuplicateDialog 每份递增缩放: step÷10 + digits 3');

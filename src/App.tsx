@@ -188,7 +188,7 @@ export default function App() {
     try {
       const r = await loadDifficulty(src.dir, src.fileName);
       const t0 = store.currentTime;
-      store.load(r.bm, r.audioUrl, r.bgUrl, r.samples, src, r.audioKey); // v444: 音频未变则复用解码
+      store.load(r.bm, r.audioUrl, r.bgUrl, r.samples, src, r.audioKey, false, true); // v444/v600: 复用解码; 刷新不暂停播放
       const lastEnd = r.bm.hitObjects.reduce((m, o) => Math.max(m, o.endTime || o.time), 0);
       store.seek(Math.min(t0, lastEnd + 5000));
     } catch (e) {

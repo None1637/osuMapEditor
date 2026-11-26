@@ -55,23 +55,21 @@ section('TransformDialog.tsx: stable 式布局');
   // 原点分组 (游玩区中心/选区中心/自定义, 节点模式隐藏)
   assert(/\[\['playfield', t\('transform\.center'/.test(src) && /'selection', t\('transform\.selection'/.test(src),
     '原点分组: 游玩区中心/选区中心 顺序对齐 stable');
-  // 实际倍率走 axisScaleFactors (预览 + 提交)
-  assert(/const \{ sx, sy \} = axisScaleFactors\(factor, factorY, axisX, axisY\);/.test(src), 'sx/sy 来自 axisScaleFactors');
+  // 实际倍率走 axisScaleFactors (预览 + 提交); v596 起勾选轴共用同一 factor
+  assert(/const \{ sx, sy \} = axisScaleFactors\(factor, factor, axisX, axisY\);/.test(src), 'sx/sy 来自同一 factor + axisScaleFactors (v596)');
   assert(/scaleObjects\(objs, c, sx, sy\)/.test(src) && /scalePt\(p, c, sx, sy\)/.test(src), '预览/提交用 sx/sy');
   // 按钮改名
-  assert(/t\('transform\.ccw_once', 'Rotate once counter-clockwise'\)/.test(src)
-    && /t\('transform\.cw_once', 'Rotate once clockwise'\)/.test(src), '按钮改「逆/顺时针旋转一次」');
+  assert(src.includes('textKey="transform.ccw_once"') && src.includes('textKey="transform.cw_once"'), '按钮改「逆/顺时针旋转一次」 (UiAutoText)');
   assert(!/t\('transform\.ccw', 'Counter-clockwise'\)\}<\/button>/.test(src), '旧按钮文案已移除');
   // 方向与角度双向同步
   assert(/directionForAngle\(v, d\)/.test(src) && /angleForDirection\(angle, d\)/.test(src), 'changeAngle/changeDir 双向同步');
   // 持久化 (关窗落盘)
   assert(/loadParams\('tf-rotate', \{ dir: 'cw'/.test(src) && /useSaveParamsOnClose\('tf-rotate', \{ dir \}\)/.test(src),
     '方向关窗记忆 (tf-rotate)');
-  assert(/loadParams\('tf-scale', \{ lockRatio: false, axisX: true, axisY: true \}\)/.test(src), '轴向勾选并入 tf-scale 持久化');
-  // 保留旧功能锚点 (旧验证器兼容)
-  assert(/data-tf="apply-rotate"/.test(src) && /data-tf="lock-ratio"/.test(src), 'apply-rotate/lock-ratio 保留');
+  assert(/loadParams\('tf-scale', \{ axisX: true, axisY: true \}\)/.test(src), '轴向勾选并入 tf-scale 持久化');
+  assert(/data-tf="apply-rotate"/.test(src), 'apply-rotate 保留');
   assert(/testid="factor" min=\{0\.01\} step=\{0\.005\} digits=\{3\}/.test(src)
-    && /testid="factor-y" min=\{0\.01\} step=\{0\.005\} digits=\{3\}/.test(src), '倍率 x/y 框属性保留 (v367)');
+    && !src.includes('testid="factor-y"') && !src.includes('data-tf="lock-ratio"'), '仅保留统一倍率框, 移除独立 y 与 x:y 固定 (v596)');
 }
 
 section('zh-CN 词典');
