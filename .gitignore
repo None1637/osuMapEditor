@@ -16,6 +16,7 @@ release
 
 # v599: NuGet 下载缓存与 BASS 侧车构建产物 (源码及所需 lazer 同源 DLL 仍入库)
 native/packages/
+native/tools/
 native/**/bin/
 native/**/obj/
 native/**/publish/

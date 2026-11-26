@@ -9,10 +9,18 @@ function createBassAudio(app, readSettings) {
   let readyPromise = null
   let stdout = ""
   let ackQueue = []
+  let playSeq = 0
 
-  const exePath = () => app.isPackaged
+  const exePath = () => process.env.BASS_SIDECAR_EXE ?? (app.isPackaged
     ? path.join(process.resourcesPath, "native", "BassAudioSidecar", "BassAudioSidecar.exe")
-    : path.join(__dirname, "..", "native", "BassAudioSidecar", "publish", "BassAudioSidecar.exe")
+    : path.join(__dirname, "..", "native", "BassAudioSidecar", "publish", "BassAudioSidecar.exe"))
+
+  function killSidecar() {
+    if (proc) {
+      try { proc.stdin.write(JSON.stringify({ type: "stop" }) + "\n"); proc.kill(); } catch { /* noop */ }
+    }
+    proc = null; readyPromise = null; stdout = ""
+  }
 
   const rejectAcks = error => {
     for (const { reject } of ackQueue) reject(error)
@@ -23,7 +31,9 @@ function createBassAudio(app, readSettings) {
     if (readyPromise) return readyPromise
     const exe = exePath()
     if (!fs.existsSync(exe)) return Promise.reject(new Error("BASS sidecar not found"))
-    proc = spawn(exe, [], { stdio: ["pipe", "pipe", "pipe"] })
+    const args = process.env.BASS_SIDECAR_ARGS ? JSON.parse(process.env.BASS_SIDECAR_ARGS) : []
+    const child = spawn(exe, args, { stdio: ["pipe", "pipe", "pipe"] })
+    proc = child
     readyPromise = new Promise((resolve, reject) => {
       const timer = setTimeout(() => reject(new Error("BASS sidecar ready timeout")), 8000)
       const onData = d => {
@@ -37,21 +47,25 @@ function createBassAudio(app, readSettings) {
           try { msg = JSON.parse(line) } catch { continue }
           if (msg.type === "ready") { clearTimeout(timer); resolve(); }
           if (msg.type === "init-error") { clearTimeout(timer); reject(new Error(msg.error)); }
-          if (msg.type === "play-ack") ackQueue.shift()?.resolve(msg)
+          if (msg.type === "play-ack") {
+            const i = ackQueue.findIndex(x => x.id === msg.requestId)
+            if (i >= 0) ackQueue.splice(i, 1)[0].resolve(msg) // v601: 只接当前 requestId, 丢弃超时旧 ack
+          }
         }
       }
-      proc.stdout.on("data", onData)
-      proc.stderr.on("data", d => console.error("[bass]", d.toString().trim()))
-      proc.once("error", e => { clearTimeout(timer); reject(e); })
-      proc.once("exit", () => {
+      child.stdout.on("data", onData)
+      child.stderr.on("data", d => console.error("[bass]", d.toString().trim()))
+      child.once("error", e => { clearTimeout(timer); reject(e); })
+      child.once("exit", () => {
         clearTimeout(timer)
-        proc = null; readyPromise = null
+        if (proc === child) { proc = null; readyPromise = null } // v601: 旧进程退出不得误清新进程
         rejectAcks(new Error("BASS sidecar exited"))
       })
     })
     // 初始化失败时允许下次播放重试, 不把 rejected Promise 永久缓存
-    readyPromise.catch(() => { if (proc) proc.kill(); proc = null; readyPromise = null; }).catch(() => { })
-    return readyPromise
+    const current = readyPromise
+    current.catch(() => { if (proc === child) { child.kill(); proc = null; readyPromise = null; } }).catch(() => { })
+    return current
   }
 
   async function play(payload) {
@@ -76,12 +90,14 @@ function createBassAudio(app, readSettings) {
       if (!fs.existsSync(file)) return { ok: false, error: "audio file not found" }
       await ensureReady()
       return await new Promise((resolve, reject) => {
+        const requestId = ++playSeq
         const timer = setTimeout(() => {
           ackQueue = ackQueue.filter(x => x.timer !== timer)
+          killSidecar() // v601: 超时后旧侧车仍可能起播, 必须终止, 禁止与 Web Audio 回退并存
           resolve({ ok: false, error: "BASS play timeout" })
-        }, 8000)
-        ackQueue.push({ timer, resolve: msg => { clearTimeout(timer); resolve(msg) }, reject: e => { clearTimeout(timer); reject(e) } })
-        proc.stdin.write(JSON.stringify({ type: "play", path: file, offset: payload.offset, rate: payload.rate, volume: payload.volume }) + "\n")
+        }, Number(process.env.BASS_PLAY_TIMEOUT_MS ?? 8000))
+        ackQueue.push({ id: requestId, timer, resolve: msg => { clearTimeout(timer); resolve(msg) }, reject: e => { clearTimeout(timer); reject(e) } })
+        proc.stdin.write(JSON.stringify({ type: "play", requestId, path: file, offset: payload.offset, rate: payload.rate, volume: payload.volume }) + "\n")
       })
     } catch (e) { return { ok: false, error: e instanceof Error ? e.message : String(e) } }
   }

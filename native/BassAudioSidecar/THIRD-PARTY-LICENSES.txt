@@ -38,3 +38,14 @@ PARTICULAR PURPOSE. THE AUTHORS SHALL NOT BE HELD LIABLE FOR ANY DAMAGE THAT
 MAY RESULT FROM THE USE OF BASS. YOU USE BASS ENTIRELY AT YOUR OWN RISK.
 
 Usage of BASS indicates that you agree to the above conditions.
+
+osu.Framework (offline lazer comparison probe only)
+Copyright (c) ppy Pty Ltd
+MIT License: https://github.com/ppy/osu-framework/blob/master/LICENCE
+
+NUnit (offline lazer comparison probe only)
+Copyright (c) 2022 Charlie Poole, Rob Prouse
+MIT License: https://github.com/nunit/nunit/blob/master/LICENSE.txt
+
+The above copyright notices and the MIT permission notice in the ManagedBass
+section above apply to these components as well.

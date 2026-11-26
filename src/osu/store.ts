@@ -804,6 +804,8 @@ class EditorStore {
     this.bassActive = true;
     const fail = () => {
       if (gen !== this.bassGen) return;
+      // v601: 超时侧车可能随后仍成功起播; 回退前必须无条件停掉, 不能只看 bassActive
+      void api.bassStop();
       this.bassActive = false;
       this.bassUnavailable = true; // 防止侧车缺失时在 pause/play 间无限重试
       if (this.playing) { this.pause(); this.play(); }

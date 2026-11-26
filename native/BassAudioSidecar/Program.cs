@@ -33,6 +33,7 @@ internal static class Program
         {
             FreeStream();
             var file = cmd["path"]!.GetValue<string>();
+            var requestId = cmd["requestId"]?.GetValue<int>() ?? 0;
             var rate = cmd["rate"]?.GetValue<double>() ?? 1;
             var volume = cmd["volume"]?.GetValue<double>() ?? 1;
             var offset = cmd["offset"]?.GetValue<double>() ?? 0;
@@ -40,8 +41,13 @@ internal static class Program
             {
                 var decode = Bass.CreateStream(file, 0, 0, BassFlags.Decode | BassFlags.Unicode);
                 if (decode == 0) throw new InvalidOperationException($"BASS.CreateStream: {Bass.LastError}; exists={File.Exists(file)}; path={file}");
-                stream = BassFx.TempoCreate(decode, BassFlags.FxFreeSource);
+                stream = BassFx.TempoCreate(decode, BassFlags.Decode | BassFlags.FxFreeSource);
                 if (stream == 0) throw new InvalidOperationException($"BASS_FX_TempoCreate: {Bass.LastError}");
+                // v602: 反编译 lazer TrackBass.prepareStream 的实际 Tempo 参数, 不再使用 BASS 默认值
+                Bass.ChannelSetAttribute(stream, ChannelAttribute.TempoUseQuickAlgorithm, 1);
+                Bass.ChannelSetAttribute(stream, ChannelAttribute.TempoOverlapMilliseconds, 4);
+                Bass.ChannelSetAttribute(stream, ChannelAttribute.TempoSequenceMilliseconds, 30);
+                Bass.ChannelSetAttribute(stream, (ChannelAttribute)65559, 1);
                 // lazer PlaybackControl → AdjustableProperty.Tempo: BASS_ATTRIB_TEMPO 为相对百分比, 音高不变。
                 if (!Bass.ChannelSetAttribute(stream, ChannelAttribute.Tempo, (rate - 1) * 100))
                     throw new InvalidOperationException($"BASS_ATTRIB_TEMPO: {Bass.LastError}");
@@ -50,12 +56,12 @@ internal static class Program
                     throw new InvalidOperationException($"BASS.ChannelSetPosition: {Bass.LastError}");
                 if (!Bass.ChannelPlay(stream, false)) throw new InvalidOperationException($"BASS.ChannelPlay: {Bass.LastError}");
                 playing = true;
-                Send(new { type = "play-ack", ok = true, rate });
+                Send(new { type = "play-ack", requestId, ok = true, rate });
             }
             catch (Exception ex)
             {
                 FreeStream();
-                Send(new { type = "play-ack", ok = false, error = ex.Message });
+                Send(new { type = "play-ack", requestId, ok = false, error = ex.Message });
             }
         }
     }

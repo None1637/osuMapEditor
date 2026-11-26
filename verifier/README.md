@@ -6235,3 +6235,17 @@
 - 普通曲库换图/菜单打开仍按 v584 统一暂停; 仅右上角「刷新谱面」和对应 Ctrl+R 命令保留播放状态。
 - store.load 新增 preservePlayback 可选参数, 默认 false; reloadMap 显式传 true, 随后的 seek 在新谱面上重锚定音频与 hitsound。
 - 验证: v600 默认暂停/显式保留行为及 App 接线; v584 普通换图暂停回归和构建通过。
+
+## v601 — 修复慢放超时后的双音轨
+- 根因: BASS 起播超过 8s 后渲染端先回退 Web Audio, 但旧侧车随后仍可能成功起播; fail 又先清 bassActive,
+  导致 pause 不再发送停止命令, 两个不同延迟的音频输出同时发声。
+- 渲染端回退前无条件 bassStop; 主进程超时直接终止旧侧车并允许下次重建, 不再只返回 false 留旧流出声。
+- play-ack 增加 requestId, 主进程只接受当前请求, 丢弃超时旧 ack; 旧进程退出按进程身份清理, 不得误清重建后的新进程。
+- 验证: v601 用可控假侧车覆盖 0.25x 超时、终止重启和旧 ack 隔离; v599 原生/e2e 回归及 `npm run build` 通过。
+
+## v602 — lazer TrackBass 参数对齐与 25% 样本对照
+- 反编译 lazer `TrackBass.prepareStream`: 除 Tempo 百分比外, 还设置 `TempoUseQuickAlgorithm=1`、
+  `TempoOverlapMilliseconds=4`、`TempoSequenceMilliseconds=30`、`(ChannelAttribute)65559=1`, 且 Tempo 流带 Decode。
+- 原侧车只用 BASS 默认参数; 现正式播放路径全部同步。默认值与 lazer 参数对比确有样本差异, 同步后清零。
+- 验证: v602 直接实例化 lazer TrackBass + BassAudioMixer, 与正式参数路径比较 0.25x 多频正弦+噪声+冲激输出,
+  96000 个浮点样本 different=0、maxAbs=0、RMS=0。此结果证明该离线输入和参数路径逐样本一致, 不外推为所有声卡输出相同。

@@ -30,9 +30,9 @@ const exit = new Promise(resolve => child.once('exit', resolve));
 try {
   for (let i = 0; i < 50 && !stdout.includes('"ready"'); i++) await sleep(100);
   ok(stdout.includes('"ready"'), `BASS 初始化 (${stdout.trim() || '无 ready 输出'})`);
-  send({ type: 'play', path: wavPath, offset: 0, rate: 0.5, volume: 0 });
+  send({ type: 'play', requestId: 123, path: wavPath, offset: 0, rate: 0.5, volume: 0 });
   for (let i = 0; i < 50 && !stdout.includes('"play-ack"'); i++) await sleep(100);
-  ok(stdout.includes('"play-ack","ok":true'), `0.5x Tempo 起播 (${stdout.trim()})`);
+  ok(stdout.includes('"play-ack","requestId":123,"ok":true'), `0.5x Tempo 起播并回传 requestId (${stdout.trim()})`);
   await sleep(400);
   send({ type: 'position' });
   await sleep(100);
