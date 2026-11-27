@@ -11,14 +11,16 @@ export interface PolygonParams {
   offsetAngle: number;  // 起始角 0-180 (度)
   distanceSnap: number; // 间距倍率 0.1-6 (= 锁定间距的 1x 同单位)
   newCombo: boolean;    // 首个物件 newCombo (lazer 绑定选区 NC 状态)
-  star: boolean;        // v592: n 角星 — 全部顶点在外圈, 每隔一个顶点连接形成星形
+  star: boolean;        // v592: n 角星 — 全部顶点在外圈, 按隔点数连接形成星形
+  starStep: number;     // v608: 隔点数 1..31; 1=每隔一个顶点, 2=每隔两个顶点
 }
-export const DEFAULT_POLYGON_PARAMS: PolygonParams = { vertices: 3, repeats: 1, offsetAngle: 0, distanceSnap: 1, newCombo: false, star: false };
+export const DEFAULT_POLYGON_PARAMS: PolygonParams = { vertices: 3, repeats: 1, offsetAngle: 0, distanceSnap: 1, newCombo: false, star: false, starStep: 1 };
 export const POLYGON_LIMITS = {
   vertices: [3, 32] as const,
   repeats: [1, 10] as const,
   offsetAngle: [0, 180] as const,
   distanceSnap: [0.1, 6] as const,
+  starStep: [1, 31] as const,
 };
 
 /** 吸附到最近节拍网格 (lazer IBeatSnapProvider.SnapTime: 当前红线 beatLength/divisor 网格, 四舍五入) */
@@ -68,8 +70,8 @@ export function computePolygon(bm: Beatmap, currentTime: number, divisor: number
   const total = Math.round(p.vertices) * Math.round(p.repeats);
   const objects: HitObject[] = [];
   for (let i = 0; i < total; i++) {
-    // v592: n 角星 = 全外圈顶点按每隔一个点的顺序连接, 不设内圈
-    const angle = (p.offsetAngle * Math.PI) / 180 + (i + 1) * (p.star ? 2 : 1) * ((2 * Math.PI) / p.vertices);
+    // v592/v608: n 角星 = 全外圈顶点按 starStep+1 的步长连接, 不设内圈
+    const angle = (p.offsetAngle * Math.PI) / 180 + (i + 1) * (p.star ? Math.max(1, Math.round(p.starStep)) + 1 : 1) * ((2 * Math.PI) / p.vertices);
     const r = radius;
     const x = 256 + r * Math.cos(angle);
     const y = 192 + r * Math.sin(angle);

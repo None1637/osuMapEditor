@@ -9,7 +9,9 @@ const https = require("node:https") // v493: 更新检测 (GitHub API)
 const { spawn } = require("node:child_process")
 const { createBassAudio } = require("./bassAudio.cjs") // v599
 let win = null
-const bassAudio = createBassAudio(app, readSettings)
+// v611: 当前显式打开的 Songs 外谱面目录; 仅在未保存确认通过后由渲染端注册
+let externalBeatmapDir = null
+const bassAudio = createBassAudio(app, readSettings, msg => win?.webContents.send("bass-position", msg)) // v604
 // 端点逻辑与 vite 中间件共用 (ESM 模块, 由 main() 动态 import 后赋值; createServer 闭包请求时才解引用)
 let handleLocalFs = null
 // v77: 最近难度列表维护 (ESM 纯函数, main() 动态 import)
@@ -41,6 +43,7 @@ function makeLocalFsHandler(createLocalFsHandler) {
     return {
       songs: dirExists(s.songsDir) ? s.songsDir : null,
       skin: dirExists(s.skinDir) ? s.skinDir : null,
+      external: dirExists(externalBeatmapDir) ? externalBeatmapDir : null, // v611
     }
   })
 }
@@ -140,6 +143,30 @@ ipcMain.handle("pick-osu-dir", async (_e, defaultPath) => {
   if (r.canceled || !r.filePaths.length) return null
   const p = r.filePaths[0]
   return { osuPath: p, hasSongs: dirExists(path.join(p, "Songs")), hasSkins: dirExists(path.join(p, "Skins")) }
+})
+
+// v609/v611: 曲库右上角打开指定谱面 — Songs 内返回相对路径, 目录外返回独立根与绝对目录
+ipcMain.handle("pick-beatmap", async () => {
+  const songsDir = readSettings().songsDir
+  const r = await dialog.showOpenDialog(win, {
+    title: mT("menu.pick_beatmap"), defaultPath: songsDir || undefined,
+    properties: ["openFile"], filters: [{ name: "osu! Beatmap", extensions: ["osu"] }],
+  })
+  if (r.canceled || !r.filePaths.length) return null
+  const abs = path.resolve(r.filePaths[0])
+  if (songsDir) {
+    const root = path.resolve(songsDir), rel = path.relative(root, abs)
+    if (rel && rel !== ".." && !rel.startsWith(".." + path.sep) && !path.isAbsolute(rel))
+      return { root: "songs", folderRel: path.dirname(rel) === "." ? "" : path.dirname(rel), file: path.basename(rel) }
+  }
+  return { root: "external", folderRel: "", folderAbs: path.dirname(abs), file: path.basename(abs) }
+})
+
+// v611: 选择文件时尚未通过未保存确认, 因此由 openServerDifficulty 确认后再切换外部读取根
+ipcMain.handle("use-external-beatmap-dir", (_e, dir) => {
+  if (typeof dir !== "string" || !path.isAbsolute(dir) || !dirExists(dir)) return false
+  externalBeatmapDir = path.resolve(dir)
+  return true
 })
 
 ipcMain.handle("list-skin-dirs", (_e, osuPath) => {
@@ -275,8 +302,8 @@ function openAboutWindow() {
 }
 
 // ---------- v77: 原生 "文件" 菜单 (stable 风格) ----------
-// 渲染进程在每次加载谱面后经 "menu-state" 上报: { file, folderRel, title, difficulties: [{file, label}] }
-// folderRel = Songs 内相对路径 (serverFs serverDir.serverRel); 非服务器来源 (拖拽导入) 为 null → 文件夹/记事本项禁用
+// 渲染进程在每次加载谱面后经 "menu-state" 上报: { file, folderRel, folderAbs, root, title, difficulties }
+// folderRel = Songs 内相对路径; v611: Songs 外谱面用 folderAbs + root='external'; 非服务器来源两者均为空
 let menuState = null
 
 // v156: Timing 菜单勾选状态 (渲染进程经 "timing-menu-state" 上报, 值变化才发):
@@ -315,9 +342,12 @@ ipcMain.on("editor-prefs-state", (_e, s) => {
 
 ipcMain.on("menu-state", (_e, state) => {
   menuState = state && state.file ? state : null
-  if (menuState && menuState.folderRel) {
+  if (menuState && (menuState.folderRel !== null || menuState.folderAbs)) {
     const s = readSettings()
-    s.recents = pushRecent(s.recents ?? [], { folderRel: menuState.folderRel, file: menuState.file, label: menuState.title })
+    s.recents = pushRecent(s.recents ?? [], {
+      folderRel: menuState.folderRel, folderAbs: menuState.folderAbs ?? null, root: menuState.root ?? "songs",
+      file: menuState.file, label: menuState.title,
+    })
     writeSettings(s)
   }
   buildMenu()
@@ -490,6 +520,7 @@ const MENU_LABELS = {
   "menu.bpm_detect_song": { en: "Detect BPM (Whole Song)", "zh-CN": "测量全曲 timing", "zh-TW": "測量全曲 timing" },
   "menu.bpm_detect_bookmark": { en: "Detect BPM (Bookmark Range)", "zh-CN": "测量当前 bookmark 区间 timing", "zh-TW": "測量當前 bookmark 區間 timing" },
   "menu.set_preview": { en: "Set Current Position as Preview Point", "zh-CN": "把当前位置设为预览点", "zh-TW": "把當前位置設為預覽點" },
+  "menu.pick_beatmap": { en: "Open Beatmap", "zh-CN": "打开指定谱面", "zh-TW": "開啟指定譜面" }, // v609
   "menu.bookmarks": { en: "Bookmarks", "zh-CN": "书签", "zh-TW": "書籤" }, // v597
   "menu.bookmark_add": { en: "Add Bookmark", "zh-CN": "添加书签", "zh-TW": "新增書籤" },
   "menu.bookmark_remove": { en: "Remove Closest Bookmark", "zh-CN": "删除最近的书签", "zh-TW": "刪除最近的書籤" },
@@ -528,7 +559,7 @@ function mT(key, vars) {
 
 function buildMenu() {
   const songsDir = readSettings().songsDir
-  const curFolderAbs = menuState?.folderRel && songsDir ? path.join(songsDir, menuState.folderRel) : null
+  const curFolderAbs = menuState?.folderAbs || (menuState?.folderRel != null && songsDir ? path.join(songsDir, menuState.folderRel) : null) // v611: 外部谱面用绝对目录
   const curFileAbs = curFolderAbs && menuState ? path.join(curFolderAbs, menuState.file) : null
   const recents = readSettings().recents ?? []
   const send = (cmd) => win?.webContents.send("menu-cmd", cmd)
@@ -544,7 +575,7 @@ function buildMenu() {
           submenu: menuState?.difficulties?.length
             ? menuState.difficulties.map((d) => ({
                 label: (d.file === menuState.file ? "✓ " : "") + d.label,
-                click: () => send({ type: "open", folderRel: menuState.folderRel, file: d.file }),
+                click: () => send({ type: "open", folderRel: menuState.folderRel, file: d.file, root: menuState.root, folderAbs: menuState.folderAbs }),
               }))
             : [{ label: mT("menu.no_beatmap"), enabled: false }],
         },
@@ -553,7 +584,7 @@ function buildMenu() {
           submenu: recents.length
             ? recents.map((r) => ({
                 label: r.label ?? r.file,
-                click: () => send({ type: "open", folderRel: r.folderRel, file: r.file }),
+                click: () => send({ type: "open", folderRel: r.folderRel, file: r.file, root: r.root, folderAbs: r.folderAbs }),
               }))
             : [{ label: mT("menu.none"), enabled: false }],
         },

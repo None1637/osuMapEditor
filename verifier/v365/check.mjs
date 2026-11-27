@@ -1,5 +1,5 @@
 // 验证器 v365: 锁定间距 (distanceLock) 滑条尾长统一按节拍细分吸附 (用户确认 v364 症状时锁定间距开着,
-//  要求锁定间距也不按整拍吸附) — placementLength distanceLock 分支: 网格 = distanceSpacing × 细分步长
+//  要求锁定间距也不按整拍吸附) — placementLength distanceLock 分支: 网格只取细分步长, 不乘 distanceSpacing
 //  (normal 分支同一 sliderLengthSnapDivisor 网格; lazer DistanceSnapProvider.GetBeatSnapDistance 与倍率
 //  无关、消费方自乘倍率, 即此语义)。spacing=1.0 与关闭锁定间距完全一致; v218/v219 规则 (超几何退一格/
 //  亚步长对齐 1 步允许超几何) 在该分支同样适用。原 v145/v160 "吸整拍" 语义废弃 (v364 D 段已同步更新)。
@@ -18,10 +18,10 @@ function assert(cond, msg) { if (!cond) { failures++; console.error('  FAIL:', m
 function section(name) { console.log('== ' + name); }
 const read = (rel) => fs.readFileSync(path.join(root, rel), 'utf8');
 
-section('源码: distanceLock 分支 = 间距倍率 × 细分网格');
+section('源码: distanceLock 分支 = 细分 tick, 不乘间距倍率 (v610)');
 {
   const sp = read('src/osu/sliderPath.ts');
-  assert(/const stepPx = tickPx \* distanceSpacing;/.test(sp), '步长 = 间距倍率 × 细分 tick');
+  assert(/const stepPx = tickPx;/.test(sp) && !/const stepPx = tickPx \* distanceSpacing;/.test(sp), '步长 = 细分 tick, 与间距倍率无关');
   assert(/let steps = Math\.round\(geometryLength \/ stepPx\);\n\s+if \(steps \* stepPx > geometryLength \+ vel \* 1\) steps -= 1;/.test(sp), '就近取步 + 超几何 1ms 退一格 (v218 规则同分支适用)');
   assert(/steps === 1 && stepPx > geometryLength \+ vel \* 1\) return Math\.max\(1, snapped\);/.test(sp), 'v219 同款例外: 亚步长对齐 1 步允许超几何');
   assert(!/let beats = Math\.round\(geometryLength \/ beatPx\);/.test(sp), '旧整拍吸附公式已移除');
@@ -91,7 +91,7 @@ section('CDP: spacing×beatSnap 矩阵 / 预览=落盘 / v219 例外 / spacing=1
     })()`);
     console.log(`  info: beatPx=${calib.beatPx} beatLength=${calib.beatLength.toFixed(1)}`);
 
-    // A: 函数矩阵 — spacing ∈ {1.0, 1.5} × d ∈ {2, 4} × 几何扫描: 结果在 spacing×细分网格,
+    // A: 函数矩阵 — spacing ∈ {1.0, 1.5} × d ∈ {2, 4} × 几何扫描: 结果只落在细分网格,
     //    ≤ 几何 (或 v219 例外 1 步), 且 spacing=1.0 时与非锁定逐值相等
     const rA = await evalJs(`(() => {
       const store = window.__osuStore;
@@ -104,7 +104,7 @@ section('CDP: spacing×beatSnap 矩阵 / 预览=落盘 / v219 例外 / spacing=1
       for (const d of [2, 4]) {
         const tickPx = beatPx / snap.sliderLengthSnapDivisor(d);
         for (const spacing of [1.0, 1.5]) {
-          const stepPx = tickPx * spacing;
+          const stepPx = tickPx;
           let bad = 0, n = 0, eqUnlock = 0, overGeo = 0;
           for (let geo = 40; geo <= 1300; geo += 40) {
             const len = snap.placementLength(store.beatmap.timingPoints, T, sm, geo, true, spacing, d);
@@ -138,11 +138,11 @@ section('CDP: spacing×beatSnap 矩阵 / 预览=落盘 / v219 例外 / spacing=1
       const sm = store.beatmap.difficulty.sliderMultiplier;
       const beatPx = ${calib.beatPx};
       const tickPx = beatPx / snap.sliderLengthSnapDivisor(2); // d=2 → div=4
-      const stepPx = tickPx * 1.5;
-      const len = snap.placementLength(store.beatmap.timingPoints, T, sm, 100, true, 1.5, 2); // 100 ≪ 1 步
+      const stepPx = tickPx;
+      const len = snap.placementLength(store.beatmap.timingPoints, T, sm, 10, true, 1.5, 2); // 10 < 1 步
       return { len, stepPx: Math.round(stepPx * 10) / 10 };
     })()`);
-    assert(rB.len === Math.round(rB.stepPx), `B: 亚步长几何 (100px ≪ ${rB.stepPx}px) → 对齐 1 步 ${rB.len} (v219 例外, 允许超几何)`);
+    assert(rB.len === Math.round(rB.stepPx), `B: 亚步长几何 (10px < ${rB.stepPx}px) → 对齐 1 步 ${rB.len} (v219 例外, 允许超几何)`);
 
     // C: 真实交互 — distanceLock 开, spacing {1.0, 1.5} × d {2, 4}: 预览 = 落盘, 尾端在步网格
     const rC = await evalJs(`(async () => {
@@ -174,7 +174,7 @@ section('CDP: spacing×beatSnap 矩阵 / 预览=落盘 / v219 例外 / spacing=1
           await sleep(120);
           const objs = store.beatmap.hitObjects;
           const o = objs[objs.length - 1];
-          const stepPx = beatPx / snap.sliderLengthSnapDivisor(d) * spacing;
+          const stepPx = beatPx / snap.sliderLengthSnapDivisor(d);
           rows.push({ d, spacing, pvOffMs: pv.end - pv.time, len: o?.length, k: o ? o.length / stepPx : -1, stepPx: Math.round(stepPx * 10) / 10 });
         }
       }

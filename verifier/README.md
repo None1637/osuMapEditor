@@ -6245,7 +6245,59 @@
 
 ## v602 — lazer TrackBass 参数对齐与 25% 样本对照
 - 反编译 lazer `TrackBass.prepareStream`: 除 Tempo 百分比外, 还设置 `TempoUseQuickAlgorithm=1`、
-  `TempoOverlapMilliseconds=4`、`TempoSequenceMilliseconds=30`、`(ChannelAttribute)65559=1`, 且 Tempo 流带 Decode。
+  `TempoOverlapMilliseconds=4`、`TempoSequenceMilliseconds=30`、`(ChannelAttribute)65559=1`, 离线探针读取流带 Decode
+  (实时播放不能带 Decode, 否则 BASS.ChannelPlay 返回 Decode 错误)。
 - 原侧车只用 BASS 默认参数; 现正式播放路径全部同步。默认值与 lazer 参数对比确有样本差异, 同步后清零。
 - 验证: v602 直接实例化 lazer TrackBass + BassAudioMixer, 与正式参数路径比较 0.25x 多频正弦+噪声+冲激输出,
   96000 个浮点样本 different=0、maxAbs=0、RMS=0。此结果证明该离线输入和参数路径逐样本一致, 不外推为所有声卡输出相同。
+
+## v603 — 原生 BASS 与画面/音效可闻位置同步
+- 用户继续反馈 25% 像两条不同步音轨; 另一条根因是 BASS 独立进程直接输出, 原实现却按 Web Audio
+  startW 起钟, 没有使用原生实际起播位置和 BASS 输出缓冲, 画面与 hitsound 会和真实音乐错位。
+- play-ack 新增 seconds/bufferMs, 起播完成后按 seconds + bufferMs 重锚定 AudioClock, 并重排 hitsound 与循环;
+  bassSync 记录同步锚点供 CDP 计算预期可闻位置。停止时清除锚点。
+- 验证: v603 源码契约 + v599 真实 Electron 0.25x 播放中位置误差断言 (实测约 42ms, 目标 <100ms), 原生/e2e 回归及构建通过。
+
+## v604 — BASS 实际位置事件直接同步
+- v603 仍有约 42ms 误差, 根源是仅凭起播秒数与估计缓冲无法长期替代原生时钟; 且 positionMs 又叠加 Web Audio 相位/输出补偿。
+- 侧车每 16ms 回传实际 BASS position, 主进程/preload 订阅转发; positionMs 直接按最新事件及事件到达时间推进,
+  不再使用旧相位估计。起播/停止清空旧事件, Web Audio 回退路径不变。
+- 验证: v604 源码契约; 0.25x 真实 Electron 实测误差约 6ms, 验收阈值收紧到 <10ms; v599/v601/v603 回归及构建通过。
+
+## v605 — 实时缓冲修正频谱/声音早晚偏差
+- 用户对比上方时间轴频谱发现所有声音约早 130ms: 固定 PlaybackBufferLength 并不等于当前真实待播放时长,
+  缓冲会随解码/Tempo/设备动态变化, 固定值会把画面位置错误平移。
+- 侧车 position 事件改用 ChannelGetData(Available) 读取实际待播放字节数, 输出延迟 = 实时待播放时长 + 设备延迟;
+  bassSync 同步更新供回归计算。
+- 验证: v605 源码契约; 0.25x 真实 Electron 对照误差约 0ms, <10ms 阈值保持; v599/v604 回归及构建通过。
+
+## v606 — 起播校准后冻结缓冲消除抖动
+- v605 直接拿实时 pendingBytes 定位, 缓冲变化会把画面/时间轴位置反复平移, 25% 下表现为持续前后抖动。
+- 起播 ack 先提供基准延迟, 前 32 个位置事件 (~0.5s) 取 bufferMs 中位数后冻结; 后续实时波动不再参与 positionMs。
+- 起播/停止重置校准, BASS 实际 seconds 仍持续推进。新增 40 帧连续 positionMs 单调断言, 保持 <10ms 对照误差。
+
+## v607 — 去除重复缓冲扣减与高频卡顿
+- v606 虽消除抖动, 但 bufferMs 扣减本身会人为提前声音约 bufferMs×rate; 实时读取 pendingBytes 还造成慢放卡顿。
+- 位置事件改为仅 seconds + 到达时间, 不再扣缓冲; 起播锚点也同步归零。位置回传频率由 16ms 降至 50ms, 兼顾平滑与 IPC 开销。
+- 验证: v607 源码契约, 0.25x 连续 40 帧单调、<10ms 对照误差及既有音频回归。
+
+## v608 — n 角星隔点数可调
+- 新增 starStep (1..31, 默认 1), 角度步进 = starStep+1; 1 保持原每隔一个顶点, 2 为每隔两个顶点。
+- 仅启用 n 角星时显示隔点数输入框, 参数随窗口保存, 外圈半径和节拍推进不变。
+- 验证: v608 7 角星 starStep=2 角度/坐标/默认值/中文 UI 断言, v592/v64 回归及构建通过。
+
+## v609 — 曲库打开指定谱面
+- 曲库右上角新增「打开指定谱面…」, 原生 .osu 文件选择器只返回 Songs 内相对目录和文件名, 目录外选择显示错误。
+- 继续走 openServerDifficulty / loadDifficulty 统一加载、未保存确认、音频缓存和谱面来源记录, 不额外扫描曲库索引。
+- 验证: v609 主进程路径约束、preload/类型、UI 和中文文案源码断言及 `npm run build` 通过。
+
+## v610 — 锁定间距的滑条尾按节拍吸附
+- distanceLock 分支误把 distanceSpacing 乘进 tick, 间距倍率非 1 时尾端落在倍率网格而非节拍网格。
+- 步长改回只取 sliderLengthSnapDivisor tick, 与间距倍率无关; 锁定/非锁定同网格, 退一格和亚步长规则不变。
+- 验证: v610 间距倍率 1.5 时锁定/非锁定均取 150px (1/8 拍), v365/v95/v82 相关预期同步。
+
+## v611 — 打开指定谱面支持 Songs 外目录
+- 文件选择器不再拒绝 Songs 外 .osu; 外部目录经独立 external 根读取, 仅在未保存确认通过后注册。
+- 保存、刷新、最近打开和原生菜单保留外部来源; 慢放按音频字节走 BASS, 不误拼 Songs 路径。
+- 删除目录外错误提示, 统一加载管线只在 audioMissing 时弹出现有「未找到音频文件」提示。
+- 验证: v611 检查来源传递与提示, 并实际读写 external 根文件、验证 .. 越界仍返回 403。

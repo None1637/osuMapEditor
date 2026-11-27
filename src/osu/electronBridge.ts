@@ -30,6 +30,10 @@ export interface ElectronAPI {
   isElectron: true;
   getSettings(): Promise<ElectronSettings>;
   pickOsuDir(defaultPath?: string | null): Promise<PickOsuDirResult | null>;
+  /** v609/v611: 原生选择指定 .osu; Songs 内返回相对路径, 目录外返回 external 根与绝对目录 */
+  pickBeatmap(): Promise<{ root: 'songs' | 'external'; folderRel: string; file: string; folderAbs?: string } | null>;
+  /** v611: 未保存确认通过后注册本次外部谱面目录 */
+  useExternalBeatmapDir(dir: string): Promise<boolean>;
   listSkinDirs(osuPath: string): Promise<string[]>;
   saveSettings(cfg: { osuPath: string; skinName: string | null }): Promise<SaveSettingsResult>;
   onOpenSetup(cb: () => void): void;
@@ -78,9 +82,11 @@ export interface ElectronAPI {
   /** v493: 系统浏览器打开 https 链接 (确认更新后打开 release 页) */
   openExternal(url: string): Promise<boolean>;
   /** v599: 原生 BASS Tempo 播放; ok=false 时调用方回退 Web Audio */
-  bassPlay(payload: BassPlayPayload): Promise<{ ok: boolean; error?: string }>;
+  bassPlay(payload: BassPlayPayload): Promise<{ ok: boolean; error?: string; seconds?: number; bufferMs?: number }>;
   bassStop(): Promise<boolean>;
   bassVolume(value: number): Promise<boolean>;
+  /** v604/v607: 订阅原生 BASS 实际播放位置 (不再重复扣减缓冲) */
+  onBassPosition(cb: (msg: { seconds: number; bufferMs?: number }) => void): () => void;
 }
 
 export interface BassPlayPayload {
@@ -118,6 +124,8 @@ export interface ElectronRecentEntry {
   folderRel: string;
   file: string;
   label?: string;
+  root?: 'songs' | 'external'; // v611
+  folderAbs?: string | null;
 }
 
 /** v386: 渲染端 -> 主进程的设置菜单勾选状态 (editorPrefs 两项) */
@@ -135,13 +143,15 @@ export interface ElectronMenuState {
   folderRel: string | null;
   title: string;
   difficulties: { file: string; label: string }[];
+  root?: 'songs' | 'external'; // v611
+  folderAbs?: string | null;
 }
 
 /** v77: 主进程 -> 渲染端的菜单命令; v156: Timing 菜单命令组 */
 export type ElectronMenuCommand =
   | { type: 'new' } // v521: 新建谱面
   | { type: 'save' }
-  | { type: 'open'; folderRel: string; file: string }
+  | { type: 'open'; folderRel: string; file: string; root?: 'songs' | 'external'; folderAbs?: string | null }
   | { type: 'timing-set-meter'; meter: number }
   | { type: 'timing-toggle-metronome' }
   | { type: 'bpm-detect-song' }

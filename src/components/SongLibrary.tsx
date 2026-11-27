@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FolderOpen, Star, TriangleAlert, X } from 'lucide-react'; // v181: 📁/⚠/✕/★ → lucide
 import { store } from '../osu/store';
 import { fetchServerDirs, serverDir } from '../osu/serverFs';
+import { getElectronAPI } from '../osu/electronBridge'; // v609
+import { openServerDifficulty } from '../osu/electronMenu';
 import { scanServerFileManifest, scanServerLibraryIndex, serverDirectories, serverSkeletons } from '../osu/serverLibraryIndex'; // v575/v576
 import {
   asDirLike, dirHandleFromDropEx, getDirBackgroundUrl,
@@ -539,6 +541,18 @@ export function SongLibrary({ onClose }: { onClose: () => void }) {
     startScan(d.dir, d.native);
   };
 
+  // v609/v611: 右上角打开指定谱面 — 支持 Songs 外目录; 仅缺少歌曲文件时由统一加载管线提示
+  const openSpecific = async () => {
+    const api = getElectronAPI();
+    if (!api || loadingBeatmap) return;
+    setLoadingBeatmap(true); setUiError(null);
+    try {
+      const r = await api.pickBeatmap();
+      if (!r) return;
+      if (await openServerDifficulty(r.folderRel, r.file, r.root, r.folderAbs)) onClose();
+    } finally { setLoadingBeatmap(false); }
+  };
+
   const openDiff = async (fileName: string) => {
     // v120: 有未保存改动先弹保存/废弃提示 (确认后重入本函数)
     if (!store.guardUnsaved(() => { void openDiff(fileName); })) return;
@@ -591,6 +605,12 @@ export function SongLibrary({ onClose }: { onClose: () => void }) {
             </span>
           )}
           <div className="flex-1" />
+          {getElectronAPI() && (
+            <UiControl id="library.open-specific"><button className="text-sm px-2 py-1 rounded bg-[#2c2c38] hover:bg-[#3c3c4c] disabled:opacity-40"
+              disabled={loadingBeatmap} onClick={() => { void openSpecific(); }}>
+              <UiText id="library.open-specific" textKey="library.open_specific">Open .osu…</UiText>
+            </button></UiControl>
+          )}
           <UiControl id="library.choose-dir"><button className="text-sm px-2 py-1 rounded bg-[#2c2c38] hover:bg-[#3c3c4c]" onClick={chooseDir}>
             <UiText id="library.choose-dir" textKey={root ? 'library.change_dir' : 'library.choose_songs_dir'}>{root ? 'Change Folder' : 'Choose Songs Folder'}</UiText>
           </button></UiControl>

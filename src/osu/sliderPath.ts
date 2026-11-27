@@ -639,9 +639,8 @@ export function spinnerPlacementEnd(points: TimingPoint[], startTime: number, cu
  *   锁定间距分支原 Math.round 直接向上入 (可超几何近半拍, 触发 v148 末端切线延长), 现同样退一格+钳制。
  * v219 例外: 几何不足 1 个长度细分 tick 时对齐到 1 tick (允许超几何全长, 否则永远无法对齐)。
  * v365: 锁定间距 (distanceLock) 不再粗暴吸整拍 — 用户确认症状后要求统一按节拍细分吸附:
- *   网格 = distanceSpacing × 细分步长 (normal 分支同一 sliderLengthSnapDivisor 网格; lazer
- *   DistanceSnapProvider.GetBeatSnapDistance 与倍率无关、由消费方自乘倍率, 即此语义)。
- *   spacing=1.0 时与关闭锁定间距完全一致; v218/v219 规则 (退一格/亚步长对齐 1 步) 同样适用。
+ *   网格 = 细分步长 (normal 分支同一 sliderLengthSnapDivisor 网格, 与间距倍率无关;
+ *   v610 修复误乘 distanceSpacing 导致尾端偏离节拍)。v218/v219 规则 (退一格/亚步长对齐 1 步) 同样适用。
  * v366: 基准时间先吸附+取整 (t = 落盘 o.time 同公式) — SV/timing/长度吸附全部以落盘时刻为准;
  *   修复前用 currentTime 取 SV, 绿线/红线落在吸附 tick 与 currentTime 之间时预览 ≠ 落盘
  *   (用户反馈: 当前时间正好在改变 SV 的绿线上时, 预览异常使用上一根绿线的 SV)。
@@ -659,8 +658,8 @@ export function placementLength(
   const tickPx = vel * red.beatLength / sliderLengthSnapDivisor(beatSnap);
   const geoCap = Math.max(1, Math.floor(geometryLength)); // v160: floor — round 会四舍五入回超几何全长
   if (distanceLock && distanceSpacing > 0 && tickPx > 0) {
-    // v365: 步长 = 间距倍率 × 细分 tick (spacing=1.0 时 = normal 分支网格; 用户: 锁定间距也不按整拍吸附)
-    const stepPx = tickPx * distanceSpacing;
+    // v365/v610: 步长只取节拍细分 tick, 不乘间距倍率; 否则尾端会偏离节拍网格
+    const stepPx = tickPx;
     let steps = Math.round(geometryLength / stepPx);
     if (steps * stepPx > geometryLength + vel * 1) steps -= 1; // lazer: 超出 1ms 行程退一格
     steps = Math.max(1, steps);

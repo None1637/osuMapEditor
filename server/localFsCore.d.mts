@@ -1,5 +1,5 @@
 export declare function createLocalFsHandler(
-  getDirs: () => { songs: string | null; skin: string | null }
+  getDirs: () => { songs: string | null; skin: string | null; external?: string | null }
 ): (
   method: string,
   pathname: string,

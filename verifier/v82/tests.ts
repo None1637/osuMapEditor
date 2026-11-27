@@ -1,7 +1,10 @@
 // 验证器 v82 纯函数测试: pendingSliderTimeline — 放置中滑条的时间轴预览区间 (与 finishSlider 同规则)
 // 布景: 红线 1000/500 => vel = 100*1/500 = 0.2 px/ms, 整拍 = 100px; beatSnap 4 => tick 125ms
 import { pendingSliderTimeline } from '../../src/osu/sliderPath';
+import { editorPrefs } from '../../src/osu/editorPrefs';
 import type { TimingPoint } from '../../src/osu/parser';
+
+editorPrefs.sliderHalfSnap = true; // v443 适配: 显式开启 v218 的 1/2 细分吸附
 
 let failures = 0;
 function assert(cond: boolean, msg: string) {
@@ -24,12 +27,12 @@ section('时间吸附 + 时长换算');
   assert(c.time === 2125, `2070 就近吸附 2125 (实际 ${c.time})`);
 }
 
-section('锁定间距: 长度吸附整拍 (100px/拍)');
+section('锁定间距: 长度吸附 1/8 拍细分 (12.5px/tick)');
 {
   const a = pendingSliderTimeline(TPS, 1, [{ x: 0, y: 0 }, { x: 130, y: 0 }], null, 2000, 4, true, 1);
-  assert(a.end === 2500, `130px -> 1 拍 100px => end 2500 (实际 ${a.end})`);
+  assert(a.end === 2625, `130px -> 10 tick 125px => end 2625 (实际 ${a.end})`);
   const b = pendingSliderTimeline(TPS, 1, [{ x: 0, y: 0 }, { x: 160, y: 0 }], null, 2000, 4, true, 1);
-  assert(b.end === 2500, `160px -> v160 退一拍 100px (2 拍 200 超几何+容差) => end 2500 (实际 ${b.end})`);
+  assert(b.end === 2750, `160px -> 12 tick 150px (13 tick 超几何+容差) => end 2750 (实际 ${b.end})`);
 }
 
 section('下限 (仅头部)');

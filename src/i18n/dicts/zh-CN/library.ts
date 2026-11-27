@@ -8,6 +8,7 @@ export const zhCN: Record<string, string> = {
   'library.choose_songs_dir': '选择 Songs 目录',
   'library.choose_songs_dir_ellipsis': '选择 Songs 目录…',
   'library.rescan': '重新扫描',
+  'library.open_specific': '打开指定谱面…',
   'library.drop_to_import': '松开以导入 Songs 文件夹',
   'library.fs_api_unsupported': '当前浏览器不支持目录选择器（File System Access API）',
   'library.fs_api_hint_prefix': '可以',

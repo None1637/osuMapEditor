@@ -35,7 +35,7 @@ assert(rbody.indexOf('this.pendingAction = null') < rbody.indexOf('this.bypassUn
 // 重入拦截点仍在 (修复依赖它们的重入第一行就是 guardUnsaved); v141: 拖入 .osz/.osu 两处随拖放导入功能废弃移除
 const menu = read('src/osu/electronMenu.ts');
 const lib = read('src/components/SongLibrary.tsx');
-assert(/guardUnsaved\(\(\) => \{ void openServerDifficulty\(folderRel, file\); \}\)/.test(menu), '切难度 (菜单): 重入动作经 guardUnsaved (bypass 放行点)');
+assert(/guardUnsaved\(\(\) => \{ void openServerDifficulty\(folderRel, file, root, folderAbs\); \}\)/.test(menu), '切难度 (菜单): 重入动作经 guardUnsaved (bypass 放行点)');
 assert(/guardUnsaved\(\(\) => \{ void openDiff\(fileName\); \}\)/.test(lib), '曲库开难度: 重入动作经 guardUnsaved (bypass 放行点)');
 
 console.log(failures ? `\nV136_CHECK_FAILED: ${failures}` : '\nV136_CHECK_PASSED');

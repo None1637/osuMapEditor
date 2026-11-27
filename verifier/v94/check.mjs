@@ -32,7 +32,7 @@ section('App.tsx: 启动恢复上次谱面, 失败回退演示谱面');
   const app = readSrc('src/App.tsx');
   assert(/import \{ handleMenuCommand, openServerDifficulty \} from '@\/osu\/electronMenu'/.test(app), '引入 openServerDifficulty');
   assert(/const \[r\] = await api\.getRecents\(\)/.test(app), '取 recents[0]');
-  assert(/await openServerDifficulty\(r\.folderRel, r\.file\)/.test(app), '经服务器目录加载');
+  assert(/await openServerDifficulty\(r\.folderRel, r\.file, r\.root, r\.folderAbs\)/.test(app), '经服务器目录加载');
   assert(/setShowLibrary\(false\)/.test(app), '成功直进编辑器 (跳过曲库界面)');
   assert(/createSampleBeatmap\(\)/.test(app), '回退演示谱面保留');
 }

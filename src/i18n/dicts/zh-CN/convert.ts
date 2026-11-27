@@ -66,7 +66,9 @@ export const zhCN: Record<string, string> = {
   'convert.dup_mirror_p2': '对称轴点 2', // v582
   'convert.dup_mirror_degenerate': '对称轴两点重合, 无法镜像', // v582
   'convert.polygon_star': '生成 n 角星', // v592
-  'convert.polygon_star_hint': '全部顶点在外圈, 每隔一个顶点连接形成星形', // v592
+  'convert.polygon_star_hint': '全部顶点在外圈, 按隔点数连接形成星形', // v592
+  'convert.polygon_star_step': '隔点数', // v608
+  'convert.polygon_star_step_hint': '1 = 每隔一个顶点, 2 = 每隔两个顶点',
   'convert.origin_selection': '选区中心',
   'convert.origin_playfield': '游玩区中心',
   'convert.dup_summary': '将生成 {a} × {b} = {n} 个副本 (原物件保留, 预览已显示)',

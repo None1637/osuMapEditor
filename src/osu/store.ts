@@ -410,6 +410,8 @@ class EditorStore {
   private bassEndTimer: ReturnType<typeof setTimeout> | null = null;
   private bassUnavailable = false;
   bassActive = false;
+  bassSync: { seconds: number; bufferMs: number; atMs: number } | null = null; // v607: 最新 BASS 位置 (bufferMs 固定为 0)
+  private nativeBassPosition: { seconds: number; atMs: number } | null = null; // v607: 仅真实秒数, 不参与缓冲扣减
   private clock: AudioClock | null = null;
   private scheduler: HitSoundScheduler | null = null;
   private hitBuffers = new Map<string, AudioBuffer>(); // stem(如 "soft-hitnormal") -> 谱面自定义采样
@@ -565,6 +567,14 @@ class EditorStore {
   /** v408: 最后已知光标的 osu 坐标 (EditorCanvas toOsu 每次换算时写; Ctrl+V 锚点粘贴位置用) */
   cursorOsu: { x: number; y: number } | null = null;
   private listeners = new Set<() => void>();
+
+  constructor() {
+    getElectronAPI()?.onBassPosition(msg => {
+      if (!this.bassActive) return;
+      this.nativeBassPosition = { seconds: msg.seconds, atMs: performance.now() };
+      this.bassSync = { ...this.nativeBassPosition, bufferMs: 0 }; // v607: 位置事件不再扣缓冲
+    });
+  }
 
   subscribe = (fn: () => void) => { this.listeners.add(fn); return () => { this.listeners.delete(fn); }; };
   getVersion = () => this.version;
@@ -798,9 +808,11 @@ class EditorStore {
   /** v599: 用 lazer 同源 BASS FX Tempo 播放慢放音乐; 返回 false 时沿用原 Web Audio 支路 */
   private startBass(offset: number): boolean {
     const api = getElectronAPI(), rel = this.mapSource?.dir.serverRel;
+    const serverRoot = this.mapSource?.dir.serverRoot; // v611
     if (!api || !this.beatmap || !this.audioBuffer || !this.audioUrl || this.bassUnavailable) return false;
     const gen = ++this.bassGen;
     if (this.bassEndTimer) clearTimeout(this.bassEndTimer);
+    this.nativeBassPosition = null;
     this.bassActive = true;
     const fail = () => {
       if (gen !== this.bassGen) return;
@@ -812,7 +824,8 @@ class EditorStore {
     };
     void (async () => {
       let audioData: ArrayBuffer | undefined;
-      if (rel == null) {
+      if (rel == null || serverRoot === 'external') {
+        // v611: Songs 外谱面也按原始字节交给 BASS, 避免误拼到 Songs 根目录
         const res = await fetch(this.audioUrl!); // 非曲库来源: 主进程按原始字节落临时文件
         if (!res.ok) throw new Error(`audio read failed: ${res.status}`);
         audioData = await res.arrayBuffer();
@@ -823,6 +836,15 @@ class EditorStore {
         offset, rate: this.playbackRate, volume: musicGain(),
       });
       if (!r.ok) fail();
+      else if (this.clock && this.actx && typeof r.seconds === 'number') {
+        // v607: 起播位置直接按秒数锚定, 不再扣缓冲 (重复扣减会人为提前声音约 bufferMs×rate)
+        const bufferMs = 0;
+        this.clock.onStartedAtCtxTime(this.actx.currentTime, r.seconds * 1000);
+        this.bassSync = { seconds: r.seconds, bufferMs, atMs: performance.now() };
+        this.rebuildEventsIfDirty();
+        this.scheduler?.resync();
+        this.resyncLoops();
+      }
     })().catch(fail);
     this.bassEndTimer = setTimeout(() => {
       if (gen !== this.bassGen) return;
@@ -837,6 +859,8 @@ class EditorStore {
     if (this.bassEndTimer) { clearTimeout(this.bassEndTimer); this.bassEndTimer = null; }
     if (this.bassActive) void getElectronAPI()?.bassStop();
     this.bassActive = false;
+    this.bassSync = null;
+    this.nativeBassPosition = null;
   }
 
   // 调试: 最近排程的 hitsound 记录 (排查"音效不对"类问题用, 上限 300 条)
@@ -1151,7 +1175,10 @@ class EditorStore {
       // v261: 恢复播放防闪回 — play() 锚定 20ms 后启动, heardNowMs 再减 outputLatency (~5-40ms),
       // 启动后最初几帧位置比暂停点早几十 ms, 画面瞬间跳回更早内容 (用户反馈); 钳制不低于暂停点,
       // 时钟自然超过后放行 (hitsound 排程走 rawNowMs/ctxTimeForMapTime, 不受此钳制影响)
-      const h = this.clock.heardNowMs();
+      const h = this.bassActive && this.nativeBassPosition
+        ? this.nativeBassPosition.seconds * 1000
+          + (performance.now() - this.nativeBassPosition.atMs) * this.playbackRate
+        : this.clock.heardNowMs(); // v607: BASS 真实位置直接推进, 不再重复扣减输出缓冲
       if (this.resumeFloorMs !== null) {
         if (h < this.resumeFloorMs) return this.resumeFloorMs;
         this.resumeFloorMs = null;

@@ -274,6 +274,9 @@ export interface FsDirLike {
   writeFile?(name: string, content: string): Promise<void>;
   /** v77: 服务器直读目录在 songs/skin 根内的相对路径 (Electron 菜单 "打开歌曲文件夹/最近难度" 用) */
   serverRel?: string;
+  /** v611: 服务器根类型与 Songs 外目录绝对路径 (用于重载、最近打开和原生菜单) */
+  serverRoot?: 'songs' | 'skin' | 'external';
+  serverAbs?: string;
 }
 
 /** 拖拽导入: DataTransferItem.webkitGetAsEntry() -> FsDirLike (不依赖 showDirectoryPicker) */

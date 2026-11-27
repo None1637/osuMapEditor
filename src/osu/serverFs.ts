@@ -52,7 +52,9 @@ export async function fetchServerDirs(): Promise<ServerDirs | null> {
   }
 }
 
-function serverFile(root: 'songs' | 'skin', rel: string, name: string): FsFileLike {
+export type ServerRoot = 'songs' | 'skin' | 'external'; // v611: external = Songs 外谱面目录
+
+function serverFile(root: ServerRoot, rel: string, name: string): FsFileLike {
   return {
     kind: 'file', name,
     async getFile() {
@@ -72,11 +74,12 @@ function serverFile(root: 'songs' | 'skin', rel: string, name: string): FsFileLi
 }
 
 /** 服务器目录 -> FsDirLike (懒加载: entries()/getFile() 调用时才发请求) */
-export function serverDir(root: 'songs' | 'skin', rel: string, name: string): FsDirLike {
+export function serverDir(root: ServerRoot, rel: string, name: string): FsDirLike {
   const childRel = (n: string) => (rel ? `${rel}/${n}` : n);
   return {
     kind: 'directory', name,
     serverRel: rel, // v77: Electron 菜单需要 Songs 内相对路径
+    serverRoot: root, // v611: 保存/刷新/菜单/慢放需区分 Songs 与外部根
     async *entries() {
       const res = await fetch(`api/local-fs/list?root=${root}&rel=${encodeURIComponent(rel)}`);
       if (!res.ok) throw new Error(tNow('fs.dir_read_failed', 'Failed to read directory ({status}): {path}', { status: res.status, path: rel || '/' }));

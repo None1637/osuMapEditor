@@ -1,0 +1,21 @@
+// v609: 曲库右上角打开指定 .osu
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'url';
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
+const read = rel => fs.readFileSync(path.join(root, rel), 'utf8');
+const main = read('electron/main.cjs');
+const preload = read('electron/preload.cjs');
+const bridge = read('src/osu/electronBridge.ts');
+const lib = read('src/components/SongLibrary.tsx');
+const dict = read('src/i18n/dicts/zh-CN/library.ts');
+let failures = 0;
+const ok = (cond, msg) => { if (!cond) { failures++; console.error('  FAIL:', msg); } else console.log('  ok:', msg); };
+ok(main.includes('ipcMain.handle("pick-beatmap"') && main.includes('properties: ["openFile"]'), '主进程提供原生 .osu 文件选择器');
+ok(main.includes('path.relative(root, abs)') && main.includes('root: "songs"'), 'Songs 内文件返回相对路径');
+ok(preload.includes('pickBeatmap:') && bridge.includes('pickBeatmap():'), 'preload/类型桥接完整');
+ok(lib.includes('id="library.open-specific"') && lib.includes('void openSpecific()'), '曲库右上角入口');
+ok(lib.includes('openServerDifficulty(r.folderRel, r.file, r.root, r.folderAbs)'), '复用现有谱面加载管线');
+ok(dict.includes("'library.open_specific': '打开指定谱面…'"), '中文按钮文案');
+console.log(failures ? `VERIFIER_V609_FAILED: ${failures}` : 'VERIFIER_V609_ALL_TESTS_PASSED');
+process.exit(failures ? 1 : 0);

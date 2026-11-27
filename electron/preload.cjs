@@ -5,6 +5,8 @@ contextBridge.exposeInMainWorld("osuEditor", {
   isElectron: true,
   getSettings: () => ipcRenderer.invoke("get-settings"),
   pickOsuDir: (defaultPath) => ipcRenderer.invoke("pick-osu-dir", defaultPath),
+  pickBeatmap: () => ipcRenderer.invoke("pick-beatmap"),
+  useExternalBeatmapDir: (dir) => ipcRenderer.invoke("use-external-beatmap-dir", dir), // v611
   listSkinDirs: (osuPath) => ipcRenderer.invoke("list-skin-dirs", osuPath),
   saveSettings: (cfg) => ipcRenderer.invoke("save-settings", cfg),
   onOpenSetup: (cb) => { ipcRenderer.on("open-setup", () => cb()) },
@@ -65,4 +67,9 @@ contextBridge.exposeInMainWorld("osuEditor", {
   bassPlay: (payload) => ipcRenderer.invoke("bass-play", payload),
   bassStop: () => ipcRenderer.invoke("bass-stop"),
   bassVolume: (value) => ipcRenderer.invoke("bass-volume", value),
+  onBassPosition: (cb) => {
+    const listener = (_e, msg) => cb(msg)
+    ipcRenderer.on("bass-position", listener)
+    return () => ipcRenderer.removeListener("bass-position", listener)
+  },
 })

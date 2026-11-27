@@ -26,8 +26,8 @@ section('convert/polygon.ts: lazer 公式移植');
 {
   const src = readSrc('src/osu/convert/polygon.ts');
   assert(/chord \/ \(2 \* Math\.sin\(Math\.PI \/ p\.vertices\)\)/.test(src), '半径 R = 弦长/(2·sin(π/n))');
-  assert(/\(i \+ 1\) \* \(p\.star \? 2 : 1\) \* \(\(2 \* Math\.PI\) \/ p\.vertices\)/.test(src), '角 θᵢ = 起始角 + (i+1)·步长·2π/n (v592 星形跨点)');
-  assert(/256 \+ r \* Math\.cos/.test(src) && /192 \+ r \* Math\.sin/.test(src), '圆心固定 (256,192; v592 内外半径交替)');
+  assert(/\(i \+ 1\) \* \(p\.star \? Math\.max\(1, Math\.round\(p\.starStep\)\) \+ 1 : 1\) \* \(\(2 \* Math\.PI\) \/ p\.vertices\)/.test(src), '角 θᵢ = 起始角 + (i+1)·(starStep+1)·2π/n (v608)');
+  assert(/256 \+ r \* Math\.cos/.test(src) && /192 \+ r \* Math\.sin/.test(src), '圆心固定 (256,192; 星形全部外圈)');
   assert(/100 \* sm \* lastSliderSv/.test(src), 'velocity = 100×SM×sv/beatLength (BASE_SCORING_DISTANCE×SliderMultiplier)');
   assert(/lastSliderSv/.test(src) && /end > time \+ 1e-6\) continue/.test(src), 'SV 取最近 endTime<=t 滑条 (lastWithSliderVelocity)');
   assert(/Math\.min\(10, Math\.max\(0\.01, sv\)\)/.test(src), 'SV clamp [0.01,10] (GetPrecisionAdjustedBeatLength)');

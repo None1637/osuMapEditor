@@ -38,7 +38,7 @@ section('下限与锁定间距分支不变');
 {
   assert(placementLength(TPS, 2000, 1, 0, false, 1, 4) === 13, '0 -> v219 亚 tick 对齐 1 tick=12.5 取整 13 (旧: 钳到 1)');
   assert(placementLength(TPS, 2000, 1, 0, false, 1, 1) === 50, 'snap1: 0 -> v219 对齐 1 tick=50 (细分×2=2)');
-  // v443 适配: v365 起锁定间距步长 = 倍率 × 细分 tick (spacing=1 ≡ 无锁网格), 不再吸整拍
+  // v443/v610 适配: 锁定间距步长只取细分 tick, 与间距倍率无关; spacing=1 ≡ 无锁网格, 不再吸整拍
   assert(placementLength(TPS, 2000, 1, 130, true, 1, 4) === 125, '锁 130 -> 10 tick 125 (v365 细分网格; 旧: 1 拍 100)');
   assert(placementLength(TPS, 2000, 1, 160, true, 1, 4) === 150, '锁 160 -> 12 tick 150 (13 tick=162.5 超几何+容差退一格; 旧: 退一拍 100)');
 }

@@ -13,8 +13,7 @@ const ok = (cond, msg) => { if (!cond) { failures++; console.error('  FAIL:', ms
 ok(/different=0\/96000/.test(out), '0.25x 多频+瞬态全部 96000 个浮点样本零差异');
 ok(/maxAbs=0 rms=0/.test(out), '最大绝对差与 RMS 均为 0');
 const sidecar = fs.readFileSync(path.join(root, 'native/BassAudioSidecar/Program.cs'), 'utf8');
-ok(sidecar.includes('BassFlags.Decode | BassFlags.FxFreeSource')
-  && sidecar.includes('ChannelAttribute.TempoUseQuickAlgorithm, 1')
+ok(sidecar.includes('ChannelAttribute.TempoUseQuickAlgorithm, 1')
   && sidecar.includes('ChannelAttribute.TempoOverlapMilliseconds, 4')
   && sidecar.includes('ChannelAttribute.TempoSequenceMilliseconds, 30')
   && sidecar.includes('(ChannelAttribute)65559, 1'), '正式侧车已应用反编译得到的 lazer Tempo 参数');

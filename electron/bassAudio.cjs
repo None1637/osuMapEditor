@@ -4,7 +4,7 @@ const path = require("node:path")
 const { spawn } = require("node:child_process")
 const crypto = require("node:crypto")
 
-function createBassAudio(app, readSettings) {
+function createBassAudio(app, readSettings, onPosition) {
   let proc = null
   let readyPromise = null
   let stdout = ""
@@ -51,6 +51,7 @@ function createBassAudio(app, readSettings) {
             const i = ackQueue.findIndex(x => x.id === msg.requestId)
             if (i >= 0) ackQueue.splice(i, 1)[0].resolve(msg) // v601: 只接当前 requestId, 丢弃超时旧 ack
           }
+          if (msg.type === "position") onPosition?.(msg)
         }
       }
       child.stdout.on("data", onData)

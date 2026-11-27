@@ -68,6 +68,13 @@ export function PolygonDialog() {
           <UiAutoText localId="star" textKey="convert.polygon_star_hint">All vertices on the outer circle, connected every other point</UiAutoText>
         </label>
       </Row>
+      {params.star && (
+        <Row label={t('convert.polygon_star_step', 'Star step')}>
+          <DraftNum value={params.starStep} testid="starStep" min={L.starStep[0]} max={L.starStep[1]}
+            set={v => upd({ starStep: Math.round(v) })} />
+          <span className="text-white/40">{t('convert.polygon_star_step_hint', '1 = every other vertex, 2 = every third vertex')}</span>
+        </Row>
+      )}
       <Row label={t('convert.polygon_new_combo', 'New Combo')}>
         <UiAutoControl localId="new-combo"><input type="checkbox" checked={params.newCombo} data-conv="newCombo"
           onChange={e => upd({ newCombo: e.target.checked })} /></UiAutoControl>

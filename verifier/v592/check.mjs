@@ -13,7 +13,7 @@ const assert = (cond, msg) => { if (!cond) { failures++; console.error('  FAIL:'
 const src = fs.readFileSync(path.join(root, 'src/osu/convert/polygon.ts'), 'utf8');
 const dlg = fs.readFileSync(path.join(root, 'src/components/convert/PolygonDialog.tsx'), 'utf8');
 const dict = fs.readFileSync(path.join(root, 'src/i18n/dicts/zh-CN/convert.ts'), 'utf8');
-assert(src.includes('(p.star ? 2 : 1) * ((2 * Math.PI) / p.vertices)') && src.includes('const r = radius'), '全外半径的跨点星形连接');
+assert(src.includes('Math.max(1, Math.round(p.starStep)) + 1') && src.includes('const r = radius'), '全外半径的 starStep+1 跨点星形连接 (v608 默认 starStep=1)');
 assert(dlg.includes('data-conv="star"'), '勾选框');
 assert(dict.includes("'convert.polygon_star': '生成 n 角星'"), '中文功能文案');
 console.log(failures ? `\nVERIFIER_V592_FAILED: ${failures}` : '\nVERIFIER_V592_ALL_TESTS_PASSED');

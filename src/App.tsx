@@ -219,7 +219,7 @@ export default function App() {
       if (api) {
         try {
           const [r] = await api.getRecents();
-          if (r && (await openServerDifficulty(r.folderRel, r.file))) {
+          if (r && (await openServerDifficulty(r.folderRel, r.file, r.root, r.folderAbs))) {
             setShowLibrary(false);
             return;
           }

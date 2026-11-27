@@ -38,12 +38,22 @@ try {
   };
   await send('Runtime.enable');
   await normalizeEnv(evalJs);
-  await evalJs(`(() => { const s = window.__osuStore; s.setVolume('master', 0); s.seek(0); s.playbackRate = 0.5; s.play(); })()`);
+  await evalJs(`(() => { const s = window.__osuStore; s.setVolume('master', 0); s.seek(0); s.playbackRate = 0.25; s.play(); })()`);
   await sleep(1500);
   const state = await evalJs(`(() => { const s = window.__osuStore; return { bass: s.bassActive, tempo: s.tempoActive, rate: s.rateActive, html: s.htmlAudioActive, playing: s.playing, time: s.currentTime }; })()`);
   console.log('  state:', JSON.stringify(state));
-  ok(state.bass && state.playing, '0.5x 原生 BASS 正在播放');
+  ok(state.bass && state.playing, '0.25x 原生 BASS 正在播放');
   ok(!state.tempo && !state.rate && !state.html, 'signalsmith/sinc/HTML 音乐支路均未启用');
+  const sync = await evalJs(`(() => { const s = window.__osuStore; return { sync: s.bassSync, now: performance.now(), current: s.positionMs() }; })()`);
+  console.log('  sync:', JSON.stringify(sync));
+  if (sync.sync) {
+    const expected = sync.sync.seconds * 1000 + (sync.now - sync.sync.atMs - sync.sync.bufferMs) * 0.25;
+    ok(Math.abs(sync.current - expected) < 10, `v604: 画面位置与 BASS 可闻位置差 <10ms (实际 ${(sync.current - expected).toFixed(1)}ms)`);
+  } else ok(false, 'v603: 起播后存在 BASS 同步锚点');
+  const series = await evalJs(`(async () => { const s = window.__osuStore, out = []; for (let i = 0; i < 40; i++) { out.push(s.positionMs()); await new Promise(r => setTimeout(r, 16)); } return out; })()`);
+  let maxBack = 0;
+  for (let i = 1; i < series.length; i++) maxBack = Math.max(maxBack, series[i - 1] - series[i]);
+  ok(series.length === 40 && series.every((v, i) => i === 0 || v >= series[i - 1] - 0.01), `v606: 25% 播放位置连续单调, 不前后抖动 (最大回退 ${maxBack.toFixed(3)}ms)`);
   await evalJs('window.__osuStore.pause()');
   await evalJs('window.__osuStore.seek(1000); window.__osuStore.play()');
   await sleep(500);

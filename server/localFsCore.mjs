@@ -78,7 +78,7 @@ async function readOsuBatch(rootAbs, files) {
 }
 
 /**
- * @param {() => { songs: string | null, skin: string | null }} getDirs 返回两个根目录 (null=未配置)
+ * @param {() => { songs: string | null, skin: string | null, external?: string | null }} getDirs 返回根目录 (null=未配置); v611: external = 显式选择的 Songs 外谱面目录
  * @returns {(method: string, pathname: string, searchParams: URLSearchParams, body?: Buffer) =>
  *   Promise<null | { status: number, contentType: string, body: Buffer | string }>}
  *   返回 null 表示非本 API, 交由下游 (静态服务/vite) 处理; v323 起为异步
@@ -95,9 +95,9 @@ export function createLocalFsHandler(getDirs) {
         skinName: dirs.skin ? path.basename(dirs.skin) : null,
       })
     }
-    // 只允许访问配置的两个根目录之内, 拒绝 .. 越界
+    // 只允许访问配置的根目录之内, 拒绝 .. 越界; external 也必须先由主进程显式注册
     const root = searchParams.get("root")
-    const configured = root === "songs" || root === "skin" ? dirs[root] : null
+    const configured = root === "songs" || root === "skin" || root === "external" ? dirs[root] : null
     if (!configured) return json(404, { error: "该 root 未配置" })
     const rootAbs = path.resolve(configured)
     const abs = path.resolve(rootAbs, searchParams.get("rel") ?? "")

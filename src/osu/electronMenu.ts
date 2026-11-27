@@ -7,7 +7,7 @@ import { fetchServerDirs, serverDir } from './serverFs';
 import { listDifficulties, loadDifficulty } from './library';
 import { createEmptyBeatmap, createNewBeatmapSource } from './newBeatmap'; // v521
 import { getElectronAPI, type ElectronMenuCommand } from './electronBridge';
-import { getLang, onLangChange } from '@/i18n'; // v346: 多语言 — 语言上报主进程 (菜单标签重建)
+import { getLang, onLangChange, tNow } from '@/i18n'; // v346: 多语言 — 语言上报主进程 (菜单标签重建)
 import { editorPrefs } from './editorPrefs'; // v386: 设置菜单 editorPrefs 勾选开关
 import { computeMerge } from './convert/merge'; // v212: 作图菜单「合并滑条」
 import type { Beatmap } from './parser';
@@ -19,6 +19,8 @@ export async function reportMenuState(bm: Beatmap, source: MapSource | null): Pr
   const ed = getElectronAPI();
   if (!ed) return;
   const folderRel = source?.dir.serverRel ?? null;
+  const root = source?.dir.serverRoot === 'external' ? 'external' as const : undefined;
+  const folderAbs = source?.dir.serverAbs ?? null; // v611
   let difficulties: { file: string; label: string }[] = [];
   if (source && folderRel !== null) {
     try {
@@ -29,7 +31,7 @@ export async function reportMenuState(bm: Beatmap, source: MapSource | null): Pr
   const m = bm.metadata;
   ed.menuState({
     file: source?.fileName ?? null,
-    folderRel,
+    folderRel, root, folderAbs,
     title: `${m.artist || m.artistUnicode} - ${m.title || m.titleUnicode} [${m.version}]`,
     difficulties,
   });
@@ -68,15 +70,23 @@ export function reportDirtyState(b: boolean): void {
 }
 
 /** 经服务器目录加载指定难度; 成功返回 true。v120: 有未保存改动时先弹保存/废弃提示 (提示确认后重入本函数) */
-export async function openServerDifficulty(folderRel: string, file: string): Promise<boolean> {
-  if (!store.guardUnsaved(() => { void openServerDifficulty(folderRel, file); })) return true;
+export async function openServerDifficulty(
+  folderRel: string, file: string, root: 'songs' | 'external' = 'songs', folderAbs?: string | null,
+): Promise<boolean> {
+  if (!store.guardUnsaved(() => { void openServerDifficulty(folderRel, file, root, folderAbs); })) return true;
   try {
-    const dir = serverDir('songs', folderRel, folderRel);
+    // v611: 文件选择器只返回路径; 确认丢弃/保存旧谱面后才切换外部根, 避免取消后旧谱面写错目录
+    if (root === 'external') {
+      if (!folderAbs || !(await getElectronAPI()?.useExternalBeatmapDir(folderAbs))) return false;
+    }
+    const dir = serverDir(root, folderRel, folderAbs || folderRel);
+    if (folderAbs) dir.serverAbs = folderAbs;
     const r = await loadDifficulty(dir, file);
     if (!r) return false;
     // 与曲库 openDiff 相同: 记录来源, Ctrl+S 写回该文件
     store.load(r.bm, r.audioUrl, r.bgUrl, r.samples, { dir, fileName: file }, r.audioKey); // v444
-    if (r.audioMissing) console.warn('已加载谱面但未找到音频文件:', file);
+    // v611: 不再限制 Songs 目录; 仅在找不到谱面歌曲文件时提示
+    if (r.audioMissing) alert(tNow('library.audio_missing', 'Beatmap loaded, but no audio file was found (a synthesized metronome will be used).'));
     return true;
   } catch (e) {
     console.error('菜单打开难度失败:', e);
@@ -98,7 +108,7 @@ export async function newBeatmap(onCreated?: () => void): Promise<boolean> {
 export async function handleMenuCommand(cmd: ElectronMenuCommand, onCreated?: () => void) {
   if (cmd.type === 'new') return newBeatmap(onCreated);
   if (cmd.type === 'save') { await store.save(); return; }
-  if (cmd.type === 'open') { await openServerDifficulty(cmd.folderRel, cmd.file); return; }
+  if (cmd.type === 'open') { await openServerDifficulty(cmd.folderRel, cmd.file, cmd.root, cmd.folderAbs); return; }
   // v156: Timing 菜单 (timing-open-settings / timing-shift-all 由 App.tsx 处理 — 涉及页签切换/弹窗 UI)
   switch (cmd.type) {
     case 'timing-add-red': store.timingAddPoint(true); return;

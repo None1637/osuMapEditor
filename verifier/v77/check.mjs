@@ -50,7 +50,7 @@ section('src/osu/electronMenu.ts: 状态上报 + 命令处理');
   const src = readSrc('src/osu/electronMenu.ts');
   assert(/export async function reportMenuState/.test(src) && /listDifficulties\(source\.dir\)/.test(src) && /ed\.menuState\(/.test(src), 'reportMenuState: 难度列表 + menuState 上报');
   assert(/source\?\.dir\.serverRel \?\? null/.test(src), 'folderRel 取自 serverDir.serverRel (非服务器来源 null)');
-  assert(/serverDir\('songs', folderRel, folderRel\)/.test(src) && /loadDifficulty\(dir, file\)/.test(src) && /store\.load\(r\.bm/.test(src), 'openServerDifficulty: 服务器目录加载 + store.load 记录来源');
+  assert(/serverDir\(root, folderRel, folderAbs \|\| folderRel\)/.test(src) && /loadDifficulty\(dir, file\)/.test(src) && /store\.load\(r\.bm/.test(src), 'openServerDifficulty: 服务器目录加载 + store.load 记录来源');
   assert(/if \(cmd\.type === 'save'\) \{ await store\.save\(\)/.test(src), 'save 命令 = store.save (与 Ctrl+S 相同)');
   assert(/__osuMenuCmd = handleMenuCommand/.test(src), 'CDP 调试暴露');
 }

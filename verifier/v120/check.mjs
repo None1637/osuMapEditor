@@ -24,13 +24,13 @@ assert(/dirty = false;/.test(store) && /pendingAction: \(\(\) => void\) \| null 
 assert(/pushSnapshot\(\) \{[\s\S]{0,700}v140: 不再在此置脏/.test(store), 'pushSnapshot: v140 起不再盲置脏 (改 emit() 指纹对比, 无实际改动不脏; v379: 入栈抽至 pushSnapshot, 注释随行)');
 assert(/this\.setDirty\(false\); \/\/ v120/.test(store), 'save 成功: 清脏标记');
 assert(/async save\(\): Promise<boolean>/.test(store), 'save: 返回是否成功 (保存并继续依赖)');
-assert(/this\.pendingAction = null; \/\/ v120/.test(store) && /load\([\s\S]{0,180}initialDirty = false\)/.test(store) && /this\.setDirty\(initialDirty\)/.test(store), 'load: 默认清脏 + 丢弃待执行动作 (v521 initialDirty 可选)');
+assert(/this\.pendingAction = null; \/\/ v120/.test(store) && /load\([\s\S]{0,260}initialDirty = false/.test(store) && /this\.setDirty\(initialDirty\)/.test(store), 'load: 默认清脏 + 丢弃待执行动作 (v521 initialDirty 可选; v600 preservePlayback 扩展签名)');
 assert(/guardUnsaved\(action: \(\) => void\): boolean \{[\s\S]{0,600}if \(!this\.beatmap \|\| !this\.dirty\) return true;/.test(store), 'guardUnsaved: 干净/无谱面放行 (v136 起前有 bypass 一次性放行块)');
 assert(/resolvePendingAction\(run: boolean\)/.test(store), 'resolvePendingAction: 取消/确认');
 
 // 拦截点: 曲库 / 菜单打开 (v141: 拖文件开谱面已废弃, 原 .osz/.osu 两处拦截随之移除)
 assert(/if \(!store\.guardUnsaved\(\(\) => \{ void openDiff\(fileName\); \}\)\) return;/.test(lib), '曲库 openDiff: 切换谱面/难度拦截');
-assert(/if \(!store\.guardUnsaved\(\(\) => \{ void openServerDifficulty\(folderRel, file\); \}\)\) return true;/.test(menu), '菜单/最近打开 openServerDifficulty: 拦截');
+assert(/if \(!store\.guardUnsaved\(\(\) => \{ void openServerDifficulty\(folderRel, file, root, folderAbs\); \}\)\) return true;/.test(menu), '菜单/最近打开 openServerDifficulty: 拦截');
 
 // 关闭编辑器: Electron 主进程 + preload + 桥接 + App 订阅; 浏览器 beforeunload
 assert(/win\.on\("close", \(e\) => \{[\s\S]{0,120}e\.preventDefault\(\)[\s\S]{0,80}"close-request"/.test(main), 'main: 脏时拦截关窗并发 close-request');

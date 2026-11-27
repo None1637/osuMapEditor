@@ -41,7 +41,7 @@ internal static class Program
             {
                 var decode = Bass.CreateStream(file, 0, 0, BassFlags.Decode | BassFlags.Unicode);
                 if (decode == 0) throw new InvalidOperationException($"BASS.CreateStream: {Bass.LastError}; exists={File.Exists(file)}; path={file}");
-                stream = BassFx.TempoCreate(decode, BassFlags.Decode | BassFlags.FxFreeSource);
+                stream = BassFx.TempoCreate(decode, BassFlags.FxFreeSource); // 实时输出不能带 Decode; 离线对照探针才需要它
                 if (stream == 0) throw new InvalidOperationException($"BASS_FX_TempoCreate: {Bass.LastError}");
                 // v602: 反编译 lazer TrackBass.prepareStream 的实际 Tempo 参数, 不再使用 BASS 默认值
                 Bass.ChannelSetAttribute(stream, ChannelAttribute.TempoUseQuickAlgorithm, 1);
@@ -56,7 +56,10 @@ internal static class Program
                     throw new InvalidOperationException($"BASS.ChannelSetPosition: {Bass.LastError}");
                 if (!Bass.ChannelPlay(stream, false)) throw new InvalidOperationException($"BASS.ChannelPlay: {Bass.LastError}");
                 playing = true;
-                Send(new { type = "play-ack", requestId, ok = true, rate });
+                // v603: 同时回传实际流位置和含设备周期的总输出延迟, 供渲染端按可闻位置重新锚定
+                var seconds = Bass.ChannelBytes2Seconds(stream, Bass.ChannelGetPosition(stream, PositionFlags.Bytes));
+                Bass.GetInfo(out var info);
+                Send(new { type = "play-ack", requestId, ok = true, rate, seconds, bufferMs = Bass.PlaybackBufferLength + info.Latency });
             }
             catch (Exception ex)
             {
@@ -71,12 +74,22 @@ internal static class Program
         Console.InputEncoding = new System.Text.UTF8Encoding(false);
         Console.OutputEncoding = new System.Text.UTF8Encoding(false);
         Environment.CurrentDirectory = Path.Combine(AppContext.BaseDirectory, "lib");
-        if (!Bass.Init(-1, 48000, DeviceInitFlags.Default, IntPtr.Zero))
+        if (!Bass.Init(-1, 48000, DeviceInitFlags.Latency, IntPtr.Zero))
         {
             Send(new { type = "init-error", error = $"BASS.Init: {Bass.LastError}" });
             return;
         }
         Send(new { type = "ready" });
+        // v607: 位置事件只包含真实秒数, 不再重复减缓冲; 50ms 周期足够平滑且避免高频 IPC 卡顿
+        var positionTimer = new Timer(_ =>
+        {
+            lock (sync)
+            {
+                if (!playing || stream == 0) return;
+                var seconds = Bass.ChannelBytes2Seconds(stream, Bass.ChannelGetPosition(stream, PositionFlags.Bytes));
+                Send(new { type = "position", seconds });
+            }
+        }, null, 0, 50);
         try
         {
             while (Console.ReadLine() is { } line)
@@ -103,6 +116,7 @@ internal static class Program
         }
         finally
         {
+            positionTimer.Dispose();
             FreeStream();
             Bass.Free();
         }
