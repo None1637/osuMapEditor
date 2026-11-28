@@ -6236,51 +6236,6 @@
 - store.load 新增 preservePlayback 可选参数, 默认 false; reloadMap 显式传 true, 随后的 seek 在新谱面上重锚定音频与 hitsound。
 - 验证: v600 默认暂停/显式保留行为及 App 接线; v584 普通换图暂停回归和构建通过。
 
-## v601 — 修复慢放超时后的双音轨
-- 根因: BASS 起播超过 8s 后渲染端先回退 Web Audio, 但旧侧车随后仍可能成功起播; fail 又先清 bassActive,
-  导致 pause 不再发送停止命令, 两个不同延迟的音频输出同时发声。
-- 渲染端回退前无条件 bassStop; 主进程超时直接终止旧侧车并允许下次重建, 不再只返回 false 留旧流出声。
-- play-ack 增加 requestId, 主进程只接受当前请求, 丢弃超时旧 ack; 旧进程退出按进程身份清理, 不得误清重建后的新进程。
-- 验证: v601 用可控假侧车覆盖 0.25x 超时、终止重启和旧 ack 隔离; v599 原生/e2e 回归及 `npm run build` 通过。
-
-## v602 — lazer TrackBass 参数对齐与 25% 样本对照
-- 反编译 lazer `TrackBass.prepareStream`: 除 Tempo 百分比外, 还设置 `TempoUseQuickAlgorithm=1`、
-  `TempoOverlapMilliseconds=4`、`TempoSequenceMilliseconds=30`、`(ChannelAttribute)65559=1`, 离线探针读取流带 Decode
-  (实时播放不能带 Decode, 否则 BASS.ChannelPlay 返回 Decode 错误)。
-- 原侧车只用 BASS 默认参数; 现正式播放路径全部同步。默认值与 lazer 参数对比确有样本差异, 同步后清零。
-- 验证: v602 直接实例化 lazer TrackBass + BassAudioMixer, 与正式参数路径比较 0.25x 多频正弦+噪声+冲激输出,
-  96000 个浮点样本 different=0、maxAbs=0、RMS=0。此结果证明该离线输入和参数路径逐样本一致, 不外推为所有声卡输出相同。
-
-## v603 — 原生 BASS 与画面/音效可闻位置同步
-- 用户继续反馈 25% 像两条不同步音轨; 另一条根因是 BASS 独立进程直接输出, 原实现却按 Web Audio
-  startW 起钟, 没有使用原生实际起播位置和 BASS 输出缓冲, 画面与 hitsound 会和真实音乐错位。
-- play-ack 新增 seconds/bufferMs, 起播完成后按 seconds + bufferMs 重锚定 AudioClock, 并重排 hitsound 与循环;
-  bassSync 记录同步锚点供 CDP 计算预期可闻位置。停止时清除锚点。
-- 验证: v603 源码契约 + v599 真实 Electron 0.25x 播放中位置误差断言 (实测约 42ms, 目标 <100ms), 原生/e2e 回归及构建通过。
-
-## v604 — BASS 实际位置事件直接同步
-- v603 仍有约 42ms 误差, 根源是仅凭起播秒数与估计缓冲无法长期替代原生时钟; 且 positionMs 又叠加 Web Audio 相位/输出补偿。
-- 侧车每 16ms 回传实际 BASS position, 主进程/preload 订阅转发; positionMs 直接按最新事件及事件到达时间推进,
-  不再使用旧相位估计。起播/停止清空旧事件, Web Audio 回退路径不变。
-- 验证: v604 源码契约; 0.25x 真实 Electron 实测误差约 6ms, 验收阈值收紧到 <10ms; v599/v601/v603 回归及构建通过。
-
-## v605 — 实时缓冲修正频谱/声音早晚偏差
-- 用户对比上方时间轴频谱发现所有声音约早 130ms: 固定 PlaybackBufferLength 并不等于当前真实待播放时长,
-  缓冲会随解码/Tempo/设备动态变化, 固定值会把画面位置错误平移。
-- 侧车 position 事件改用 ChannelGetData(Available) 读取实际待播放字节数, 输出延迟 = 实时待播放时长 + 设备延迟;
-  bassSync 同步更新供回归计算。
-- 验证: v605 源码契约; 0.25x 真实 Electron 对照误差约 0ms, <10ms 阈值保持; v599/v604 回归及构建通过。
-
-## v606 — 起播校准后冻结缓冲消除抖动
-- v605 直接拿实时 pendingBytes 定位, 缓冲变化会把画面/时间轴位置反复平移, 25% 下表现为持续前后抖动。
-- 起播 ack 先提供基准延迟, 前 32 个位置事件 (~0.5s) 取 bufferMs 中位数后冻结; 后续实时波动不再参与 positionMs。
-- 起播/停止重置校准, BASS 实际 seconds 仍持续推进。新增 40 帧连续 positionMs 单调断言, 保持 <10ms 对照误差。
-
-## v607 — 去除重复缓冲扣减与高频卡顿
-- v606 虽消除抖动, 但 bufferMs 扣减本身会人为提前声音约 bufferMs×rate; 实时读取 pendingBytes 还造成慢放卡顿。
-- 位置事件改为仅 seconds + 到达时间, 不再扣缓冲; 起播锚点也同步归零。位置回传频率由 16ms 降至 50ms, 兼顾平滑与 IPC 开销。
-- 验证: v607 源码契约, 0.25x 连续 40 帧单调、<10ms 对照误差及既有音频回归。
-
 ## v608 — n 角星隔点数可调
 - 新增 starStep (1..31, 默认 1), 角度步进 = starStep+1; 1 保持原每隔一个顶点, 2 为每隔两个顶点。
 - 仅启用 n 角星时显示隔点数输入框, 参数随窗口保存, 外圈半径和节拍推进不变。
@@ -6301,3 +6256,42 @@
 - 保存、刷新、最近打开和原生菜单保留外部来源; 慢放按音频字节走 BASS, 不误拼 Songs 路径。
 - 删除目录外错误提示, 统一加载管线只在 audioMissing 时弹出现有「未找到音频文件」提示。
 - 验证: v611 检查来源传递与提示, 并实际读写 external 根文件、验证 .. 越界仍返回 403。
+
+## v612 — 另存为新难度
+- 文件菜单新增「另存为新难度...」: 独立 Song Setup 草稿可修改 General/Editor/Metadata/Difficulty, 难度名必须不同。
+- OK 后询问「要清除所有物件并重新开始么？」; 是则清空副本, 否则保留物件, 两种选择均另存新文件并跳转 0ms。
+- 新文件写入成功后才切换当前谱面, 原文件不覆盖; 保存失败不丢失当前编辑状态, 媒体与采样复用。
+- 验证: v612 检查菜单/弹窗/保存顺序, 实测副本清空与保留、stable 文件名及只写新文件。
+
+## v613 — 拖动滑条中 Ctrl+G 保持反转结果
+- 根因: 物件拖拽仍保存反转前 orig/tails, 下一帧或松手 flush 按旧 orig+delta 写回, 覆盖反转并导致黄色框错位。
+- 初版以 reverseSeq 标记反转代数 (v614 已推广为 transformSeq); 拖拽检测到变化后以最后已应用指针、反转后几何重建基准, 再应用当前增量。
+- 验证: v613 纯函数覆盖几何/尾点重建, CDP 实测拖动后反转直接松手及反转后继续拖动两种场景。
+
+## v614 — 全部快捷键几何变换统一重建拖拽基准
+- 将 v613 的 Ctrl+G 专用 reverseSeq 推广为 transformSeq; 旋转/镜像/缩放、节点变换、对称和 Ctrl+方向键微调同样触发。
+- 拖拽在任一离散变换后都以变换后物件和最后已应用指针重建 orig/tails, 黄色框与后续拖动不再回退。
+- 验证: v614 CDP 实测 Ctrl+H、Ctrl+,、Ctrl+方向键后继续拖动; v613 原 Ctrl+G 两场景保持通过。
+
+## v617 — 慢放实现回退到 v600
+- 按用户要求撤销 v601 起的双音轨/音质/同步修复及后续缓冲补偿, 恢复 v600 的 BASS 默认参数、起播流程与 Web Audio 时钟。
+- 保留 v608 以后的非慢放功能; v611 的 Songs 外谱面音频路径支持单独保留, 不恢复其路径错误。
+- 删除 v601-v607/v615-v616 对应实现与专用验证, 以 v599/v600 回归和 v617 回退契约断言为准。
+
+## v618 — 仅按实际起播位置重锚
+- 代码比对确认 v600 本身用 Web Audio startW 起钟, 独立 BASS 实际起播与其可差约 100ms, 并非回退不完整。
+- play-ack 仅新增 seconds; ack 到达时按真实 BASS 位置重锚 AudioClock 并重排 hitsound/循环, 与 lazer CurrentTime 同口径。
+- 不恢复位置轮询、Available 动态缓冲或后续同步状态, 保持 v600 的性能路径。
+- 验证: v618 源码契约, v599/v600/v617 回归及构建通过。
+
+## v619 — BASS 唯一时间源与 hitsound 时钟统一
+- 50ms 轻量 position 只读 ChannelGetPosition, requestId 隔离旧流; 初版不使用 Available (v620 已加入每秒缓冲校准)。
+- positionMs 直接由 BASS seconds + rate×现实 elapsed 推进; 同一事件重锚 hitsound 的 AudioClock 映射, 不再各走独立时间原点。
+- 起播/暂停/恢复均保留 BASS 位置; 无动态缓冲补偿或冻结校准。
+- 验证: v619 真实 25% 下时间轴与 hitsound 时钟各 <20ms 对照误差、120 帧性能与暂停恢复; 此验证不含声卡回环录音。
+
+## v620 — 可闻位置统一与低频输出缓冲校准
+- 用户实测 v619 在 25% 下音乐比时间轴早约 300ms, 说明 BASS 解码位置不等于声卡可闻位置; 100% 不走 BASS 支路不受影响。
+- 起播和每 1000ms 读取实际 Available + 设备延迟并换算谱面 ms; 其余 50ms 位置包仍只读 ChannelGetPosition, 避免高频卡顿。
+- 时间轴和 hitsound 的 AudioClock 均改为 seconds-bufferMs+rate×elapsed; 缓冲 EMA 平滑、位置单调, 不写死 300ms。
+- 验证: v620 25% 同步/性能/暂停恢复, v599/v600/v617-v619 回归及构建; 本机起播缓冲实测约 206ms, 仍不包含声卡回环录音。

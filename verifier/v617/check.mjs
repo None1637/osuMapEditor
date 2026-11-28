@@ -1,0 +1,22 @@
+// v617: 慢放实现回退到 v600, 保留 v611 外部谱面音频路径
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
+const read = rel => fs.readFileSync(path.join(root, rel), 'utf8');
+const sidecar = read('native/BassAudioSidecar/Program.cs');
+const audio = read('electron/bassAudio.cjs');
+const store = read('src/osu/store.ts');
+const bridge = read('src/osu/electronBridge.ts');
+const preload = read('electron/preload.cjs');
+let failures = 0;
+const ok = (cond, msg) => { if (!cond) { failures++; console.error('  FAIL:', msg); } else console.log('  ok:', msg); };
+ok(!sidecar.includes('TempoUseQuickAlgorithm'), '侧车保留 v600 默认 Tempo 参数');
+ok(sidecar.includes('requestId, ok = true, rate, seconds'), 'play-ack 附实际起播秒数与流 id (v619)');
+ok(!audio.includes('killSidecar'), '主进程 BASS 生命周期未恢复 v601 的超时终止逻辑');
+ok(store.includes('this.clock.heardNowMs()') && !store.includes('bassAudiblePositionMs'), '无后续 Available 动态缓冲补偿');
+ok(bridge.includes('onBassPosition') && preload.includes('onBassPosition'), 'v619 轻量 BASS 位置订阅桥接完整');
+ok(store.includes("rel == null || serverRoot === 'external'"), '保留 v611 Songs 外谱面音频路径支持');
+ok(!fs.existsSync(path.join(root, 'native/LazerAudioProbe')) && !fs.existsSync(path.join(root, 'src/osu/clock/bassPosition.ts')), '后续慢放专用探针与补偿代码已移除');
+console.log(failures ? `VERIFIER_V617_FAILED: ${failures}` : 'VERIFIER_V617_ALL_TESTS_PASSED');
+process.exit(failures ? 1 : 0);

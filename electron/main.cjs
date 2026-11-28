@@ -11,7 +11,7 @@ const { createBassAudio } = require("./bassAudio.cjs") // v599
 let win = null
 // v611: 当前显式打开的 Songs 外谱面目录; 仅在未保存确认通过后由渲染端注册
 let externalBeatmapDir = null
-const bassAudio = createBassAudio(app, readSettings, msg => win?.webContents.send("bass-position", msg)) // v604
+const bassAudio = createBassAudio(app, readSettings, msg => win?.webContents.send("bass-position", msg)) // v619
 // 端点逻辑与 vite 中间件共用 (ESM 模块, 由 main() 动态 import 后赋值; createServer 闭包请求时才解引用)
 let handleLocalFs = null
 // v77: 最近难度列表维护 (ESM 纯函数, main() 动态 import)
@@ -463,6 +463,7 @@ const MENU_LABELS = {
   "menu.file": { en: "File", "zh-CN": "文件", "zh-TW": "檔案" },
   "menu.new": { en: "New Beatmap", "zh-CN": "新建谱面", "zh-TW": "新建譜面" },
   "menu.save": { en: "Save", "zh-CN": "保存", "zh-TW": "儲存" },
+  "menu.save_as_difficulty": { en: "Save as New Difficulty...", "zh-CN": "另存为新难度...", "zh-TW": "另存為新難度..." }, // v612
   "menu.open_difficulty": { en: "Open a Difficulty", "zh-CN": "打开一个难度", "zh-TW": "開啟一個難度" },
   "menu.no_beatmap": { en: "(no beatmap loaded)", "zh-CN": "(未加载谱面)", "zh-TW": "(未載入譜面)" },
   "menu.open_recent": { en: "Open Recent Difficulty", "zh-CN": "打开最近的难度", "zh-TW": "開啟最近的難度" },
@@ -569,6 +570,7 @@ function buildMenu() {
       submenu: [
         { label: mT("menu.new"), accelerator: acc("new", "CmdOrCtrl+N"), click: () => send({ type: "new" }) }, // v521
         { label: mT("menu.save"), accelerator: acc("save", "CmdOrCtrl+S"), enabled: !!menuState, click: () => send({ type: "save" }) },
+        { label: mT("menu.save_as_difficulty"), enabled: !!menuState, click: () => send({ type: "save-as-difficulty" }) }, // v612
         { type: "separator" },
         {
           label: mT("menu.open_difficulty"),

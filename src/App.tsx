@@ -47,6 +47,7 @@ import { UpdatePrompt, manualCheckUpdate } from '@/components/UpdatePrompt'; // 
 import { BpmDetectDialog } from '@/components/BpmDetectDialog'; // v508: 测全曲/bookmark 区间 timing
 import { BookmarkHitSoundDialog } from '@/components/BookmarkHitSoundDialog'; // v585
 import { B4ConvertSettingsDialog } from '@/components/B4ConvertSettingsDialog'; // v589
+import { SaveAsDifficultyDialog } from '@/components/SaveAsDifficultyDialog'; // v612
 import { TransformDialog } from '@/components/TransformDialog'; // v209: 旋转/缩放独立窗口
 import { FpsCounter } from '@/components/FpsCounter'; // v220: 右下角帧数显示
 import { SavedFlash } from '@/components/SavedFlash'; // v460: stable 风「地图已保存」中央横条
@@ -171,6 +172,7 @@ export default function App() {
   const [testPlay, setTestPlay] = useState(false); // v287: 测试游玩覆盖层 (F5)
   const testPlayRef = useRef(false); testPlayRef.current = testPlay; // v287: 菜单命令门控用 (effect 空依赖)
   const [showShiftAll, setShowShiftAll] = useState(false); // v156: Timing 菜单「整体平移所有物件的时间...」
+  const [showSaveAs, setShowSaveAs] = useState(false); // v612: 文件菜单「另存为新难度...」
   // 首跑向导完成后自增, 强制重挂载曲库面板 → 用刚保存的配置重新扫描
   // (面板在向导出现前已挂载, 仅靠 setShowLibrary(true) 不会重跑恢复逻辑)
   const [libraryKey, setLibraryKey] = useState(0);
@@ -452,6 +454,7 @@ export default function App() {
       if (cmd.type === 'bpm-detect-song') { store.openBpmDetect(); return; } // v508: 测全曲 timing
       if (cmd.type === 'bpm-detect-bookmark') { store.openBpmDetectBookmark(); return; } // v508: 测当前 bookmark 区间
       if (cmd.type === 'timing-shift-all') { setShowShiftAll(true); return; }
+      if (cmd.type === 'save-as-difficulty') { if (store.beatmap && store.mapSource) setShowSaveAs(true); return; } // v612
       if (cmd.type === 'open-backups') { void store.openBackupFolder(); return; } // v185: 文件菜单「查看备份」
       if (cmd.type === 'reload-map') { void reloadMapRef.current(); return; } // v480: Ctrl+R 菜单命令 → 谱面刷新 (含未保存警告)
       if (cmd.type === 'check-update') { void manualCheckUpdate(); return; } // v493: 关于菜单「检查更新」
@@ -999,6 +1002,7 @@ export default function App() {
       {store.timingPointDialog && <TimingPointDialog />}
       {store.transformDialog && <TransformDialog mode={store.transformDialog} />}{/* v209: 旋转/缩放独立窗口 (编辑菜单 / Ctrl+Shift+R/S) */}
       {showShiftAll && <ShiftAllDialog onClose={() => setShowShiftAll(false)} />}{/* v156 */}
+      {showSaveAs && <SaveAsDifficultyDialog onClose={() => setShowSaveAs(false)} onSaved={() => { setShowSaveAs(false); setTab('edit'); }} />}{/* v612 */}
       <UiLayoutEditor />{/* v524: 自定义控件布局 */}
       {/* v120: 未保存改动提示 (z 层级最高, 盖住曲库等弹窗) */}
       <UnsavedDialog />

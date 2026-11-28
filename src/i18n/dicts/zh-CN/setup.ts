@@ -37,6 +37,15 @@ export const zhCN: Record<string, string> = {
   'setup.approach_rate_hint': '缩圈速度, 实时生效',
   'setup.slider_multiplier': 'SliderMultiplier 滑条速度',
   'setup.slider_tick_rate': 'SliderTickRate 滑条点率',
+  // v612: 另存为新难度
+  'setup.save_as_title': 'Song Setup - 另存为新难度',
+  'setup.save_as_version_required': '请输入难度名。',
+  'setup.save_as_version_same': '新难度名必须与当前难度名不同。',
+  'setup.save_as_file_same': '新文件名会覆盖当前难度，请使用其他难度名。',
+  'setup.save_as_clear_confirm': '要清除所有物件并重新开始么？',
+  'setup.save_as_hint': '当前文件保持不变。另存后可选择是否清除所有物件；两种选择都会跳转到 0:00:000。',
+  'setup.save_as_saving': '保存中…',
+  'setup.save_as_failed': '新难度保存失败。',
   // v480: 改基础滑条速度后的绿线 SV 补偿弹窗
   'setup.sv_comp_title': '同步调整绿线 SV?',
   'setup.sv_comp_body': '基础滑条速度 {from} → {to}。是否将所有绿线的 SV 乘以 {f}, 以保持滑条速度不变?',

@@ -46,8 +46,8 @@ section('store.ts: mapSource + save()');
     assert(!/'store\.save_exported'/.test(dict) && !/'store\.save_saved'/.test(dict), 'v461: 已导出/已保存 译文键已删');
   }
   assert(/lastSave: SaveOutcome \| null/.test(src), 'lastSave 测试挂钩');
-  // v461 适配: v444 起 load() 增加第 6 参 audioKey (音频未变复用解码), 断言同步更新
-  assert(/source: MapSource \| null = null, audioKey: string \| null = null\)/.test(src) && /this\.mapSource = source/.test(src), 'load() 接收来源 (v444: +audioKey)');
+  // v461 适配: v444 增加 audioKey, v521/v600 后续增加 initialDirty/preservePlayback 可选参数
+  assert(/source: MapSource \| null = null, audioKey: string \| null = null, initialDirty = false, preservePlayback = false\)/.test(src) && /this\.mapSource = source/.test(src), 'load() 接收来源 (v444/v521/v600 可选参数)');
 }
 
 section('App.tsx: Ctrl+S + 反馈 UI');

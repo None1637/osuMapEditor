@@ -44,6 +44,13 @@ export function downloadText(fileName: string, text: string): void {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
+/** v612: 另存新难度的独立副本; 清空选择只作用于副本, 原谱面在写入成功前完全不变 */
+export function createDifficultyCopy(bm: Beatmap, clearObjects: boolean): { beatmap: Beatmap; fileName: string } {
+  const beatmap = structuredClone(bm);
+  if (clearObjects) beatmap.hitObjects = [];
+  return { beatmap, fileName: mapFileName(beatmap) };
+}
+
 export interface SaveOutcome {
   route: SaveRoute;
   fileName: string;

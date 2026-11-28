@@ -12,7 +12,7 @@ import { createTempoNode, type TempoNode } from './clock/tempoWorklet';
 import { createRateNode, type RateNode } from './clock/rateWorklet';
 import { parseHitSample, setNumFromGeneral, soundsForHitSound, stemCandidates, planSliderSounds, objectVolume, buildHitSampleRaw, hitSampleFilename, DEFAULT_SAMPLE_STEMS, DEFAULT_SLIDER_STEMS, type SliderSoundPlan, type HitSample } from './clock/hitSounds';
 import { SAMPLE_CONCURRENCY, VoiceLimiter } from './clock/voiceLimiter';
-import { saveBeatmap, mapFileName, type MapSource, type SaveOutcome } from './saveMap';
+import { saveBeatmap, mapFileName, createDifficultyCopy, type MapSource, type SaveOutcome } from './saveMap';
 import { DEFAULT_GROUP, instantiatePattern, loadPatternGroups, loadPatterns, makePattern, newPatternId, savePatternGroups, savePatterns, type StoredPattern } from './patternLibrary';
 import { reportMenuState, reportDirtyState } from './electronMenu';
 import { getElectronAPI } from './electronBridge'; // v185: 谱面备份 IPC
@@ -410,8 +410,11 @@ class EditorStore {
   private bassEndTimer: ReturnType<typeof setTimeout> | null = null;
   private bassUnavailable = false;
   bassActive = false;
-  bassSync: { seconds: number; bufferMs: number; atMs: number } | null = null; // v607: 最新 BASS 位置 (bufferMs 固定为 0)
-  private nativeBassPosition: { seconds: number; atMs: number } | null = null; // v607: 仅真实秒数, 不参与缓冲扣减
+  bassSync: { seconds: number; bufferMs: number; atMs: number } | null = null; // v620: BASS 位置与同点输出缓冲
+  private nativeBassPosition: { seconds: number; bufferMs: number; atMs: number } | null = null;
+  private bassBufferMs: number | null = null;
+  private bassVisualMs: number | null = null;
+  private bassRequestId: number | null = null;
   private clock: AudioClock | null = null;
   private scheduler: HitSoundScheduler | null = null;
   private hitBuffers = new Map<string, AudioBuffer>(); // stem(如 "soft-hitnormal") -> 谱面自定义采样
@@ -513,6 +516,40 @@ class EditorStore {
     }
   }
 
+  /** v612: 另存为新难度 — 新文件写入成功后才切换当前谱面; 媒体与采样复用, 原文件不覆盖 */
+  async saveAsDifficulty(draft: Beatmap, clearObjects: boolean): Promise<boolean> {
+    const source = this.mapSource;
+    if (!this.beatmap || !source) return false;
+    const { beatmap, fileName } = createDifficultyCopy(draft, clearObjects);
+    if (fileName === source.fileName) return false; // UI 已要求不同难度名; 底层仍防误覆盖原文件
+    const target: MapSource = { dir: source.dir, fileName };
+    try {
+      const r = await saveBeatmap(beatmap, target);
+      if (this.playing) this.pause();
+      invalidatePath(); // 副本沿用物件 id, 几何缓存不能跨难度复用
+      this.beatmap = beatmap;
+      this.mapSource = target;
+      this.lastSave = r;
+      this.saveMessage = null;
+      this.selected.clear();
+      this.gridSpacing = null;
+      this.manualCurveType.clear();
+      this.undoStack = []; this.redoStack = [];
+      this.setDirty(false);
+      this.savedFingerprint = this.fingerprint();
+      this.saveFlashSeq++;
+      this.emit();
+      this.seek(0); // 无论是否清空物件, 新难度都跳到 0:00:000
+      void reportMenuState(beatmap, target);
+      void this.backupNow('save', r.text);
+      return true;
+    } catch (e) {
+      this.saveMessage = tNow('store.save_failed', 'Save failed: {error}', { error: e instanceof Error ? e.message : String(e) });
+      this.emit();
+      return false;
+    }
+  }
+
   // v185: 谱面自动备份 — Ctrl+S 后 / 每 10 分钟 (App 定时器) 各备份一次;
   // 主进程写 exe 同目录 backup_beatmaps/<艺术家_歌曲名>/<原名_时间戳>.osu, 内容与上次相同则改名去重
   async backupNow(_trigger: 'save' | 'auto' = 'auto', content?: string): Promise<void> {
@@ -570,9 +607,16 @@ class EditorStore {
 
   constructor() {
     getElectronAPI()?.onBassPosition(msg => {
-      if (!this.bassActive) return;
-      this.nativeBassPosition = { seconds: msg.seconds, atMs: performance.now() };
-      this.bassSync = { ...this.nativeBassPosition, bufferMs: 0 }; // v607: 位置事件不再扣缓冲
+      if (!this.bassActive || this.bassRequestId === null || msg.requestId !== this.bassRequestId || !this.actx || !this.clock) return;
+      // v620: 缓冲每秒校准一次, EMA 只抑制估算波动; 音乐/时间轴/音效统一用可闻位置
+      if (Number.isFinite(msg.bufferMs)) {
+        const next = Math.max(0, msg.bufferMs!);
+        this.bassBufferMs = this.bassBufferMs === null ? next : this.bassBufferMs + (next - this.bassBufferMs) * 0.2;
+      }
+      const bufferMs = this.bassBufferMs ?? 0;
+      this.clock.onStartedAtCtxTime(this.actx.currentTime, msg.seconds * 1000 - bufferMs);
+      this.nativeBassPosition = { seconds: msg.seconds, bufferMs, atMs: performance.now() };
+      this.bassSync = { ...this.nativeBassPosition };
     });
   }
 
@@ -813,11 +857,12 @@ class EditorStore {
     const gen = ++this.bassGen;
     if (this.bassEndTimer) clearTimeout(this.bassEndTimer);
     this.nativeBassPosition = null;
+    this.bassBufferMs = null;
+    this.bassVisualMs = null;
+    this.bassRequestId = null;
     this.bassActive = true;
     const fail = () => {
       if (gen !== this.bassGen) return;
-      // v601: 超时侧车可能随后仍成功起播; 回退前必须无条件停掉, 不能只看 bassActive
-      void api.bassStop();
       this.bassActive = false;
       this.bassUnavailable = true; // 防止侧车缺失时在 pause/play 间无限重试
       if (this.playing) { this.pause(); this.play(); }
@@ -837,10 +882,12 @@ class EditorStore {
       });
       if (!r.ok) fail();
       else if (this.clock && this.actx && typeof r.seconds === 'number') {
-        // v607: 起播位置直接按秒数锚定, 不再扣缓冲 (重复扣减会人为提前声音约 bufferMs×rate)
-        const bufferMs = 0;
-        this.clock.onStartedAtCtxTime(this.actx.currentTime, r.seconds * 1000);
-        this.bassSync = { seconds: r.seconds, bufferMs, atMs: performance.now() };
+        // v620: 起播即锚定可闻位置, 后续 position 继续共用该时间源
+        this.bassRequestId = r.requestId ?? null;
+        this.bassBufferMs = Math.max(0, r.bufferMs ?? 0);
+        this.nativeBassPosition = { seconds: r.seconds, bufferMs: this.bassBufferMs, atMs: performance.now() };
+        this.bassSync = { ...this.nativeBassPosition };
+        this.clock.onStartedAtCtxTime(this.actx.currentTime, r.seconds * 1000 - this.bassBufferMs);
         this.rebuildEventsIfDirty();
         this.scheduler?.resync();
         this.resyncLoops();
@@ -861,6 +908,9 @@ class EditorStore {
     this.bassActive = false;
     this.bassSync = null;
     this.nativeBassPosition = null;
+    this.bassBufferMs = null;
+    this.bassVisualMs = null;
+    this.bassRequestId = null;
   }
 
   // 调试: 最近排程的 hitsound 记录 (排查"音效不对"类问题用, 上限 300 条)
@@ -1175,10 +1225,13 @@ class EditorStore {
       // v261: 恢复播放防闪回 — play() 锚定 20ms 后启动, heardNowMs 再减 outputLatency (~5-40ms),
       // 启动后最初几帧位置比暂停点早几十 ms, 画面瞬间跳回更早内容 (用户反馈); 钳制不低于暂停点,
       // 时钟自然超过后放行 (hitsound 排程走 rawNowMs/ctxTimeForMapTime, 不受此钳制影响)
-      const h = this.bassActive && this.nativeBassPosition
-        ? this.nativeBassPosition.seconds * 1000
-          + (performance.now() - this.nativeBassPosition.atMs) * this.playbackRate
-        : this.clock.heardNowMs(); // v607: BASS 真实位置直接推进, 不再重复扣减输出缓冲
+      let h: number;
+      if (this.bassActive && this.nativeBassPosition) {
+        const p = this.nativeBassPosition;
+        const raw = p.seconds * 1000 - p.bufferMs + (performance.now() - p.atMs) * this.playbackRate; // v620: 统一可闻位置
+        if (this.bassVisualMs === null || raw > this.bassVisualMs) this.bassVisualMs = raw;
+        h = this.bassVisualMs;
+      } else h = this.clock.heardNowMs();
       if (this.resumeFloorMs !== null) {
         if (h < this.resumeFloorMs) return this.resumeFloorMs;
         this.resumeFloorMs = null;
@@ -1517,6 +1570,7 @@ class EditorStore {
         invalidatePath(o.id);
       }
     }
+    this.transformSeq++; // v614: Ctrl+方向键微调同样是离散几何变换
     this.emit();
   }
 
@@ -2220,6 +2274,7 @@ class EditorStore {
     const changed = new Set(fn(objs, c));
     if (this.distanceLock) for (const s of lockDistanceAfterTransform(this.beatmap!, objs)) changed.add(s); // v583
     for (const s of changed) invalidatePath(s.id);
+    this.transformSeq++; // v614: 旋转/镜像/缩放快捷键也需重建拖拽基准
     this.emit();
   }
 
@@ -2388,6 +2443,7 @@ class EditorStore {
       if (o) resnapSliderLength(bm, o, this.beatSnap);
       invalidatePath(id);
     }
+    this.transformSeq++; // v614
     this.emit();
   }
 
@@ -2405,6 +2461,9 @@ class EditorStore {
     this.applyNodeTransform((p, c) => axis === 'h' ? { x: 2 * c.x - p.x, y: p.y } : { x: p.x, y: 2 * c.y - p.y });
   }
 
+  /** v613/v614: 离散几何变换代数 — 画布拖拽据此重建基准, 覆盖反转/旋转/镜像/节点变换与方向键微调 */
+  transformSeq = 0;
+
   /** v75: 反转选区 (lazer Ctrl+G): 多选时间镜像 + 滑条路径反向 + newCombo 时序保持; 单选非滑条无操作; 一次 undo */
   reverseSelected() {
     const bm = this.beatmap;
@@ -2417,6 +2476,7 @@ class EditorStore {
     if (this.distanceLock) for (const s of lockDistanceAfterTransform(bm, objs)) changed.add(s); // v583
     for (const s of changed) invalidatePath(s.id);
     bm.hitObjects.sort((a, b) => a.time - b.time);
+    this.transformSeq++; // v613/v614
     this.emit();
   }
 
@@ -2584,6 +2644,7 @@ class EditorStore {
     const changed = new Set(reflectObjectsAcrossLine(objs, line.p1, line.p2));
     if (this.distanceLock) for (const s of lockDistanceAfterTransform(this.beatmap!, objs)) changed.add(s); // v583
     for (const s of changed) invalidatePath(s.id);
+    this.transformSeq++; // v614
     this.emit();
   }
 
@@ -2937,7 +2998,9 @@ class EditorStore {
 
   pause() {
     if (this.playing && this.audioBuffer && this.clock && !this.htmlAudioActive) { // v509
+      const bassPosition = this.bassActive ? this.positionMs() : null; // v619: 暂停保留 BASS 位置
       this.currentTime = this.clock.onStopped();
+      if (bassPosition !== null) this.currentTime = bassPosition;
       this.scheduler?.setMuted(true);
     } else if (this.playing) {
       this.currentTime = this.positionMs();

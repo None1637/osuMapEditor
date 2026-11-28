@@ -8,7 +8,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const publishExe = path.join(root, 'native/BassAudioSidecar/publish/BassAudioSidecar.exe');
 const exe = process.env.BASS_EXE ?? (fs.existsSync(publishExe) ? publishExe : path.join(root, 'native/BassAudioSidecar/bin/Release/net8.0/BassAudioSidecar.exe'));
 const wavPath = path.join(root, 'verifier/v599/tone.wav');
-const sampleRate = 48000, frames = sampleRate;
+const sampleRate = 48000, frames = sampleRate, testRate = Number(process.env.BASS_TEST_RATE ?? 0.5);
 const dataSize = frames * 4;
 const wav = Buffer.alloc(44 + dataSize);
 wav.write('RIFF', 0); wav.writeUInt32LE(36 + dataSize, 4); wav.write('WAVEfmt ', 8);
@@ -30,9 +30,9 @@ const exit = new Promise(resolve => child.once('exit', resolve));
 try {
   for (let i = 0; i < 50 && !stdout.includes('"ready"'); i++) await sleep(100);
   ok(stdout.includes('"ready"'), `BASS 初始化 (${stdout.trim() || '无 ready 输出'})`);
-  send({ type: 'play', requestId: 123, path: wavPath, offset: 0, rate: 0.5, volume: 0 });
+  send({ type: 'play', requestId: 123, path: wavPath, offset: 0, rate: testRate, volume: 0 });
   for (let i = 0; i < 50 && !stdout.includes('"play-ack"'); i++) await sleep(100);
-  ok(stdout.includes('"play-ack","requestId":123,"ok":true'), `0.5x Tempo 起播并回传 requestId (${stdout.trim()})`);
+  ok(stdout.includes('"play-ack","requestId":123,"ok":true'), `0.5x Tempo 起播并回传流 id (${stdout.trim()})`);
   await sleep(400);
   send({ type: 'position' });
   await sleep(100);

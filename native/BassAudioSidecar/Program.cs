@@ -8,6 +8,10 @@ internal static class Program
 {
     private static int stream;
     private static bool playing;
+    private static int currentRequestId;
+    private static double currentRate = 1;
+    private static double deviceLatencyMs;
+    private static long lastBufferSampleMs = -1000;
     private static readonly object sync = new();
 
     private static void Send(object value)
@@ -27,6 +31,14 @@ internal static class Program
         }
     }
 
+    // v620: 同一位置采样点的实际待播放时长 (谱面 ms), 仅起播和每秒校准调用
+    private static double PendingBufferMs()
+    {
+        var pending = Bass.ChannelGetData(stream, IntPtr.Zero, (int)DataFlags.Available);
+        var bufferedMs = pending > 0 ? Bass.ChannelBytes2Seconds(stream, pending) * 1000 : 0;
+        return Math.Max(0, bufferedMs + deviceLatencyMs * currentRate);
+    }
+
     private static void Play(JsonObject cmd)
     {
         lock (sync)
@@ -41,13 +53,8 @@ internal static class Program
             {
                 var decode = Bass.CreateStream(file, 0, 0, BassFlags.Decode | BassFlags.Unicode);
                 if (decode == 0) throw new InvalidOperationException($"BASS.CreateStream: {Bass.LastError}; exists={File.Exists(file)}; path={file}");
-                stream = BassFx.TempoCreate(decode, BassFlags.FxFreeSource); // 实时输出不能带 Decode; 离线对照探针才需要它
+                stream = BassFx.TempoCreate(decode, BassFlags.FxFreeSource);
                 if (stream == 0) throw new InvalidOperationException($"BASS_FX_TempoCreate: {Bass.LastError}");
-                // v602: 反编译 lazer TrackBass.prepareStream 的实际 Tempo 参数, 不再使用 BASS 默认值
-                Bass.ChannelSetAttribute(stream, ChannelAttribute.TempoUseQuickAlgorithm, 1);
-                Bass.ChannelSetAttribute(stream, ChannelAttribute.TempoOverlapMilliseconds, 4);
-                Bass.ChannelSetAttribute(stream, ChannelAttribute.TempoSequenceMilliseconds, 30);
-                Bass.ChannelSetAttribute(stream, (ChannelAttribute)65559, 1);
                 // lazer PlaybackControl → AdjustableProperty.Tempo: BASS_ATTRIB_TEMPO 为相对百分比, 音高不变。
                 if (!Bass.ChannelSetAttribute(stream, ChannelAttribute.Tempo, (rate - 1) * 100))
                     throw new InvalidOperationException($"BASS_ATTRIB_TEMPO: {Bass.LastError}");
@@ -55,11 +62,12 @@ internal static class Program
                 if (offset > 0 && !Bass.ChannelSetPosition(stream, Bass.ChannelSeconds2Bytes(stream, offset), PositionFlags.Bytes))
                     throw new InvalidOperationException($"BASS.ChannelSetPosition: {Bass.LastError}");
                 if (!Bass.ChannelPlay(stream, false)) throw new InvalidOperationException($"BASS.ChannelPlay: {Bass.LastError}");
+                currentRequestId = requestId;
+                currentRate = rate;
                 playing = true;
-                // v603: 同时回传实际流位置和含设备周期的总输出延迟, 供渲染端按可闻位置重新锚定
+                // v620: 起播即返回实际位置与同点输出缓冲, 统一换算成人耳可闻位置
                 var seconds = Bass.ChannelBytes2Seconds(stream, Bass.ChannelGetPosition(stream, PositionFlags.Bytes));
-                Bass.GetInfo(out var info);
-                Send(new { type = "play-ack", requestId, ok = true, rate, seconds, bufferMs = Bass.PlaybackBufferLength + info.Latency });
+                Send(new { type = "play-ack", requestId, ok = true, rate, seconds, bufferMs = PendingBufferMs() });
             }
             catch (Exception ex)
             {
@@ -74,20 +82,28 @@ internal static class Program
         Console.InputEncoding = new System.Text.UTF8Encoding(false);
         Console.OutputEncoding = new System.Text.UTF8Encoding(false);
         Environment.CurrentDirectory = Path.Combine(AppContext.BaseDirectory, "lib");
-        if (!Bass.Init(-1, 48000, DeviceInitFlags.Latency, IntPtr.Zero))
+        if (!Bass.Init(-1, 48000, DeviceInitFlags.Default, IntPtr.Zero))
         {
             Send(new { type = "init-error", error = $"BASS.Init: {Bass.LastError}" });
             return;
         }
+        Bass.GetInfo(out var deviceInfo);
+        deviceLatencyMs = deviceInfo.Latency;
         Send(new { type = "ready" });
-        // v607: 位置事件只包含真实秒数, 不再重复减缓冲; 50ms 周期足够平滑且避免高频 IPC 卡顿
+        // v620: 50ms 位置更新保持轻量; Available 仅每 1000ms 校准一次实际输出缓冲
         var positionTimer = new Timer(_ =>
         {
             lock (sync)
             {
                 if (!playing || stream == 0) return;
                 var seconds = Bass.ChannelBytes2Seconds(stream, Bass.ChannelGetPosition(stream, PositionFlags.Bytes));
-                Send(new { type = "position", seconds });
+                var now = Environment.TickCount64;
+                if (now - lastBufferSampleMs >= 1000)
+                {
+                    lastBufferSampleMs = now;
+                    Send(new { type = "position", requestId = currentRequestId, seconds, bufferMs = PendingBufferMs() });
+                }
+                else Send(new { type = "position", requestId = currentRequestId, seconds });
             }
         }, null, 0, 50);
         try
@@ -107,7 +123,7 @@ internal static class Program
                             if (stream != 0) Bass.ChannelSetAttribute(stream, ChannelAttribute.Volume, cmd["volume"]!.GetValue<double>());
                             break;
                         case "position":
-                            Send(new { type = "position", playing, seconds = stream == 0 ? 0 : Bass.ChannelBytes2Seconds(stream, Bass.ChannelGetPosition(stream, PositionFlags.Bytes)) });
+                            Send(new { type = "position", requestId = currentRequestId, playing, seconds = stream == 0 ? 0 : Bass.ChannelBytes2Seconds(stream, Bass.ChannelGetPosition(stream, PositionFlags.Bytes)), bufferMs = stream == 0 ? 0 : PendingBufferMs() });
                             break;
                         case "shutdown": FreeStream(); return;
                     }

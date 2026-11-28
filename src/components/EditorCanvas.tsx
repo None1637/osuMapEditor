@@ -2,9 +2,10 @@ import { useEffect, useRef, useCallback } from 'react';
 import { store, useEditor } from '@/osu/store';
 import { getSkin, type Skin } from '@/osu/skin'; // v318: hitcircleSpriteWidth 随光秃幽灵移除 (renderer 内部自用)
 import { renderPlayfield, computeCombos, getSliderPath, invalidatePath, mergedWithPreview, drawDistanceGuideRing, drawPendingSpinner, drawSliderControlPoints } from '@/osu/renderer'; // v259: hover 预览滑条点复用控制点绘制; v308: hover 选中环移除
-import { computePendingPath, deleteSliderPoint, toggleSliderPointRed, resolveSliderCurveType, nearestOnSegment, sliderGeometryLength, snapSliderLength, resnapSliderLength, redPairPartner, isRedPairPoint, altNodeToggleGroup, SliderPath, preserveArcsForBezier, placementLength, snapPlacementTime, spinnerPlacementEnd, BEAT_SNAP_OPTIONS } from '@/osu/sliderPath'; // v319: 插点改 lazer 原位置插入 (旧投影插点函数弃用); v321: BEAT_SNAP_OPTIONS (Ctrl+滚轮循环细分)
+import { computePendingPath, deleteSliderPoint, toggleSliderPointRed, resolveSliderCurveType, nearestOnSegment, sliderGeometryLength, snapSliderLength, resnapSliderLength, redPairPartner, isRedPairPoint, altNodeToggleGroup, preserveArcsForBezier, placementLength, snapPlacementTime, spinnerPlacementEnd, BEAT_SNAP_OPTIONS } from '@/osu/sliderPath'; // v319: 插点改 lazer 原位置插入 (旧投影插点函数弃用); v321: BEAT_SNAP_OPTIONS (Ctrl+滚轮循环细分)
 // v387: bsplineToStableBezier 移出本文件 — 手绘落盘/预览均保留 'B4'; 全图转贝塞尔见 convert/convertB4.ts
 import { objectSnapPoints, snapToNearby, snapDragDelta, sliderTailPoint, type Pt } from '@/osu/objectSnap';
+import { snapshotObjectDragGeometry, rebaseObjectDragAfterTransform } from '@/osu/objectDrag'; // v613
 import { sliderHelperCircle, sliderHelperLines, clipLineToBox, geoHelperSnap, geoHelperSources, geoDistSources, distGuideSnap, geoDragCorrection, GEO_CLIP_BOX, type GeoLine, type GeoCircle } from '@/osu/geometryHelpers';
 import { instantiatePattern } from '@/osu/patternLibrary';
 import { snapToGrid, squareNormals, triangleGrid, type Pt as GridPt } from '@/osu/gridSnap';
@@ -88,7 +89,7 @@ export function EditorCanvas() {
     //   pending: rAF 节流 (同 v264 节点拖拽) — mousemove 只记落点, 帧循环每帧最多 apply+emit 一次;
     //   objs: id→物件 预算 (原 apply 循环逐 id find 是 O(n²))
     deltaX: number; deltaY: number; uniform: boolean; tails: Map<number, Pt>; pending: Pt | null;
-    objs: Map<number, HitObject> } | null>(null);
+    transformSeq: number; lastP: Pt; objs: Map<number, HitObject> } | null>(null); // v613: transformSeq 不一致时重建 orig/tails
   const nodeDragRef = useRef<{ objId: number; pointIndex: number; pairWith: number | null; startX: number; startY: number; moved: boolean; toggleRed: boolean; pending: Pt | null } | null>(null);
   // 框选: 选择工具下空白处按下拖动 (base = 按下时已有选区, Shift 追加)
   const marqueeRef = useRef<{ x0: number; y0: number; x1: number; y1: number; base: number[] } | null>(null);
@@ -1788,15 +1789,9 @@ export function EditorCanvas() {
       const objs = new Map([...store.selected].map(id => [id, bm.hitObjects.find(x => x.id === id)!] as const));
       dragRef.current = {
         ids: [...store.selected], startX: p.x, startY: p.y, moved: false,
-        deltaX: 0, deltaY: 0, uniform: true, pending: null, objs,
-        orig: new Map([...objs].map(([id, o]) =>
-          [id, { x: o.x, y: o.y, curve: o.curvePoints?.map(c => ({ ...c })) }])),
-        // v341: 拖拽起点一次性预算滑条尾点 (吸附试探/F04 界内钳制每 mousemove 共用, 不再逐帧 new SliderPath)
-        tails: new Map([...objs].map(([id, o]) => {
-          if (o.type !== 'slider' || !o.curvePoints?.length) return [id, null] as const;
-          const path = new SliderPath(o.curveType ?? 'L', [{ x: o.x, y: o.y }, ...o.curvePoints], o.length ?? 100);
-          return [id, path.positionAt((o.slides ?? 1) % 2 === 0 ? 0 : (o.length ?? path.totalLength))] as const;
-        }).filter(([, t]) => t !== null) as [number, Pt][]),
+        deltaX: 0, deltaY: 0, uniform: true, pending: null, objs, transformSeq: store.transformSeq, lastP: p,
+        // v341/v613: 拖拽起点一次性预算几何; Ctrl+G 后也复用同一快照函数重建
+        ...snapshotObjectDragGeometry(objs),
       };
     }
     return true;
@@ -2461,6 +2456,12 @@ export function EditorCanvas() {
     const bm = store.beatmap;
     const d = dragRef.current;
     if (!d || !bm) return;
+    // v613/v614: 拖拽中反转/旋转/镜像/微调已改变真实物件 — 以变换后几何和最后已应用指针重建基准,
+    //   再从最后指针应用当前增量; 不用变换前 orig+delta 覆盖新形状, 也无需额外移动一次才继续拖动
+    if (d.transformSeq !== store.transformSeq) {
+      rebaseObjectDragAfterTransform(d, d.lastP, store.transformSeq, d.objs);
+      if (p.x === d.startX && p.y === d.startY) return;
+    }
     const __mt0 = performance.now(); // v341 调试分段
     let dx = Math.round(p.x - d.startX), dy = Math.round(p.y - d.startY);
     // v381: 起始移动死区可选 — 开 = 2px (v233 起现状); 关 = 1px (v386: 菜单栏「设置」菜单; 仅物件/note 拖拽,
@@ -2580,6 +2581,7 @@ export function EditorCanvas() {
     }
     // v145: 拖动中原地改坐标不经任何 emit, React 面板不刷新 — 通知选区订阅者 (间距面板实时更新)
     if (d.moved) store.emitSelection();
+    d.lastP = p; // v613: 只记录已应用帧指针; mousemove 的 pending 不能提前覆盖反转重定位基准
     { // v341 调试分段
       const w = window as unknown as { __perfMove?: number[] };
       const a = (w.__perfMove ??= []); a.push(performance.now() - __mt0); if (a.length > 900) a.splice(0, a.length - 900);

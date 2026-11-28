@@ -82,11 +82,11 @@ export interface ElectronAPI {
   /** v493: 系统浏览器打开 https 链接 (确认更新后打开 release 页) */
   openExternal(url: string): Promise<boolean>;
   /** v599: 原生 BASS Tempo 播放; ok=false 时调用方回退 Web Audio */
-  bassPlay(payload: BassPlayPayload): Promise<{ ok: boolean; error?: string; seconds?: number; bufferMs?: number }>;
+  bassPlay(payload: BassPlayPayload): Promise<{ ok: boolean; error?: string; requestId?: number; seconds?: number; bufferMs?: number }>;
   bassStop(): Promise<boolean>;
   bassVolume(value: number): Promise<boolean>;
-  /** v604/v607: 订阅原生 BASS 实际播放位置 (不再重复扣减缓冲) */
-  onBassPosition(cb: (msg: { seconds: number; bufferMs?: number }) => void): () => void;
+  /** v619/v620: BASS 时间源与实际输出缓冲; requestId 用于隔离旧流 */
+  onBassPosition(cb: (msg: { requestId?: number; seconds: number; bufferMs?: number }) => void): () => void;
 }
 
 export interface BassPlayPayload {
@@ -151,6 +151,7 @@ export interface ElectronMenuState {
 export type ElectronMenuCommand =
   | { type: 'new' } // v521: 新建谱面
   | { type: 'save' }
+  | { type: 'save-as-difficulty' } // v612
   | { type: 'open'; folderRel: string; file: string; root?: 'songs' | 'external'; folderAbs?: string | null }
   | { type: 'timing-set-meter'; meter: number }
   | { type: 'timing-toggle-metronome' }
